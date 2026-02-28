@@ -13,7 +13,7 @@
 
 - **语言**: Python 3.12
 - **包管理**: uv
-- **LLM 引擎**: vLLM (Qwen2.5:7b-instruct)
+- **LLM 引擎**: sglang (Qwen/Qwen3.5-35B-A3B)
 - **分布式计算**: PySpark
 - **图数据库**: Neo4j
 - **API 框架**: FastAPI + Pydantic
@@ -32,7 +32,7 @@
 # 安装依赖
 uv sync
 
-# 启动 vLLM 服务器
+# 启动 sglang 服务器
 docker compose up -d
 
 # 下载 EDGAR 数据
@@ -64,7 +64,7 @@ FinText-LLM/
 │   ├── data/
 │   │   └── loader.py       # EDGAR filing 加载器
 │   ├── llm/
-│   │   └── client.py       # vLLM 风险提取客户端
+│   │   └── client.py       # sglang 风险提取客户端
 │   └── utils/
 │       └── download_edgar_2020.py
 ├── docker-compose.yml

@@ -13,7 +13,7 @@ SEC EDGAR filing analysis system using local LLM + Spark + Neo4j
 
 - **Language**: Python 3.12
 - **Package Manager**: uv
-- **LLM Engine**: vLLM (Qwen2.5:7b-instruct)
+- **LLM Engine**: sglang (Qwen/Qwen3.5-35B-A3B)
 - **Distributed Compute**: PySpark
 - **Graph Database**: Neo4j
 - **API Framework**: FastAPI + Pydantic
@@ -32,7 +32,7 @@ SEC EDGAR filing analysis system using local LLM + Spark + Neo4j
 # Install dependencies
 uv sync
 
-# Start vLLM server
+# Start sglang server
 docker compose up -d
 
 # Download EDGAR data
@@ -64,7 +64,7 @@ FinText-LLM/
 │   ├── data/
 │   │   └── loader.py       # EDGAR filing loader
 │   ├── llm/
-│   │   └── client.py       # vLLM client for risk extraction
+│   │   └── client.py       # sglang client for risk extraction
 │   └── utils/
 │       └── download_edgar_2020.py
 ├── docker-compose.yml
