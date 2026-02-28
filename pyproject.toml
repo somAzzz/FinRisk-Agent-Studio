@@ -1,0 +1,51 @@
+[project]
+name = "FinText-LLM"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.0, <3.13"
+dependencies = [
+    "beautifulsoup4>=4.12.0",
+    "datasets>=4.6.0",
+    "duckdb>=1.1.0",
+    "fastapi>=0.132.0",
+    "lxml>=6.0.2",
+    "numpy>=2.4.2",
+    "openai>=1.0.0",
+    "pandas>=3.0.1",
+    "playwright>=1.40.0",
+    "pyspark>=4.1.1",
+    "requests>=2.32.5",
+    "scikit-learn>=1.8.0",
+    "tenacity>=9.1.4",
+    "uvicorn>=0.41.0",
+    "yfinance>=0.2.40",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# 开启的规则集
+# E, W: Pycodestyle (基本错误和警告)
+# F: Pyflakes (逻辑错误)
+# I: isort (导入排序)
+# B: flake8-bugbear (潜在 bug)
+# PL: Pylint (Pylint 的大部分规则！)
+select = ["E", "F", "I", "UP", "N", "B", "A", "C4", "SIM", "RUF", "PL"]
+
+
+ignore = []
+
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.2",
+]

@@ -1,0 +1,31 @@
+env_file:
+  - .env
+
+services:
+  sglang:
+    image: lmsysorg/sglang:latest-cu130-runtime
+    ports:
+      - "30000:30000"
+    volumes:
+      # This maps your host cache to the container's default Hugging Face cache path
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - CUDA_DEVICE_ORDER=PCI_BUS_ID
+      - CUDA_VISIBLE_DEVICES=0
+    ipc: host
+    shm_size: '32gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: >
+      python3 -m sglang.launch_server 
+      --model-path Qwen/Qwen3.5-35B-A3B 
+      --host 0.0.0.0 
+      --port 30000
+      --mem-fraction-static 0.9
+      --attention-backend triton
