@@ -288,6 +288,7 @@ class MarketExplorer:
         return {
             "thought": action.thought,
             "action": action.action,
+            "query": action.query,
             "url": action.url,
             "selector": action.selector,
         }
@@ -305,9 +306,23 @@ class MarketExplorer:
                 return True
         return False
 
+    def _build_search_url(self, query: str) *********REMOVED********* str:
+        """Build a search URL from a query."""
+        # Try Yahoo Finance news search
+        encoded_query = query.replace(" ", "+")
+        return f"https://finance.yahoo.com/news/?p={encoded_query}"
+
     async def _execute_action(self, action: dict) *********REMOVED********* bool:
         """Execute an action. Returns True if successful."""
         action_type = action.get("action", "")
+
+        if action_type == "search":
+            query = action.get("query", "")
+            if query:
+                url = self._build_search_url(query)
+                result = await self.wrapper.navigate(url)
+                return result.get("success", False)
+            return False
 
         if action_type == "navigate":
             url = action.get("url", "")

@@ -9,11 +9,21 @@ class BrowserAction(BaseModel):
     """Structured output for browser agent actions."""
 
     thought: str = Field(description="Brief reasoning for this action")
-    action: Literal["navigate", "click", "scroll", "stop"] = Field(
-        description="The action to perform"
+    action: Literal["search", "navigate", "click", "scroll", "stop"] = Field(
+        description="The action to perform: search for a topic, navigate to URL, click element, scroll, or stop"
     )
-    url: str | None = Field(default=None, description="URL for navigate action")
-    selector: str | None = Field(default=None, description="Selector for click action")
+    query: str | None = Field(
+        default=None,
+        description="Search query for 'search' action (e.g., 'Intel stock Middle East war impact')"
+    )
+    url: str | None = Field(
+        default=None,
+        description="URL for navigate action (e.g., 'https://finance.yahoo.com/q?s=INTC')"
+    )
+    selector: str | None = Field(
+        default=None,
+        description="Selector for click action (e.g., 'text:Learn more' or '@e5')"
+    )
 
 
 class PageSummary(BaseModel):
@@ -52,7 +62,20 @@ Visited URLs: {visited_str}
 Recent findings: {findings_str}
 AVOID these URLs (they trigger verification): {blocked_str}
 
-You are a web browsing assistant. Focus on financial news and earnings.
+You are a web browsing assistant exploring financial news.
+
+Suggested search URLs:
+- https://finance.yahoo.com/news/?p=YOUR_SEARCH_QUERY
+- https://www.cnbc.com/search/?query=YOUR_SEARCH_QUERY
+- https://www.reuters.com/search/news/?blob=YOUR_SEARCH_QUERY
+
+Rules:
+- Start by SEARCHING for your topic
+- Then NAVIGATE to interesting URLs from search results
+- CLICK on relevant article links
+- SCROLL to see more content
+- STOP when you have gathered enough information
+
 Skip verification/CAPTCHA pages - they are blocked automatically."""
 
         try:
