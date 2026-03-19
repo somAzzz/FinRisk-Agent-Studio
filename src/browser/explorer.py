@@ -308,9 +308,9 @@ class MarketExplorer:
 
     def _build_search_url(self, query: str) *********REMOVED********* str:
         """Build a search URL from a query."""
-        # Try Yahoo Finance news search
+        # Use CNBC search (Yahoo Finance redirects to consent.yahoo.com)
         encoded_query = query.replace(" ", "+")
-        return f"https://finance.yahoo.com/news/?p={encoded_query}"
+        return f"https://www.cnbc.com/search/?query={encoded_query}"
 
     async def _execute_action(self, action: dict) *********REMOVED********* bool:
         """Execute an action. Returns True if successful."""

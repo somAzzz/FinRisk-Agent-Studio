@@ -65,7 +65,6 @@ AVOID these URLs (they trigger verification): {blocked_str}
 You are a web browsing assistant exploring financial news.
 
 Suggested search URLs:
-- https://finance.yahoo.com/news/?p=YOUR_SEARCH_QUERY
 - https://www.cnbc.com/search/?query=YOUR_SEARCH_QUERY
 - https://www.reuters.com/search/news/?blob=YOUR_SEARCH_QUERY
 
