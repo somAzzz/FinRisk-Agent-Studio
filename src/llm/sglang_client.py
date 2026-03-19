@@ -31,19 +31,29 @@ class SGLangClient:
             api_key="EMPTY",
         )
 
+    # URLs that commonly trigger verification - LLM should avoid these
+    BLOCKED_URLS = [
+        "consent.yahoo.com",
+        "google.com/sorry",
+        "investor.apple.com",
+    ]
+
     def decide_action(
         self, goal: str, visited_urls: list[str], recent_findings: list[tuple[str, str]]
     ) *********REMOVED********* BrowserAction | None:
         """Decide next browser action."""
         visited_str = ", ".join(visited_urls[:5])
         findings_str = "; ".join([f"{s} ({u})" for s, u in recent_findings[-3:]])
+        blocked_str = ", ".join(self.BLOCKED_URLS)
 
         prompt = f"""Goal: {goal}
 
 Visited URLs: {visited_str}
 Recent findings: {findings_str}
+AVOID these URLs (they trigger verification): {blocked_str}
 
-You are a web browsing assistant. Focus on financial news and earnings."""
+You are a web browsing assistant. Focus on financial news and earnings.
+Skip verification/CAPTCHA pages - they are blocked automatically."""
 
         try:
             completion = self.client.beta.chat.completions.parse(

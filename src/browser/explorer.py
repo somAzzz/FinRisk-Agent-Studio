@@ -43,6 +43,39 @@ CONSENT_PATTERNS = [
     r"agree",
 ]
 
+# Verification/CAPTCHA page patterns - these should be skipped
+VERIFICATION_PATTERNS = [
+    r"datadome",
+    r"recaptcha",
+    r"hcaptcha",
+    r"cloudflare",
+    r"are you human",
+    r"verify you",
+    r"captcha",
+    r"security check",
+    r"access denied",
+    r"blocked",
+    r"403 forbidden",
+    r"ray id",
+    r"cloudflare security",
+    r"DDOS-GUARD",
+]
+
+# URLs that commonly trigger verification
+VERIFICATION_DOMAINS = [
+    "consent.yahoo.com",
+    "google.com/sorry",
+    "investor.apple.com",
+]
+
+
+class PageType:
+    """Classification of page types during exploration."""
+    CONTENT = "content"
+    CONSENT = "consent"
+    VERIFICATION = "verification"
+    ERROR = "error"
+
 
 class MarketExplorer:
     # Default financial news sources
@@ -86,11 +119,53 @@ class MarketExplorer:
             return "regulatory"
         return "other"
 
+    def _classify_page(self, url: str, content: str) *********REMOVED********* PageType:
+        """Classify what type of page this is."""
+        url_lower = url.lower()
+        content_lower = content.lower()
+
+        # Check URL against known verification domains
+        for domain in VERIFICATION_DOMAINS:
+            if domain in url_lower:
+                return PageType.VERIFICATION
+
+        # Check content for verification patterns
+        verification_count = sum(
+            1 for p in VERIFICATION_PATTERNS if re.search(p, content_lower)
+        )
+        if verification_count >= 1:
+            return PageType.VERIFICATION
+
+        # Check for consent patterns
+        consent_count = sum(
+            1 for p in CONSENT_PATTERNS if re.search(p, content_lower)
+        )
+        if consent_count >= 2:
+            return PageType.CONSENT
+
+        return PageType.CONTENT
+
     def _is_consent_page(self, content: str) *********REMOVED********* bool:
         """Check if page content is a consent/cookie dialog."""
         content_lower = content.lower()
         pattern_count = sum(1 for p in CONSENT_PATTERNS if re.search(p, content_lower))
         return pattern_count >= 2
+
+    def _is_verification_page(self, url: str, content: str) *********REMOVED********* bool:
+        """Check if page is a verification/CAPTCHA page."""
+        url_lower = url.lower()
+        content_lower = content.lower()
+
+        # Check URL domains
+        for domain in VERIFICATION_DOMAINS:
+            if domain in url_lower:
+                return True
+
+        # Check content patterns
+        verification_count = sum(
+            1 for p in VERIFICATION_PATTERNS if re.search(p, content_lower)
+        )
+        return verification_count >= 1
 
     async def _handle_consent_page(self) *********REMOVED********* bool:
         """Attempt to handle consent/cookie dialogs. Returns True if handled."""
@@ -129,11 +204,6 @@ class MarketExplorer:
 
     async def _process_page(self, state: ExplorationState) *********REMOVED********* bool:
         """Process current page and extract findings. Returns True if new finding."""
-        # Handle consent page if present
-        consent_handled = await self._handle_consent_page()
-        if consent_handled:
-            await asyncio.sleep(0.5)
-
         snapshot_result = self.wrapper.get_snapshot()
         if not snapshot_result["success"]:
             return False
@@ -146,8 +216,28 @@ class MarketExplorer:
         if url and url not in state.visited_urls:
             state.visited_urls.add(url)
 
-        # Skip consent/cookie pages after handling
-        if self._is_consent_page(content) and consent_handled:
+        # Classify the page
+        page_type = self._classify_page(url, content)
+
+        if page_type == PageType.VERIFICATION:
+            # Skip verification pages
+            return False
+
+        if page_type == PageType.CONSENT:
+            # Try to handle consent page
+            consent_handled = await self._handle_consent_page()
+            if consent_handled:
+                await asyncio.sleep(1)
+                # Try to get fresh content after dismissing consent
+                fresh_snapshot = self.wrapper.get_snapshot()
+                if fresh_snapshot.get("success"):
+                    content = fresh_snapshot.get("content", "")
+                    # Re-classify
+                    if not self._is_consent_page(content):
+                        page_type = PageType.CONTENT
+
+        # Process content if we have meaningful content
+        if len(content) < 100:
             return False
 
         content_hash = self._compute_hash(content)
@@ -202,6 +292,19 @@ class MarketExplorer:
             "selector": action.selector,
         }
 
+    def _is_blocked_url(self, url: str) *********REMOVED********* bool:
+        """Check if URL is in the blocked list."""
+        url_lower = url.lower()
+        blocked_domains = [
+            "consent.yahoo.com",
+            "google.com/sorry",
+            "investor.apple.com",
+        ]
+        for domain in blocked_domains:
+            if domain in url_lower:
+                return True
+        return False
+
     async def _execute_action(self, action: dict) *********REMOVED********* bool:
         """Execute an action. Returns True if successful."""
         action_type = action.get("action", "")
@@ -209,6 +312,9 @@ class MarketExplorer:
         if action_type == "navigate":
             url = action.get("url", "")
             if url:
+                # Check if URL is blocked
+                if self._is_blocked_url(url):
+                    return False
                 result = await self.wrapper.navigate(url)
                 return result.get("success", False)
 
