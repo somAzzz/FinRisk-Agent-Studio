@@ -84,6 +84,43 @@ class ExplorationState:
     current_step: int
     last_discovery: datetime
 
+**LLM Client Extension**
+
+The existing `EdgarLLMClient` only has `extract_risks()`. Extend it with a general-purpose method:
+
+```python
+class EdgarLLMClient:
+    # ... existing methods ...
+
+    def complete(
+        self,
+        prompt: str,
+        system: str | None = None,
+        max_tokens: int = 2048,
+    ) *********REMOVED********* str:
+        """General-purpose chat completion for browser exploration."""
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.3,  # Higher for exploration
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content
+
+    def compute_embedding(self, text: str) *********REMOVED********* list[float]:
+        """Compute text embedding for novelty detection.
+
+        Uses sentence-transformers/all-MiniLM-L6-v2 for fast, local embedding.
+        """
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        return model.encode(text).tolist()
+```
+
 class MarketExplorer:
     def __init__(self, llm_client: EdgarLLMClient, wrapper: BrowserWrapper): ...
 
@@ -140,8 +177,27 @@ All commands return JSON: `{"success": bool, "error": str|null, "data": {...}}`
 
 **Technical definition:** A discovery is considered "new" if:
 
-1. Content hash (SHA256 of page text) differs from any previously recorded hash
-2. LLM-generated summary contains information not in recent findings (semantic similarity < 0.85 via embedding)
+1. Content hash (SHA256 of extracted text from page) differs from any previously recorded hash
+2. LLM-generated summary contains information not in recent findings (cosine similarity < 0.85)
+
+**Novelty Detection Flow:**
+```
+1. Page content obtained via get_snapshot()
+2. Text extracted from accessibility tree
+3. Hash computed (SHA256 of truncated text, first 10KB) for exact dedup
+4. If hash is new → compute embedding via compute_embedding()
+5. If recent embeddings exist → compute cosine similarity
+6. If similarity < 0.85 → marked as NEW finding
+7. If hash seen before → SKIP (no new content)
+```
+
+**Cosine similarity:**
+```python
+import numpy as np
+
+def cosine_similarity(a: list[float], b: list[float]) *********REMOVED********* float:
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+```
 
 **Stopping conditions (any triggers stop):**
 - Step limit reached (max_steps, default: 20)
@@ -159,7 +215,31 @@ All commands return JSON: `{"success": bool, "error": str|null, "data": {...}}`
 | User non-response at checkpoint | Timeout 60s, default to stop |
 | Chrome orphan process | Kill stale processes on init, health check on start |
 | Anti-bot (403, CAPTCHA) | Skip URL, log warning, do not retry same path |
-| Sensitive data in snapshot | Filter before LLM: redact SSN, credit card patterns |
+| Chrome fails to start | Log fatal error, raise `BrowserError`, do not continue |
+| agent-browser binary not found | Health check on init, clear error message with install instructions |
+| Malformed JSON in CLI output | Retry once, then fail with parse error |
+| Screenshot command fails (disk full) | Log error, return `BrowserResult` with `screenshot: None` |
+| Page never loads (infinite spinner) | `wait_for` has max timeout, then fail |
+| Non-http(s) URL passed to navigate | Validate URL scheme, raise `ValueError` |
+
+**Sensitive Data Filter (regex patterns):**
+```python
+import re
+
+SENSITIVE_PATTERNS = [
+    (r"\b\d{3}-\d{2}-\d{4}\b", "[SSN]"),          # SSN
+    (r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "[CARD]"),  # Credit card
+    (r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[EMAIL]"),  # Email
+    (r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b", "[PHONE]"),  # Phone
+    (r"sk-[A-Za-z0-9]{48}", "[API_KEY]"),           # OpenAI API key
+    (r"xox[baprs]-[A-Za-z0-9]{10,}", "[TOKEN]"),    # Slack token
+]
+
+def sanitize_snapshot(text: str) *********REMOVED********* str:
+    for pattern, replacement in SENSITIVE_PATTERNS:
+        text = re.sub(pattern, replacement, text)
+    return text
+```
 
 ## Configuration
 
@@ -195,6 +275,42 @@ FinText-LLM/
 - `agent-browser` CLI (`pip install agent-browser` or binary)
 - Chrome for Testing (auto-downloaded by agent-browser)
 - Python 3.12+, standard library + `subprocess`, `asyncio`, `hashlib`
+- `sentence-transformers` (for embeddings)
+- `numpy` (for cosine similarity)
+
+## Findings Export Schema
+
+```python
+{
+    "goal": "Explore Apple earnings and industry news",
+    "findings": [
+        {
+            "url": "https://finance.yahoo.com/news/apple-q4-earnings-123",
+            "content_hash": "sha256:e3b0c44298fc1c149afb4c8996fb92427ae41e4649...",
+            "summary": "Apple reported Q4 earnings beating estimates with strong iPhone sales...",
+            "timestamp": "2026-03-19T10:30:00Z",
+            "source_type": "financial"  # news | financial | regulatory | other
+        }
+    ],
+    "visited_urls": [
+        "https://finance.yahoo.com",
+        "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&AAPL"
+    ],
+    "total_steps": 12,
+    "stopped_reason": "max_steps",  # max_steps | user_stop | no_new_findings | error
+    "final_state": {
+        "new_findings_count": 5,
+        "unique_domains": 3,
+        "error_rate": 0.08
+    }
+}
+```
+
+## Rate Limiting
+
+- Random delay between operations: 1-3 seconds (uniform random)
+- Respect `robots.txt` when discoverable (check before visiting domain)
+- Exponential backoff on 429/503 responses: 2^x seconds, max 60s, max 3 retries
 
 ## Success Criteria (Measurable)
 
