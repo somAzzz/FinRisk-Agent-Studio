@@ -18,6 +18,7 @@ dependencies = [
     "pyspark>=4.1.1",
     "requests>=2.32.5",
     "scikit-learn>=1.8.0",
+    "sentence-transformers>=3.0.0",
     "tenacity>=9.1.4",
     "uvicorn>=0.41.0",
     "yfinance>=0.2.40",

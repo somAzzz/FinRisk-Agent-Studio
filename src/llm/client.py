@@ -187,3 +187,33 @@ Text: {truncated_text}
                 result["avg_severity"] = round(sum(severities) / len(severities), 2)
 
         return result
+
+    def complete(
+        self,
+        prompt: str,
+        system: str | None = None,
+        max_tokens: int = 2048,
+        temperature: float = 0.3,
+    ) *********REMOVED********* str:
+        """General-purpose chat completion for browser exploration."""
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content
+
+    def compute_embedding(self, text: str) *********REMOVED********* list[float]:
+        """Compute text embedding for novelty detection.
+
+        Uses sentence-transformers/all-MiniLM-L6-v2 for fast, local embedding.
+        """
+        from sentence_transformers import SentenceTransformer
+
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        return model.encode(text).tolist()
