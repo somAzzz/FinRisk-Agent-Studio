@@ -78,29 +78,87 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
-    fetched_at: str | None = None  # When the page was fetched
+    fetched_at: str = ""  # When the page was fetched (always set on success)
 ```
+
+Note: `fetched_at` is non-optional in the dataclass but will be empty string for failed fetches.
 
 ### 4. web_search Function Update
 
 Modify `src/tools/web_search.py`:
 
 ```python
-def web_search(query: str, max_results: int = 5, time_range: Literal["d", "w", "m", "y", None] = None) *********REMOVED********* str:
-    """Execute web search with optional time filter.
+def _extract_published_date(result: dict) *********REMOVED********* str | None:
+    """Extract publication date from DDGS result.
 
-    Args:
-        query: Search query (English recommended)
-        max_results: Number of results to return (default 5)
-        time_range: Time filter - 'd'=day, 'w'=week, 'm'=month, 'y'=year
-
-    Returns:
-        Formatted string with search results including publication dates
+    Try to extract date from:
+    1. result['date'] if present
+    2. Regex match in result['body'] for date patterns like "Mar 15, 2026"
+    3. Return None if no date found
     """
-    # Pass time_range to DDGS if provided
-    with DDGS() as ddgs:
-        results = list(ddgs.text(query, max_results=max_results, timelimit=time_range))
-        return format_results(results)
+    import re
+    from datetime import datetime
+
+    # Try direct date field first
+    if result.get("date"):
+        return result["date"]
+
+    # Try regex patterns in body
+    date_patterns = [
+        r"(\w{3,9}\s+\d{1,2},?\s+\d{4})",  # "March 15, 2026"
+        r"(\d{4}-\d{2}-\d{2})",  # "2026-03-15"
+        r"(\d{1,2}\s+\w{3,9}\s+\d{4})",  # "15 March 2026"
+    ]
+    for pattern in date_patterns:
+        match = re.search(pattern, result.get("body", ""))
+        if match:
+            try:
+                # Parse and normalize to YYYY-MM-DD
+                parsed = datetime.strptime(match.group(1), "%B %d, %Y")
+                return parsed.strftime("%Y-%m-%d")
+            except ValueError:
+                try:
+                    parsed = datetime.strptime(match.group(1), "%Y-%m-%d")
+                    return parsed.strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
+    return None
+
+
+def format_results(results: list[dict]) *********REMOVED********* str:
+    """Format search results with publication dates."""
+    if not results:
+        return "No results found."
+
+    formatted = []
+    for i, r in enumerate(results, 1):
+        published = _extract_published_date(r)
+        date_str = f" ({published})" if published else ""
+        formatted.append(
+            f"Source [{i}]: {r['title']}{date_str}\n"
+            f"URL: {r['href']}\n"
+            f"Summary: {r['body'][:300]}"
+        )
+    return "\n\n".join(formatted)
+
+
+def web_search(
+    query: str,
+    max_results: int = 5,
+    time_range: Literal["d", "w", "m", "y", None] = None,
+) *********REMOVED********* str:
+    """Execute web search with optional time filter."""
+    try:
+        from ddgs import DDGS
+    except ImportError:
+        from duckduckgo_search import DDGS
+
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results, timelimit=time_range))
+            return format_results(results)
+    except Exception as e:
+        return f"Search failed: {str(e)}"
 ```
 
 ### 5. Router Prompt Update
@@ -189,4 +247,5 @@ If no date found, `published_at` remains `None`.
 - time_range only affects web_search (web_fetch gets fetched_at for context)
 - LLM decides time_range based on query temporal context
 - published_at may be None if date extraction fails
-- fetched_at is always set for successful fetches
+- fetched_at is set as empty string for failed fetches, ISO timestamp for success
+- Router validates time_range before passing to web_search (ignore invalid values)
