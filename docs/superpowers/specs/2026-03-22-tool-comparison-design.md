@@ -10,9 +10,11 @@ Create an independent comparison test tool `scripts/compare_tools.py` that suppo
 
 | Mode | Command | Description |
 |------|---------|-------------|
-| Single query | `--query <text>` or `--url <url>` | Test single query or URL |
+| Single query | `--tool <name> --query <text>` or `--tool <name> --url <url>` | Test single query or URL |
 | Batch file | `--batch <file.json>` | Read multiple test cases from JSON file |
 | Interactive | `--repl` | REPL mode, real-time input testing |
+
+Where `<name>` is `web_search` or `web_fetch`.
 
 ### 2. Tool Calling Layer
 
@@ -54,13 +56,13 @@ Generates dual-format reports:
 | Dimension | Metric | Calculation |
 |-----------|--------|-------------|
 | Completeness | Key info coverage | `expected_keywords` hit rate in output |
-| Accuracy | Accuracy score | Sentence-by-sentence similarity to `expected_content` |
+| Accuracy | Accuracy score | Cosine similarity between output and `expected_content` embeddings |
 | Speed | Response time | Average across runs (exclude cold start) |
 | Error rate | Failure rate | failures / total |
-| RAG friendliness | Structure score | markdown rate, paragraph count, code block detection |
-| Edge cases | Blacklist/truncation | Verify blacklisted domains are rejected; truncation at reasonable boundaries |
+| RAG friendliness | Structure score | Markdown-formatted lines / total lines, paragraph count, code block presence |
+| Edge cases | Blacklist/truncation | Verify blacklisted domains are rejected; truncation at word boundary within 10% of limit |
 
-**Note:** All metrics use test-case-level `expected_keywords` or `expected_content` fields defined in batch file. No external authoritative source required.
+**Note:** All metrics use test-case-level `expected_keywords` or `expected_content` fields defined in batch file.
 
 ## Data Flow
 
@@ -76,7 +78,10 @@ TestCase Creator
     ↓                    ↓
 ┌─────────────────────────────────────┐
 │           Result Comparator           │
-│  (item-by-item compare + score + issue detection)          │
+│  Compare:                                       │
+│  - web_search: each result entry               │
+│  - web_fetch: each paragraph/text block         │
+│  + score + issue detection                     │
 └─────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────┐
@@ -106,10 +111,10 @@ docs/superpowers/specs/
 
 ```bash
 # Single web_search comparison
-python scripts/compare_tools.py --tool web-search --query "Apple Q4 2024 earnings"
+python scripts/compare_tools.py --tool web_search --query "Apple Q4 2024 earnings"
 
 # Single web_fetch comparison
-python scripts/compare_tools.py --tool web-fetch --url "https://example.com/article"
+python scripts/compare_tools.py --tool web_fetch --url "https://example.com/article"
 
 # Batch testing
 python scripts/compare_tools.py --batch test_cases.json
