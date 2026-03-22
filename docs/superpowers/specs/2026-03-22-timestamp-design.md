@@ -44,7 +44,7 @@ class ToolChoice(BaseModel):
     url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
     time_range: Literal["d", "w", "m", "y", None] = Field(
         default=None,
-        description="Time filter for web_search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency."
+        description="Time filter for web_search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
     )
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
@@ -125,21 +125,56 @@ def _extract_published_date(result: dict) *********REMOVED********* str | None:
     return None
 
 
-def format_results(results: list[dict]) *********REMOVED********* str:
-    """Format search results with publication dates."""
-    if not results:
-        return "No results found."
+def _format_search_output(
+    results: list[dict],
+    query: str,
+    time_range: Literal["d", "w", "m", "y", None] = None,
+) *********REMOVED********* str:
+    """Format search results as JSON Envelope for reliable LLM parsing.
 
-    formatted = []
-    for i, r in enumerate(results, 1):
-        published = _extract_published_date(r)
-        date_str = f" ({published})" if published else ""
-        formatted.append(
-            f"Source [{i}]: {r['title']}{date_str}\n"
-            f"URL: {r['href']}\n"
-            f"Summary: {r['body'][:300]}"
-        )
-    return "\n\n".join(formatted)
+    JSON Envelope structure:
+    {
+        "retrieved_at": "2026-03-22T14:30:00Z",  # UTC timestamp
+        "query_used": "...",
+        "time_range_applied": "m" | null,
+        "results": [
+            {"title": "...", "url": "...", "published_at": "...", "body": "..."},
+            ...
+        ]
+    }
+
+    Why JSON Envelope (vs concatenated text):
+    - LLM parses JSON array with far lower error rate than reading concatenated text
+    - Enables outer code to intercept/record metadata (retrieved_at, query_used)
+    - Structured fields simplify downstream processing and validation
+    """
+    import json
+    from datetime import datetime, timezone
+
+    if not results:
+        return json.dumps({
+            "retrieved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "query_used": query,
+            "time_range_applied": time_range,
+            "results": []
+        }, ensure_ascii=False)
+
+    output = {
+        "retrieved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "query_used": query,
+        "time_range_applied": time_range,
+        "results": []
+    }
+
+    for r in results:
+        output["results"].append({
+            "title": r.get("title", ""),
+            "url": r.get("href", ""),
+            "published_at": _extract_published_date(r),
+            "body": r.get("body", "")[:300]
+        })
+
+    return json.dumps(output, ensure_ascii=False)
 
 
 def web_search(
@@ -147,7 +182,7 @@ def web_search(
     max_results: int = 5,
     time_range: Literal["d", "w", "m", "y", None] = None,
 ) *********REMOVED********* str:
-    """Execute web search with optional time filter."""
+    """Execute web search with optional time filter. Returns JSON string."""
     try:
         from ddgs import DDGS
     except ImportError:
@@ -156,9 +191,10 @@ def web_search(
     try:
         with DDGS() as ddgs:
             results = list(ddgs.text(query, max_results=max_results, timelimit=time_range))
-            return format_results(results)
+            return _format_search_output(results, query, time_range)
     except Exception as e:
-        return f"Search failed: {str(e)}"
+        import json
+        return json.dumps({"error": f"Search failed: {str(e)}"})
 ```
 
 ### 5. Router Prompt Update
@@ -170,18 +206,34 @@ time_range: Time filter for web_search. Set this when:
 - User says "recent", "latest", "last [period]"
 - User mentions a specific period like "last week", "this month"
 - The topic requires current information (news, markets, events)
-- User does NOT specify a time, leave as null
+- User does NOT specify a time, set to null (NOT empty string "")
 
 Options: 'd'=past 24 hours, 'w'=past week, 'm'=past month, 'y'=past year
 ```
 
+⚠️ **Time Anchor Requirement**: The LLM must receive current time as an absolute reference to correctly interpret relative time expressions like "last week". This must be placed in the **System Prompt** (agent role definition), not just the router prompt:
+
+```python
+# System Prompt (agent role definition) - MUST include:
+"Current system time is: 2026-03-22T14:30:00Z (UTC)"
+
+# Router prompt (tool selection) - context only:
+"Current date: 2026-03-19 (use this to evaluate result freshness)"
+```
+
+The System Prompt provides the absolute time anchor; the Router Prompt provides the relative context for the current session.
+
 ### 6. Router execute_web_search Update
 
 ```python
+_VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
+
 def execute_web_search(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) *********REMOVED********* str:
     """Execute web search and record result."""
-    print(f"[Web Search] Query: {query}, time_range: {time_range}")
-    result = web_search(query, time_range=time_range)
+    # Sanitize: only pass valid time_range values to DDGS
+    sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
+    print(f"[Web Search] Query: {query}, time_range: {sanitized_time_range}")
+    result = web_search(query, time_range=sanitized_time_range)
     # ... rest unchanged
 ```
 
@@ -215,7 +267,7 @@ If no date found, `published_at` remains `None`.
 
 `fetched_at` is always set:
 - Success: ISO format `YYYY-MM-DDTHH:MM:SS` (e.g., `"2026-03-22T14:30:00"`)
-- Failure: empty string `""`
+- Failure: `None` (consistent with published_at)
 
 ## Testing
 
@@ -251,3 +303,6 @@ If no date found, `published_at` remains `None`.
 - published_at may be None if date extraction fails
 - fetched_at is None for failures, ISO timestamp for success
 - Router validates time_range: only pass if value is in `{"d", "w", "m", "y", None}`, otherwise ignore
+- **JSON Envelope**: web_search returns structured JSON (not concatenated text) for reliable LLM parsing
+- **Time Anchor**: System Prompt MUST include absolute current time (`2026-03-22T14:30:00Z`) for LLM to correctly interpret relative time expressions
+- **Null vs Empty**: LLM must return `null` (not `""`) when no time filter is needed; Pydantic Field description enforces this
