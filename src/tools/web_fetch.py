@@ -231,3 +231,16 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
         content=content,
         status="success",
     )
+
+
+def web_fetch_sync(url: str) *********REMOVED********* WebFetchResult:
+    """Synchronous wrapper for non-async contexts."""
+    import asyncio
+    return asyncio.run(web_fetch(url))
+
+
+WEB_FETCH_TOOL = {
+    "name": "web_fetch",
+    "description": "Fetch URL content for RAG. Returns metadata + Markdown. Use for static pages. For JS-heavy sites, expect failure and use MarketExplorer instead.",
+    "input_schema": {"type": "object", "properties": {"url": {"type": "string", "description": "URL to fetch"}}, "required": ["url"]},
+}
