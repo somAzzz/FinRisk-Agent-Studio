@@ -227,7 +227,7 @@ Respond with your final answer:"""
 
             # Execute the chosen tool
             if choice.tool == "web_search" and choice.query:
-                result = self.execute_web_search(choice.query)
+                result = self.execute_web_search(choice.query, choice.time_range)
                 print(f"[Step {i+1}] Search returned {len(result)} chars")
             elif choice.tool == "browser":
                 result = await self.execute_browser(goal)

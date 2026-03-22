@@ -1,4 +1,24 @@
 from scripts.compare_tools.models import WebSearchTestCase, WebFetchTestCase, ToolResult, ComparisonResult, BatchReport
+from scripts.compare_tools.caller import ProjectCaller, ClaudeCodeCaller, ToolCaller
+
+def test_project_caller_web_search():
+    caller = ProjectCaller()
+    result = caller.call_web_search("Tesla stock analysis")
+    assert result.success is True
+    assert len(result.output) > 0
+
+def test_project_caller_web_fetch():
+    caller = ProjectCaller()
+    result = caller.call_web_fetch("https://en.wikipedia.org")
+    assert result.success is True
+
+def test_ansi_cleanup():
+    """Test that ANSI codes are stripped from output."""
+    from scripts.compare_tools.caller import _strip_ansi
+    dirty = "\x1b[32mGreen\x1b[0m text"
+    clean = _strip_ansi(dirty)
+    assert clean == "Green text"
+    assert "\x1b" not in clean
 
 def test_web_search_test_case():
     tc = WebSearchTestCase(
