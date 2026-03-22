@@ -1,9 +1,12 @@
-from dataclasses import dataclass, asdict
-from typing import Literal
+import asyncio
 import json
+from dataclasses import asdict, dataclass
+from typing import Literal
+from urllib.parse import urlparse
 
 import httpx
 import trafilatura
+from bs4 import BeautifulSoup
 
 ERROR_SUGGESTIONS = {
     "BLACKLISTED_DOMAIN": "Use MarketExplorer (real browser) to access this URL.",
@@ -22,7 +25,9 @@ _ERROR_MESSAGES = {
     "TIMEOUT": "Request exceeded 10 second timeout.",
     "CONNECTION_ERROR": "Could not connect to the server.",
     "404_NOT_FOUND": "Page not found (HTTP 404).",
-    "403_FORBIDDEN": "Access denied. This site may have anti-bot protection (Cloudflare, etc.).",
+    "403_FORBIDDEN": (
+        "Access denied. This site may have anti-bot protection (Cloudflare, etc.)."
+    ),
     "PARSE_ERROR": "Failed to parse HTML content.",
     "UNKNOWN": "An unexpected error occurred.",
 }
@@ -40,11 +45,14 @@ _KNOWN_DYNAMIC_DOMAINS = [
 MAX_CONTENT_SIZE = 100_000  # 100KB
 TIMEOUT_SECONDS = 10
 
+# HTTP status code constants
+HTTP_NOT_FOUND = 404
+HTTP_FORBIDDEN = 403
+HTTP_BAD_REQUEST = 400
+
 
 def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
     """Returns True if URL domain equals or ends with . + known dynamic domain."""
-    from urllib.parse import urlparse
-
     try:
         parsed = urlparse(url)
         domain = parsed.netloc.lower()
@@ -55,6 +63,7 @@ def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
         if domain == blacklisted or domain.endswith("." + blacklisted):
             return True
     return False
+
 
 @dataclass
 class WebFetchResult:
@@ -75,8 +84,6 @@ def serialize_result(result: WebFetchResult) *********REMOVED********* str:
 
 def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:
     """Extract title and description from raw HTML using BeautifulSoup."""
-    from bs4 import BeautifulSoup
-
     try:
         soup = BeautifulSoup(html, "lxml")
     except Exception:
@@ -112,10 +119,37 @@ def _truncate_content(content: str, max_size: int = MAX_CONTENT_SIZE) *********R
     return truncated + "...(truncated)"
 
 
-async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
-    """Fetch URL content and return metadata + Markdown (async for concurrent tool calls)."""
-    from urllib.parse import urlparse
+def _check_http_status(status_code: int, url: str) *********REMOVED********* WebFetchResult | None:
+    """Check HTTP status and return error result if applicable, else None."""
+    if status_code == HTTP_NOT_FOUND:
+        return WebFetchResult(
+            url=url,
+            status="failed",
+            error_code="404_NOT_FOUND",
+            error_message=_ERROR_MESSAGES["404_NOT_FOUND"],
+            suggestion=ERROR_SUGGESTIONS["404_NOT_FOUND"],
+        )
+    if status_code == HTTP_FORBIDDEN:
+        return WebFetchResult(
+            url=url,
+            status="failed",
+            error_code="403_FORBIDDEN",
+            error_message=_ERROR_MESSAGES["403_FORBIDDEN"],
+            suggestion=ERROR_SUGGESTIONS["403_FORBIDDEN"],
+        )
+    if status_code >= HTTP_BAD_REQUEST:
+        return WebFetchResult(
+            url=url,
+            status="failed",
+            error_code="UNKNOWN",
+            error_message=f"HTTP error {status_code}",
+            suggestion=ERROR_SUGGESTIONS["UNKNOWN"],
+        )
+    return None
 
+
+async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
+    """Fetch URL content and return metadata + Markdown (async)."""
     # 1. Check blacklist
     if _is_blacklisted_domain(url):
         return WebFetchResult(
@@ -140,16 +174,17 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
             suggestion=ERROR_SUGGESTIONS["INVALID_URL"],
         )
 
-    # 3. Fetch via httpx
+    # 3. Fetch via httpx - handle network errors with consolidated exception
+    client = httpx.AsyncClient(timeout=TIMEOUT_SECONDS)
+    error_result: WebFetchResult | None = None
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS) as client:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (compatible; Bot/0.1)",
-                "Accept-Language": "en-US,en;q=0.9",
-            }
-            response = await client.get(url, headers=headers)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; Bot/0.1)",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        response = await client.get(url, headers=headers)
     except httpx.TimeoutException:
-        return WebFetchResult(
+        error_result = WebFetchResult(
             url=url,
             status="failed",
             error_code="TIMEOUT",
@@ -157,7 +192,7 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
             suggestion=ERROR_SUGGESTIONS["TIMEOUT"],
         )
     except httpx.ConnectError:
-        return WebFetchResult(
+        error_result = WebFetchResult(
             url=url,
             status="failed",
             error_code="CONNECTION_ERROR",
@@ -165,39 +200,23 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
             suggestion=ERROR_SUGGESTIONS["CONNECTION_ERROR"],
         )
     except Exception:
-        return WebFetchResult(
+        error_result = WebFetchResult(
             url=url,
             status="failed",
             error_code="CONNECTION_ERROR",
             error_message=_ERROR_MESSAGES["CONNECTION_ERROR"],
             suggestion=ERROR_SUGGESTIONS["CONNECTION_ERROR"],
         )
+    finally:
+        await client.aclose()
+
+    if error_result is not None:
+        return error_result
 
     # 4. Check HTTP status
-    if response.status_code == 404:
-        return WebFetchResult(
-            url=url,
-            status="failed",
-            error_code="404_NOT_FOUND",
-            error_message=_ERROR_MESSAGES["404_NOT_FOUND"],
-            suggestion=ERROR_SUGGESTIONS["404_NOT_FOUND"],
-        )
-    elif response.status_code == 403:
-        return WebFetchResult(
-            url=url,
-            status="failed",
-            error_code="403_FORBIDDEN",
-            error_message=_ERROR_MESSAGES["403_FORBIDDEN"],
-            suggestion=ERROR_SUGGESTIONS["403_FORBIDDEN"],
-        )
-    elif response.status_code >= 400:
-        return WebFetchResult(
-            url=url,
-            status="failed",
-            error_code="UNKNOWN",
-            error_message=f"HTTP error {response.status_code}",
-            suggestion=ERROR_SUGGESTIONS["UNKNOWN"],
-        )
+    error_result = _check_http_status(response.status_code, url)
+    if error_result is not None:
+        return error_result
 
     # 5. Extract metadata before processing
     title, description = _extract_metadata(response.text)
@@ -235,12 +254,19 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
 
 def web_fetch_sync(url: str) *********REMOVED********* WebFetchResult:
     """Synchronous wrapper for non-async contexts."""
-    import asyncio
     return asyncio.run(web_fetch(url))
 
 
 WEB_FETCH_TOOL = {
     "name": "web_fetch",
-    "description": "Fetch URL content for RAG. Returns metadata + Markdown. Use for static pages. For JS-heavy sites, expect failure and use MarketExplorer instead.",
-    "input_schema": {"type": "object", "properties": {"url": {"type": "string", "description": "URL to fetch"}}, "required": ["url"]},
+    "description": (
+        "Fetch URL content for RAG. Returns metadata + Markdown. "
+        "Use for static pages. For JS-heavy sites, expect failure "
+        "and use MarketExplorer instead."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {"url": {"type": "string", "description": "URL to fetch"}},
+        "required": ["url"],
+    },
 }
