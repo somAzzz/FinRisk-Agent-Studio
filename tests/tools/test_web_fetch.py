@@ -1,5 +1,5 @@
 import pytest
-from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content, WebFetchResult, serialize_result
+from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content, WebFetchResult, serialize_result, web_fetch
 
 def test_blacklist_exact_match():
     """tradingview.com should match"""
@@ -99,3 +99,20 @@ def test_serialize_failure():
     json_str = serialize_result(result)
     assert '"status": "failed"' in json_str
     assert '"error_code": "404_NOT_FOUND"' in json_str
+
+
+@pytest.mark.asyncio
+async def test_web_fetch_blacklisted_domain():
+    """Blacklisted domain should return BLACKLISTED_DOMAIN error"""
+    result = await web_fetch("https://tradingview.com/symbol/AAPL")
+    assert result.status == "failed"
+    assert result.error_code == "BLACKLISTED_DOMAIN"
+    assert "MarketExplorer" in result.suggestion
+
+
+@pytest.mark.asyncio
+async def test_web_fetch_invalid_url():
+    """Invalid URL should return INVALID_URL error"""
+    result = await web_fetch("not-a-url")
+    assert result.status == "failed"
+    assert result.error_code == "INVALID_URL"
