@@ -78,10 +78,12 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
-    fetched_at: str = ""  # When the page was fetched (always set on success)
+    fetched_at: str = ""  # ISO timestamp for success, "" for failures
 ```
 
-Note: `fetched_at` is non-optional in the dataclass but will be empty string for failed fetches.
+`fetched_at` is always set:
+- Success: ISO format `"2026-03-22T14:30:00"`
+- Failure: empty string `""`
 
 ### 4. web_search Function Update
 
@@ -112,13 +114,10 @@ def _extract_published_date(result: dict) *********REMOVED********* str | None:
     for pattern in date_patterns:
         match = re.search(pattern, result.get("body", ""))
         if match:
-            try:
-                # Parse and normalize to YYYY-MM-DD
-                parsed = datetime.strptime(match.group(1), "%B %d, %Y")
-                return parsed.strftime("%Y-%m-%d")
-            except ValueError:
+            date_str = match.group(1)
+            for fmt in ("%B %d, %Y", "%d %B %Y", "%Y-%m-%d", "%B %d %Y"):
                 try:
-                    parsed = datetime.strptime(match.group(1), "%Y-%m-%d")
+                    parsed = datetime.strptime(date_str, fmt)
                     return parsed.strftime("%Y-%m-%d")
                 except ValueError:
                     pass
@@ -213,7 +212,9 @@ If no date found, `published_at` remains `None`.
 
 ## fetched_at Format
 
-`fetched_at` uses ISO format: `YYYY-MM-DDTHH:MM:SS` (e.g., `"2026-03-22T14:30:00"`)
+`fetched_at` is always set:
+- Success: ISO format `YYYY-MM-DDTHH:MM:SS` (e.g., `"2026-03-22T14:30:00"`)
+- Failure: empty string `""`
 
 ## Testing
 
