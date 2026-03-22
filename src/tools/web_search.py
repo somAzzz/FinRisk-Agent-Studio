@@ -18,21 +18,9 @@ class WebSearchInput(BaseModel):
     """Input for web search tool."""
     query: str = Field(description="Search query in English for best results")
     max_results: int = Field(default=5, description="Maximum number of results to return")
-
-
-def format_results(results: list[dict]) *********REMOVED********* str:
-    """Format search results for LLM consumption."""
-    if not results:
-        return "No results found."
-
-    formatted = []
-    for i, r in enumerate(results, 1):
-        formatted.append(
-            f"Source [{i}]: {r['title']}\n"
-            f"URL: {r['href']}\n"
-            f"Summary: {r['body'][:300]}"
-        )
-    return "\n\n".join(formatted)
+    time_range: Literal["d", "w", "m", "y", None] = Field(
+        default=None, description="Time filter - 'd'=day, 'w'=week, 'm'=month, 'y'=year"
+    )
 
 
 def _extract_published_date(result: dict) *********REMOVED********* str | None:
@@ -111,18 +99,20 @@ def _format_search_output(
     return json.dumps(output, ensure_ascii=False)
 
 
-def web_search(query: str, max_results: int = 5) *********REMOVED********* str:
-    """Execute web search and return formatted results.
-
-    This is a fast, API-based search that returns clean text snippets
-    suitable for RAG workflows. No browser automation needed.
+def web_search(
+    query: str,
+    max_results: int = 5,
+    time_range: Literal["d", "w", "m", "y", None] = None,
+) *********REMOVED********* str:
+    """Execute web search and return JSON Envelope.
 
     Args:
         query: Search query (English recommended)
         max_results: Number of results to return (default 5)
+        time_range: Time filter - 'd'=day, 'w'=week, 'm'=month, 'y'=year, None=no filter
 
     Returns:
-        Formatted string with search results for LLM consumption
+        JSON Envelope string with search results
     """
     try:
         from ddgs import DDGS
@@ -130,14 +120,14 @@ def web_search(query: str, max_results: int = 5) *********REMOVED********* str:
         try:
             from duckduckgo_search import DDGS
         except ImportError:
-            return "Error: ddgs package not installed. Run: uv pip install ddgs"
+            return json.dumps({"error": "ddgs package not installed. Run: uv pip install ddgs"})
 
     try:
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-            return format_results(results)
+            results = list(ddgs.text(query, max_results=max_results, timelimit=time_range))
+            return _format_search_output(results, query, time_range)
     except Exception as e:
-        return f"Search failed: {str(e)}"
+        return json.dumps({"error": f"Search failed: {str(e)}"})
 
 
 # Tool definition for LLM tool calling
