@@ -1,7 +1,8 @@
 """Web search tool using DuckDuckGo for fast RAG-style searches."""
 
+import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 from typing import Literal
 
@@ -64,6 +65,50 @@ def _extract_published_date(result: dict) *********REMOVED********* str | None:
                 except ValueError:
                     pass
     return None
+
+
+def _format_search_output(
+    results: list[dict],
+    query: str,
+    time_range: Literal["d", "w", "m", "y", None] = None,
+) *********REMOVED********* str:
+    """Format search results as JSON Envelope for reliable LLM parsing.
+
+    JSON Envelope structure:
+    {
+        "retrieved_at": "2026-03-22T14:30:00Z",  # UTC timestamp
+        "query_used": "...",
+        "time_range_applied": "m" | null,
+        "results": [
+            {"title": "...", "url": "...", "published_at": "...", "body": "..."},
+            ...
+        ]
+    }
+    """
+    if not results:
+        return json.dumps({
+            "retrieved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "query_used": query,
+            "time_range_applied": time_range,
+            "results": []
+        }, ensure_ascii=False)
+
+    output = {
+        "retrieved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "query_used": query,
+        "time_range_applied": time_range,
+        "results": []
+    }
+
+    for r in results:
+        output["results"].append({
+            "title": r.get("title", ""),
+            "url": r.get("href", ""),
+            "published_at": _extract_published_date(r),
+            "body": r.get("body", "")[:300]
+        })
+
+    return json.dumps(output, ensure_ascii=False)
 
 
 def web_search(query: str, max_results: int = 5) *********REMOVED********* str:
