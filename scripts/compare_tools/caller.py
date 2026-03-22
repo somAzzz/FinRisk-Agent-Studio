@@ -1,19 +1,20 @@
 """Tool calling layer - calls both project tools and Claude Code."""
 
-import asyncio
+import json
 import re
 import subprocess
 import time
 from abc import ABC, abstractmethod
 
 from scripts.compare_tools.models import ToolResult
-
+from src.tools.web_fetch import web_fetch_sync
+from src.tools.web_search import web_search
 
 TIMEOUT_SECONDS = 60
 ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
 
 
-def _strip_ansi(text: str) *********REMOVED********* str:
+def _strip_ansi(text: str) -> str:
     """Strip ANSI escape codes from text."""
     return ANSI_ESCAPE.sub('', text)
 
@@ -22,12 +23,12 @@ class ToolCaller(ABC):
     """Abstract base for tool callers."""
 
     @abstractmethod
-    def call_web_search(self, query: str) *********REMOVED********* ToolResult:
+    def call_web_search(self, query: str) -> ToolResult:
         """Call web_search tool."""
         pass
 
     @abstractmethod
-    def call_web_fetch(self, url: str) *********REMOVED********* ToolResult:
+    def call_web_fetch(self, url: str) -> ToolResult:
         """Call web_fetch tool."""
         pass
 
@@ -35,11 +36,10 @@ class ToolCaller(ABC):
 class ProjectCaller(ToolCaller):
     """Calls project tools directly."""
 
-    def call_web_search(self, query: str) *********REMOVED********* ToolResult:
+    def call_web_search(self, query: str) -> ToolResult:
         """Call project's web_search function."""
         start = time.monotonic()
         try:
-            from src.tools.web_search import web_search
             output = web_search(query)
             duration = time.monotonic() - start
             return ToolResult(
@@ -59,11 +59,10 @@ class ProjectCaller(ToolCaller):
                 error=str(e)
             )
 
-    def call_web_fetch(self, url: str) *********REMOVED********* ToolResult:
+    def call_web_fetch(self, url: str) -> ToolResult:
         """Call project's web_fetch function."""
         start = time.monotonic()
         try:
-            from src.tools.web_fetch import web_fetch_sync
             result = web_fetch_sync(url)
             duration = time.monotonic() - start
             # Convert WebFetchResult to string output
@@ -92,7 +91,7 @@ class ProjectCaller(ToolCaller):
 class ClaudeCodeCaller(ToolCaller):
     """Calls Claude Code CLI via subprocess."""
 
-    def call_web_search(self, query: str) *********REMOVED********* ToolResult:
+    def call_web_search(self, query: str) -> ToolResult:
         """Call Claude Code web_search via subprocess."""
         start = time.monotonic()
         try:
@@ -149,7 +148,7 @@ class ClaudeCodeCaller(ToolCaller):
                 error=str(e)
             )
 
-    def call_web_fetch(self, url: str) *********REMOVED********* ToolResult:
+    def call_web_fetch(self, url: str) -> ToolResult:
         """Call Claude Code web_fetch via subprocess."""
         start = time.monotonic()
         try:
@@ -206,7 +205,7 @@ class ClaudeCodeCaller(ToolCaller):
 
     def _call_plain_text_fallback(
         self, cmd: list[str], tool_name: str, start: float
-    ) *********REMOVED********* ToolResult:
+    ) -> ToolResult:
         """Fallback to plain text output when stream-json fails."""
         try:
             result = subprocess.run(
@@ -235,17 +234,16 @@ class ClaudeCodeCaller(ToolCaller):
                 error="TIMEOUT"
             )
 
-    def _parse_stream_json(self, stdout: str) *********REMOVED********* str:
+    def _parse_stream_json(self, stdout: str) -> str:
         """Parse stream-json output from Claude CLI."""
         # Each line is a JSON object with type and content
         # For tool results, we want the final output
         output_parts = []
-        for line in stdout.strip().split('\n'):
-            line = line.strip()
+        for raw_line in stdout.strip().split('\n'):
+            line = raw_line.strip()
             if not line:
                 continue
             try:
-                import json
                 obj = json.loads(line)
                 if obj.get('type') == 'content' and 'text' in obj:
                     output_parts.append(obj['text'])

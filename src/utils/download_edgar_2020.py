@@ -13,12 +13,12 @@ YEAR = "2020"
 SPLITS = ("train", "validate", "test")
 
 
-def get_data_dir() *********REMOVED********* Path:
+def get_data_dir() -> Path:
     """Get the data directory path from environment or default."""
     return Path(DEFAULT_DATA_DIR) / "edgar_2020"
 
 
-def download_split(split: str, data_dir: Path) *********REMOVED********* None:
+def download_split(split: str, data_dir: Path) -> None:
     """Download a single split of the dataset.
 
     Args:
@@ -37,7 +37,7 @@ def download_split(split: str, data_dir: Path) *********REMOVED********* None:
     print(f"Saved to {dest_path}")
 
 
-def count_records(data_dir: Path) *********REMOVED********* dict[str, int]:
+def count_records(data_dir: Path) -> dict[str, int]:
     """Count records in each split.
 
     Args:
@@ -54,7 +54,7 @@ def count_records(data_dir: Path) *********REMOVED********* dict[str, int]:
     return counts
 
 
-def print_summary(counts: dict[str, int]) *********REMOVED********* None:
+def print_summary(counts: dict[str, int]) -> None:
     """Print dataset summary.
 
     Args:
@@ -65,7 +65,7 @@ def print_summary(counts: dict[str, int]) *********REMOVED********* None:
         print(f"{split}: {count} records")
 
 
-def print_sample(data_dir: Path) *********REMOVED********* None:
+def print_sample(data_dir: Path) -> None:
     """Print a sample record.
 
     Args:
@@ -82,7 +82,7 @@ def print_sample(data_dir: Path) *********REMOVED********* None:
         print(f"Section 7 (MD&A) length: {len(sample.get('section_7', '') or '')}")
 
 
-def main() *********REMOVED********* None:
+def main() -> None:
     """Download the EDGAR corpus dataset for 2020."""
     data_dir = get_data_dir()
     data_dir.mkdir(parents=True, exist_ok=True)

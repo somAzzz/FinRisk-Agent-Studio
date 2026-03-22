@@ -1,12 +1,14 @@
 """Comparison logic for tool outputs."""
 
-import re
+import os
+
+from openai import OpenAI
 
 from scripts.compare_tools.models import (
     ComparisonResult,
     ToolResult,
-    WebSearchTestCase,
     WebFetchTestCase,
+    WebSearchTestCase,
 )
 
 
@@ -18,16 +20,13 @@ class Comparator:
         test_case: WebSearchTestCase | WebFetchTestCase,
         project_result: ToolResult,
         claude_code_result: ToolResult,
-    ) *********REMOVED********* ComparisonResult:
+    ) -> ComparisonResult:
         """Compare two tool results and compute metrics."""
         # Keyword coverage
         output_project = project_result.output
         output_claude = claude_code_result.output
 
-        if isinstance(test_case, WebSearchTestCase):
-            keywords = test_case.expected_keywords
-        else:
-            keywords = test_case.expected_keywords
+        keywords = test_case.expected_keywords
 
         coverage_project = self._calc_keyword_coverage(output_project, keywords)
         coverage_claude = self._calc_keyword_coverage(output_claude, keywords)
@@ -46,7 +45,7 @@ class Comparator:
             rag_score_claude=rag_claude,
         )
 
-    def _calc_keyword_coverage(self, output: str, keywords: list[str]) *********REMOVED********* float:
+    def _calc_keyword_coverage(self, output: str, keywords: list[str]) -> float:
         """Calculate what fraction of keywords appear in output."""
         if not keywords:
             return 1.0
@@ -55,7 +54,7 @@ class Comparator:
         hits = sum(1 for kw in keywords if kw.lower() in output_lower)
         return hits / len(keywords)
 
-    def _calc_rag_score(self, output: str) *********REMOVED********* float:
+    def _calc_rag_score(self, output: str) -> float:
         """Calculate RAG-friendliness score 0-1.
 
         Based on:
@@ -67,7 +66,6 @@ class Comparator:
             return 0.0
 
         lines = output.split('\n')
-        total_lines = len(lines)
 
         # Heading detection (very important for RAG)
         heading_lines = [l for l in lines if l.strip().startswith(('#', '##', '###'))]
@@ -97,13 +95,12 @@ class Comparator:
         output_a: str,
         output_b: str,
         model: str = "Qwen/Qwen3.5-35B-A3B",
-    ) *********REMOVED********* tuple[float, float, str]:
+    ) -> tuple[float, float, str]:
         """Use LLM to judge which output is better.
 
         Returns (score_a, score_b, explanation).
         """
         # Check if OPENAI_API_KEY or VLLM_BASE_URL is set
-        import os
         api_base = os.environ.get('VLLM_BASE_URL', 'http://localhost:30000/v1')
         api_key = os.environ.get('OPENAI_API_KEY', 'EMPTY')
 
@@ -122,7 +119,6 @@ EXPLANATION: <why one is better>
 """
 
         try:
-            from openai import OpenAI
             client = OpenAI(api_key=api_key, base_url=f"{api_base}/v1")
             response = client.chat.completions.create(
                 model=model,

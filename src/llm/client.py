@@ -56,7 +56,7 @@ class EdgarLLMClient:
         section_1a: str,
         company_name: str = "Unknown",
         year: int = 2020,
-    ) *********REMOVED********* dict[str, Any]:
+    ) -> dict[str, Any]:
         """Extract macro risks from Item 1A (Risk Factors).
 
         Args:
@@ -86,7 +86,7 @@ class EdgarLLMClient:
 
         return self._parse_response(content, company_name, year)
 
-    def _build_prompt(self, section_1a: str, company_name: str) *********REMOVED********* str:
+    def _build_prompt(self, section_1a: str, company_name: str) -> str:
         """Build the prompt for risk extraction."""
         truncated_text = section_1a[:MAX_INPUT_TOKENS]
         return f"""<|im_start|>system
@@ -104,7 +104,7 @@ Text: {truncated_text}
         content: str,
         company_name: str,
         year: int,
-    ) *********REMOVED********* dict[str, Any]:
+    ) -> dict[str, Any]:
         """Parse the LLM response to extract risks."""
         # Try to find JSON in markdown code blocks first
         json_in_markdown = re.findall(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", content)
@@ -146,7 +146,7 @@ Text: {truncated_text}
         result: dict[str, Any],
         company_name: str,
         year: int,
-    ) *********REMOVED********* dict[str, Any]:
+    ) -> dict[str, Any]:
         """Normalize the result to a consistent format."""
         # Normalize field names
         if "risk" in result and "risks" not in result:
@@ -194,7 +194,7 @@ Text: {truncated_text}
         system: str | None = None,
         max_tokens: int = 2048,
         temperature: float = 0.3,
-    ) *********REMOVED********* str:
+    ) -> str:
         """General-purpose chat completion for browser exploration."""
         messages = []
         if system:
@@ -208,7 +208,7 @@ Text: {truncated_text}
         )
         return response.choices[0].message.content
 
-    def compute_embedding(self, text: str) *********REMOVED********* list[float]:
+    def compute_embedding(self, text: str) -> list[float]:
         """Compute text embedding for novelty detection.
 
         Uses sentence-transformers/all-MiniLM-L6-v2 for fast, local embedding.

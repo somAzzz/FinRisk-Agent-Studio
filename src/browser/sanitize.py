@@ -10,7 +10,7 @@ SENSITIVE_PATTERNS = [
 ]
 
 
-def sanitize_snapshot(text: str) *********REMOVED********* str:
+def sanitize_snapshot(text: str) -> str:
     """Remove sensitive data patterns from page snapshots."""
     for pattern, replacement in SENSITIVE_PATTERNS:
         text = re.sub(pattern, replacement, text)

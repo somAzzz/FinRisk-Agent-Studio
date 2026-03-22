@@ -98,17 +98,17 @@ class MarketExplorer:
         self.exploration_config = exploration_config or ExplorationConfig()
         self._recent_embeddings: list[list[float]] = []
 
-    def _compute_hash(self, text: str) *********REMOVED********* str:
+    def _compute_hash(self, text: str) -> str:
         """Compute SHA256 hash of text (first 10KB)."""
         return hashlib.sha256(text[:10240].encode()).hexdigest()
 
-    def _compute_similarity(self, a: list[float], b: list[float]) *********REMOVED********* float:
+    def _compute_similarity(self, a: list[float], b: list[float]) -> float:
         """Compute cosine similarity between two vectors."""
         a_arr = np.array(a)
         b_arr = np.array(b)
         return np.dot(a_arr, b_arr) / (np.linalg.norm(a_arr) * np.linalg.norm(b_arr))
 
-    def _classify_source(self, url: str) *********REMOVED********* str:
+    def _classify_source(self, url: str) -> str:
         """Classify the source type based on URL."""
         url_lower = url.lower()
         if any(x in url_lower for x in ["news", "article", "blog"]):
@@ -119,7 +119,7 @@ class MarketExplorer:
             return "regulatory"
         return "other"
 
-    def _classify_page(self, url: str, content: str) *********REMOVED********* PageType:
+    def _classify_page(self, url: str, content: str) -> PageType:
         """Classify what type of page this is."""
         url_lower = url.lower()
         content_lower = content.lower()
@@ -145,13 +145,13 @@ class MarketExplorer:
 
         return PageType.CONTENT
 
-    def _is_consent_page(self, content: str) *********REMOVED********* bool:
+    def _is_consent_page(self, content: str) -> bool:
         """Check if page content is a consent/cookie dialog."""
         content_lower = content.lower()
         pattern_count = sum(1 for p in CONSENT_PATTERNS if re.search(p, content_lower))
         return pattern_count >= 2
 
-    def _is_verification_page(self, url: str, content: str) *********REMOVED********* bool:
+    def _is_verification_page(self, url: str, content: str) -> bool:
         """Check if page is a verification/CAPTCHA page."""
         url_lower = url.lower()
         content_lower = content.lower()
@@ -167,7 +167,7 @@ class MarketExplorer:
         )
         return verification_count >= 1
 
-    async def _handle_consent_page(self) *********REMOVED********* bool:
+    async def _handle_consent_page(self) -> bool:
         """Attempt to handle consent/cookie dialogs. Returns True if handled."""
         snapshot = self.wrapper.get_snapshot()
         if not snapshot.get("success"):
@@ -202,7 +202,7 @@ class MarketExplorer:
 
         return False
 
-    async def _process_page(self, state: ExplorationState) *********REMOVED********* bool:
+    async def _process_page(self, state: ExplorationState) -> bool:
         """Process current page and extract findings. Returns True if new finding."""
         snapshot_result = self.wrapper.get_snapshot()
         if not snapshot_result["success"]:
@@ -276,7 +276,7 @@ class MarketExplorer:
 
         return False
 
-    async def _llm_decide_action(self, state: ExplorationState) *********REMOVED********* dict | None:
+    async def _llm_decide_action(self, state: ExplorationState) -> dict | None:
         """Ask LLM what to do next. Returns action dict or None to stop."""
         visited_list = list(state.visited_urls)[:5]
         recent_findings = [(f.summary, f.url) for f in state.findings[-3:]]
@@ -293,7 +293,7 @@ class MarketExplorer:
             "selector": action.selector,
         }
 
-    def _is_blocked_url(self, url: str) *********REMOVED********* bool:
+    def _is_blocked_url(self, url: str) -> bool:
         """Check if URL is in the blocked list."""
         url_lower = url.lower()
         blocked_domains = [
@@ -306,13 +306,13 @@ class MarketExplorer:
                 return True
         return False
 
-    def _build_search_url(self, query: str) *********REMOVED********* str:
+    def _build_search_url(self, query: str) -> str:
         """Build a search URL from a query."""
         # Use CNBC search (Yahoo Finance redirects to consent.yahoo.com)
         encoded_query = query.replace(" ", "+")
         return f"https://www.cnbc.com/search/?query={encoded_query}"
 
-    async def _execute_action(self, action: dict) *********REMOVED********* bool:
+    async def _execute_action(self, action: dict) -> bool:
         """Execute an action. Returns True if successful."""
         action_type = action.get("action", "")
 
@@ -353,7 +353,7 @@ class MarketExplorer:
         goal: str,
         checkpoint_callback: Callable[[ExplorationState], bool] | None = None,
         initial_urls: list[str] | None = None,
-    ) *********REMOVED********* ExplorationState:
+    ) -> ExplorationState:
         """Execute exploration goal."""
         state = ExplorationState(goal=goal)
         error_count = 0

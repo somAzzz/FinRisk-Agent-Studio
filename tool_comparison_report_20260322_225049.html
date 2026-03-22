@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tool Comparison Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f5f5f5; }
+        code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+        pre { background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h1, h2, h3 { color: #333; }
+        .metric-card { display: inline-block; background: #f9f9f9; padding: 15px; margin: 10px; border-radius: 8px; min-width: 150px; }
+        .metric-value { font-size: 2em; font-weight: bold; color: #0066cc; }
+        .metric-label { color: #666; font-size: 0.9em; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<h1>Tool Comparison Report</h1>
+
+Generated: 2026-03-22 22:50:49
+
+<h2>Summary</h2>
+
+<table>
+<tr><th>Metric</th><th>Project Tool</th><th>Claude Code</th></tr>
+<tr><td>Keyword Coverage</td><td>60.0%</td><td>0.0%</td></tr>
+<tr><td>RAG Score</td><td>0.24</td><td>0.00</td></tr>
+<tr><td>Avg Speed</td><td>1.1s</td><td>0.4s</td></tr>
+<tr><td>Errors</td><td>1</td><td>5</td></tr>
+</table>
+
+<h2>Detailed Results</h2>
+
+<h3>Test Case 1: web_search: Tesla Q4 2024 earnings report</h3>
+
+<strong>Project Tool</strong> (took 2.03s)
+
+<pre><code>{"retrieved_at": "2026-03-22T21:50:43Z", "query_used": "Tesla Q4 2024 earnings report", "time_range_applied": null, "results": [{"title": "Tesla Q4 2024 Earnings: Stay tuned for the live earnings call", "url": "https://news.alphastreet.com/tesla-q4-2024-earnings-stay-tuned-for-the-live-earnings-call-and-real-time-transcript/", "published_at": null, "body": "Tesla(NASDAQ: TSLA) is set toreportits fourth quarter2024... Listen toTesla’sQ42024earningscall live and read the real-time transcript"}, {"...</code></pre>
+
+<strong>Claude Code</strong> (took 0.38s)
+
+*Error: FALLBACK_FAILED*
+
+<strong>Comparison</strong>
+- Keyword Coverage: Project 66.7% vs Claude 0.0%
+- RAG Score: Project 0.03 vs Claude 0.00
+
+<strong>LLM Judge</strong>: LLM judge unavailable: Error code: 404 - {'detail': 'Not Found'}
+
+<hr>
+
+<h3>Test Case 2: web_search: Apple stock analysis March 2025</h3>
+
+<strong>Project Tool</strong> (took 2.00s)
+
+<pre><code>{"retrieved_at": "2026-03-22T21:50:45Z", "query_used": "Apple stock analysis March 2025", "time_range_applied": null, "results": [{"title": "Stock Analysis - Valuable Stock Analysis - Stock Analyzer", "url": "https://www.bing.com/aclick?ld=e83Wnph_9A2CCSs-e63Oo82DVUCUwgnV5w5ppANmXTdRll2c_veNfkU3L2U7J4zrRcDdAXsH5iifNnZ8oqujmXESRpnMfwLYd4Ml1JyKww8NS4paswZlaJQFE9Nn8_myAFb3hb8U28zDgo76pA9eeqxtmYQoZf_lUWNO70Bn7zw3vP5JUAhNm64a8RzqP2iaehmtLoMw&u=aHR0cHMlM2ElMmYlMmZzZWVraW5nYWxwaGEuY29tJTJmc2NyZWVuZXJzJ...</code></pre>
+
+<strong>Claude Code</strong> (took 0.40s)
+
+*Error: FALLBACK_FAILED*
+
+<strong>Comparison</strong>
+- Keyword Coverage: Project 33.3% vs Claude 0.0%
+- RAG Score: Project 0.03 vs Claude 0.00
+
+<strong>LLM Judge</strong>: LLM judge unavailable: Error code: 404 - {'detail': 'Not Found'}
+
+<hr>
+
+<h3>Test Case 3: web_search: Federal Reserve interest rate decision</h3>
+
+<strong>Project Tool</strong> (took 1.01s)
+
+<pre><code>{"retrieved_at": "2026-03-22T21:50:47Z", "query_used": "Federal Reserve interest rate decision", "time_range_applied": null, "results": [{"title": "Federalfundsrate- Wikipedia", "url": "https://en.wikipedia.org/wiki/Federal_funds_rate", "published_at": null, "body": "US Treasuryinterestratescompared toFederalFundsRate. TheFederalFundsRatepushes up shorter term treasuries to cause an inverted yield curve when theFederalReservewants to tame demand and inflation."}, {"title": "United StatesFederalR...</code></pre>
+
+<strong>Claude Code</strong> (took 0.39s)
+
+*Error: FALLBACK_FAILED*
+
+<strong>Comparison</strong>
+- Keyword Coverage: Project 100.0% vs Claude 0.0%
+- RAG Score: Project 0.03 vs Claude 0.00
+
+<strong>LLM Judge</strong>: LLM judge unavailable: Error code: 404 - {'detail': 'Not Found'}
+
+<hr>
+
+<h3>Test Case 4: web_fetch: https://en.wikipedia.org/wiki/Stock_market</h3>
+
+<strong>Project Tool</strong> (took 0.36s)
+
+<pre><code><h1>Stock market - Wikipedia</h1>
+
+<h1>Stock market</h1>
+
+<table>
+<tr><td>Part of a series on</td></tr>
+<tr></tr>
+</table>
+
+[Bond market](/wiki/Bond_market)
+
+[Stock market]
+
+[Alternative investment](/wiki/Alternative_investment)
+
+[Over-the-counter (off-exchange)](/wiki/Over-the-counter_(finance))
+
+[Trading](/wiki/Trader_(finance))
+
+A <strong>stock market</strong>, <strong>equity market</strong>, or <strong>share market</strong> is the aggregation of buyers and sellers of [stocks](/wiki/Stock) (also called as shares), which represent [ownership](/wiki/Ownership) claims on busine...</code></pre>
+
+<strong>Claude Code</strong> (took 0.38s)
+
+*Error: FALLBACK_FAILED*
+
+<strong>Comparison</strong>
+- Keyword Coverage: Project 100.0% vs Claude 0.0%
+- RAG Score: Project 1.10 vs Claude 0.00
+
+<strong>LLM Judge</strong>: LLM judge unavailable: Error code: 404 - {'detail': 'Not Found'}
+
+<hr>
+
+<h3>Test Case 5: web_fetch: https://www.reuters.com/business/finance</h3>
+
+<strong>Project Tool</strong> (took 0.09s)
+
+*Error: UNKNOWN*
+
+<strong>Claude Code</strong> (took 0.38s)
+
+*Error: FALLBACK_FAILED*
+
+<strong>Comparison</strong>
+- Keyword Coverage: Project 0.0% vs Claude 0.0%
+- RAG Score: Project 0.03 vs Claude 0.00
+
+<strong>LLM Judge</strong>: LLM judge unavailable: Error code: 404 - {'detail': 'Not Found'}
+
+<hr>
+
+</body>
+</html>

@@ -1,13 +1,14 @@
 """Report generation in Markdown and HTML formats."""
 
 from datetime import datetime
+
 from scripts.compare_tools.models import BatchReport, ComparisonResult
 
 
 class MarkdownReporter:
     """Generates Markdown comparison reports."""
 
-    def generate(self, report: BatchReport) *********REMOVED********* str:
+    def generate(self, report: BatchReport) -> str:
         """Generate Markdown report string."""
         lines = [
             "# Tool Comparison Report",
@@ -28,8 +29,8 @@ class MarkdownReporter:
         avg_speed_claude = sum(r.claude_code_result.duration_seconds for r in report.results) / total if total else 0
 
         lines.extend([
-            f"| Metric | Project Tool | Claude Code |",
-            f"|--------|-------------|-------------|",
+            "| Metric | Project Tool | Claude Code |",
+            "|--------|-------------|-------------|",
             f"| Keyword Coverage | {avg_coverage_project:.1%} | {avg_coverage_claude:.1%} |",
             f"| RAG Score | {avg_rag_project:.2f} | {avg_rag_claude:.2f} |",
             f"| Avg Speed | {avg_speed_project:.1f}s | {avg_speed_claude:.1f}s |",
@@ -62,14 +63,14 @@ class MarkdownReporter:
 
         return '\n'.join(lines)
 
-    def _get_test_name(self, result: ComparisonResult) *********REMOVED********* str:
+    def _get_test_name(self, result: ComparisonResult) -> str:
         """Get test case name."""
         from scripts.compare_tools.models import WebSearchTestCase
         if isinstance(result.test_case, WebSearchTestCase):
             return f"web_search: {result.test_case.query}"
         return f"web_fetch: {result.test_case.url}"
 
-    def save(self, report: BatchReport, path: str | None = None) *********REMOVED********* str:
+    def save(self, report: BatchReport, path: str | None = None) -> str:
         """Save report to file, return path."""
         if path is None:
             ts = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -82,7 +83,7 @@ class MarkdownReporter:
 class HTMLReporter:
     """Generates HTML comparison reports."""
 
-    def generate(self, report: BatchReport) *********REMOVED********* str:
+    def generate(self, report: BatchReport) -> str:
         """Generate HTML report string."""
         md_content = MarkdownReporter().generate(report)
         # Simple Markdown to HTML conversion
@@ -112,7 +113,7 @@ class HTMLReporter:
 </body>
 </html>"""
 
-    def _markdown_to_html(self, md: str) *********REMOVED********* str:
+    def _markdown_to_html(self, md: str) -> str:
         """Simple Markdown to HTML conversion."""
         import re
         html = md
@@ -138,15 +139,19 @@ class HTMLReporter:
         lines = html.split('\n')
         result_lines = []
         in_table = False
+        is_header_row = False
         for line in lines:
             if '|' in line and line.strip().startswith('|'):
                 if not in_table:
                     result_lines.append('<table>')
                     in_table = True
+                    is_header_row = True
                 cells = [c.strip() for c in line.split('|') if c.strip()]
                 if '---' in line:
+                    is_header_row = False
                     continue  # Skip separator
-                tag = 'th' if any(x in line for x in ['Metric', '---']) else 'td'
+                tag = 'th' if is_header_row else 'td'
+                is_header_row = False
                 result_lines.append(f'<tr>{"".join(f"<{tag}>{c}</{tag}>" for c in cells)}</tr>')
             else:
                 if in_table:
@@ -162,7 +167,7 @@ class HTMLReporter:
 
         return html
 
-    def save(self, report: BatchReport, path: str | None = None) *********REMOVED********* str:
+    def save(self, report: BatchReport, path: str | None = None) -> str:
         """Save report to file, return path."""
         if path is None:
             ts = datetime.now().strftime('%Y%m%d_%H%M%S')

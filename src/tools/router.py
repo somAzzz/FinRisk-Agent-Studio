@@ -62,7 +62,7 @@ class ToolRouter:
         self.llm_client = llm_client or SGLangClient()
         self.search_history: list[dict] = []
 
-    def _build_router_prompt(self, goal: str, history: list[dict]) *********REMOVED********* str:
+    def _build_router_prompt(self, goal: str, history: list[dict]) -> str:
         """Build prompt for tool selection."""
         history_str = ""
         if history:
@@ -114,7 +114,7 @@ Current date: 2026-03-19 (use this to evaluate result freshness)
 Respond with ONLY valid JSON:
 {{"thought": "why you chose this tool", "tool": "web_search|web_fetch|browser|finish", "query": "search term if web_search", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
 
-    def select_tool(self, goal: str) *********REMOVED********* ToolChoice | None:
+    def select_tool(self, goal: str) -> ToolChoice | None:
         """Ask LLM to select appropriate tool."""
         try:
             completion = self.llm_client.client.chat.completions.parse(
@@ -130,7 +130,7 @@ Respond with ONLY valid JSON:
             print(f"Error in tool selection: {e}")
             return None
 
-    async def execute_web_fetch(self, url: str) *********REMOVED********* str:
+    async def execute_web_fetch(self, url: str) -> str:
         """Execute web fetch and record result."""
         print(f"[Web Fetch] URL: {url}")
         result = await web_fetch(url)
@@ -142,7 +142,7 @@ Respond with ONLY valid JSON:
         })
         return serialized
 
-    def execute_web_search(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) *********REMOVED********* str:
+    def execute_web_search(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) -> str:
         """Execute web search and record result."""
         # Sanitize: only pass valid time_range values to DDGS
         sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
@@ -155,7 +155,7 @@ Respond with ONLY valid JSON:
         })
         return result
 
-    async def execute_browser(self, goal: str) *********REMOVED********* str:
+    async def execute_browser(self, goal: str) -> str:
         """Execute browser exploration."""
         from src.browser import BrowserWrapper, MarketExplorer
 
@@ -178,7 +178,7 @@ Respond with ONLY valid JSON:
         })
         return browser_result
 
-    def build_synthesis_prompt(self, tool_result: str, original_goal: str) *********REMOVED********* str:
+    def build_synthesis_prompt(self, tool_result: str, original_goal: str) -> str:
         """Build prompt for LLM to synthesize final answer."""
         return f"""Based on the tool execution result, please provide a comprehensive answer.
 
@@ -195,7 +195,7 @@ Instructions:
 
 Respond with your final answer:"""
 
-    def synthesize(self, tool_result: str, original_goal: str) *********REMOVED********* SynthesisResult | None:
+    def synthesize(self, tool_result: str, original_goal: str) -> SynthesisResult | None:
         """Ask LLM to synthesize final answer from tool results."""
         try:
             completion = self.llm_client.client.chat.completions.parse(
@@ -211,7 +211,7 @@ Respond with your final answer:"""
             print(f"Error in synthesis: {e}")
             return None
 
-    async def run(self, goal: str, max_iterations: int = 5) *********REMOVED********* str:
+    async def run(self, goal: str, max_iterations: int = 5) -> str:
         """Run tool selection loop until completion."""
         print(f"\n=== Tool Router: {goal} ===\n")
 

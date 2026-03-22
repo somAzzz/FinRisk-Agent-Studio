@@ -50,7 +50,7 @@ class SGLangClient:
 
     def decide_action(
         self, goal: str, visited_urls: list[str], recent_findings: list[tuple[str, str]]
-    ) *********REMOVED********* BrowserAction | None:
+    ) -> BrowserAction | None:
         """Decide next browser action."""
         visited_str = ", ".join(visited_urls[:5])
         findings_str = "; ".join([f"{s} ({u})" for s, u in recent_findings[-3:]])
@@ -94,7 +94,7 @@ Skip verification/CAPTCHA pages - they are blocked automatically."""
             print(f"Error in decide_action: {e}")
             return None
 
-    def summarize(self, content: str) *********REMOVED********* str:
+    def summarize(self, content: str) -> str:
         """Summarize page content."""
         prompt = f"Summarize this page in 2-3 sentences:\n\n{content[:5000]}"
 

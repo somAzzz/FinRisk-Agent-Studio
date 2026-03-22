@@ -3,17 +3,17 @@
 import json
 from pathlib import Path
 
-from scripts.compare_tools.models import (
-    WebSearchTestCase,
-    WebFetchTestCase,
-    BatchReport,
-)
-from scripts.compare_tools.caller import ProjectCaller, ClaudeCodeCaller
+from scripts.compare_tools.caller import ClaudeCodeCaller, ProjectCaller
 from scripts.compare_tools.comparator import Comparator
-from scripts.compare_tools.reporter import MarkdownReporter, HTMLReporter
+from scripts.compare_tools.models import (
+    BatchReport,
+    WebFetchTestCase,
+    WebSearchTestCase,
+)
+from scripts.compare_tools.reporter import HTMLReporter, MarkdownReporter
 
 
-def run(args) *********REMOVED********* int:
+def run(args) -> int:
     """Run comparison based on args."""
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -34,7 +34,7 @@ def run(args) *********REMOVED********* int:
     return 1
 
 
-def run_single_web_search(query: str, output_dir: Path) *********REMOVED********* int:
+def run_single_web_search(query: str, output_dir: Path) -> int:
     """Run single web_search comparison."""
     test_case = WebSearchTestCase(query=query)
     results = run_comparison([test_case], output_dir)
@@ -42,7 +42,7 @@ def run_single_web_search(query: str, output_dir: Path) *********REMOVED********
     return 0
 
 
-def run_single_web_fetch(url: str, output_dir: Path) *********REMOVED********* int:
+def run_single_web_fetch(url: str, output_dir: Path) -> int:
     """Run single web_fetch comparison."""
     test_case = WebFetchTestCase(url=url)
     results = run_comparison([test_case], output_dir)
@@ -50,7 +50,7 @@ def run_single_web_fetch(url: str, output_dir: Path) *********REMOVED********* i
     return 0
 
 
-def run_batch(batch_path: Path, output_dir: Path) *********REMOVED********* int:
+def run_batch(batch_path: Path, output_dir: Path) -> int:
     """Run batch comparison from JSON file."""
     with open(batch_path) as f:
         data = json.load(f)
@@ -74,7 +74,7 @@ def run_batch(batch_path: Path, output_dir: Path) *********REMOVED********* int:
     return 0
 
 
-def run_repl(output_dir: Path) *********REMOVED********* int:
+def run_repl(output_dir: Path) -> int:
     """Interactive REPL mode."""
     print("Tool Comparison REPL")
     print("Commands: search <query>, fetch <url>, quit")
@@ -134,7 +134,7 @@ def run_repl(output_dir: Path) *********REMOVED********* int:
     return 0
 
 
-def run_comparison(test_cases: list, output_dir: Path) *********REMOVED********* list[str]:
+def run_comparison(test_cases: list, output_dir: Path) -> list[str]:
     """Run comparison for test cases and generate reports."""
     project_caller = ProjectCaller()
     claude_caller = ClaudeCodeCaller()
@@ -143,8 +143,6 @@ def run_comparison(test_cases: list, output_dir: Path) *********REMOVED*********
     results = []
 
     for tc in test_cases:
-        from scripts.compare_tools.models import WebSearchTestCase
-
         if isinstance(tc, WebSearchTestCase):
             project_result = project_caller.call_web_search(tc.query)
             claude_result = claude_caller.call_web_search(tc.query)

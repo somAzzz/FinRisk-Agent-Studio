@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Literal
 
+
 @dataclass
 class WebSearchTestCase:
     """Test case for web_search tool."""

@@ -52,7 +52,7 @@ HTTP_FORBIDDEN = 403
 HTTP_BAD_REQUEST = 400
 
 
-def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
+def _is_blacklisted_domain(url: str) -> bool:
     """Returns True if URL domain equals or ends with . + known dynamic domain."""
     try:
         parsed = urlparse(url)
@@ -79,12 +79,12 @@ class WebFetchResult:
     fetched_at: str | None = None  # ISO timestamp for success, None for failures
 
 
-def serialize_result(result: WebFetchResult) *********REMOVED********* str:
+def serialize_result(result: WebFetchResult) -> str:
     """Serialize result to JSON string for LLM tool call response."""
     return json.dumps(asdict(result))
 
 
-def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:
+def _extract_metadata(html: str) -> tuple[str | None, str | None]:
     """Extract title and description from raw HTML using BeautifulSoup."""
     try:
         soup = BeautifulSoup(html, "lxml")
@@ -107,7 +107,7 @@ def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str
     return title, description
 
 
-def _truncate_content(content: str, max_size: int = MAX_CONTENT_SIZE) *********REMOVED********* str:
+def _truncate_content(content: str, max_size: int = MAX_CONTENT_SIZE) -> str:
     """Truncate content at last paragraph boundary if > max_size."""
     if len(content) <= max_size:
         return content
@@ -121,7 +121,7 @@ def _truncate_content(content: str, max_size: int = MAX_CONTENT_SIZE) *********R
     return truncated + "...(truncated)"
 
 
-def _check_http_status(status_code: int, url: str) *********REMOVED********* WebFetchResult | None:
+def _check_http_status(status_code: int, url: str) -> WebFetchResult | None:
     """Check HTTP status and return error result if applicable, else None."""
     if status_code == HTTP_NOT_FOUND:
         return WebFetchResult(
@@ -150,7 +150,7 @@ def _check_http_status(status_code: int, url: str) *********REMOVED********* Web
     return None
 
 
-async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
+async def web_fetch(url: str) -> WebFetchResult:
     """Fetch URL content and return metadata + Markdown (async)."""
     # 1. Check blacklist
     if _is_blacklisted_domain(url):
@@ -255,7 +255,7 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
     )
 
 
-def web_fetch_sync(url: str) *********REMOVED********* WebFetchResult:
+def web_fetch_sync(url: str) -> WebFetchResult:
     """Synchronous wrapper for non-async contexts."""
     return asyncio.run(web_fetch(url))
 

@@ -1,5 +1,12 @@
-from scripts.compare_tools.models import WebSearchTestCase, WebFetchTestCase, ToolResult, ComparisonResult, BatchReport
-from scripts.compare_tools.caller import ProjectCaller, ClaudeCodeCaller, ToolCaller
+from scripts.compare_tools.caller import ProjectCaller
+from scripts.compare_tools.models import (
+    BatchReport,
+    ComparisonResult,
+    ToolResult,
+    WebFetchTestCase,
+    WebSearchTestCase,
+)
+
 
 def test_project_caller_web_search():
     caller = ProjectCaller()

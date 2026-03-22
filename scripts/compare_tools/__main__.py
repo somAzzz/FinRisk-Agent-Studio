@@ -1,6 +1,7 @@
 """CLI entry point."""
 
 import sys
+
 from scripts.compare_tools.cli import create_parser
 
 

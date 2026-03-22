@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-def main() *********REMOVED********* None:
+def main() -> None:
     """Run the main application entry point."""
     print("Hello from fintext_llm!")
     print("This is the SEC EDGAR filing analysis system.")

@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 
-def create_parser() *********REMOVED********* argparse.ArgumentParser:
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Compare project web_search/web_fetch tools vs Claude Code tools"
     )

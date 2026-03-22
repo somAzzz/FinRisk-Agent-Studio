@@ -32,7 +32,7 @@ class EdgarDataset:
     def __init__(self, data_dir: str | None = None):
         self.data_dir = Path(data_dir) if data_dir else Path(DEFAULT_DATA_DIR)
 
-    def iter_filings(self, split: str = "train") *********REMOVED********* Iterator[Filing]:
+    def iter_filings(self, split: str = "train") -> Iterator[Filing]:
         """Iterate over filings in a split.
 
         Args:
@@ -58,7 +58,7 @@ class EdgarDataset:
         self,
         split: str = "train",
         min_length: int = MIN_SECTION_LENGTH,
-    ) *********REMOVED********* Iterator[Filing]:
+    ) -> Iterator[Filing]:
         """Iterate over filings that have meaningful content in key sections.
 
         Filters out filings where section_1A (Risk Factors) is empty or too short.

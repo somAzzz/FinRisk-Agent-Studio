@@ -23,7 +23,7 @@ class WebSearchInput(BaseModel):
     )
 
 
-def _extract_published_date(result: dict) *********REMOVED********* str | None:
+def _extract_published_date(result: dict) -> str | None:
     """Extract publication date from DDGS result.
 
     Try to extract date from:
@@ -59,7 +59,7 @@ def _format_search_output(
     results: list[dict],
     query: str,
     time_range: Literal["d", "w", "m", "y", None] = None,
-) *********REMOVED********* str:
+) -> str:
     """Format search results as JSON Envelope for reliable LLM parsing.
 
     JSON Envelope structure:
@@ -103,7 +103,7 @@ def web_search(
     query: str,
     max_results: int = 5,
     time_range: Literal["d", "w", "m", "y", None] = None,
-) *********REMOVED********* str:
+) -> str:
     """Execute web search and return JSON Envelope.
 
     Args:

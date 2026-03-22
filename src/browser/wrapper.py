@@ -28,12 +28,12 @@ class BrowserWrapper:
         self._process: subprocess.Popen | None = None
         self._current_url: str = ""
 
-    def _strip_ansi(self, text: str) *********REMOVED********* str:
+    def _strip_ansi(self, text: str) -> str:
         """Remove ANSI escape sequences from text."""
         ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
         return ansi_escape.sub("", text)
 
-    def _run_command(self, *args: str) *********REMOVED********* tuple[bool, str, str]:
+    def _run_command(self, *args: str) -> tuple[bool, str, str]:
         """Run agent-browser command.
 
         Returns:
@@ -70,7 +70,7 @@ class BrowserWrapper:
         self._current_url = url_result.stdout.strip()
         return success, output, self._current_url
 
-    async def navigate(self, url: str) *********REMOVED********* BrowserResult:
+    async def navigate(self, url: str) -> BrowserResult:
         """Navigate to URL."""
         if not url.startswith(("http://", "https://")):
             return BrowserResult(
@@ -100,7 +100,7 @@ class BrowserWrapper:
             error=None,
         )
 
-    def click(self, selector: str) *********REMOVED********* BrowserResult:
+    def click(self, selector: str) -> BrowserResult:
         success, output, url = self._run_command("click", selector)
         if not success:
             return BrowserResult(
@@ -118,7 +118,7 @@ class BrowserWrapper:
             error=None,
         )
 
-    def type(self, selector: str, text: str) *********REMOVED********* BrowserResult:
+    def type(self, selector: str, text: str) -> BrowserResult:
         success, output, url = self._run_command("type", selector, text)
         if not success:
             return BrowserResult(
@@ -136,7 +136,7 @@ class BrowserWrapper:
             error=None,
         )
 
-    def scroll(self, direction: str, pixels: int = 500) *********REMOVED********* BrowserResult:
+    def scroll(self, direction: str, pixels: int = 500) -> BrowserResult:
         success, output, url = self._run_command("scroll", direction, str(pixels))
         return BrowserResult(
             success=success,
@@ -146,7 +146,7 @@ class BrowserWrapper:
             error=None if success else output[:200],
         )
 
-    def get_snapshot(self) *********REMOVED********* BrowserResult:
+    def get_snapshot(self) -> BrowserResult:
         """Returns AI-friendly accessibility tree."""
         success, output, url = self._run_command("snapshot")
         if not success:
@@ -165,7 +165,7 @@ class BrowserWrapper:
             error=None,
         )
 
-    def screenshot(self, path: str | None = None) *********REMOVED********* BrowserResult:
+    def screenshot(self, path: str | None = None) -> BrowserResult:
         if path is None:
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
                 path = f.name
@@ -185,7 +185,7 @@ class BrowserWrapper:
             error=None if success else output[:200],
         )
 
-    def wait_for(self, selector: str, timeout: int = 10) *********REMOVED********* BrowserResult:
+    def wait_for(self, selector: str, timeout: int = 10) -> BrowserResult:
         success, output, url = self._run_command("wait", selector, str(timeout))
         return BrowserResult(
             success=success,
@@ -195,7 +195,7 @@ class BrowserWrapper:
             error=None if success else output[:200],
         )
 
-    async def execute_batch(self, commands: list[dict]) *********REMOVED********* list[BrowserResult]:
+    async def execute_batch(self, commands: list[dict]) -> list[BrowserResult]:
         """Execute multiple commands in batch."""
         proc = await asyncio.create_subprocess_exec(
             "agent-browser", "batch",
@@ -215,7 +215,7 @@ class BrowserWrapper:
         except Exception:
             return [BrowserResult(success=False, content=None, screenshot=None, url="", error="Batch failed")]
 
-    def close(self) *********REMOVED********* None:
+    def close(self) -> None:
         """Clean up browser resources."""
         subprocess.run(["agent-browser", "close"], capture_output=True, timeout=5)
         if self._process:
