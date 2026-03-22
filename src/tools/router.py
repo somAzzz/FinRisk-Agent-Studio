@@ -37,6 +37,10 @@ class ToolChoice(BaseModel):
     )
     query: str | None = Field(default=None, description="Search query if using web_search")
     url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
+    time_range: Literal["d", "w", "m", "y", None] = Field(
+        default=None,
+        description="Time filter for web_search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
+    )
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
 
