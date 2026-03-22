@@ -1,0 +1,48 @@
+from dataclasses import dataclass
+from typing import Literal
+
+ERROR_SUGGESTIONS = {
+    "BLACKLISTED_DOMAIN": "Use MarketExplorer (real browser) to access this URL.",
+    "INVALID_URL": "Verify the URL is correct.",
+    "TIMEOUT": "The site may be slow; try again later.",
+    "CONNECTION_ERROR": "Check your connection.",
+    "404_NOT_FOUND": "Try searching for alternative sources.",
+    "403_FORBIDDEN": "Use MarketExplorer with real browser.",
+    "PARSE_ERROR": "Use MarketExplorer for complex pages.",
+    "UNKNOWN": "Report this issue.",
+}
+
+_ERROR_MESSAGES = {
+    "BLACKLISTED_DOMAIN": "This domain is known to require JavaScript rendering.",
+    "INVALID_URL": "Malformed URL provided.",
+    "TIMEOUT": "Request exceeded 10 second timeout.",
+    "CONNECTION_ERROR": "Could not connect to the server.",
+    "404_NOT_FOUND": "Page not found (HTTP 404).",
+    "403_FORBIDDEN": "Access denied. This site may have anti-bot protection (Cloudflare, etc.).",
+    "PARSE_ERROR": "Failed to parse HTML content.",
+    "UNKNOWN": "An unexpected error occurred.",
+}
+
+_KNOWN_DYNAMIC_DOMAINS = [
+    "twitter.com",
+    "x.com",
+    "tradingview.com",
+    "app.uniswap.org",
+    "coinbase.com",
+    "bloomberg.com",
+    "wsj.com",
+]
+
+MAX_CONTENT_SIZE = 100_000  # 100KB
+TIMEOUT_SECONDS = 10
+
+@dataclass
+class WebFetchResult:
+    url: str
+    title: str | None = None
+    description: str | None = None
+    content: str = ""
+    status: Literal["success", "failed"] = "success"
+    error_code: str | None = None
+    error_message: str | None = None
+    suggestion: str | None = None
