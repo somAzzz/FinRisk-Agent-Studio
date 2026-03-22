@@ -15,6 +15,20 @@ from src.tools.web_fetch import serialize_result, web_fetch
 from src.tools.web_search import web_search
 
 
+class SynthesisResult(BaseModel):
+    """Structured output for synthesis responses."""
+    answer: str = Field(description="Final answer to the user's question")
+    needs_more_info: bool = Field(
+        default=False,
+        description="True if more information is needed to fully answer"
+    )
+    suggested_tool: (
+        Literal["web_search", "web_fetch", "browser", "finish"] | None
+    ) = Field(default=None, description="Next tool if needs_more_info is True")
+    suggested_query: str | None = Field(default=None, description="Query for suggested tool")
+    suggested_url: str | None = Field(default=None, description="URL for suggested tool")
+
+
 class ToolChoice(BaseModel):
     """LLM response for tool selection."""
     thought: str = Field(description="Reasoning about what to do")
@@ -164,16 +178,16 @@ Instructions:
 
 Respond with your final answer:"""
 
-    def synthesize(self, tool_result: str, original_goal: str) *********REMOVED********* str | None:
+    def synthesize(self, tool_result: str, original_goal: str) *********REMOVED********* SynthesisResult | None:
         """Ask LLM to synthesize final answer from tool results."""
         try:
             completion = self.llm_client.client.chat.completions.parse(
                 model="Qwen/Qwen3.5-35B-A3B",
                 messages=[
-                    {"role": "system", "content": "You are a financial analysis assistant. Provide clear answers with citations."},
+                    {"role": "system", "content": "You are a financial analysis assistant."},
                     {"role": "user", "content": self.build_synthesis_prompt(tool_result, original_goal)},
                 ],
-                response_format=ToolChoice,
+                response_format=SynthesisResult,
             )
             return completion.choices[0].message.parsed
         except Exception as e:
@@ -194,37 +208,44 @@ Respond with your final answer:"""
 
             print(f"[Step {i+1}] Selected: {choice.tool} - {choice.thought}")
 
+            # Execute the chosen tool
             if choice.tool == "web_search" and choice.query:
                 result = self.execute_web_search(choice.query)
                 print(f"[Step {i+1}] Search returned {len(result)} chars")
-
-                # Ask LLM to decide if more search needed or finish
-                synthesis = self.synthesize(result, goal)
-                if synthesis and synthesis.tool == "finish" and synthesis.answer:
-                    print(f"\n=== Final Answer ===\n{synthesis.answer}")
-                    return synthesis.answer
-
             elif choice.tool == "browser":
                 result = await self.execute_browser(goal)
                 print(f"[Step {i+1}] Browser returned {len(result)} chars")
-
-                synthesis = self.synthesize(result, goal)
-                if synthesis and synthesis.tool == "finish" and synthesis.answer:
-                    print(f"\n=== Final Answer ===\n{synthesis.answer}")
-                    return synthesis.answer
-
             elif choice.tool == "web_fetch" and choice.url:
                 result = await self.execute_web_fetch(choice.url)
                 print(f"[Step {i+1}] Fetch returned {len(result)} chars")
-
-                synthesis = self.synthesize(result, goal)
-                if synthesis and synthesis.tool == "finish" and synthesis.answer:
-                    print(f"\n=== Final Answer ===\n{synthesis.answer}")
-                    return synthesis.answer
-
             elif choice.tool == "finish":
                 if choice.answer:
                     print(f"\n=== Final Answer ===\n{choice.answer}")
                 return choice.answer or "No answer provided."
+            else:
+                break
+
+            # Synthesize result
+            synthesis = self.synthesize(result, goal)
+            if synthesis:
+                if not synthesis.needs_more_info and synthesis.answer:
+                    print(f"\n=== Final Answer ===\n{synthesis.answer}")
+                    return synthesis.answer
+
+                # If needs more info, continue with suggested tool
+                if synthesis.needs_more_info and synthesis.suggested_tool:
+                    print(f"[Step {i+1}] Needs more info, suggesting: {synthesis.suggested_tool}")
+                    if synthesis.suggested_tool == "web_search" and synthesis.suggested_query:
+                        result = self.execute_web_search(synthesis.suggested_query)
+                        synthesis = self.synthesize(result, goal)
+                        if synthesis and synthesis.answer:
+                            print(f"\n=== Final Answer ===\n{synthesis.answer}")
+                            return synthesis.answer
+                    elif synthesis.suggested_tool == "web_fetch" and synthesis.suggested_url:
+                        result = await self.execute_web_fetch(synthesis.suggested_url)
+                        synthesis = self.synthesize(result, goal)
+                        if synthesis and synthesis.answer:
+                            print(f"\n=== Final Answer ===\n{synthesis.answer}")
+                            return synthesis.answer
 
         return "Max iterations reached without final answer."
