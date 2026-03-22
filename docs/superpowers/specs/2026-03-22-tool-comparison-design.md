@@ -11,7 +11,7 @@ Create an independent comparison test tool `scripts/compare_tools.py` that suppo
 | Mode | Command | Description |
 |------|---------|-------------|
 | Single query | `--query <text>` or `--url <url>` | Test single query or URL |
-| Batch file | `--batch <file.json>` | Read multiple test cases from JSON/YAML |
+| Batch file | `--batch <file.json>` | Read multiple test cases from JSON file |
 | Interactive | `--repl` | REPL mode, real-time input testing |
 
 ### 2. Tool Calling Layer
@@ -27,6 +27,8 @@ ToolCaller (abstract layer)
 claude -m "web_search: {query}" --output-format stream-json
 claude -m "web_fetch: {url}" --output-format stream-json
 ```
+
+**Validation:** On first run, verify `claude` command supports `--output-format stream-json`. If not supported, fall back to parsing plain text output and log a warning.
 
 ### 3. Report Generator
 
@@ -51,12 +53,14 @@ Generates dual-format reports:
 
 | Dimension | Metric | Calculation |
 |-----------|--------|-------------|
-| Completeness | Key info coverage | Define key info points, count hits |
-| Accuracy | Accuracy score | Compare with authoritative source |
-| Speed | Response time | Average of multiple runs |
+| Completeness | Key info coverage | `expected_keywords` hit rate in output |
+| Accuracy | Accuracy score | Sentence-by-sentence similarity to `expected_content` |
+| Speed | Response time | Average across runs (exclude cold start) |
 | Error rate | Failure rate | failures / total |
-| RAG friendliness | Structure score | markdown rate, paragraph count |
-| Edge cases | Blacklist/truncation | Specific test cases for validation |
+| RAG friendliness | Structure score | markdown rate, paragraph count, code block detection |
+| Edge cases | Blacklist/truncation | Verify blacklisted domains are rejected; truncation at reasonable boundaries |
+
+**Note:** All metrics use test-case-level `expected_keywords` or `expected_content` fields defined in batch file. No external authoritative source required.
 
 ## Data Flow
 
@@ -120,13 +124,20 @@ python scripts/compare_tools.py --repl
 {
   "web_search": [
     {"query": "Tesla stock analysis", "expected_keywords": ["revenue", "EV"]},
-    {"query": "Apple earnings Q4"}
+    {"query": "Apple earnings Q4", "expected_keywords": ["revenue", "EPS"], "expected_content": "Apple Inc. reported quarterly earnings of $X.XX per share..."}
   ],
   "web_fetch": [
-    {"url": "https://news.example.com/tech", "expected_keywords": ["AI", "growth"]}
+    {"url": "https://news.example.com/tech", "expected_keywords": ["AI", "growth"], "expected_content": "The article discusses..."}
   ]
 }
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | string | Yes (web_search) | Search query |
+| `url` | string | Yes (web_fetch) | URL to fetch |
+| `expected_keywords` | string[] | No | Keywords that should appear in output |
+| `expected_content` | string | No | Reference content for accuracy comparison |
 
 ## Open Questions / Future Improvements
 
