@@ -62,3 +62,28 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
+
+
+def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:
+    """Extract title and description from raw HTML using BeautifulSoup."""
+    from bs4 import BeautifulSoup
+
+    try:
+        soup = BeautifulSoup(html, "lxml")
+    except Exception:
+        return None, None
+
+    title = None
+    description = None
+
+    # Extract title
+    title_tag = soup.find("title")
+    if title_tag:
+        title = title_tag.get_text().strip()
+
+    # Extract meta description
+    meta_desc = soup.find("meta", attrs={"name": "description"})
+    if meta_desc and meta_desc.get("content"):
+        description = meta_desc["content"].strip()
+
+    return title, description
