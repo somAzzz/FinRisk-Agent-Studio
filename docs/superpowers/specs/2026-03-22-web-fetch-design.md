@@ -19,9 +19,9 @@ Implement a lightweight web content fetching tool (`web_fetch`) that complements
 ```
 Agent calls web_fetch(url)
     │
-    ├─► HeuristicRouter domain check
+    ├─► Internal blacklist check (_is_blacklisted_domain)
     │       │
-    │       ├─► Blacklisted domain → return failure with suggestion
+    │       ├─► Blacklisted → return failure (BLACKLISTED_DOMAIN)
     │       │
     │       └─► Normal URL → proceed
     │
@@ -36,38 +36,43 @@ Agent reads suggestion → decides whether to call MarketExplorer as separate to
 
 **Note:** web_fetch and MarketExplorer are separate tools. web_fetch returns a structured failure response; the Agent decides whether to invoke MarketExplorer based on the `suggestion` field. There is no internal handoff between tools.
 
+**MarketExplorer Tool Schema (for reference):**
+- Name: `market_explorer`
+- See: `docs/superpowers/specs/2026-03-19-browser-exploration-design.md`
+
+### Processing Order (Critical)
+
+1. **First:** Extract metadata (title, description) from raw HTML
+2. **Then:** Clean HTML (remove scripts, styles, nav, footer, etc.)
+3. **Finally:** Convert cleaned HTML to Markdown
+
+This ordering ensures metadata extraction is not affected by content cleaning.
+
 ### scrapling Dual Role
 
 | Context | scrapling Responsibility |
 |---------|-------------------------|
 | `web_fetch` | Direct HTTP fetch + HTML→Markdown conversion |
-| `MarketExplorer` | Parse agent-browser DOM snapshot → HTML→Markdown (already documented in MarketExplorer design) |
-
-### HeuristicRouter (Domain-based Routing)
-
-Located in `src/tools/heuristic_router.py` (new file). Performs URL-based routing without LLM:
-
-- Checks URL against `KNOWN_DYNAMIC_DOMAINS` blacklist
-- Returns routing decision immediately (no LLM call)
-- Used as a pre-check before invoking web_fetch
+| `MarketExplorer` | Parse agent-browser DOM snapshot → HTML→Markdown (documented in MarketExplorer design) |
 
 ## Functionality
 
 ### Core Features
 
 1. **Fast URL Content Fetching**
-   - HTTP GET via scrapling
-   - HTML→Markdown conversion using scrapling's extractor
+   - HTTP GET via `scrapling.Fetcher` or `scrapling.Extractor`
+   - Default headers: `User-Agent: Mozilla/5.0`, `Accept-Language: en-US`
+   - HTML→Markdown conversion using `trafilatura` or scrapling's built-in extractor
    - Target latency: < 3 seconds end-to-end (measured from call to response)
 
 2. **Metadata-Enriched Output**
-   - Extract `<title>` tag content
-   - Extract `<meta name="description">` content
+   - Extract `<title>` tag content (before any HTML cleaning)
+   - Extract `<meta name="description">` content (before any HTML cleaning)
    - Zero-cost extraction without LLM
 
 3. **Content Cleaning**
-   - Remove `<script>`, `<style>`, `<nav>`, `<footer>`, `<header>` elements
-   - Remove advertising blocks and cookie banners
+   - Remove `<script>`, `<style>`, `<nav>`, `<footer>`, `<header>`, `<aside>` elements
+   - Remove advertising blocks, cookie banners, comment elements
    - Preserve main content structure (headings, lists, tables, paragraphs)
    - Convert to Markdown format
 
@@ -77,7 +82,7 @@ Located in `src/tools/heuristic_router.py` (new file). Performs URL-based routin
    - Let Agent decide fallback strategy
 
 5. **Domain Heuristic Routing**
-   - Check URL against known dynamic domain blacklist
+   - Check URL against known dynamic domain blacklist (internal helper)
    - Return immediate failure for blacklisted domains (avoid wasted fetch attempt)
 
 ### Output Schema
@@ -119,10 +124,10 @@ Located in `src/tools/heuristic_router.py` (new file). Performs URL-based routin
 
 ### Domain Blacklist (Initial Set)
 
-Maintained in `src/tools/heuristic_router.py`:
+Maintained in `src/tools/web_fetch.py` as a private constant:
 
 ```python
-KNOWN_DYNAMIC_DOMAINS = [
+_KNOWN_DYNAMIC_DOMAINS = [
     "twitter.com",
     "x.com",
     "tradingview.com",
@@ -133,12 +138,21 @@ KNOWN_DYNAMIC_DOMAINS = [
 ]
 ```
 
+**Matching Algorithm:** Suffix match. A URL matches if its domain ends with one of the listed domains. This prevents false positives like `nottradingview.com`.
+
+| URL Domain | Matches? |
+|-----------|----------|
+| `tradingview.com` | ✅ |
+| `blog.tradingview.com` | ✅ |
+| `tradingview.com/symbol` | ✅ |
+| `nottradingview.com` | ❌ |
+
 **Extensibility:** Add new domains as needed. This is a static list for v1.
 
 ### Content Size Limits
 
 - **Max content size:** 100KB of Markdown text
-- **Truncation:** If content exceeds limit, truncate at last complete paragraph and append `...(truncated)`
+- **Truncation:** If content exceeds limit, scan backward for `\n\n` (paragraph boundary), truncate there, append `...(truncated)`
 - **Title/description:** No limit, but typically < 200 chars
 
 ## Implementation
@@ -148,14 +162,15 @@ KNOWN_DYNAMIC_DOMAINS = [
 | File | Action | Purpose |
 |------|--------|---------|
 | `src/tools/web_fetch.py` | Create | Main web_fetch tool |
-| `src/tools/heuristic_router.py` | Create | Domain-based URL routing |
-| `src/tools/router.py` | No change | Tool selection logic unchanged |
+
+**Removed from scope:** `src/tools/heuristic_router.py` - Domain checking is handled internally by `_is_blacklisted_domain()` helper within web_fetch.py.
 
 **Removed from scope:** `src/browser/explorer.py` modification. scrapling integration in MarketExplorer is already covered by existing design.
 
 ### Dependencies
 
 - `scrapling>=0.4.2` (already in pyproject.toml)
+- `trafilatura` (for HTML→Markdown conversion, add if not already dependency)
 - `agent-browser` CLI (already used)
 
 ### API Design
@@ -163,7 +178,10 @@ KNOWN_DYNAMIC_DOMAINS = [
 ```python
 # src/tools/web_fetch.py
 
-class WebFetchResult(BaseModel):
+from dataclasses import dataclass
+
+@dataclass
+class WebFetchResult:
     url: str
     title: str | None = None
     description: str | None = None
@@ -173,8 +191,35 @@ class WebFetchResult(BaseModel):
     error_message: str | None = None
     suggestion: str | None = None
 
+def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
+    """Internal helper. Returns True if URL domain ends with a known dynamic domain."""
+    ...
+
+def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:
+    """Extract title and description from raw HTML. Returns (title, description)."""
+    ...
+
+def _clean_html(html: str) *********REMOVED********* str:
+    """Remove scripts, styles, nav, footer, etc. from HTML."""
+    ...
+
+def _html_to_markdown(html: str) *********REMOVED********* str:
+    """Convert cleaned HTML to Markdown using trafilatura or similar."""
+    ...
+
+def _truncate_content(content: str, max_size: int = 100_000) *********REMOVED********* str:
+    """Truncate content at last paragraph boundary if > max_size."""
+    ...
+
 def web_fetch(url: str) *********REMOVED********* WebFetchResult:
     """Fetch URL content and return metadata + Markdown."""
+    # 1. Check blacklist
+    # 2. Fetch via scrapling
+    # 3. Extract metadata (before cleaning)
+    # 4. Clean HTML
+    # 5. Convert to Markdown
+    # 6. Truncate if needed
+    # 7. Return result
     ...
 
 # Tool definition for LLM tool calling
@@ -183,18 +228,6 @@ WEB_FETCH_TOOL = {
     "description": "Fetch URL content for RAG. Returns metadata + Markdown. Use for static pages. For JS-heavy sites, expect failure and use MarketExplorer instead.",
     "input_schema": {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]},
 }
-```
-
-```python
-# src/tools/heuristic_router.py
-
-def should_use_market_explorer(url: str) *********REMOVED********* bool:
-    """Returns True if URL matches known dynamic domain blacklist."""
-    ...
-
-def route_to_tool(url: str) *********REMOVED********* str:
-    """Returns 'web_fetch' or 'market_explorer' based on heuristics."""
-    ...
 ```
 
 ## Testing
@@ -207,10 +240,14 @@ def route_to_tool(url: str) *********REMOVED********* str:
 | `test_extract_description` | Given HTML with `<meta name="description" content="Desc">`, verify `result.description == "Desc"` |
 | `test_content_cleaning_removes_scripts` | Given HTML with `<script>alert(1)</script>`, verify content has no script |
 | `test_content_cleaning_preserves_headings` | Given HTML with `<h1>Heading</h1>`, verify content contains `## Heading` |
-| `test_content_truncation` | Given large HTML producing >100KB Markdown, verify truncation |
+| `test_content_truncation` | Given large HTML producing >100KB Markdown, verify truncation ends at paragraph boundary |
+| `test_truncation_algorithm` | Verify truncation scans backward for `\n\n` |
 | `test_error_404` | Given HTTP 404 response, verify `error_code == "404_NOT_FOUND"` |
 | `test_error_timeout` | Given slow server, verify timeout after 10s with `TIMEOUT` code |
+| `test_error_parse_error` | Given malformed HTML, verify `error_code == "PARSE_ERROR"` |
 | `test_blacklisted_domain` | Given URL `https://tradingview.com/...`, verify `error_code == "BLACKLISTED_DOMAIN"` |
+| `test_blacklist_exact_match` | Given URL `https://nottradingview.com`, verify NO blacklist match (false positive prevention) |
+| `test_blacklist_subdomain` | Given URL `https://blog.twitter.com`, verify blacklist match |
 
 ### Integration Tests
 
@@ -218,15 +255,8 @@ def route_to_tool(url: str) *********REMOVED********* str:
 |-----------|-------------|
 | `test_fetch_static_wikipedia` | Fetch Wikipedia article, verify success with content |
 | `test_fetch_news_site` | Fetch news article, verify Markdown formatting |
+| `test_fetch_reuters` | Fetch Reuters article, verify metadata extraction |
 | `test_agent_decides_market_explorer` | Given blacklisted URL, verify Agent can read suggestion and call MarketExplorer |
-
-### HeuristicRouter Tests
-
-| Test Case | Description |
-|-----------|-------------|
-| `test_blacklist_matching` | Verify `tradingview.com` matches `*tradingview.com*` pattern |
-| `test_whitelist_normal_url` | Verify `example.com` does not match blacklist |
-| `test_subdomain_handling` | Verify `blog.twitter.com` triggers blacklist |
 
 ## Notes
 
@@ -234,3 +264,4 @@ def route_to_tool(url: str) *********REMOVED********* str:
 - `web_fetch` never raises exceptions to Agent (all errors returned as JSON)
 - LLM/Agent decides fallback based on `suggestion` field
 - Timeout is fixed at 10 seconds (configurable in future)
+- Metadata extraction always happens before content cleaning
