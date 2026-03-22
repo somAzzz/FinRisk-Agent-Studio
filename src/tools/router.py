@@ -5,23 +5,24 @@ Supports:
 - browser: Full browser automation for complex web interactions
 """
 
-import asyncio
 from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from src.llm.sglang_client import SGLangClient
-from src.tools.web_search import web_search, WEB_SEARCH_TOOL, SearchResult
+from src.tools.web_fetch import serialize_result, web_fetch
+from src.tools.web_search import web_search
 
 
 class ToolChoice(BaseModel):
     """LLM response for tool selection."""
     thought: str = Field(description="Reasoning about what to do")
-    tool: Literal["web_search", "browser", "finish"] = Field(
-        description="Choose: 'web_search' for quick info, 'browser' for complex web interaction, 'finish' if done"
+    tool: Literal["web_search", "web_fetch", "browser", "finish"] = Field(
+        description="Choose: 'web_search' for quick info, 'web_fetch' for URL content, 'browser' for complex interaction, 'finish' if done"
     )
     query: str | None = Field(default=None, description="Search query if using web_search")
+    url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
 
@@ -59,16 +60,22 @@ You are a tool-selecting assistant. Choose the best tool for the job:
    - Quick factual queries
    - Current events and news
    - Stock prices, market data
-   - General web information
    - When you need fast, clean text answers
+   - When you don't have a specific URL
 
-2. browser - Use for:
+2. web_fetch - Use for:
+   - When you have a specific URL to fetch
+   - Getting detailed article content for RAG
+   - Extracting metadata (title, description) with content
+   - Best for static pages (news, blogs, wikis)
+
+3. browser - Use for:
    - Complex web interactions (login, forms, clicks)
    - Extracting data from specific websites that require interaction
-   - Accessing paywalled or dynamic content
-   - When you need to navigate to specific pages
+   - Accessing paywalled or dynamic/SPA content
+   - When web_fetch fails on a URL
 
-3. finish - Use when:
+4. finish - Use when:
    - You have enough information to answer the goal
    - The user question is answered
    - You want to stop exploration
@@ -76,7 +83,7 @@ You are a tool-selecting assistant. Choose the best tool for the job:
 Current date: 2026-03-19 (use this to evaluate result freshness)
 
 Respond with ONLY valid JSON:
-{{"thought": "why you chose this tool", "tool": "web_search|browser|finish", "query": "search term if web_search", "reason": "why this tool"}}"""
+{{"thought": "why you chose this tool", "tool": "web_search|web_fetch|browser|finish", "query": "search term if web_search", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
 
     def select_tool(self, goal: str) *********REMOVED********* ToolChoice | None:
         """Ask LLM to select appropriate tool."""
@@ -93,6 +100,18 @@ Respond with ONLY valid JSON:
         except Exception as e:
             print(f"Error in tool selection: {e}")
             return None
+
+    async def execute_web_fetch(self, url: str) *********REMOVED********* str:
+        """Execute web fetch and record result."""
+        print(f"[Web Fetch] URL: {url}")
+        result = await web_fetch(url)
+        serialized = serialize_result(result)
+        self.search_history.append({
+            "tool": "web_fetch",
+            "query": url,
+            "result": serialized[:500],
+        })
+        return serialized
 
     def execute_web_search(self, query: str) *********REMOVED********* str:
         """Execute web search and record result."""
@@ -188,6 +207,15 @@ Respond with your final answer:"""
             elif choice.tool == "browser":
                 result = await self.execute_browser(goal)
                 print(f"[Step {i+1}] Browser returned {len(result)} chars")
+
+                synthesis = self.synthesize(result, goal)
+                if synthesis and synthesis.tool == "finish" and synthesis.answer:
+                    print(f"\n=== Final Answer ===\n{synthesis.answer}")
+                    return synthesis.answer
+
+            elif choice.tool == "web_fetch" and choice.url:
+                result = await self.execute_web_fetch(choice.url)
+                print(f"[Step {i+1}] Fetch returned {len(result)} chars")
 
                 synthesis = self.synthesize(result, goal)
                 if synthesis and synthesis.tool == "finish" and synthesis.answer:
