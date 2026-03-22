@@ -32,6 +32,10 @@ claude -m "web_fetch: {url}" --output-format stream-json
 
 **Validation:** On first run, verify `claude` command supports `--output-format stream-json`. If not supported, fall back to parsing plain text output and log a warning.
 
+**ANSI Cleanup:** When falling back to plain text, strip ANSI escape codes using regex `\x1b\[[0-9;]*[a-zA-Z]` before parsing.
+
+**Timeout:** All subprocess calls have a 60-second hard timeout. Project tool calls use the same timeout. On timeout, mark result as error and continue.
+
 ### 3. Report Generator
 
 Generates dual-format reports:
@@ -56,13 +60,27 @@ Generates dual-format reports:
 | Dimension | Metric | Calculation |
 |-----------|--------|-------------|
 | Completeness | Key info coverage | `expected_keywords` hit rate in output |
-| Accuracy | Accuracy score | Cosine similarity between output and `expected_content` embeddings |
+| Accuracy | Accuracy score | LLM-as-a-Judge: prompt LLM to compare outputs and score 1-5 |
 | Speed | Response time | Average across runs (exclude cold start) |
 | Error rate | Failure rate | failures / total |
 | RAG friendliness | Structure score | Markdown-formatted lines / total lines, paragraph count, code block presence |
 | Edge cases | Blacklist/truncation | Verify blacklisted domains are rejected; truncation at word boundary within 10% of limit |
 
 **Note:** All metrics use test-case-level `expected_keywords` or `expected_content` fields defined in batch file.
+
+**LLM-as-a-Judge Prompt Template:**
+```
+Compare these two tool outputs for the query: {query}
+
+--- Output A (Project Tool) ---
+{output_a}
+
+--- Output B (Claude Code) ---
+{output_b}
+
+Score both outputs 1-5 on: completeness, accuracy, and RAG-friendliness.
+Explain which is better and why.
+```
 
 ## Data Flow
 
@@ -146,7 +164,8 @@ python scripts/compare_tools.py --repl
 
 ## Open Questions / Future Improvements
 
-- [ ] Support calling Claude Code via MCP protocol if available
+- [ ] Support calling Claude Code via MCP protocol if available (removes subprocess overhead)
 - [ ] Persist results to local database for historical comparison
 - [ ] Add diff visualization in HTML report
 - [ ] Support custom evaluation criteria per test case
+- [ ] Embedding-based accuracy scoring (future, when evaluation dataset is large enough)
