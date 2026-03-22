@@ -1,5 +1,5 @@
 import pytest
-from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata
+from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content
 
 def test_blacklist_exact_match():
     """tradingview.com should match"""
@@ -48,3 +48,27 @@ def test_extract_no_metadata():
     title, desc = _extract_metadata(html)
     assert title is None
     assert desc is None
+
+
+def test_truncate_small_content():
+    """Content under limit should be unchanged"""
+    content = "Short content"
+    result = _truncate_content(content, max_size=100)
+    assert result == "Short content"
+
+
+def test_truncate_large_content():
+    """Content over limit should be truncated at paragraph boundary"""
+    content = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph that pushes us over the limit." + "x" * 1000
+    result = _truncate_content(content, max_size=50)
+    assert len(result) <= 50 + len("...(truncated)")
+    assert result.endswith("...(truncated)")
+    assert "\n\n" in result  # Truncated at paragraph boundary
+
+
+def test_truncate_no_paragraph_boundary():
+    """Content with no paragraph markers should truncate at max_size"""
+    content = "A" * 200
+    result = _truncate_content(content, max_size=100)
+    assert len(result) <= 100 + len("...(truncated)")
+    assert result.endswith("...(truncated)")

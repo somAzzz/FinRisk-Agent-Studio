@@ -87,3 +87,17 @@ def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str
         description = meta_desc["content"].strip()
 
     return title, description
+
+
+def _truncate_content(content: str, max_size: int = MAX_CONTENT_SIZE) *********REMOVED********* str:
+    """Truncate content at last paragraph boundary if > max_size."""
+    if len(content) <= max_size:
+        return content
+
+    # Try to truncate at paragraph boundary (\n\n)
+    truncated = content[:max_size]
+    last_paragraph = truncated.rfind("\n\n")
+    if last_paragraph > max_size // 2:
+        truncated = truncated[:last_paragraph]
+
+    return truncated + "...(truncated)"
