@@ -36,6 +36,22 @@ _KNOWN_DYNAMIC_DOMAINS = [
 MAX_CONTENT_SIZE = 100_000  # 100KB
 TIMEOUT_SECONDS = 10
 
+
+def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
+    """Returns True if URL domain equals or ends with . + known dynamic domain."""
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower()
+    except Exception:
+        return False
+
+    for blacklisted in _KNOWN_DYNAMIC_DOMAINS:
+        if domain == blacklisted or domain.endswith("." + blacklisted):
+            return True
+    return False
+
 @dataclass
 class WebFetchResult:
     url: str
