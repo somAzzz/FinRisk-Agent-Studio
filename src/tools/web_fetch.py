@@ -1,6 +1,7 @@
 import asyncio
 import json
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from typing import Literal
 from urllib.parse import urlparse
 
@@ -250,6 +251,7 @@ async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
         description=description,
         content=content,
         status="success",
+        fetched_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
     )
 
 

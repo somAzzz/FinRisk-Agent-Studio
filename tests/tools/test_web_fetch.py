@@ -150,3 +150,30 @@ def test_fetched_at_none_for_failure():
         fetched_at=None
     )
     assert result.fetched_at is None
+
+
+@pytest.mark.asyncio
+async def test_web_fetch_sets_fetched_at_on_success():
+    """Successful fetch returns fetched_at timestamp."""
+    import re
+    from unittest.mock import patch, AsyncMock, MagicMock
+    from src.tools.web_fetch import web_fetch
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = "<html><head><title>Test</title></head><body><p>Content</p></body></html>"
+
+    with patch("src.tools.web_fetch.httpx.AsyncClient") as mock_client_class:
+        mock_client = AsyncMock()
+        mock_client.get.return_value = mock_response
+        # Ensure aclose is awaitable
+        mock_client.aclose = AsyncMock()
+        mock_client_class.return_value = mock_client
+        mock_client.__aenter__.return_value = mock_client
+
+        result = await web_fetch("http://test.com")
+
+        assert result.status == "success"
+        assert result.fetched_at is not None
+        # Verify format: YYYY-MM-DDTHH:MM:SS
+        assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", result.fetched_at)
