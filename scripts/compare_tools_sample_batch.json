@@ -1,0 +1,26 @@
+{
+  "web_search": [
+    {
+      "query": "Tesla Q4 2024 earnings report",
+      "expected_keywords": ["revenue", "profit", "EV"]
+    },
+    {
+      "query": "Apple stock analysis March 2025",
+      "expected_keywords": ["AAPL", "iPhone", "services"]
+    },
+    {
+      "query": "Federal Reserve interest rate decision",
+      "expected_keywords": ["Fed", "rate", "inflation"]
+    }
+  ],
+  "web_fetch": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Stock_market",
+      "expected_keywords": ["market", "investors", "exchange"]
+    },
+    {
+      "url": "https://www.reuters.com/business/finance",
+      "expected_keywords": ["finance", "markets", "economy"]
+    }
+  ]
+}
