@@ -60,10 +60,12 @@ This ordering ensures metadata extraction is not affected by content cleaning.
 ### Core Features
 
 1. **Fast URL Content Fetching**
-   - HTTP GET via `scrapling.Fetcher` or `scrapling.Extractor`
+   - Async HTTP GET via `httpx.AsyncClient` (scrapling's underlying HTTP client)
    - Default headers: `User-Agent: Mozilla/5.0`, `Accept-Language: en-US`
-   - HTML→Markdown conversion using `trafilatura` or scrapling's built-in extractor
+   - **HTML→Markdown: Use `trafilatura.extract()`** with `output_format="markdown", include_links=True`
+   - trafilatura handles both boilerplate removal AND Markdown conversion in one step
    - Target latency: < 3 seconds end-to-end (measured from call to response)
+   - **async def** - enables concurrent tool calls in async Agent frameworks
 
 2. **Metadata-Enriched Output**
    - Extract `<title>` tag content (before any HTML cleaning)
@@ -168,9 +170,10 @@ _KNOWN_DYNAMIC_DOMAINS = [
 
 ### Dependencies
 
-- `scrapling>=0.4.2` (already in pyproject.toml)
-- `trafilatura` (for HTML→Markdown conversion, add if not already dependency)
-- `agent-browser` CLI (already used)
+- `httpx>=0.27.0` (async HTTP client, already used by scrapling)
+- `trafilatura>=1.0.0` (HTML→Markdown + boilerplate removal, add to pyproject.toml)
+- `beautifulsoup4>=4.12.0` (metadata extraction from raw HTML, already in pyproject.toml)
+- `lxml>=6.0.2` (HTML parser for BeautifulSoup, already in pyproject.toml)
 
 ### API Design
 
@@ -178,6 +181,9 @@ _KNOWN_DYNAMIC_DOMAINS = [
 # src/tools/web_fetch.py
 
 from dataclasses import dataclass
+import json
+import httpx
+import trafilatura
 
 @dataclass
 class WebFetchResult:
@@ -191,35 +197,34 @@ class WebFetchResult:
     suggestion: str | None = None
 
 def _is_blacklisted_domain(url: str) *********REMOVED********* bool:
-    """Internal helper. Returns True if URL domain ends with a known dynamic domain."""
+    """Internal helper. Returns True if URL domain equals or ends with . + known dynamic domain."""
     ...
 
 def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:
-    """Extract title and description from raw HTML. Returns (title, description)."""
-    ...
-
-def _clean_html(html: str) *********REMOVED********* str:
-    """Remove scripts, styles, nav, footer, etc. from HTML."""
-    ...
-
-def _html_to_markdown(html: str) *********REMOVED********* str:
-    """Convert cleaned HTML to Markdown using trafilatura or similar."""
+    """Extract title and description from raw HTML using BeautifulSoup. Returns (title, description)."""
     ...
 
 def _truncate_content(content: str, max_size: int = 100_000) *********REMOVED********* str:
     """Truncate content at last paragraph boundary if > max_size."""
     ...
 
-def web_fetch(url: str) *********REMOVED********* WebFetchResult:
-    """Fetch URL content and return metadata + Markdown."""
+async def web_fetch(url: str) *********REMOVED********* WebFetchResult:
+    """Fetch URL content and return metadata + Markdown (async for concurrent tool calls)."""
     # 1. Check blacklist
-    # 2. Fetch via scrapling
-    # 3. Extract metadata (before cleaning)
-    # 4. Clean HTML
-    # 5. Convert to Markdown
-    # 6. Truncate if needed
-    # 7. Return result
+    # 2. Fetch via httpx.AsyncClient (timeout=10s)
+    # 3. Extract metadata from raw HTML (BeautifulSoup)
+    # 4. Use trafilatura.extract(html, output_format="markdown", include_links=True) for content
+    # 5. Truncate if needed
+    # 6. Return result as dict (dataclasses.asdict) for JSON serialization
     ...
+
+def web_fetch_sync(url: str) *********REMOVED********* WebFetchResult:
+    """Synchronous wrapper for non-async contexts."""
+    return asyncio.run(web_fetch(url))
+
+def serialize_result(result: WebFetchResult) *********REMOVED********* str:
+    """Serialize result to JSON string for LLM tool call response."""
+    return json.dumps(dataclasses.asdict(result))
 
 # Tool definition for LLM tool calling
 WEB_FETCH_TOOL = {
@@ -259,8 +264,11 @@ WEB_FETCH_TOOL = {
 
 ## Notes
 
-- `web_fetch` is synchronous
+- `web_fetch` is **async def** (enables concurrent tool calls in async Agent frameworks)
+- `web_fetch_sync()` wrapper provided for non-async contexts
 - `web_fetch` never raises exceptions to Agent (all errors returned as JSON)
-- LLM/Agent decides fallback based on `suggestion` field
-- Timeout is fixed at 10 seconds (configurable in future)
-- Metadata extraction always happens before content cleaning
+- Result must be serialized via `dataclasses.asdict(result)` + `json.dumps()` for LLM compatibility
+- Agent (LLM) decides fallback based on `suggestion` field
+- Timeout is fixed at 10 seconds (httpx timeout)
+- Metadata extraction happens before trafilatura processing
+- trafilatura handles boilerplate removal AND Markdown conversion in one step
