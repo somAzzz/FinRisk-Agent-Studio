@@ -75,6 +75,7 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
+    fetched_at: str | None = None  # ISO timestamp for success, None for failures
 
 
 def serialize_result(result: WebFetchResult) *********REMOVED********* str:

@@ -134,3 +134,19 @@ async def test_fetch_reuters():
     result = await web_fetch("https://www.reuters.com/world/us/")
     # Check structure (may fail on network issues)
     assert result.status in ("success", "failed")
+
+
+def test_fetched_at_field_exists():
+    """WebFetchResult has fetched_at field."""
+    result = WebFetchResult(url="http://test.com", fetched_at="2026-03-22T14:30:00")
+    assert result.fetched_at == "2026-03-22T14:30:00"
+
+def test_fetched_at_none_for_failure():
+    """Failed fetch has fetched_at=None."""
+    result = WebFetchResult(
+        url="http://test.com",
+        status="failed",
+        error_code="TIMEOUT",
+        fetched_at=None
+    )
+    assert result.fetched_at is None
