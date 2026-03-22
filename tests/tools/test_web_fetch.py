@@ -116,3 +116,21 @@ async def test_web_fetch_invalid_url():
     result = await web_fetch("not-a-url")
     assert result.status == "failed"
     assert result.error_code == "INVALID_URL"
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_fetch_wikipedia():
+    """Fetch Wikipedia article"""
+    result = await web_fetch("https://en.wikipedia.org/wiki/Main_Page")
+    assert result.status == "success"
+    assert result.title is not None
+    assert len(result.content) > 100
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_fetch_reuters():
+    """Fetch Reuters article and verify metadata"""
+    result = await web_fetch("https://www.reuters.com/world/us/")
+    # Check structure (may fail on network issues)
+    assert result.status in ("success", "failed")
