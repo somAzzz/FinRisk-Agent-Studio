@@ -78,12 +78,12 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
-    fetched_at: str = ""  # ISO timestamp for success, "" for failures
+    fetched_at: str | None = None  # ISO timestamp for success, None for failures
 ```
 
-`fetched_at` is always set:
+`fetched_at` semantics:
 - Success: ISO format `"2026-03-22T14:30:00"`
-- Failure: empty string `""`
+- Failure: `None` (consistent with `published_at`)
 
 ### 4. web_search Function Update
 
@@ -107,7 +107,7 @@ def _extract_published_date(result: dict) *********REMOVED********* str | None:
 
     # Try regex patterns in body
     date_patterns = [
-        r"(\w{3,9}\s+\d{1,2},?\s+\d{4})",  # "March 15, 2026"
+        r"(\w{3,9}\s+\d{1,2},?\s+\d{4})",  # "March 15, 2026" or "March 15 2026"
         r"(\d{4}-\d{2}-\d{2})",  # "2026-03-15"
         r"(\d{1,2}\s+\w{3,9}\s+\d{4})",  # "15 March 2026"
     ]
@@ -115,7 +115,8 @@ def _extract_published_date(result: dict) *********REMOVED********* str | None:
         match = re.search(pattern, result.get("body", ""))
         if match:
             date_str = match.group(1)
-            for fmt in ("%B %d, %Y", "%d %B %Y", "%Y-%m-%d", "%B %d %Y"):
+            # Try formats in order: without comma first (more specific)
+            for fmt in ("%B %d %Y", "%B %d, %Y", "%d %B %Y", "%Y-%m-%d"):
                 try:
                     parsed = datetime.strptime(date_str, fmt)
                     return parsed.strftime("%Y-%m-%d")
@@ -248,5 +249,5 @@ If no date found, `published_at` remains `None`.
 - time_range only affects web_search (web_fetch gets fetched_at for context)
 - LLM decides time_range based on query temporal context
 - published_at may be None if date extraction fails
-- fetched_at is set as empty string for failed fetches, ISO timestamp for success
-- Router validates time_range before passing to web_search (ignore invalid values)
+- fetched_at is None for failures, ISO timestamp for success
+- Router validates time_range: only pass if value is in `{"d", "w", "m", "y", None}`, otherwise ignore
