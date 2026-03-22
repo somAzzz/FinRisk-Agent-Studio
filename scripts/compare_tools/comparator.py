@@ -100,8 +100,8 @@ class Comparator:
 
         Returns (score_a, score_b, explanation).
         """
-        # Check if OPENAI_API_KEY or VLLM_BASE_URL is set
-        api_base = os.environ.get('VLLM_BASE_URL', 'http://localhost:30000/v1')
+        # Check if OPENAI_API_KEY or SGLANG_BASE_URL is set
+        api_base = os.environ.get('SGLANG_BASE_URL', 'http://localhost:30000/v1')
         api_key = os.environ.get('OPENAI_API_KEY', 'EMPTY')
 
         prompt = f"""Compare these two tool outputs for the query: {query}
@@ -119,7 +119,8 @@ EXPLANATION: <why one is better>
 """
 
         try:
-            client = OpenAI(api_key=api_key, base_url=f"{api_base}/v1")
+            # api_base already includes /v1 path
+            client = OpenAI(api_key=api_key, base_url=api_base)
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],

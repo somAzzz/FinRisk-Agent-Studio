@@ -1,0 +1,27 @@
+{
+  "web_search": [
+    {"query": "oil price Middle East conflict 2024", "expected_keywords": ["oil", "price", "conflict"]},
+    {"query": "OPEC production cut Middle East", "expected_keywords": ["OPEC", "production", "cut"]},
+    {"query": "natural gas Europe supply disruption", "expected_keywords": ["gas", "Europe", "supply"]},
+    {"query": "crude oil shipping routes Red Sea", "expected_keywords": ["shipping", "Red Sea", "routes"]},
+    {"query": "Saudi Arabia Iran tension oil market", "expected_keywords": ["Saudi", "Iran", "tension"]},
+    {"query": "Red Sea shipping crisis 2024", "expected_keywords": ["shipping", "crisis", "Red Sea"]},
+    {"query": "container shipping costs Middle East war", "expected_keywords": ["container", "costs", "war"]},
+    {"query": "global supply chain disruption insurance", "expected_keywords": ["supply chain", "insurance"]},
+    {"query": "Maersk shipping route change", "expected_keywords": ["Maersk", "route", "change"]},
+    {"query": "Semiconductor supply chain Middle East", "expected_keywords": ["semiconductor", "supply"]},
+    {"query": "oil price impact stock market 2024", "expected_keywords": ["oil", "stock", "market"]},
+    {"query": "gold price Middle East conflict", "expected_keywords": ["gold", "price", "conflict"]},
+    {"query": "dollar index Middle East war", "expected_keywords": ["dollar", "index", "war"]},
+    {"query": "Treasury yields Middle East", "expected_keywords": ["Treasury", "yields"]},
+    {"query": "emerging markets Middle East exposure", "expected_keywords": ["emerging", "markets", "exposure"]}
+  ],
+  "web_fetch": [
+    {"url": "https://www.reuters.com/business/energy", "expected_keywords": ["oil", "energy", "OPEC"]},
+    {"url": "https://www.iea.org/topics/oil", "expected_keywords": ["oil", "supply", "demand"]},
+    {"url": "https://www.mckinsey.com/industries/travel-logistics", "expected_keywords": ["shipping", "supply chain"]},
+    {"url": "https://www.bloomberg.com/topics/supply-chain", "expected_keywords": ["supply", "disruption"]},
+    {"url": "https://www.ft.com/markets/commodities", "expected_keywords": ["commodities", "oil", "gold"]},
+    {"url": "https://www.cnbc.com/investing/", "expected_keywords": ["markets", "stocks", "bonds"]}
+  ]
+}
