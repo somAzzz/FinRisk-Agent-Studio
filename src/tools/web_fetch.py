@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Literal
+import json
 
 ERROR_SUGGESTIONS = {
     "BLACKLISTED_DOMAIN": "Use MarketExplorer (real browser) to access this URL.",
@@ -62,6 +63,11 @@ class WebFetchResult:
     error_code: str | None = None
     error_message: str | None = None
     suggestion: str | None = None
+
+
+def serialize_result(result: WebFetchResult) *********REMOVED********* str:
+    """Serialize result to JSON string for LLM tool call response."""
+    return json.dumps(asdict(result))
 
 
 def _extract_metadata(html: str) *********REMOVED********* tuple[str | None, str | None]:

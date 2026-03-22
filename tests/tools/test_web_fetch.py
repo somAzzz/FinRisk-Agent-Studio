@@ -1,5 +1,5 @@
 import pytest
-from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content
+from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content, WebFetchResult, serialize_result
 
 def test_blacklist_exact_match():
     """tradingview.com should match"""
@@ -72,3 +72,30 @@ def test_truncate_no_paragraph_boundary():
     result = _truncate_content(content, max_size=100)
     assert len(result) <= 100 + len("...(truncated)")
     assert result.endswith("...(truncated)")
+
+
+def test_serialize_success():
+    result = WebFetchResult(
+        url="https://example.com",
+        title="Test",
+        description="A test",
+        content="# Hello",
+        status="success"
+    )
+    json_str = serialize_result(result)
+    assert '"url": "https://example.com"' in json_str
+    assert '"title": "Test"' in json_str
+    assert '"content": "# Hello"' in json_str
+
+def test_serialize_failure():
+    result = WebFetchResult(
+        url="https://example.com",
+        status="failed",
+        error_code="404_NOT_FOUND",
+        error_message="Page not found",
+        suggestion="Try another source",
+        content=""
+    )
+    json_str = serialize_result(result)
+    assert '"status": "failed"' in json_str
+    assert '"error_code": "404_NOT_FOUND"' in json_str
