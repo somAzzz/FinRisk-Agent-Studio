@@ -1,5 +1,7 @@
 """Web search tool using DuckDuckGo for fast RAG-style searches."""
 
+import re
+from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Literal
 
@@ -30,6 +32,38 @@ def format_results(results: list[dict]) *********REMOVED********* str:
             f"Summary: {r['body'][:300]}"
         )
     return "\n\n".join(formatted)
+
+
+def _extract_published_date(result: dict) *********REMOVED********* str | None:
+    """Extract publication date from DDGS result.
+
+    Try to extract date from:
+    1. result['date'] if present
+    2. Regex match in result['body'] for date patterns like "Mar 15, 2026"
+    3. Return None if no date found
+    """
+    # Try direct date field first
+    if result.get("date"):
+        return result["date"]
+
+    # Try regex patterns in body
+    date_patterns = [
+        r"(\w{3,9}\s+\d{1,2},?\s+\d{4})",  # "March 15, 2026" or "March 15 2026"
+        r"(\d{4}-\d{2}-\d{2})",  # "2026-03-15"
+        r"(\d{1,2}\s+\w{3,9}\s+\d{4})",  # "15 March 2026"
+    ]
+    for pattern in date_patterns:
+        match = re.search(pattern, result.get("body", ""))
+        if match:
+            date_str = match.group(1)
+            # Try formats in order: without comma first (more specific)
+            for fmt in ("%B %d %Y", "%B %d, %Y", "%b %d %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y", "%Y-%m-%d"):
+                try:
+                    parsed = datetime.strptime(date_str, fmt)
+                    return parsed.strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
+    return None
 
 
 def web_search(query: str, max_results: int = 5) *********REMOVED********* str:
