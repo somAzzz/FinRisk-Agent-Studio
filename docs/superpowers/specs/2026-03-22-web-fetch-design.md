@@ -138,14 +138,13 @@ _KNOWN_DYNAMIC_DOMAINS = [
 ]
 ```
 
-**Matching Algorithm:** Suffix match. A URL matches if its domain ends with one of the listed domains. This prevents false positives like `nottradingview.com`.
+**Matching Algorithm:** Domain extraction + suffix match. Extract the domain from the URL, then check if it equals the blacklisted domain OR ends with `.` + blacklisted domain.
 
-| URL Domain | Matches? |
-|-----------|----------|
-| `tradingview.com` | ✅ |
-| `blog.tradingview.com` | ✅ |
-| `tradingview.com/symbol` | ✅ |
-| `nottradingview.com` | ❌ |
+| Extracted Domain | Matches? |
+|-----------------|----------|
+| `tradingview.com` | ✅ (equals `tradingview.com`) |
+| `blog.tradingview.com` | ✅ (ends with `.tradingview.com`) |
+| `nottradingview.com` | ❌ (does NOT end with `.tradingview.com`) |
 
 **Extensibility:** Add new domains as needed. This is a static list for v1.
 
@@ -253,10 +252,10 @@ WEB_FETCH_TOOL = {
 
 | Test Case | Description |
 |-----------|-------------|
-| `test_fetch_static_wikipedia` | Fetch Wikipedia article, verify success with content |
-| `test_fetch_news_site` | Fetch news article, verify Markdown formatting |
-| `test_fetch_reuters` | Fetch Reuters article, verify metadata extraction |
-| `test_agent_decides_market_explorer` | Given blacklisted URL, verify Agent can read suggestion and call MarketExplorer |
+| `test_fetch_static_wikipedia` | Fetch Wikipedia article, verify `status="success"`, content is non-empty Markdown |
+| `test_fetch_news_site` | Fetch news article, verify Markdown has headings, lists |
+| `test_fetch_reuters` | Fetch Reuters article, verify `title` and `description` extracted |
+| `test_agent_decides_market_explorer` | Given blacklisted URL, verify `error_code="BLACKLISTED_DOMAIN"` and `suggestion` field present |
 
 ## Notes
 
