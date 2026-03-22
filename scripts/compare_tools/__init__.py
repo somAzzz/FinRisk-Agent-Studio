@@ -12,6 +12,7 @@ from scripts.compare_tools.caller import (
     ClaudeCodeCaller,
     ToolCaller,
 )
+from scripts.compare_tools.comparator import Comparator
 
 __all__ = [
     "WebSearchTestCase",
@@ -22,4 +23,5 @@ __all__ = [
     "ProjectCaller",
     "ClaudeCodeCaller",
     "ToolCaller",
+    "Comparator",
 ]

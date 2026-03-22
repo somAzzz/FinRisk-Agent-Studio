@@ -76,3 +76,24 @@ def test_batch_report():
         summary={"total": 0}
     )
     assert report.summary["total"] == 0
+
+def test_keyword_coverage():
+    from scripts.compare_tools.comparator import Comparator
+    comp = Comparator()
+    output = "Tesla reported revenue of $10B this quarter"
+    keywords = ["revenue", "Tesla", "billion"]
+    coverage = comp._calc_keyword_coverage(output, keywords)
+    assert coverage == 2 / 3  # 2 out of 3 keywords found
+
+def test_rag_score():
+    from scripts.compare_tools.comparator import Comparator
+    comp = Comparator()
+    # Markdown content
+    md_output = "# Title\n\nParagraph one.\n\nParagraph two."
+    score = comp._calc_rag_score(md_output)
+    assert score > 0.5  # Has headings and paragraphs
+
+    # Plain text
+    plain_output = "Just some plain text without any markdown."
+    plain_score = comp._calc_rag_score(plain_output)
+    assert plain_score < score
