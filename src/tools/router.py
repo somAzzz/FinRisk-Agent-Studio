@@ -14,6 +14,8 @@ from src.llm.sglang_client import SGLangClient
 from src.tools.web_fetch import serialize_result, web_fetch
 from src.tools.web_search import web_search
 
+_VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
+
 
 class SynthesisResult(BaseModel):
     """Structured output for synthesis responses."""
@@ -140,10 +142,12 @@ Respond with ONLY valid JSON:
         })
         return serialized
 
-    def execute_web_search(self, query: str) *********REMOVED********* str:
+    def execute_web_search(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) *********REMOVED********* str:
         """Execute web search and record result."""
-        print(f"[Web Search] Query: {query}")
-        result = web_search(query)
+        # Sanitize: only pass valid time_range values to DDGS
+        sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
+        print(f"[Web Search] Query: {query}, time_range: {sanitized_time_range}")
+        result = web_search(query, time_range=sanitized_time_range)
         self.search_history.append({
             "tool": "web_search",
             "query": query,
