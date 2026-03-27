@@ -1,32 +1,18 @@
 # FinText-LLM
 
-SEC EDGAR filing analysis system using local LLM + Spark + Neo4j
+Quantamental NLP 系统，利用本地 LLM 分析 SEC EDGAR Filing 与财报电话会，提取结构性金融信号。
+
+将非结构化 SEC 文档转化为可投资的量化信号。
 
 ## Features
 
-- **Macro Risk Alert** - Extract macro risks from Item 1A (Risk Factors) with severity scores
-- **Management Sentiment Deviation** - Compare MD&A vs earnings call Q&A sentiment
-- **Policy & Transition Risk** - Identify IRA, carbon regulation impacts
-- **Second-Order Supply Chain Discovery** - Find "pick-and-shovel" opportunities via knowledge graph
-- **Browser Exploration** - LLM-driven web exploration for real-time financial data (agent-browser + SGLang)
-
-## Tech Stack
-
-- **Language**: Python 3.12
-- **Package Manager**: uv
-- **LLM Engine**: sglang (Qwen/Qwen3.5-35B-A3B)
-- **Distributed Compute**: PySpark
-- **Graph Database**: Neo4j
-- **API Framework**: FastAPI + Pydantic
-- **Container**: Docker + Docker Compose
-- **Browser Automation**: agent-browser (Rust headless browser CLI)
-
-## Data Sources
-
-- **HuggingFace**: `eloukas/edgar-corpus` (~220K filings, 1993-2020)
-- **HuggingFace**: `Joshua-Xia/yahoo-finance-data` (earnings call transcripts)
-- **GitHub**: lefterisloukas/edgar-crawler (latest filings)
-- **Stock Data**: yfinance
+| Module | Description | Use Case |
+|--------|-------------|----------|
+| **Macro Risk Alert** | 从 Item 1A 提取宏观风险，1-5 级严重度 | 风险预警 |
+| **Management Sentiment Deviation** | 对比 MD&A（书面）与财报电话会 Q&A（口头）情感差异 | 管理层信心分析 |
+| **Policy & Transition Risk** | 识别 IRA、碳监管等政策影响 | 政策风险评估 |
+| **Second-Order Supply Chain** | 通过知识图谱发现"铲子"机会 | 供应链投资 |
+| **Browser Exploration** | LLM 驱动浏览器，实时抓取金融数据 | 动态市场研究 |
 
 ## Quick Start
 
@@ -34,27 +20,36 @@ SEC EDGAR filing analysis system using local LLM + Spark + Neo4j
 # Install dependencies
 uv sync
 
-# Start sglang server
+# Start LLM service (SGLang with Qwen3.5-35B-A3B)
 docker compose up -d
 
-# Download EDGAR data
+# Download EDGAR data (optional, for local corpus)
 python -m src.utils.download_edgar_2020
 ```
 
-## Browser Exploration
+## Core Features
 
-LLM-driven web exploration for real-time financial data, news, and market research.
+### Browser Exploration
 
-### Setup
+LLM 驱动的 web 探索引擎，用于实时金融数据、市场新闻和研究。
 
+**Architecture**:
+```
+MarketExplorer (LLM Agent)
+├── SGLangClient (LLM with Pydantic Structured Output)
+│   └── BrowserAction, PageSummary models
+├── BrowserWrapper (agent-browser CLI wrapper)
+└── Consent page auto-handling
+```
+
+**Setup**:
 ```bash
 # Install agent-browser (Rust headless browser)
 cargo install agent-browser
 agent-browser install  # Install Chrome
 ```
 
-### Usage
-
+**Usage**:
 ```python
 import asyncio
 from src.browser import BrowserWrapper, MarketExplorer
@@ -68,7 +63,7 @@ async def main():
 
     result = await explorer.explore(
         goal="Explore Apple's latest earnings news and analyst opinions",
-        checkpoint_callback=lambda state: len(state.findings) < 5  # Auto-stop at 5
+        checkpoint_callback=lambda state: len(state.findings) < 5
     )
 
     for finding in result.findings:
@@ -77,27 +72,23 @@ async def main():
 asyncio.run(main())
 ```
 
-### Architecture
+**SGLang Upgrade Path**: 当前使用 OpenAI 兼容 API。sglang 0.6+ 可用时，通过 FSM 约束解码获得更好性能。参见 `docs/sglang_native_reference.py`。
 
-```
-MarketExplorer (LLM Agent)
-    ├── SGLangClient (LLM with Pydantic Structured Output)
-    │   └── BrowserAction, PageSummary models
-    ├── BrowserWrapper (agent-browser CLI wrapper)
-    └── Consent page auto-handling
-```
+### Web Tools
 
-### SGLang Upgrade Path
+多工具 Agent 系统，支持智能路由：
 
-Current implementation uses OpenAI-compatible API with `client.beta.chat.completions.parse()`.
-
-When sglang 0.6+ is available, native frontend syntax will provide better performance via FSM-based constrained decoding:
+- **web_search** — DuckDuckGo 搜索，支持时间过滤 (`d/w/m/y`)
+- **web_fetch** — URL 内容提取，自动去广告和动态页面处理
 
 ```python
-# See docs/sglang_native_reference.py for native implementation
+from src.tools.router import ToolRouter
+
+router = ToolRouter()
+# Routes to: web_search, web_fetch, browser, or finish
 ```
 
-## Usage
+### EDGAR Analysis
 
 ```python
 # Load EDGAR filings
@@ -114,30 +105,79 @@ client = EdgarLLMClient()
 result = client.extract_risks(section_1a, company_name="Apple")
 ```
 
+## Architecture
+
+```
+Data Sources → Preprocessing (Spark) → LLM Inference (SGLang) → Analysis → API Service (FastAPI + Neo4j)
+```
+
+**Hybrid Data Architecture**:
+- `edgar-corpus` (HuggingFace) — ~220K SEC filings (1993-2020)，用于回测
+- `defeatbeta-api` — 最新财报电话会
+- DuckDB — 直接查询 HuggingFace Parquet 文件
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Language** | Python 3.12 |
+| **Package Manager** | uv |
+| **LLM Engine** | SGLang (Qwen/Qwen3.5-35B-A3B) |
+| **Distributed Compute** | PySpark |
+| **Graph Database** | Neo4j |
+| **API Framework** | FastAPI + Pydantic |
+| **Browser Automation** | agent-browser |
+| **Container** | Docker + Docker Compose |
+
+## Data Sources
+
+- **HuggingFace**: `eloukas/edgar-corpus` (~220K filings, 1993-2020)
+- **HuggingFace**: `Joshua-Xia/yahoo-finance-data` (earnings call transcripts)
+- **GitHub**: `lefterisloukas/edgar-crawler` (latest filings)
+- **Stock Data**: yfinance
+
 ## Project Structure
 
 ```
 FinText-LLM/
 ├── src/
-│   ├── browser/              # Browser exploration module
+│   ├── browser/              # LLM-driven browser exploration
 │   │   ├── config.py         # BrowserConfig, ExplorationConfig
 │   │   ├── wrapper.py        # BrowserWrapper (agent-browser CLI)
 │   │   ├── explorer.py       # MarketExplorer (LLM agent)
 │   │   └── sanitize.py       # Sensitive data filter
 │   ├── data/
-│   │   └── loader.py         # EDGAR filing loader
+│   │   └── loader.py         # EdgarDataset for EDGAR corpus
 │   ├── llm/
 │   │   ├── client.py         # EdgarLLMClient for risk extraction
 │   │   └── sglang_client.py  # SGLangClient with Pydantic
+│   ├── tools/
+│   │   ├── router.py         # Tool router (web_search, web_fetch, browser, finish)
+│   │   ├── web_search.py      # DuckDuckGo search with time_range
+│   │   └── web_fetch.py       # URL content extraction
 │   └── utils/
 │       └── download_edgar_2020.py
 ├── scripts/
-│   └── demo_exploration.py    # Browser exploration demo
+│   ├── demo_exploration.py    # Browser exploration demo
+│   └── demo_web_search.py     # Web search demo
 ├── docs/
 │   └── sglang_native_reference.py  # Future upgrade reference
 ├── docker-compose.yml
 ├── pyproject.toml
 └── README.md
+```
+
+## Developer Guide
+
+```bash
+# Run tests
+pytest
+
+# Lint
+ruff check .
+
+# Install dependencies
+uv sync
 ```
 
 ## License
