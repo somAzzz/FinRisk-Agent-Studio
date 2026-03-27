@@ -78,14 +78,20 @@ asyncio.run(main())
 
 多工具 Agent 系统，支持智能路由：
 
-- **web_search** — DuckDuckGo 搜索，支持时间过滤 (`d/w/m/y`)
-- **web_fetch** — URL 内容提取，自动去广告和动态页面处理
+- **ddgs** (DuckDuckGo) — 简单查询：fact-check、股票代码、官方网站
+- **tavily** — 深度搜索：分析报告、多源新闻、趋势研究（RAG 优化，500 chars 摘要）
+- **web_fetch** — URL 内容提取
+- **searxng** — ddgs 失败时的透明容错（LLM 不可见）
+
+**Tiered Routing**:
+- 关键词规则引擎优先检测，简单/深度查询直接路由，不调 LLM
+- 模糊情况 → LLM 路由判断
 
 ```python
 from src.tools.router import ToolRouter
 
 router = ToolRouter()
-# Routes to: web_search, web_fetch, browser, or finish
+# Routes to: ddgs, tavily, web_fetch, browser, or finish
 ```
 
 ### EDGAR Analysis
