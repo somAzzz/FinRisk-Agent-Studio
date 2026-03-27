@@ -16,8 +16,17 @@ from src.tools.web_search import web_search
 from src.tools.tier_detection import detect_search_tier, is_direct_url
 from src.tools.tavily import tavily_search
 from src.tools.searxng import searxng_search
+from src.browser import BrowserWrapper, MarketExplorer
 
 _VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
+
+# Magic numbers extracted as constants
+_TRUNCATION_LENGTH = 500
+_HISTORY_SLICE_SIZE = 3
+_DDGS_MAX_RESULTS = 5
+
+# Hardcoded model name
+_DEFAULT_MODEL = "Qwen/Qwen3.5-35B-A3B"
 
 
 class SynthesisResult(BaseModel):
@@ -70,7 +79,7 @@ class ToolRouter:
         history_str = ""
         if history:
             history_str = "\n\nPrevious tool uses:\n"
-            for h in history[-3:]:
+            for h in history[-_HISTORY_SLICE_SIZE:]:
                 history_str += f"- {h['tool']}: {h.get('query', h.get('action', ''))[:100]}\n"
                 history_str += f"  Result: {h.get('result', '')[:200]}\n"
 
@@ -156,7 +165,7 @@ Respond with ONLY valid JSON:
         # 3. Ambiguous → LLM router
         try:
             completion = self.llm_client.client.chat.completions.parse(
-                model="Qwen/Qwen3.5-35B-A3B",
+                model=_DEFAULT_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a tool selection assistant. Respond with ONLY valid JSON."},
                     {"role": "user", "content": self._build_router_prompt(goal, self.search_history)},
@@ -176,7 +185,7 @@ Respond with ONLY valid JSON:
         self.search_history.append({
             "tool": "web_fetch",
             "query": url,
-            "result": serialized[:500],
+            "result": serialized[:_TRUNCATION_LENGTH],
         })
         return serialized
 
@@ -189,7 +198,7 @@ Respond with ONLY valid JSON:
         self.search_history.append({
             "tool": "web_search",
             "query": query,
-            "result": result[:500],
+            "result": result[:_TRUNCATION_LENGTH],
         })
         return result
 
@@ -199,7 +208,7 @@ Respond with ONLY valid JSON:
         sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
         print(f"[Search] Using ddgs for: {query}")
         try:
-            result = web_search(query, max_results=5, time_range=sanitized_time_range)
+            result = web_search(query, max_results=_DDGS_MAX_RESULTS, time_range=sanitized_time_range)
         except Exception as e:
             print(f"[Search] ddgs failed ({e}), trying SearXNG...")
             result = searxng_search(query, time_range=sanitized_time_range)
@@ -207,7 +216,7 @@ Respond with ONLY valid JSON:
         self.search_history.append({
             "tool": "ddgs",
             "query": query,
-            "result": result[:500],
+            "result": result[:_TRUNCATION_LENGTH],
         })
         return result
 
@@ -221,14 +230,12 @@ Respond with ONLY valid JSON:
         self.search_history.append({
             "tool": "tavily",
             "query": query,
-            "result": result[:500],
+            "result": result[:_TRUNCATION_LENGTH],
         })
         return result
 
     async def execute_browser(self, goal: str) -> str:
         """Execute browser exploration."""
-        from src.browser import BrowserWrapper, MarketExplorer
-
         wrapper = BrowserWrapper()
         explorer = MarketExplorer(llm_client=self.llm_client, wrapper=wrapper)
 
@@ -244,7 +251,7 @@ Respond with ONLY valid JSON:
         self.search_history.append({
             "tool": "browser",
             "query": goal,
-            "result": browser_result[:500],
+            "result": browser_result[:_TRUNCATION_LENGTH],
         })
         return browser_result
 
@@ -269,7 +276,7 @@ Respond with your final answer:"""
         """Ask LLM to synthesize final answer from tool results."""
         try:
             completion = self.llm_client.client.chat.completions.parse(
-                model="Qwen/Qwen3.5-35B-A3B",
+                model=_DEFAULT_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a financial analysis assistant."},
                     {"role": "user", "content": self.build_synthesis_prompt(tool_result, original_goal)},
@@ -296,11 +303,8 @@ Respond with your final answer:"""
             print(f"[Step {i+1}] Selected: {choice.tool} - {choice.thought}")
 
             # Execute the chosen tool
-            if choice.tool in ("web_search", "ddgs") and choice.query:
-                if choice.tool == "ddgs":
-                    result = self.execute_ddgs(choice.query, choice.time_range)
-                else:
-                    result = self.execute_web_search(choice.query, choice.time_range)
+            if choice.tool == "ddgs" and choice.query:
+                result = self.execute_ddgs(choice.query, choice.time_range)
                 print(f"[Step {i+1}] Search returned {len(result)} chars")
             elif choice.tool == "tavily" and choice.query:
                 result = self.execute_tavily(choice.query, choice.time_range)
