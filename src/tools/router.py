@@ -13,6 +13,9 @@ from pydantic import BaseModel, Field
 from src.llm.sglang_client import SGLangClient
 from src.tools.web_fetch import serialize_result, web_fetch
 from src.tools.web_search import web_search
+from src.tools.tier_detection import detect_search_tier, is_direct_url
+from src.tools.tavily import tavily_search
+from src.tools.searxng import searxng_search
 
 _VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
 
@@ -34,14 +37,14 @@ class SynthesisResult(BaseModel):
 class ToolChoice(BaseModel):
     """LLM response for tool selection."""
     thought: str = Field(description="Reasoning about what to do")
-    tool: Literal["web_search", "web_fetch", "browser", "finish"] = Field(
-        description="Choose: 'web_search' for quick info, 'web_fetch' for URL content, 'browser' for complex interaction, 'finish' if done"
+    tool: Literal["ddgs", "tavily", "web_fetch", "browser", "finish"] = Field(
+        description="Choose: 'ddgs' for simple queries, 'tavily' for deep search, 'web_fetch' for URL content, 'browser' for complex interaction, 'finish' if done"
     )
-    query: str | None = Field(default=None, description="Search query if using web_search")
+    query: str | None = Field(default=None, description="Search query if using ddgs or tavily")
     url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
     time_range: Literal["d", "w", "m", "y", None] = Field(
         default=None,
-        description="Time filter for web_search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
+        description="Time filter for search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
     )
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
@@ -76,13 +79,12 @@ class ToolRouter:
 
 You are a tool-selecting assistant. Choose the best tool for the job:
 
-1. web_search - Use for:
+1. ddgs - Use for:
    - Quick factual queries
-   - Current events and news
-   - Stock prices, market data
+   - Stock tickers, current prices
+   - Simple definitions and facts
    - When you need fast, clean text answers
-   - When you don't have a specific URL
-   time_range: Time filter for web_search. Set this when:
+   time_range: Time filter for search. Set this when:
    - User says "recent", "latest", "last [period]"
    - User mentions a specific period like "last week", "this month"
    - The topic requires current information (news, markets, events)
@@ -90,19 +92,26 @@ You are a tool-selecting assistant. Choose the best tool for the job:
 
    Options: 'd'=past 24 hours, 'w'=past week, 'm'=past month, 'y'=past year
 
-2. web_fetch - Use for:
+2. tavily - Use for:
+   - Deep analysis and comprehensive reports
+   - Multi-source news and trend research
+   - Earnings analysis and financial research
+   - When you need longer summaries (500 chars) optimized for RAG
+   - Reduces need for additional web_fetch calls
+
+3. web_fetch - Use for:
    - When you have a specific URL to fetch
    - Getting detailed article content for RAG
    - Extracting metadata (title, description) with content
    - Best for static pages (news, blogs, wikis)
 
-3. browser - Use for:
+4. browser - Use for:
    - Complex web interactions (login, forms, clicks)
    - Extracting data from specific websites that require interaction
    - Accessing paywalled or dynamic/SPA content
    - When web_fetch fails on a URL
 
-4. finish - Use when:
+5. finish - Use when:
    - You have enough information to answer the goal
    - The user question is answered
    - You want to stop exploration
@@ -112,10 +121,39 @@ Current date: 2026-03-19 (use this to evaluate result freshness)
 ⚠️ Time Anchor Requirement: The LLM must receive current time as an absolute reference to correctly interpret relative time expressions like "last week". The System Prompt (agent role) MUST include "Current system time is: 2026-03-22T14:30:00Z (UTC)".
 
 Respond with ONLY valid JSON:
-{{"thought": "why you chose this tool", "tool": "web_search|web_fetch|browser|finish", "query": "search term if web_search", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
+{{"thought": "why you chose this tool", "tool": "ddgs|tavily|web_fetch|browser|finish", "query": "search term if ddgs or tavily", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
 
     def select_tool(self, goal: str) -> ToolChoice | None:
-        """Ask LLM to select appropriate tool."""
+        """Select appropriate tool using tier detection or LLM."""
+        # 1. URL detection
+        if is_direct_url(goal):
+            return ToolChoice(
+                thought="Direct URL detected → web_fetch",
+                tool="web_fetch",
+                url=goal,
+                reason="Direct URL input",
+            )
+
+        # 2. Rule-based tier detection
+        tier = detect_search_tier(goal)
+
+        if tier == "ddgs":
+            return ToolChoice(
+                thought="Rule-based: simple query detected → ddgs",
+                tool="ddgs",
+                query=goal,
+                reason="Simple query pattern matched",
+            )
+
+        if tier == "tavily":
+            return ToolChoice(
+                thought="Rule-based: deep search detected → tavily",
+                tool="tavily",
+                query=goal,
+                reason="Deep search keyword detected",
+            )
+
+        # 3. Ambiguous → LLM router
         try:
             completion = self.llm_client.client.chat.completions.parse(
                 model="Qwen/Qwen3.5-35B-A3B",
@@ -150,6 +188,38 @@ Respond with ONLY valid JSON:
         result = web_search(query, time_range=sanitized_time_range)
         self.search_history.append({
             "tool": "web_search",
+            "query": query,
+            "result": result[:500],
+        })
+        return result
+
+    def execute_ddgs(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) -> str:
+        """Execute ddgs search with transparent SearXNG fallback."""
+        # Sanitize: only pass valid time_range values
+        sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
+        print(f"[Search] Using ddgs for: {query}")
+        try:
+            result = web_search(query, max_results=5, time_range=sanitized_time_range)
+        except Exception as e:
+            print(f"[Search] ddgs failed ({e}), trying SearXNG...")
+            result = searxng_search(query, time_range=sanitized_time_range)
+
+        self.search_history.append({
+            "tool": "ddgs",
+            "query": query,
+            "result": result[:500],
+        })
+        return result
+
+    def execute_tavily(self, query: str, time_range: Literal["d", "w", "m", "y", None] = None) -> str:
+        """Execute tavily deep search."""
+        # Sanitize: only pass valid time_range values
+        sanitized_time_range = time_range if time_range in _VALID_TIME_RANGES else None
+        print(f"[Search] Using tavily for: {query}")
+        result = tavily_search(query, time_range=sanitized_time_range)
+
+        self.search_history.append({
+            "tool": "tavily",
             "query": query,
             "result": result[:500],
         })
@@ -226,9 +296,15 @@ Respond with your final answer:"""
             print(f"[Step {i+1}] Selected: {choice.tool} - {choice.thought}")
 
             # Execute the chosen tool
-            if choice.tool == "web_search" and choice.query:
-                result = self.execute_web_search(choice.query, choice.time_range)
+            if choice.tool in ("web_search", "ddgs") and choice.query:
+                if choice.tool == "ddgs":
+                    result = self.execute_ddgs(choice.query, choice.time_range)
+                else:
+                    result = self.execute_web_search(choice.query, choice.time_range)
                 print(f"[Step {i+1}] Search returned {len(result)} chars")
+            elif choice.tool == "tavily" and choice.query:
+                result = self.execute_tavily(choice.query, choice.time_range)
+                print(f"[Step {i+1}] Tavily returned {len(result)} chars")
             elif choice.tool == "browser":
                 result = await self.execute_browser(goal)
                 print(f"[Step {i+1}] Browser returned {len(result)} chars")
