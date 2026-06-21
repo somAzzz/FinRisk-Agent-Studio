@@ -3,6 +3,14 @@
 Supports:
 - web_search: Fast DuckDuckGo API search for quick RAG-style queries
 - browser: Full browser automation for complex web interactions
+
+.. deprecated::
+    The :class:`ToolRouter` remains the high-level LLM-driven router used by
+    the agent loop, but it is being progressively refactored to delegate to
+    the new :class:`src.tools.search_router.SearchRouter` for unified search
+    orchestration (multi-provider fallback, cache, fetch). New code should
+    prefer ``SearchRouter`` directly; this module is kept for backwards
+    compatibility until the integration is complete.
 """
 
 from dataclasses import dataclass

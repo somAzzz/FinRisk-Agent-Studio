@@ -491,6 +491,7 @@ dependencies = [
     { name = "duckdb" },
     { name = "fastapi" },
     { name = "lxml" },
+    { name = "neo4j" },
     { name = "numpy" },
     { name = "openai" },
     { name = "pandas" },
@@ -522,6 +523,7 @@ requires-dist = [
     { name = "duckdb", specifier = ">=1.1.0" },
     { name = "fastapi", specifier = ">=0.132.0" },
     { name = "lxml", specifier = ">=6.0.2" },
+    { name = "neo4j", specifier = ">=5.0.0" },
     { name = "numpy", specifier = ">=2.4.2" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "pandas", specifier = ">=3.0.1" },
@@ -1030,6 +1032,18 @@ name = "multitasking"
 version = "0.0.12"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/17/0d/74f0293dfd7dcc3837746d0138cbedd60b31701ecc75caec7d3f281feba0/multitasking-0.0.12.tar.gz", hash = "sha256:2fba2fa8ed8c4b85e227c5dd7dc41c7d658de3b6f247927316175a57349b84d1", size = 19984, upload-time = "2025-07-20T21:27:51.636Z" }
+
+[[package]]
+name = "neo4j"
+version = "6.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/f4/aaa4ac19adae4b01bc742b63afd2672a77e7351566f02721e713e4b863ee/neo4j-6.2.0.tar.gz", hash = "sha256:e1e246b65b572bd8ea97f9e0e721b7d40a5ce53e53d0007c29aef63e4f9124d9", size = 241459, upload-time = "2026-05-04T07:35:41.428Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/cf/1c3795866cefaac6e648d4e98c373cafd97810f6e317c307371007ab4abb/neo4j-6.2.0-py3-none-any.whl", hash = "sha256:b87abdd13a5cc2e3bd51026926c2f20ac38fa3febe98c340520dce19e97388d0", size = 327824, upload-time = "2026-05-04T07:35:39.604Z" },
+]
 
 [[package]]
 name = "networkx"

@@ -1,0 +1,38 @@
+[
+  {
+    "evidence_id": "web:https://example.com/news/demo-tariff-impact",
+    "source_type": "web",
+    "source_id": "duckduckgo",
+    "title": "Demo Company navigates new tariff headwinds",
+    "url": "https://example.com/news/demo-tariff-impact",
+    "section": null,
+    "speaker": null,
+    "quote": "Demo Company is actively diversifying its supplier base to reduce exposure to new tariffs and geopolitical disruption in Asia.",
+    "retrieved_at": "2026-06-20T12:00:00+00:00",
+    "published_at": "2026-06-10T09:00:00+00:00",
+    "confidence": 0.7,
+    "metadata": {
+      "provider": "duckduckgo",
+      "rank": 1,
+      "query": "DEMO recent news risks opportunities"
+    }
+  },
+  {
+    "evidence_id": "web:https://example.com/news/demo-supply-chain",
+    "source_type": "web",
+    "source_id": "duckduckgo",
+    "title": "Supply chain realignment boosts Demo Company margins",
+    "url": "https://example.com/news/demo-supply-chain",
+    "section": null,
+    "speaker": null,
+    "quote": "Analysts note that Demo Company's push to localise component sourcing may offset tariff pressure and create a competitive moat.",
+    "retrieved_at": "2026-06-20T12:00:00+00:00",
+    "published_at": "2026-06-15T14:30:00+00:00",
+    "confidence": 0.65,
+    "metadata": {
+      "provider": "duckduckgo",
+      "rank": 2,
+      "query": "DEMO recent news risks opportunities"
+    }
+  }
+]
