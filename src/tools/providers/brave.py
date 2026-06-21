@@ -35,6 +35,10 @@ class BraveProvider:
         self._api_key = api_key if api_key is not None else os.environ.get("BRAVE_API_KEY")
         self._session = session or requests.Session()
 
+    def is_available(self) -> bool:
+        """Brave is reachable only when an API key has been configured."""
+        return bool(self._api_key)
+
     def search(
         self,
         query: str,

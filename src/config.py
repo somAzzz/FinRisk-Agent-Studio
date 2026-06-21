@@ -65,6 +65,11 @@ class Settings:
     cache_dir: Path = field(
         default_factory=lambda: _env_path("CACHE_DIR", Path(".cache/fintext_llm"))
     )
+    search_provider_order: str = field(
+        default_factory=lambda: _env(
+            "SEARCH_PROVIDER_ORDER", "duckduckgo"
+        )
+    )
 
 
 @functools.lru_cache(maxsize=1)

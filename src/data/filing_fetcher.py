@@ -13,6 +13,7 @@ from datetime import date
 from bs4 import BeautifulSoup
 
 from src.data.sec_client import SECClient
+from src.data.sec_sections import Section, SectionParser
 from src.schemas.filings import FilingMetadata, FilingRecord
 
 _BASE_ARCHIVES_URL = "https://www.sec.gov/Archives/edgar/data"
@@ -157,6 +158,16 @@ class FilingFetcher:
                 break
         return results
 
+    def __init__(
+        self,
+        sec_client: SECClient,
+        section_parser: SectionParser | None = None,
+    ) -> None:
+        self.sec_client = sec_client
+        # Production uses the anchor-aware ``SectionParser``; tests can
+        # inject a stub.
+        self.section_parser = section_parser or SectionParser()
+
     def fetch_filing(self, metadata: FilingMetadata) -> FilingRecord:
         """Download and parse a single filing into a :class:`FilingRecord`."""
         html = self.sec_client.get_filing_html(
@@ -169,13 +180,20 @@ class FilingFetcher:
         for tag in soup(["script", "style"]):
             tag.decompose()
         text = soup.get_text(separator="\n", strip=True)
-        sections = {"full_text": text}
-        # Attempt naive item extraction. Failures are non-fatal.
+        sections: dict[str, str] = {"full_text": text}
+        # Prefer the production parser; fall back to the legacy regex
+        # implementation when the parser raises (e.g. malformed HTML).
         try:
-            extracted = _extract_sections(text)
-        except Exception:
-            extracted = {}
-        sections.update(extracted)
+            extracted_sections: dict[str, Section] = self.section_parser.parse(
+                html
+            )
+            for name, section in extracted_sections.items():
+                sections[name] = section.text
+        except Exception:  # noqa: BLE001 - parser fallback
+            try:
+                sections.update(_extract_sections(text))
+            except Exception:  # noqa: BLE001
+                pass
         return FilingRecord(
             source="sec",
             cik=metadata.cik,

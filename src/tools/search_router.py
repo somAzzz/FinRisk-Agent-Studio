@@ -115,13 +115,49 @@ class SearchRouter:
         default_ttl_seconds: int = DEFAULT_TTL_SECONDS,
         web_fetcher: WebFetcher | None = None,
     ):
-        self.providers: list[SearchProvider] = (
-            list(providers) if providers is not None else [DuckDuckGoProvider()]
-        )
+        if providers is None:
+            providers = self._build_default_providers()
+        self.providers: list[SearchProvider] = list(providers)
         self.cache = cache or SearchCache(cache_dir=get_settings().cache_dir)
         self.blacklist: tuple[str, ...] = tuple(blacklist) if blacklist else DEFAULT_BLACKLIST
         self.default_ttl_seconds = default_ttl_seconds
         self._web_fetcher = web_fetcher
+
+    @staticmethod
+    def _build_default_providers() -> list[SearchProvider]:
+        """Build the default provider list from ``SEARCH_PROVIDER_ORDER``.
+
+        Order is read from :class:`Settings.search_provider_order` (a comma
+        separated string such as ``"brave,duckduckgo"``). Providers with no
+        API key configured are skipped so the router remains functional
+        with zero keys.
+        """
+        from src.tools.providers.base import SearchProvider
+        from src.tools.providers.brave import BraveProvider
+        from src.tools.providers.duckduckgo import DuckDuckGoProvider
+
+        order = get_settings().search_provider_order
+        requested = [
+            token.strip().lower() for token in order.split(",") if token.strip()
+        ]
+        factories: dict[str, Callable[[], SearchProvider]] = {
+            "duckduckgo": lambda: DuckDuckGoProvider(),
+            "brave": lambda: BraveProvider(),
+        }
+        providers: list[SearchProvider] = []
+        for name in requested:
+            factory = factories.get(name)
+            if factory is None:
+                continue
+            try:
+                provider = factory()
+            except Exception:  # noqa: BLE001
+                continue
+            if getattr(provider, "is_available", lambda: True)():
+                providers.append(provider)
+        if not providers:
+            providers.append(DuckDuckGoProvider())
+        return providers
 
     def search(
         self,

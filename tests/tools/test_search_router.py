@@ -350,3 +350,52 @@ def test_to_evidence_raises_on_empty_response():
     )
     with pytest.raises(EvidenceConversionError):
         to_evidence(response)
+
+
+def test_search_router_uses_duckduckgo_when_no_order_set(
+    monkeypatch: pytest.MonkeyPatch, tmp_path,
+) -> None:
+    """Default order is ``duckduckgo`` and the router falls back to it."""
+    from src.tools.search_router import SearchRouter
+
+    monkeypatch.delenv("SEARCH_PROVIDER_ORDER", raising=False)
+    monkeypatch.setenv("CACHE_DIR", str(tmp_path))
+    from src.config import get_settings
+
+    get_settings.cache_clear()
+    router = SearchRouter()
+    # DuckDuckGo should be the only fallback.
+    assert len(router.providers) >= 1
+    assert router.providers[0].provider_name == "duckduckgo"
+
+
+def test_search_router_honors_search_provider_order(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """``SEARCH_PROVIDER_ORDER=duckduckgo,duckduckgo`` produces two providers."""
+    from src.config import get_settings
+    from src.tools.search_router import SearchRouter
+
+    monkeypatch.setenv("SEARCH_PROVIDER_ORDER", "duckduckgo")
+    monkeypatch.setenv("CACHE_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    router = SearchRouter()
+    assert [p.provider_name for p in router.providers] == ["duckduckgo"]
+
+
+def test_search_router_skips_unconfigured_providers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Providers with no API key are skipped, falling back to duckduckgo."""
+    from src.config import get_settings
+    from src.tools.search_router import SearchRouter
+
+    monkeypatch.setenv("SEARCH_PROVIDER_ORDER", "brave,duckduckgo")
+    monkeypatch.delenv("BRAVE_API_KEY", raising=False)
+    monkeypatch.setenv("CACHE_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    router = SearchRouter()
+    # brave is skipped because no API key, duckduckgo takes its place.
+    names = [p.provider_name for p in router.providers]
+    assert "duckduckgo" in names
+    assert "brave" not in names

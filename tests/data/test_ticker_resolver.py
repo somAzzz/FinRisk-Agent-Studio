@@ -133,3 +133,51 @@ def test_resolve_returns_none_when_sec_payload_has_no_match(
         cache_path=tmp_path / "ticker_cache.json", session=session
     )
     assert resolver.resolve("ZZZZ-OTHER") is None
+
+
+def test_resolve_from_fallback_tags_source_and_resolved_at(
+    tmp_path: Path,
+) -> None:
+    """Fallback path is exercised when SEC endpoint is unreachable.
+
+    We mock the session to return a non-200 so the resolver falls through to
+    the built-in fixture table. ``source`` is then ``"fallback"``.
+    """
+    session, _ = _fake_session({}, status_code=503)
+    resolver = TickerResolver(
+        cache_path=tmp_path / "ticker_cache.json", session=session
+    )
+    ident = resolver.resolve("AAPL")
+    assert ident is not None
+    assert ident.source == "fallback"
+    assert ident.resolved_at is not None
+
+
+def test_resolve_from_sec_tags_source_as_sec(tmp_path: Path) -> None:
+    payload = {
+        "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+    }
+    session, _ = _fake_session(payload)
+    resolver = TickerResolver(
+        cache_path=tmp_path / "ticker_cache.json", session=session
+    )
+    ident = resolver.resolve("AAPL")
+    assert ident is not None
+    assert ident.source == "sec"
+    assert ident.resolved_at is not None
+
+
+def test_resolve_from_disk_cache_tags_source_as_cache(tmp_path: Path) -> None:
+    cache = tmp_path / "ticker_cache.json"
+    cache.write_text(
+        (
+            '{"AAPL": {"ticker": "AAPL", "cik": "0000320193", "name": '
+            '"Apple Inc.", "source": "cache", "resolved_at": '
+            '"2026-06-20T00:00:00+00:00"}}'
+        ),
+        encoding="utf-8",
+    )
+    resolver = TickerResolver(cache_path=cache)
+    ident = resolver.resolve("AAPL")
+    assert ident is not None
+    assert ident.source == "cache"

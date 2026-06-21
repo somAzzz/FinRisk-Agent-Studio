@@ -61,7 +61,11 @@ def _entity_props(entity: Entity) -> dict[str, Any]:
 
 def _evidence_props(evidence: Evidence) -> dict[str, Any]:
     return {
+        # Dual key: ``entity_id`` is the unified MERGE key shared by every
+        # label; ``evidence_id`` is preserved so readers can hydrate a
+        # full Evidence Pydantic model without a join.
         "entity_id": evidence.evidence_id,
+        "evidence_id": evidence.evidence_id,
         "source_type": evidence.source_type,
         "source_id": evidence.source_id,
         "title": evidence.title,
@@ -84,7 +88,11 @@ def _evidence_props(evidence: Evidence) -> dict[str, Any]:
 
 def _claim_props(claim: Claim) -> dict[str, Any]:
     return {
+        # Dual key: ``entity_id`` is the unified MERGE key shared by every
+        # label; ``claim_id`` is preserved so readers can hydrate a full
+        # Claim Pydantic model without a join.
         "entity_id": claim.claim_id,
+        "claim_id": claim.claim_id,
         "claim_type": claim.claim_type,
         "statement": claim.statement,
         "confidence": claim.confidence,

@@ -15,8 +15,9 @@ caller can fall back to whatever the rest of the pipeline offers.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import requests
 from pydantic import BaseModel, ConfigDict
@@ -49,6 +50,8 @@ class CompanyIdentifier(BaseModel):
     ticker: str
     cik: str
     name: str | None = None
+    source: Literal["cache", "sec", "fallback"] = "fallback"
+    resolved_at: datetime | None = None
 
 
 class TickerResolver:
@@ -77,7 +80,9 @@ class TickerResolver:
         """Return a :class:`CompanyIdentifier` for ``ticker`` or ``None``.
 
         The lookup order is in-memory cache, on-disk cache, SEC endpoint,
-        then the built-in fixture table.
+        then the built-in fixture table. Each returned identifier carries
+        a ``source`` tag (``"cache"`` / ``"sec"`` / ``"fallback"``) and a
+        ``resolved_at`` timestamp so downstream callers can audit provenance.
         """
         key = ticker.upper().strip()
         if not key:
@@ -88,11 +93,25 @@ class TickerResolver:
 
         ident = self._load_from_disk(key)
         if ident is not None:
-            self._memory_cache[key] = ident
+            # Older cache rows may have ``source == "fallback"``; upgrade
+            # the tag so consumers can trust the disk-cache provenance.
+            if ident.source != "cache":
+                ident = ident.model_copy(
+                    update={
+                        "source": "cache",
+                        "resolved_at": datetime.now(tz=UTC),
+                    }
+                )
+                self._memory_cache[key] = ident
+            else:
+                self._memory_cache[key] = ident
             return ident
 
         ident = self._fetch_from_sec(key)
         if ident is not None:
+            ident = ident.model_copy(
+                update={"resolved_at": datetime.now(tz=UTC)}
+            )
             self._memory_cache[key] = ident
             self._persist_to_disk(ident)
             return ident
@@ -115,6 +134,12 @@ class TickerResolver:
         raw = payload.get(key)
         if not isinstance(raw, dict):
             return None
+        # Older cache rows may not have source / resolved_at; backfill so
+        # the schema stays strict.
+        if "source" not in raw:
+            raw["source"] = "cache"
+        if "resolved_at" not in raw:
+            raw["resolved_at"] = datetime.now(tz=UTC).isoformat()
         try:
             return CompanyIdentifier.model_validate(raw)
         except Exception:
@@ -133,7 +158,9 @@ class TickerResolver:
                         existing = payload
                 except (OSError, json.JSONDecodeError):
                     existing = {}
-            existing[ident.ticker.upper()] = ident.model_dump()
+            # ``resolved_at`` is a datetime; ``model_dump(mode="json")`` keeps
+            # the JSON encoder happy.
+            existing[ident.ticker.upper()] = ident.model_dump(mode="json")
             self.cache_path.write_text(
                 json.dumps(existing, indent=2), encoding="utf-8"
             )
@@ -181,6 +208,8 @@ class TickerResolver:
                 ticker=key,
                 cik=str(cik_int).zfill(10),
                 name=str(entry.get("title")) or None,
+                source="sec",
+                resolved_at=datetime.now(tz=UTC),
             )
         return None
 
@@ -191,7 +220,13 @@ class TickerResolver:
         if entry is None:
             return None
         cik, name = entry
-        return CompanyIdentifier(ticker=key, cik=cik, name=name)
+        return CompanyIdentifier(
+            ticker=key,
+            cik=cik,
+            name=name,
+            source="fallback",
+            resolved_at=datetime.now(tz=UTC),
+        )
 
 
 __all__ = ["CompanyIdentifier", "TickerResolver"]

@@ -257,3 +257,21 @@ def test_write_extraction_result_writes_everything() -> None:
 
     supported_by = [c for c in fake.calls if "SUPPORTED_BY" in c.cypher]
     assert len(supported_by) == 1
+
+
+def test_evidence_node_retains_both_entity_id_and_evidence_id() -> None:
+    fake = FakeNeo4jClient()
+    writer = GraphWriter(fake)  # type: ignore[arg-type]
+    writer.write_evidence(_evidence("ev-99"))
+    call = fake.calls[0]
+    assert call.parameters["entity_id"] == "ev-99"
+    assert call.parameters["props"]["evidence_id"] == "ev-99"
+
+
+def test_claim_node_retains_both_entity_id_and_claim_id() -> None:
+    fake = FakeNeo4jClient()
+    writer = GraphWriter(fake)  # type: ignore[arg-type]
+    writer.write_claim(_claim(evidence=[]))
+    claim_call = next(c for c in fake.calls if "MERGE (c:Claim" in c.cypher)
+    assert claim_call.parameters["entity_id"] == "claim-1"
+    assert claim_call.parameters["props"]["claim_id"] == "claim-1"

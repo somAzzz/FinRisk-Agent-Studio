@@ -586,3 +586,46 @@ uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
 
 两条命令都能在无 API key、无 Neo4j、无 agent-browser 的机器上稳定通过。
 
+
+## 实现状态（commit `f415b80`）
+
+所有 P0 / P1 / P2 修正任务已完成。
+
+### 已完成
+
+- **P0** pytest 默认运行：`pyproject.toml` 已添加 `pythonpath = ["."]`、`integration` marker、`asyncio_mode = "auto"`。`uv run pytest -q` 直接可用，不再需要 `PYTHONPATH=.`。
+- **P0** BrowserWrapper 优雅降级：`close()` 和 `_run_command()` 都捕获 `FileNotFoundError` / `TimeoutExpired`，未安装 `agent-browser` 时单元测试全部通过。
+- **P0** Slack token 测试：`tests/browser/test_sanitize.py` 改用合成的 `xoxb-` token，不再依赖脱敏占位符。
+- **P1** Report evidence 去重：`ReportAgent._dedupe_evidence()` 在 `generate()` 入口对 `evidence_id` 去重，`Key Evidence` / `Sources` 编号一致。
+- **P1** Extraction pipeline 接入 MVP：`src/pipelines/rule_supply_chain.py` 提供规则式供应链抽取；`analyze_company` 在离线 fixture 模式下产出真实供应链 claim。`TickerResolver` 已接入 SEC 拉取路径。
+- **P1** Opportunity 去重：`OpportunityAgent._dedupe_and_rank()` 按 `(type, title, statement)` 去重并按 `_HYPOTHESIS_PRIORITY` 排序；同一报告不再出现重复 hypothesis。
+- **P1** Neo4j entity key 统一：`GraphWriter` 与 `schema.cypher` 一律使用 `entity_id`；Evidence/Claim 节点同时保留 `entity_id` 与 `evidence_id` / `claim_id`，下游 hydrate 不需要 join。
+- **P2** Ruff 清理：核心新模块 ruff 自动修复从 138 → 72 个 lint 问题，剩余为 line-length 等设计选择。
+
+### 验证基线（commit `f415b80`）
+
+```bash
+$ uv run pytest -q
+352 passed, 1 skipped, 6 warnings in 11.08s
+
+$ uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+# 完整 Markdown 报告，包含 disclaimer
+```
+
+### 残留风险（移交下一阶段）
+
+- 工作区可能存在未提交实现，请在合并前完成 code review。
+- Neo4j `entity_id` / `claim_id` / `evidence_id` 三者关系需要持续回归测试。
+- 真实 SEC/transcript/web 数据闭环尚未在生产网络验证（需要在受控环境跑 `RUN_*_INTEGRATION=1`）。
+- 核心目录 ruff 仍有 72 个剩余问题，主要是 line-length 与少量 PL（pylint）类设计选择，建议下一阶段分批清理。
+
+### 下一阶段
+
+详见 `13-production-execution-roadmap.md`：
+- Phase 1 收口与图一致性。
+- Phase 2 真实 SEC filing 闭环（AAPL / NVDA / MSFT）。
+- Phase 3 真实 transcript provider。
+- Phase 4 SearchRouter 配置化（已完成部分）。
+- Phase 5 LLM 结构化抽取替换规则 fallback。
+- Phase 6 Neo4j 图谱成为核心推理层。
+- Phase 7-10 风险/政策/地缘、机会发现、评测、API。
