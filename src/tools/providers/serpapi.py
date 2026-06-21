@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlencode
 
@@ -87,7 +87,7 @@ class SerpApiProvider:
         return SearchResponse(
             provider=self.provider_name,
             query=query,
-            retrieved_at=datetime.utcnow(),
+            retrieved_at=datetime.now(UTC),
             results=results,
             raw=data if isinstance(data, dict) else None,
         )

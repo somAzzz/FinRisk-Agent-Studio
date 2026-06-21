@@ -16,8 +16,8 @@ The parser preserves ``char_start`` / ``char_end`` and always returns a
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 # Mapping of canonical section names to heading patterns.
 # Patterns intentionally tolerate em-dashes, whitespace, and Roman numerals.
@@ -26,35 +26,35 @@ _DIGIT_OR_ROMAN = r"(?:\d|" + _ROMAN_NUMERALS + r")"
 
 SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
     "section_1": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-–—]?\s*business",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-\u2013\u2014]?\s*business",
     ),
     "section_1a": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-–—]?\s*risk\s*factors",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-\u2013\u2014]?\s*risk\s*factors",
     ),
     "section_2": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-–—]?\s*properties",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-\u2013\u2014]?\s*properties",
     ),
     "section_3": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-–—]?\s*legal\s*proceedings",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-\u2013\u2014]?\s*legal\s*proceedings",
     ),
     "section_7": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-–—]?\s*management",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-\u2013\u2014]?\s*management",
     ),
     "section_7a": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-–—]?\s*"
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-\u2013\u2014]?\s*"
         r"(?:quantitative|market\s*risk)",
     ),
     "section_8": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-–—]?\s*financial\s*statements",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*[\.\:\-\u2013\u2014]?\s*financial\s*statements",
     ),
     "section_9a": (
-        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-–—]?\s*controls",
+        rf"item\s*{_DIGIT_OR_ROMAN}\s*a\s*[\.\:\-\u2013\u2014]?\s*controls",
     ),
 }
 
 # Boundary pattern used to detect "next item" headings.
 _NEXT_ITEM_PATTERN = re.compile(
-    r"item\s*\d+\s*[a-z]?\s*[\.\:\-–—]",
+    r"item\s*\d+\s*[a-z]?\s*[\.\:\-\u2013\u2014]",
     re.IGNORECASE,
 )
 
@@ -158,4 +158,4 @@ class SectionParser:
         return result
 
 
-__all__ = ["Section", "SectionParser", "SECTION_PATTERNS"]
+__all__ = ["SECTION_PATTERNS", "Section", "SectionParser"]

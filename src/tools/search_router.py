@@ -132,9 +132,7 @@ class SearchRouter:
         API key configured are skipped so the router remains functional
         with zero keys.
         """
-        from src.tools.providers.base import SearchProvider
         from src.tools.providers.brave import BraveProvider
-        from src.tools.providers.duckduckgo import DuckDuckGoProvider
 
         order = get_settings().search_provider_order
         requested = [
@@ -151,7 +149,7 @@ class SearchRouter:
                 continue
             try:
                 provider = factory()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 continue
             if getattr(provider, "is_available", lambda: True)():
                 providers.append(provider)

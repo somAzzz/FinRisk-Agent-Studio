@@ -25,6 +25,7 @@
 11. `11-evaluation-and-mvp-demo.md`
 12. `12-stabilization-and-next-steps.md`
 13. `13-production-execution-roadmap.md`
+14. `14-current-progress-and-next-plan.md`
 
 ## 当前代码基础
 
@@ -118,3 +119,13 @@ docs/implementation-plan/13-production-execution-roadmap.md
 ```
 
 该文档按真实 SEC filing、电话会议、网页搜索、LLM 结构化抽取、Neo4j 图推理、风险/机会研究和 API 服务层拆分后续执行阶段。
+
+## 最近提交复盘与下一步安排
+
+在 Step 13 之后，应继续参考：
+
+```text
+docs/implementation-plan/14-current-progress-and-next-plan.md
+```
+
+该文档基于最近本地 Git 提交重新评估当前实现进度，并把下一步拆成质量收口、真实 SEC 数据闭环、电话会议、网页搜索、LLM Agent、Neo4j 图推理、政策/地缘风险和评估回测等执行阶段。

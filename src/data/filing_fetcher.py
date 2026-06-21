@@ -89,8 +89,15 @@ def _extract_sections(text: str) -> dict[str, str]:
 class FilingFetcher:
     """High-level helper for discovering and downloading SEC filings."""
 
-    def __init__(self, sec_client: SECClient) -> None:
+    def __init__(
+        self,
+        sec_client: SECClient,
+        section_parser: SectionParser | None = None,
+    ) -> None:
         self.sec_client = sec_client
+        # Production uses the anchor-aware ``SectionParser``; tests can
+        # inject a stub.
+        self.section_parser = section_parser or SectionParser()
 
     def list_filings(
         self,
@@ -158,16 +165,6 @@ class FilingFetcher:
                 break
         return results
 
-    def __init__(
-        self,
-        sec_client: SECClient,
-        section_parser: SectionParser | None = None,
-    ) -> None:
-        self.sec_client = sec_client
-        # Production uses the anchor-aware ``SectionParser``; tests can
-        # inject a stub.
-        self.section_parser = section_parser or SectionParser()
-
     def fetch_filing(self, metadata: FilingMetadata) -> FilingRecord:
         """Download and parse a single filing into a :class:`FilingRecord`."""
         html = self.sec_client.get_filing_html(
@@ -189,10 +186,10 @@ class FilingFetcher:
             )
             for name, section in extracted_sections.items():
                 sections[name] = section.text
-        except Exception:  # noqa: BLE001 - parser fallback
+        except Exception:
             try:
                 sections.update(_extract_sections(text))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
         return FilingRecord(
             source="sec",

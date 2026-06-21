@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -67,7 +67,7 @@ def empty_response(provider: str, query: str) -> SearchResponse:
     return SearchResponse(
         provider=provider,
         query=query,
-        retrieved_at=datetime.utcnow(),
+        retrieved_at=datetime.now(UTC),
         results=[],
         raw=None,
     )

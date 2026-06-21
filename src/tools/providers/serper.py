@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import requests
@@ -86,7 +86,7 @@ class SerperProvider:
         return SearchResponse(
             provider=self.provider_name,
             query=query,
-            retrieved_at=datetime.utcnow(),
+            retrieved_at=datetime.now(UTC),
             results=results,
             raw=data if isinstance(data, dict) else None,
         )
