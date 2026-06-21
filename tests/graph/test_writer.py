@@ -115,7 +115,7 @@ def test_write_entity_merges_with_correct_label_and_props() -> None:
     assert len(fake.calls) == 1
     call = fake.calls[0]
     assert "MERGE (n:Company" in call.cypher
-    assert "company_id" in call.cypher
+    assert "entity_id" in call.cypher
     assert "SET n += $props" in call.cypher
     assert call.parameters == {
         "entity_id": "ent-1",
@@ -136,7 +136,7 @@ def test_write_entity_merges_with_correct_label_and_props() -> None:
     assert call.parameters["props"]["name"] == "Acme Corp"
 
 
-def test_write_evidence_merges_on_evidence_id() -> None:
+def test_write_evidence_merges_on_entity_id() -> None:
     fake = FakeNeo4jClient()
     writer = GraphWriter(fake)  # type: ignore[arg-type]
 
@@ -145,8 +145,8 @@ def test_write_evidence_merges_on_evidence_id() -> None:
     assert len(fake.calls) == 1
     call = fake.calls[0]
     assert "MERGE (n:Evidence" in call.cypher
-    assert "evidence_id" in call.cypher
-    assert call.parameters["evidence_id"] == "ev-42"
+    assert "entity_id" in call.cypher
+    assert call.parameters["entity_id"] == "ev-42"
     assert call.parameters["props"]["source_type"] == "edgar_corpus"
     assert call.parameters["props"]["quote"].startswith("We depend")
 
@@ -186,7 +186,7 @@ def test_write_claim_links_claim_to_evidence() -> None:
 
     claim_merges = [c for c in fake.calls if "MERGE (c:Claim" in c.cypher]
     assert len(claim_merges) == 1
-    assert claim_merges[0].parameters["claim_id"] == "claim-1"
+    assert claim_merges[0].parameters["entity_id"] == "claim-1"
 
     evidence_merges = [
         c for c in fake.calls if "MERGE (n:Evidence" in c.cypher

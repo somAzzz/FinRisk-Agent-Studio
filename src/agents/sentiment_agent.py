@@ -36,6 +36,14 @@ POSITIVE_WORDS: tuple[str, ...] = (
     "accelerat",
     "opportunity",
     "momentum",
+    "pleased",
+    "resilient",
+    "delighted",
+    "exceeded expectations",
+    "raised guidance",
+    "beat",
+    "outpace",
+    "tailwind",
 )
 
 NEGATIVE_WORDS: tuple[str, ...] = (
@@ -356,11 +364,7 @@ class SentimentAgent:
         prep_label = _tone_from_score(prep_pos, prep_neg)
         qa_label = _tone_from_score(qa_pos, qa_neg)
 
-        if prep_label == "positive" and qa_label in {"negative", "mixed"}:
-            overall = "mixed"
-        elif prep_label == "negative" and qa_label in {"positive", "mixed"}:
-            overall = "mixed"
-        elif prep_label == "mixed" or qa_label == "mixed":
+        if (prep_label == "positive" and qa_label in {"negative", "mixed"}) or (prep_label == "negative" and qa_label in {"positive", "mixed"}) or prep_label == "mixed" or qa_label == "mixed":
             overall = "mixed"
         elif prep_label != "unclear":
             overall = _overall_tone(prep_label)

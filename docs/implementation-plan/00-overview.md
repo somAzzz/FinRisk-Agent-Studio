@@ -24,6 +24,7 @@
 10. `10-opportunity-discovery-and-reporting.md`
 11. `11-evaluation-and-mvp-demo.md`
 12. `12-stabilization-and-next-steps.md`
+13. `13-production-execution-roadmap.md`
 
 ## 当前代码基础
 
@@ -107,3 +108,13 @@ docs/implementation-plan/12-stabilization-and-next-steps.md
 ```
 
 该文档记录了当前代码审核结果、测试失败原因、修正方案和下一步功能优先级。后续编程助手应优先完成 Step 12 中的 P0/P1 任务，再继续扩展新功能。
+
+## 正式项目执行路线图
+
+完成稳定化后，后续工作应以正式项目目标推进，而不是继续围绕离线 demo 扩展：
+
+```text
+docs/implementation-plan/13-production-execution-roadmap.md
+```
+
+该文档按真实 SEC filing、电话会议、网页搜索、LLM 结构化抽取、Neo4j 图推理、风险/机会研究和 API 服务层拆分后续执行阶段。

@@ -74,7 +74,7 @@ class ToolRegistry:
             )
         try:
             content = tool.call(**kwargs)
-        except Exception as exc:  # noqa: BLE001 - surfaced via ToolResult
+        except Exception as exc:
             return ToolResult(
                 tool_name=name,
                 success=False,

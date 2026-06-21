@@ -9,7 +9,7 @@ import hashlib
 import json
 import sqlite3
 import threading
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -101,7 +101,7 @@ class SearchCache:
             # fall back to the standard key derived from the parameters.
             key = params_hash
 
-        now_ts = int(datetime.now(timezone.utc).timestamp())
+        now_ts = int(datetime.now(UTC).timestamp())
         with self._lock:
             conn = self._connect()
             try:
@@ -147,7 +147,7 @@ class SearchCache:
         query_text = query or response.query
         key = self.make_key(provider_name, query_text, max_results, time_range, intent)
         payload = response.model_dump(mode="json")
-        created_at = int(datetime.now(timezone.utc).timestamp())
+        created_at = int(datetime.now(UTC).timestamp())
 
         with self._lock:
             conn = self._connect()

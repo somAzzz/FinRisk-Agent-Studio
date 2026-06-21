@@ -224,7 +224,7 @@ class RiskAgent:
     def run(self, state: AgentState) -> AgentState:
         """Analyze ``state.claims`` and append a :class:`RiskAssessment`."""
         risk_claims = _risk_claims(state)
-        category_counts: dict[str, int] = {cat: 0 for cat in RISK_CATEGORIES}
+        category_counts: dict[str, int] = dict.fromkeys(RISK_CATEGORIES, 0)
         per_claim_categories: list[tuple[Claim, list[str]]] = []
 
         for claim in risk_claims:

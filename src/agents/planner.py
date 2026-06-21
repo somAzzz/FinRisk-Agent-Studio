@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.agents.base import Agent
 from src.agents.state import AgentState
 
 PlanStepAction = Literal[

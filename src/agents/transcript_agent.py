@@ -8,7 +8,7 @@ Analyst questions are kept only when management provides an answer.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.agents.base import Agent
@@ -102,7 +102,7 @@ def _evidence_for_turn(
         section=turn.section,
         speaker=turn.speaker,
         quote=text,
-        retrieved_at=datetime.now(tz=timezone.utc),
+        retrieved_at=datetime.now(tz=UTC),
         published_at=transcript.published_at,
         confidence=0.85,
         metadata={
@@ -203,7 +203,7 @@ def _stub_evidence(transcript: Transcript, text: str) -> Evidence:
         url=transcript.url,
         section="unknown",
         quote=text,
-        retrieved_at=datetime.now(tz=timezone.utc),
+        retrieved_at=datetime.now(tz=UTC),
         published_at=transcript.published_at,
         confidence=0.7,
         metadata={

@@ -9,7 +9,8 @@ source-agnostic.
 from __future__ import annotations
 
 import json
-from typing import Any, Callable, Protocol
+from collections.abc import Callable
+from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -293,7 +294,7 @@ def _call_llm(
     if callable(parse):
         try:
             response = parse(prompt, ExtractionResult)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return _empty_result().model_copy(
                 update={"warnings": [f"llm parse failed: {exc}"]}
             )
@@ -302,7 +303,7 @@ def _call_llm(
     if callable(complete):
         try:
             raw = complete(prompt)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return _empty_result().model_copy(
                 update={"warnings": [f"llm complete failed: {exc}"]}
             )

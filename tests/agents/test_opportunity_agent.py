@@ -171,3 +171,32 @@ def test_generate_returns_pydantic_instances() -> None:
         assert hyp.hypothesis_type in ALLOWED_HYPOTHESIS_TYPES
         # Confidence must respect the schema bounds.
         assert 0.0 <= hyp.confidence <= 1.0
+
+
+def test_dedupe_drops_repeated_hypotheses() -> None:
+    """Two hypotheses with the same (type, title, statement) collapse to one."""
+    claim = _claim("c-1", "supply_chain", "Supplier concentration risk.")
+    evidence = [_evidence("e-1", "Supplier concentration risk text")]
+    # Pass the same claim list twice to force duplicates through the
+    # builder padding loop.
+    result = OpportunityAgent().generate(
+        [claim, claim, claim], evidence, entities=[]
+    )
+    keys = {(h.hypothesis_type, h.title, h.statement) for h in result}
+    assert len(keys) == len(result)
+
+
+def test_priority_orders_supply_chain_before_demand() -> None:
+    """Output is sorted so supply_chain_opportunity outranks demand_acceleration."""
+    claim = _claim("c-1", "supply_chain", "Supplier concentration risk.")
+    evidence = [_evidence("e-1", "Supplier concentration risk text")]
+    result = OpportunityAgent().generate(
+        [claim], evidence, entities=[]
+    )
+    if len(result) >= 2:
+        priority = {
+            "supply_chain_opportunity": 0,
+            "demand_acceleration": 5,
+        }
+        indices = [priority.get(h.hypothesis_type, 99) for h in result]
+        assert indices == sorted(indices)

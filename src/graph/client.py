@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from src.config import get_settings
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    pass
 
 
 def _load_neo4j() -> Any:

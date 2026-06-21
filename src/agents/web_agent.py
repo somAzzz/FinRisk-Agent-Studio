@@ -8,7 +8,7 @@ and recent events with explicit URLs.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.agents.base import Agent
@@ -67,7 +67,7 @@ def _evidence_for_chunk(evidence: Evidence, chunk: TextChunk) -> Evidence:
         section=evidence.section or WEB_SECTION_KIND,
         speaker=evidence.speaker,
         quote=chunk.text,
-        retrieved_at=datetime.now(tz=timezone.utc),
+        retrieved_at=datetime.now(tz=UTC),
         published_at=evidence.published_at,
         char_start=chunk.char_start,
         char_end=chunk.char_end,

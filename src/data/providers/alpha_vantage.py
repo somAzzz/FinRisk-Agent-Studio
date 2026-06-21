@@ -206,9 +206,8 @@ class AlphaVantageProvider:
                     next_executive_role = "cfo"
                 else:
                     next_executive_role = None
-            else:
-                if role in {"ceo", "cfo"}:
-                    speaker_role_memory[speaker] = role
+            elif role in {"ceo", "cfo"}:
+                speaker_role_memory[speaker] = role
             turns.append(
                 TranscriptTurn(
                     speaker=speaker,

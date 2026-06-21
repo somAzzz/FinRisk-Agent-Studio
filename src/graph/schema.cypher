@@ -2,69 +2,70 @@
 //
 // Run with: cypher-shell -u neo4j -p password < src/graph/schema.cypher
 //
-// Each entity label is anchored by a unique string id property named
-// `<label_snake>_id` (e.g. `company_id`, `evidence_id`, `claim_id`).
-// This keeps lookups and MERGE keys stable across ingestion passes.
+// Every entity label is anchored by a single unified ``entity_id``
+// string property. This keeps lookups, MERGE keys, and relationship
+// MATCH patterns consistent across ingestion passes, regardless of
+// whether a node is a Company, Product, Claim, Evidence, etc.
 
 // -----------------------------------------------------------------------------
-// Unique constraints (one per entity label).
+// Unique constraints: every label shares the ``entity_id`` key.
 // -----------------------------------------------------------------------------
-CREATE CONSTRAINT company_id IF NOT EXISTS
-FOR (n:Company) REQUIRE n.company_id IS UNIQUE;
+CREATE CONSTRAINT company_entity_id IF NOT EXISTS
+FOR (n:Company) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT product_id IF NOT EXISTS
-FOR (n:Product) REQUIRE n.product_id IS UNIQUE;
+CREATE CONSTRAINT product_entity_id IF NOT EXISTS
+FOR (n:Product) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT segment_id IF NOT EXISTS
-FOR (n:Segment) REQUIRE n.segment_id IS UNIQUE;
+CREATE CONSTRAINT segment_entity_id IF NOT EXISTS
+FOR (n:Segment) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT customer_id IF NOT EXISTS
-FOR (n:Customer) REQUIRE n.customer_id IS UNIQUE;
+CREATE CONSTRAINT customer_entity_id IF NOT EXISTS
+FOR (n:Customer) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT supplier_id IF NOT EXISTS
-FOR (n:Supplier) REQUIRE n.supplier_id IS UNIQUE;
+CREATE CONSTRAINT supplier_entity_id IF NOT EXISTS
+FOR (n:Supplier) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT competitor_id IF NOT EXISTS
-FOR (n:Competitor) REQUIRE n.competitor_id IS UNIQUE;
+CREATE CONSTRAINT competitor_entity_id IF NOT EXISTS
+FOR (n:Competitor) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT region_id IF NOT EXISTS
-FOR (n:Region) REQUIRE n.region_id IS UNIQUE;
+CREATE CONSTRAINT region_entity_id IF NOT EXISTS
+FOR (n:Region) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT country_id IF NOT EXISTS
-FOR (n:Country) REQUIRE n.country_id IS UNIQUE;
+CREATE CONSTRAINT country_entity_id IF NOT EXISTS
+FOR (n:Country) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT commodity_id IF NOT EXISTS
-FOR (n:Commodity) REQUIRE n.commodity_id IS UNIQUE;
+CREATE CONSTRAINT commodity_entity_id IF NOT EXISTS
+FOR (n:Commodity) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT policy_id IF NOT EXISTS
-FOR (n:Policy) REQUIRE n.policy_id IS UNIQUE;
+CREATE CONSTRAINT policy_entity_id IF NOT EXISTS
+FOR (n:Policy) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT risk_id IF NOT EXISTS
-FOR (n:Risk) REQUIRE n.risk_id IS UNIQUE;
+CREATE CONSTRAINT risk_entity_id IF NOT EXISTS
+FOR (n:Risk) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT opportunity_id IF NOT EXISTS
-FOR (n:Opportunity) REQUIRE n.opportunity_id IS UNIQUE;
+CREATE CONSTRAINT opportunity_entity_id IF NOT EXISTS
+FOR (n:Opportunity) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT filing_id IF NOT EXISTS
-FOR (n:Filing) REQUIRE n.filing_id IS UNIQUE;
+CREATE CONSTRAINT filing_entity_id IF NOT EXISTS
+FOR (n:Filing) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT transcript_id IF NOT EXISTS
-FOR (n:Transcript) REQUIRE n.transcript_id IS UNIQUE;
+CREATE CONSTRAINT transcript_entity_id IF NOT EXISTS
+FOR (n:Transcript) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT article_id IF NOT EXISTS
-FOR (n:Article) REQUIRE n.article_id IS UNIQUE;
+CREATE CONSTRAINT article_entity_id IF NOT EXISTS
+FOR (n:Article) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT event_id IF NOT EXISTS
-FOR (n:Event) REQUIRE n.event_id IS UNIQUE;
+CREATE CONSTRAINT event_entity_id IF NOT EXISTS
+FOR (n:Event) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT executive_id IF NOT EXISTS
-FOR (n:Executive) REQUIRE n.executive_id IS UNIQUE;
+CREATE CONSTRAINT executive_entity_id IF NOT EXISTS
+FOR (n:Executive) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT claim_id IF NOT EXISTS
-FOR (n:Claim) REQUIRE n.claim_id IS UNIQUE;
+CREATE CONSTRAINT claim_entity_id IF NOT EXISTS
+FOR (n:Claim) REQUIRE n.entity_id IS UNIQUE;
 
-CREATE CONSTRAINT evidence_id IF NOT EXISTS
-FOR (n:Evidence) REQUIRE n.evidence_id IS UNIQUE;
+CREATE CONSTRAINT evidence_entity_id IF NOT EXISTS
+FOR (n:Evidence) REQUIRE n.entity_id IS UNIQUE;
 
 // -----------------------------------------------------------------------------
 // Lookup indexes (non-unique) for common join fields.

@@ -7,7 +7,7 @@ evidence, then runs :class:`RiskAgent` to produce a
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.agents.risk_agent import CATEGORY_KEYWORDS, RiskAgent
 from src.agents.state import AgentState
@@ -35,7 +35,7 @@ def _filing_evidence(
     filings: list[FilingRecord], ticker: str
 ) -> list[Evidence]:
     """Convert filing sections into :class:`Evidence` rows."""
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     evidence: list[Evidence] = []
     for filing in filings:
         source_id = (
@@ -71,7 +71,7 @@ def _transcript_evidence(
     transcripts: list[Transcript], ticker: str
 ) -> list[Evidence]:
     """Convert each transcript turn into an :class:`Evidence` row."""
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     evidence: list[Evidence] = []
     for transcript in transcripts:
         for turn in transcript.turns:
@@ -146,7 +146,7 @@ def _seed_risk_claims(state: AgentState) -> None:
 
 def _build_assessment(state: AgentState) -> RiskAssessment:
     risk_claims = [c for c in state.claims if c.claim_type == "risk"]
-    category_counts: dict[str, int] = {cat: 0 for cat in RISK_CATEGORY_ORDER}
+    category_counts: dict[str, int] = dict.fromkeys(RISK_CATEGORY_ORDER, 0)
     for claim in risk_claims:
         for cat in claim.metadata.get("categories", []):
             if cat in category_counts:

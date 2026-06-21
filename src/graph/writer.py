@@ -61,7 +61,7 @@ def _entity_props(entity: Entity) -> dict[str, Any]:
 
 def _evidence_props(evidence: Evidence) -> dict[str, Any]:
     return {
-        "evidence_id": evidence.evidence_id,
+        "entity_id": evidence.evidence_id,
         "source_type": evidence.source_type,
         "source_id": evidence.source_id,
         "title": evidence.title,
@@ -84,7 +84,7 @@ def _evidence_props(evidence: Evidence) -> dict[str, Any]:
 
 def _claim_props(claim: Claim) -> dict[str, Any]:
     return {
-        "claim_id": claim.claim_id,
+        "entity_id": claim.claim_id,
         "claim_type": claim.claim_type,
         "statement": claim.statement,
         "confidence": claim.confidence,
@@ -112,8 +112,10 @@ class GraphWriter:
     # -- public write API --------------------------------------------------
     def write_entity(self, entity: Entity) -> None:
         label = _label_for(entity)
+        # All entity nodes share the unified ``entity_id`` property as
+        # their unique key, regardless of label.
         cypher = (
-            f"MERGE (n:{label} {{ {label.lower()}_id: $entity_id }})\n"
+            f"MERGE (n:{label} {{ entity_id: $entity_id }})\n"
             "SET n += $props"
         )
         self._client.run(
@@ -123,13 +125,13 @@ class GraphWriter:
 
     def write_evidence(self, evidence: Evidence) -> None:
         cypher = (
-            "MERGE (n:Evidence { evidence_id: $evidence_id })\n"
+            "MERGE (n:Evidence { entity_id: $entity_id })\n"
             "SET n += $props"
         )
         self._client.run(
             cypher,
             {
-                "evidence_id": evidence.evidence_id,
+                "entity_id": evidence.evidence_id,
                 "props": _evidence_props(evidence),
             },
         )
@@ -163,11 +165,12 @@ class GraphWriter:
 
     def write_claim(self, claim: Claim) -> None:
         cypher = (
-            "MERGE (c:Claim { claim_id: $claim_id })\n"
+            "MERGE (c:Claim { entity_id: $entity_id })\n"
             "SET c += $props"
         )
         self._client.run(
-            cypher, {"claim_id": claim.claim_id, "props": _claim_props(claim)}
+            cypher,
+            {"entity_id": claim.claim_id, "props": _claim_props(claim)},
         )
 
         if not claim.evidence:
@@ -182,8 +185,8 @@ class GraphWriter:
             self.write_evidence(ev)
 
         link_cypher = (
-            "MATCH (c:Claim { claim_id: $claim_id })\n"
-            "MATCH (e:Evidence { evidence_id: $evidence_id })\n"
+            "MATCH (c:Claim { entity_id: $claim_id })\n"
+            "MATCH (e:Evidence { entity_id: $evidence_id })\n"
             "MERGE (c)-[:SUPPORTED_BY]->(e)"
         )
         for ev in claim.evidence:

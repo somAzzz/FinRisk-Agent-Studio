@@ -134,3 +134,19 @@ def test_report_contains_disclaimer_text() -> None:
     # The disclaimer line is always appended as the final non-empty line.
     lines = [ln for ln in report.splitlines() if ln.strip()]
     assert "This report is for research only and is not investment advice." in lines[-1]
+
+
+def test_report_dedupes_repeated_evidence() -> None:
+    """A given evidence_id should appear at most once in the Key Evidence list."""
+    claims, evidence = _claims_and_evidence()
+    duplicate = evidence[0].model_copy(deep=True)
+    evidence_with_dup = evidence + [duplicate]
+    hypotheses = discover_opportunities("ACME", claims, evidence_with_dup)
+    report = generate_company_report(
+        "ACME", hypotheses, claims, evidence_with_dup
+    )
+    key_section_start = report.index("## Key Evidence")
+    key_section_end = report.index("## Supply Chain Map")
+    body = report[key_section_start:key_section_end]
+    target_quote = duplicate.quote[:200]
+    assert body.count(target_quote) == 1

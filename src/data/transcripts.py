@@ -146,7 +146,7 @@ class TranscriptCache:
             return None
         try:
             return Transcript.model_validate(payload)
-        except Exception:  # noqa: BLE001 - cache may be from a prior schema
+        except Exception:
             return None
 
     def set(self, transcript: Transcript) -> Path:
@@ -166,6 +166,7 @@ class TranscriptCache:
 
 __all__ = [
     "Section",
+    "Transcript",
     "TranscriptCache",
     "TranscriptMeta",
     "TranscriptNotFoundError",
@@ -173,7 +174,6 @@ __all__ = [
     "TranscriptProviderConfigError",
     "TranscriptProviderError",
     "TranscriptRateLimitError",
-    "Transcript",
     "TranscriptTurn",
     "infer_role",
     "infer_section",

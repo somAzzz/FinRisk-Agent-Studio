@@ -12,7 +12,7 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 
-from src.data.sec_client import SECClient  # noqa: F401  (used in type hint / runtime)
+from src.data.sec_client import SECClient
 from src.schemas.filings import FilingMetadata, FilingRecord
 
 _BASE_ARCHIVES_URL = "https://www.sec.gov/Archives/edgar/data"
@@ -173,7 +173,7 @@ class FilingFetcher:
         # Attempt naive item extraction. Failures are non-fatal.
         try:
             extracted = _extract_sections(text)
-        except Exception:  # noqa: BLE001 — defensive: never fail on parsing
+        except Exception:
             extracted = {}
         sections.update(extracted)
         return FilingRecord(

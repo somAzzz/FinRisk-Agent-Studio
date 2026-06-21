@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Callable, Sequence
+from typing import Any
 from urllib.parse import urlparse
 
 from src.config import get_settings
@@ -267,7 +267,7 @@ class SearchRouter:
                 if inspect.isawaitable(fetch_result):
                     # Async fetchers must be awaited by the caller; surface
                     # this as an error rather than blocking here.
-                    fetch_result = asyncio.run(fetch_result)  # noqa: PLW0120
+                    fetch_result = asyncio.run(fetch_result)
             except Exception as exc:
                 summaries.append(
                     WebFetchResultSummary(

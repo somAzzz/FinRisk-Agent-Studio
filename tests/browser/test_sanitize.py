@@ -40,7 +40,8 @@ def test_sanitize_credit_card():
 
 
 def test_sanitize_slack_token():
-    text = "Slack token: ******->*****"
+    token = "xoxb-" + "a" * 20
+    text = f"Slack token: {token}"
     result = sanitize_snapshot(text)
-    assert "******->*****" not in result
+    assert token not in result
     assert "[TOKEN]" in result

@@ -17,19 +17,21 @@ import json
 import logging
 import os
 import sys
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
 from src.agents.policy_geo_agent import PolicyGeoAgent
 from src.agents.state import AgentState
+from src.data.filing_fetcher import FilingFetcher, _build_filing_html_url
 from src.pipelines.analyze_risks import analyze_company_risks
 from src.pipelines.analyze_sentiment import analyze_management_sentiment
 from src.pipelines.discover_opportunities import discover_opportunities
 from src.pipelines.generate_report import generate_company_report
 from src.schemas.claims import Claim
 from src.schemas.evidence import Evidence
-from src.schemas.filings import FilingRecord
+from src.schemas.filings import FilingMetadata, FilingRecord
 from src.schemas.transcripts import Transcript
 
 logger = logging.getLogger(__name__)
@@ -110,13 +112,58 @@ def _load_filings_live(
     filings: list[FilingRecord] = []
     try:
         from src.data.sec_client import SECClient
+        from src.data.ticker_resolver import TickerResolver
 
+        ident = TickerResolver().resolve(ticker)
+        if ident is None:
+            raise RuntimeError(
+                f"unable to resolve ticker {ticker!r} to a CIK"
+            )
         client = SECClient()
-        # Without a ticker->CIK mapping we cannot resolve SEC; the SEC
-        # submission endpoint requires a CIK. Treat any exception as a
-        # signal to fall back to the Hugging Face dataset.
-        raise RuntimeError("ticker->CIK mapping not yet implemented")
-    except Exception as exc:  # noqa: BLE001
+        # Without a year we cannot pin a single 10-K; fall through to
+        # listing the most recent filings.
+        try:
+            metadata_list = client.get_submissions(ident.cik)
+            recent = (
+                metadata_list.get("filings", {}).get("recent", {}) or {}
+            )
+            accession_numbers = recent.get("accessionNumber", []) or []
+            forms = recent.get("form", []) or []
+            filing_dates = recent.get("filingDate", []) or []
+            primary_docs = recent.get("primaryDocument", []) or []
+            fetcher = FilingFetcher(client)
+            for idx in range(min(len(accession_numbers), 5)):
+                form = (forms[idx] if idx < len(forms) else "") or ""
+                if form.upper() not in {"10-K", "10-Q"}:
+                    continue
+                try:
+                    filing_date = date.fromisoformat(
+                        filing_dates[idx] if idx < len(filing_dates) else ""
+                    )
+                except ValueError:
+                    continue
+                primary_doc = (
+                    primary_docs[idx] if idx < len(primary_docs) else ""
+                )
+                metadata_obj = FilingMetadata(
+                    cik=ident.cik,
+                    accession_number=accession_numbers[idx],
+                    form_type=form,
+                    filing_date=filing_date,
+                    report_date=None,
+                    primary_document=primary_doc,
+                    url=_build_filing_html_url(
+                        accession_numbers[idx],
+                        ident.cik,
+                        primary_doc,
+                    ),
+                )
+                filings.append(fetcher.fetch_filing(metadata_obj))
+                if year is not None and filing_date.year == year:
+                    break
+        except Exception as exc:
+            logger.info("SEC live fetch limited: %s", exc)
+    except Exception as exc:
         logger.info("SEC live fetch skipped: %s", exc)
 
     # 2. Fall back to the Hugging Face EDGAR corpus (streaming).
@@ -141,7 +188,7 @@ def _load_filings_live(
                 filings.append(filing)
                 if len(filings) >= 1:
                     break
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("HF EDGAR loader failed: %s", exc)
 
     return filings
@@ -183,9 +230,9 @@ def _load_transcripts_live(
                             ticker, meta.year, meta.quarter
                         )
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     continue
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.info(
                 "Transcript provider %s skipped: %s", provider_name, exc
             )
@@ -202,7 +249,7 @@ def _load_web_evidence_live(
     """Run a web search for the ticker; returns ``[]`` on any failure."""
     try:
         from src.tools.search_router import SearchRouter, to_evidence
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.info("SearchRouter unavailable: %s", exc)
         return []
     try:
@@ -211,7 +258,7 @@ def _load_web_evidence_live(
             query=f"{ticker} recent news risks opportunities",
             max_results=max_results,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.info("Web search failed: %s", exc)
         return []
 
@@ -219,7 +266,7 @@ def _load_web_evidence_live(
     for index in range(min(max_results, len(response.results))):
         try:
             evidence.append(to_evidence(response, result_index=index))
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
     return evidence
 
@@ -231,8 +278,8 @@ def _load_web_evidence_live(
 
 def _maybe_write_graph(
     claims: list[Claim],
-    entities: list,  # noqa: ANN001
-    relations: list,  # noqa: ANN001
+    entities: list,
+    relations: list,
     evidence: list[Evidence],
 ) -> str:
     """Attempt to write ``claims``/``entities``/``relations`` to Neo4j.
@@ -247,13 +294,13 @@ def _maybe_write_graph(
     try:
         from src.graph.client import Neo4jClient
         from src.graph.writer import GraphWriter
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return f"skipped (graph module unavailable: {exc})"
 
     try:
         client = Neo4jClient()
         writer = GraphWriter(client)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return f"skipped (Neo4j not reachable: {exc})"
 
     try:
@@ -267,7 +314,7 @@ def _maybe_write_graph(
         )
         writer.write_extraction_result(result)
         return "written"
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return f"failed ({exc})"
 
 
@@ -295,7 +342,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
         live_notes: list[str] = []
         try:
             filings = _load_filings_live(ticker, args.year)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             live_notes.append(f"live filings unavailable: {exc}")
             filings = []
         if args.no_transcripts:
@@ -305,7 +352,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
                 transcripts = _load_transcripts_live(
                     ticker, args.max_transcripts
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 live_notes.append(f"live transcripts unavailable: {exc}")
                 transcripts = []
         if args.no_web:
@@ -315,7 +362,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
                 web_evidence = _load_web_evidence_live(
                     ticker, args.max_web_results
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 live_notes.append(f"live web evidence unavailable: {exc}")
                 web_evidence = []
         state_notes.extend(live_notes)
@@ -333,9 +380,79 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
         company_name=company_name,
     )
 
+
     # 3. Run analysis pipelines. Each one is best-effort.
     all_claims: list[Claim] = []
     all_evidence: list[Evidence] = []
+
+    # 2b. Run rule-based supply-chain extraction across all raw evidence so
+    # the offline MVP produces populated Supply Chain Map sections even
+    # without an LLM in the loop. This is a heuristic pass — a future LLM
+    # structured-output pass can replace or augment it.
+    try:
+        from src.pipelines.rule_supply_chain import extract_supply_chain_claims
+        from src.schemas.filings import FilingRecord  # noqa: F401
+        from src.schemas.transcripts import Transcript  # noqa: F401
+
+        pre_evidence: list[Evidence] = list(web_evidence)
+        for filing in filings:
+            for section, text in (filing.sections or {}).items():
+                if not text:
+                    continue
+                pre_evidence.append(
+                    Evidence(
+                        evidence_id=(
+                            f"{filing.accession_number or filing.cik}:{section}"
+                        ),
+                        source_type="sec_filing",
+                        source_id=(
+                            filing.accession_number
+                            or f"{filing.cik}-{filing.form_type}"
+                        ),
+                        title=filing.company_name or filing.cik,
+                        url=filing.url,
+                        section=section,
+                        quote=text,
+                        retrieved_at=datetime.now(UTC),
+                        confidence=0.9,
+                        metadata={
+                            "cik": filing.cik,
+                            "ticker": filing.ticker,
+                            "form_type": filing.form_type,
+                        },
+                    )
+                )
+        for tx in transcripts:
+            for idx, turn in enumerate(tx.turns):
+                pre_evidence.append(
+                    Evidence(
+                        evidence_id=f"{tx.transcript_id}:turn{idx}",
+                        source_type="transcript",
+                        source_id=tx.transcript_id or "",
+                        title=tx.title,
+                        url=tx.url,
+                        section=turn.section,
+                        speaker=turn.speaker,
+                        quote=turn.text,
+                        retrieved_at=(
+                            tx.published_at or datetime.now(UTC)
+                        ),
+                        confidence=0.85,
+                        metadata={
+                            "role": turn.role,
+                            "ticker": tx.ticker,
+                        },
+                    )
+                )
+        supply_claims = extract_supply_chain_claims(pre_evidence)
+        all_evidence.extend(ev for c in supply_claims for ev in c.evidence)
+        all_claims.extend(supply_claims)
+        logger.info(
+            "rule_supply_chain emitted %d claims", len(supply_claims)
+        )
+    except Exception as exc:
+        logger.warning("rule_supply_chain extraction failed: %s", exc)
+
     all_entities: list = []
     all_relations: list = []
 
@@ -343,7 +460,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
         risk = analyze_company_risks(ticker, filings, transcripts, web_evidence)
         all_claims.extend(risk.risks)
         all_evidence.extend(risk.evidence)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("risk pipeline failed: %s", exc)
 
     try:
@@ -351,7 +468,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
             ticker, transcripts, mda_sections=[]
         )
         all_claims.extend(sentiment.claims)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("sentiment pipeline failed: %s", exc)
 
     try:
@@ -361,7 +478,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
         all_evidence.extend(state.evidence)
         all_entities.extend(state.entities)
         all_relations.extend(state.relations)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("policy_geo agent failed: %s", exc)
 
     # Make sure all collected evidence rows flow into the state too (the
@@ -382,7 +499,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
     # 4. Opportunity discovery.
     try:
         hypotheses = discover_opportunities(ticker, state.claims, state.evidence)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("opportunity pipeline failed: %s", exc)
         hypotheses = []
 

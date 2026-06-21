@@ -39,12 +39,15 @@ class BrowserWrapper:
         Returns:
             (success, output, url)
         """
-        result = subprocess.run(
-            ["agent-browser"] + list(args),
-            capture_output=True,
-            text=True,
-            timeout=self.timeout,
-        )
+        try:
+            result = subprocess.run(
+                ["agent-browser"] + list(args),
+                capture_output=True,
+                text=True,
+                timeout=self.timeout,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            return False, f"agent-browser not available: {exc}", self._current_url
         output = result.stdout.strip()
         clean_output = self._strip_ansi(output)
         command = args[0] if args else ""
@@ -60,14 +63,17 @@ class BrowserWrapper:
         else:
             success = clean_output.startswith("✓")
 
-        # Get current URL
-        url_result = subprocess.run(
-            ["agent-browser", "get", "url"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        self._current_url = url_result.stdout.strip()
+        # Get current URL (best-effort).
+        try:
+            url_result = subprocess.run(
+                ["agent-browser", "get", "url"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            self._current_url = url_result.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
         return success, output, self._current_url
 
     async def navigate(self, url: str) -> BrowserResult:
@@ -216,8 +222,20 @@ class BrowserWrapper:
             return [BrowserResult(success=False, content=None, screenshot=None, url="", error="Batch failed")]
 
     def close(self) -> None:
-        """Clean up browser resources."""
-        subprocess.run(["agent-browser", "close"], capture_output=True, timeout=5)
+        """Clean up browser resources.
+
+        ``agent-browser`` may not be installed in test environments; the
+        subprocess call is best-effort.
+        """
+        try:
+            subprocess.run(
+                ["agent-browser", "close"],
+                capture_output=True,
+                timeout=5,
+                check=False,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
         if self._process:
             self._process.terminate()
             self._process = None

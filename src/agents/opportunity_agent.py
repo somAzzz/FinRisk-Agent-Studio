@@ -22,6 +22,17 @@ _MAX_HYPOTHESES = 5
 # Lower bound required by the plan.
 _MIN_HYPOTHESES = 3
 
+# Priority order for hypothesis types — earlier entries outrank later ones
+# when sorting and capping the final list.
+_HYPOTHESIS_PRIORITY: tuple[HypothesisType, ...] = (
+    "supply_chain_opportunity",
+    "policy_beneficiary",
+    "geopolitical_substitution",
+    "sentiment_turnaround",
+    "risk_mispricing",
+    "demand_acceleration",
+)
+
 
 class OpportunityAgent:
     """Generate research hypotheses from claims, entities, and evidence."""
@@ -129,8 +140,35 @@ class OpportunityAgent:
                 self._build_fallback_hypothesis(evidence, entities)
             )
 
-        # Cap at the upper bound.
-        return hypotheses[:_MAX_HYPOTHESES]
+        # Cap at the upper bound after deduping and sorting by priority.
+        return self._dedupe_and_rank(hypotheses)[:_MAX_HYPOTHESES]
+
+    # -- post-processing --------------------------------------------------
+    def _dedupe_and_rank(
+        self,
+        hypotheses: list[InvestmentHypothesis],
+    ) -> list[InvestmentHypothesis]:
+        """Drop duplicates and rank by priority.
+
+        Duplicates are matched by (hypothesis_type, title, statement).
+        Ties keep the first occurrence. Output is sorted so the most
+        informative hypothesis types appear first in the report.
+        """
+        seen: set[tuple[str, str, str]] = set()
+        deduped: list[InvestmentHypothesis] = []
+        for hyp in hypotheses:
+            key = (hyp.hypothesis_type, hyp.title, hyp.statement)
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(hyp)
+        priority_index = {
+            ht: idx for idx, ht in enumerate(_HYPOTHESIS_PRIORITY)
+        }
+        deduped.sort(
+            key=lambda h: priority_index.get(h.hypothesis_type, 99)
+        )
+        return deduped
 
     # -- rule builders ----------------------------------------------------
     def _build_supply_chain_hypothesis(

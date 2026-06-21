@@ -7,7 +7,7 @@ runs :class:`SentimentAgent`, and returns the resulting
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.agents.sentiment_agent import SentimentAgent
 from src.agents.state import AgentState
@@ -20,7 +20,7 @@ def _mda_evidence(
     ticker: str, mda_sections: list[str]
 ) -> list[Evidence]:
     """Convert raw MD&A strings into :class:`Evidence` rows."""
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     evidence: list[Evidence] = []
     for index, text in enumerate(mda_sections):
         if text is None or not text.strip():
@@ -45,7 +45,7 @@ def _transcript_evidence(
     transcripts: list[Transcript], ticker: str
 ) -> list[Evidence]:
     """Convert transcript turns into :class:`Evidence` rows."""
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     evidence: list[Evidence] = []
     for transcript in transcripts:
         for turn in transcript.turns:
@@ -140,9 +140,7 @@ def analyze_management_sentiment(
         1 for n in state.notes if "overall_tone=mixed" in n
     )
 
-    if mixed_signals:
-        overall_tone = "mixed"
-    elif positive_signals and negative_signals:
+    if mixed_signals or (positive_signals and negative_signals):
         overall_tone = "mixed"
     elif positive_signals:
         overall_tone = "positive"

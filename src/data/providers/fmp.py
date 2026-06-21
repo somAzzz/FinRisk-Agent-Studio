@@ -227,9 +227,8 @@ class FMPProvider:
                     next_executive_role = "cfo"
                 else:
                     next_executive_role = None
-            else:
-                if role in {"ceo", "cfo"}:
-                    speaker_role_memory[speaker] = role
+            elif role in {"ceo", "cfo"}:
+                speaker_role_memory[speaker] = role
             parsed.append(
                 TranscriptTurn(
                     speaker=speaker or "Unknown",

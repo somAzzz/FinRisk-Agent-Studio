@@ -18,7 +18,7 @@ from src.schemas.analysis import (
     PolicyExposureType,
     TimeHorizon,
 )
-from src.schemas.claims import Claim, ClaimType
+from src.schemas.claims import Claim
 from src.schemas.evidence import Evidence
 
 DEFAULT_CONFIDENCE = 0.5

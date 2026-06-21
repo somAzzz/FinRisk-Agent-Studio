@@ -9,7 +9,7 @@ least one evidence record.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.schemas.claims import Claim
 from src.schemas.evidence import Evidence
@@ -56,6 +56,7 @@ class ReportAgent:
         evidence are not asserted in the body; they are still listed in
         the Sources section so their absence is visible.
         """
+        evidence = self._dedupe_evidence(evidence)
         evidence_index, evidence_refs = self._index_evidence(evidence)
         claim_index, claim_refs = self._index_claims(claims, evidence_index)
 
@@ -344,6 +345,26 @@ class ReportAgent:
             if ref is not None:
                 refs.append(ref)
         return sorted(set(refs))
+
+    def _dedupe_evidence(
+        self, evidence: list[Evidence]
+    ) -> list[Evidence]:
+        """Drop duplicate evidence records by ``evidence_id``.
+
+        The offline MVP and live fetchers may both attach evidence for the
+        same source (e.g. a transcript turn cited from web and filing).
+        Without dedupe, ``Key Evidence`` would list the same record twice
+        with different bracketed numbers and the rest of the report would
+        no longer align with the evidence index.
+        """
+        seen: set[str] = set()
+        deduped: list[Evidence] = []
+        for ev in evidence:
+            if ev.evidence_id in seen:
+                continue
+            seen.add(ev.evidence_id)
+            deduped.append(ev)
+        return deduped
 
     def _index_evidence(
         self, evidence: list[Evidence]

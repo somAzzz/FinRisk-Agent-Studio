@@ -9,7 +9,7 @@ shared :mod:`src.agents.extraction_agent` module.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.agents.base import Agent
@@ -91,7 +91,7 @@ def _evidence_from_chunk(
         url=filing.url,
         section=section_name,
         quote=chunk.text,
-        retrieved_at=datetime.now(tz=timezone.utc),
+        retrieved_at=datetime.now(tz=UTC),
         char_start=chunk.char_start,
         char_end=chunk.char_end,
         confidence=0.9,

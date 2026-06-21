@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.agents.base import Agent
 from src.agents.critic import CriticAgent
-from src.agents.planner import PlanStepAction, PlannerAgent
+from src.agents.planner import PlannerAgent, PlanStepAction
 from src.agents.state import AgentState, ToolCall
 from src.agents.tools import ToolRegistry
 
@@ -71,7 +71,7 @@ class AgentRuntime:
         # Always apply the critic to the final state.
         try:
             state = self.critic.run(state)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             state.notes.append(
                 f"runtime: critic failed ({type(exc).__name__}: {exc})"
             )
@@ -106,7 +106,7 @@ class AgentRuntime:
             arguments=dict(step.inputs),
             result_summary=_summarize(result.content),
             success=result.success,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         state.tool_history.append(call)
         if not result.success:
@@ -133,7 +133,7 @@ class AgentRuntime:
 
         try:
             state = agent.run(state)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             state.notes.append(
                 f"runtime: agent {agent_name!r} failed "
                 f"({type(exc).__name__}: {exc})"

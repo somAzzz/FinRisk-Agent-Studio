@@ -24,8 +24,8 @@ from src.evaluation.report_eval import (
 )
 
 __all__ = [
-    "ExtractionEvalResult",
     "FORBIDDEN_PHRASES",
+    "ExtractionEvalResult",
     "GraphEvalResult",
     "ReportEvalResult",
     "evaluate_extraction",
