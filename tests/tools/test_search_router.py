@@ -399,3 +399,39 @@ def test_search_router_skips_unconfigured_providers(
     names = [p.provider_name for p in router.providers]
     assert "duckduckgo" in names
     assert "brave" not in names
+
+
+def test_intent_template_supply_chain_appends_keywords() -> None:
+    """``supply_chain`` intent augments the user query with vendor keywords."""
+    from src.tools.search_router import _apply_intent_template
+
+    query = _apply_intent_template("supply_chain", "AAPL")
+    assert query is not None
+    assert "AAPL" in query
+    assert "supplier" in query.lower() or "outsourcing" in query.lower()
+
+
+def test_intent_template_unknown_returns_none() -> None:
+    """Unknown intent falls through to the bare query (no template)."""
+    from src.tools.search_router import _apply_intent_template
+
+    assert _apply_intent_template("not-a-real-intent", "AAPL") is None
+    assert _apply_intent_template("general", "AAPL") is None
+
+
+def test_search_router_uses_intent_template_in_provider_call(
+    tmp_path, monkeypatch
+) -> None:
+    """The provider is called with the intent-augmented query."""
+    captured = {}
+
+    class CaptureProvider(FakeProvider):
+        def search(self, query, max_results=5, time_range=None):  # noqa: ANN001
+            captured["query"] = query
+            return super().search(query, max_results, time_range)
+
+    provider = CaptureProvider("cap", results=[_make_result("https://x.com")])
+    router = SearchRouter(providers=[provider], cache=SearchCache(cache_dir=tmp_path))
+    router.search("AAPL", intent="policy", ttl_seconds=60)
+    assert "AAPL" in captured["query"]
+    assert "policy" in captured["query"].lower() or "tariff" in captured["query"].lower()

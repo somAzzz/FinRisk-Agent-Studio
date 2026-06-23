@@ -32,6 +32,33 @@ DEFAULT_TTL_SECONDS = 3600
 WebFetcher = Callable[[str], Any]
 
 
+# Intent-specific query templates. The user-supplied query is appended
+# (when present) so callers always retain control of the core subject.
+INTENT_QUERY_TEMPLATES: dict[str, str] = {
+    "supply_chain": "{q} suppliers contract manufacturing outsourcing",
+    "customer": "{q} customers order book demand concentration",
+    "policy": "{q} regulation policy CHIPS IRA tariff export control",
+    "geopolitical": "{q} geopolitical risk China Taiwan Middle East sanctions",
+    "policy_risk": "{q} regulatory risk policy exposure",
+    "geopolitical_risk": "{q} geopolitical exposure risk",
+    "management_change": "{q} CEO CFO management change turnover",
+    "product_demand": "{q} demand growth order book backlog product cycle",
+    "litigation": "{q} litigation lawsuit SEC investigation antitrust",
+}
+
+
+def _apply_intent_template(intent: str, query: str) -> str | None:
+    """Return the intent-augmented query, or ``None`` if no template.
+
+    Returns ``None`` when the intent is ``"general"`` or unknown so the
+    router can fall through to the bare user query.
+    """
+    template = INTENT_QUERY_TEMPLATES.get(intent)
+    if template is None:
+        return None
+    return template.format(q=query)
+
+
 @dataclass
 class WebFetchResultSummary:
     """A trimmed version of :class:`WebFetchResult` for router consumers."""
@@ -176,8 +203,15 @@ class SearchRouter:
         """
         ttl = ttl_seconds if ttl_seconds is not None else self.default_ttl_seconds
 
+        # Augment the user query with an intent-specific template so the
+        # downstream LLM and report agent receive higher-signal results.
+        templated_query = _apply_intent_template(intent, query)
+        effective_query = templated_query or query
+
         for provider in self.providers:
-            cached = self._cache_lookup(provider, query, max_results, time_range, intent)
+            cached = self._cache_lookup(
+                provider, effective_query, max_results, time_range, intent
+            )
             if cached is not None:
                 return cached
 
@@ -187,7 +221,7 @@ class SearchRouter:
                 continue
             try:
                 response = provider.search(
-                    query=query,
+                    query=effective_query,
                     max_results=max_results,
                     time_range=time_range,
                 )
@@ -207,8 +241,9 @@ class SearchRouter:
         # All providers failed or returned empty; cache the last seen empty
         # response only when it's empty to avoid amplifying failures.
         if last_response is None:
-            last_response = empty_response(_fallback_provider_name(self.providers), query)
-
+            last_response = empty_response(
+                _fallback_provider_name(self.providers), effective_query
+            )
         if last_response.results:
             self._cache_store(last_response, ttl, max_results, time_range, intent)
         return last_response

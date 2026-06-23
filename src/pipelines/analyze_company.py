@@ -116,54 +116,76 @@ def _load_filings_live(
 
         ident = TickerResolver().resolve(ticker)
         if ident is None:
-            raise RuntimeError(
-                f"unable to resolve ticker {ticker!r} to a CIK"
+            logger.info(
+                "SEC live fetch skipped: unable to resolve %r", ticker
             )
-        client = SECClient()
-        # Without a year we cannot pin a single 10-K; fall through to
-        # listing the most recent filings.
-        try:
-            metadata_list = client.get_submissions(ident.cik)
-            recent = (
-                metadata_list.get("filings", {}).get("recent", {}) or {}
-            )
-            accession_numbers = recent.get("accessionNumber", []) or []
-            forms = recent.get("form", []) or []
-            filing_dates = recent.get("filingDate", []) or []
-            primary_docs = recent.get("primaryDocument", []) or []
-            fetcher = FilingFetcher(client)
-            for idx in range(min(len(accession_numbers), 5)):
-                form = (forms[idx] if idx < len(forms) else "") or ""
-                if form.upper() not in {"10-K", "10-Q"}:
-                    continue
-                try:
-                    filing_date = date.fromisoformat(
-                        filing_dates[idx] if idx < len(filing_dates) else ""
+        else:
+            client = SECClient()
+            try:
+                metadata_list = client.get_submissions(ident.cik)
+                recent = (
+                    metadata_list.get("filings", {}).get("recent", {}) or {}
+                )
+                accession_numbers = recent.get("accessionNumber", []) or []
+                forms = recent.get("form", []) or []
+                filing_dates = recent.get("filingDate", []) or []
+                primary_docs = recent.get("primaryDocument", []) or []
+                fetcher = FilingFetcher(client)
+                for idx in range(min(len(accession_numbers), 50)):
+                    form = (forms[idx] if idx < len(forms) else "") or ""
+                    if form.upper() not in {"10-K", "10-Q"}:
+                        continue
+                    try:
+                        filing_date = date.fromisoformat(
+                            filing_dates[idx]
+                            if idx < len(filing_dates)
+                            else ""
+                        )
+                    except ValueError:
+                        continue
+                    primary_doc = (
+                        primary_docs[idx]
+                        if idx < len(primary_docs)
+                        else ""
                     )
-                except ValueError:
-                    continue
-                primary_doc = (
-                    primary_docs[idx] if idx < len(primary_docs) else ""
-                )
-                metadata_obj = FilingMetadata(
-                    cik=ident.cik,
-                    accession_number=accession_numbers[idx],
-                    form_type=form,
-                    filing_date=filing_date,
-                    report_date=None,
-                    primary_document=primary_doc,
-                    url=_build_filing_html_url(
-                        accession_numbers[idx],
-                        ident.cik,
-                        primary_doc,
-                    ),
-                )
-                filings.append(fetcher.fetch_filing(metadata_obj))
-                if year is not None and filing_date.year == year:
-                    break
-        except Exception as exc:
-            logger.info("SEC live fetch limited: %s", exc)
-    except Exception as exc:
+                    metadata_obj = FilingMetadata(
+                        cik=ident.cik,
+                        accession_number=accession_numbers[idx],
+                        form_type=form,
+                        filing_date=filing_date,
+                        report_date=None,
+                        primary_document=primary_doc,
+                        url=_build_filing_html_url(
+                            accession_numbers[idx],
+                            ident.cik,
+                            primary_doc,
+                        ),
+                    )
+                    try:
+                        filing = fetcher.fetch_filing(metadata_obj)
+                    except Exception as exc:  # noqa: BLE001
+                        logger.info(
+                            "Failed to download %s for %s: %s",
+                            metadata_obj.accession_number,
+                            ticker,
+                            exc,
+                        )
+                        continue
+                    filings.append(filing)
+                    logger.info(
+                        "SEC fetched %s for %s (filed %s)",
+                        metadata_obj.form_type,
+                        ticker,
+                        metadata_obj.filing_date,
+                    )
+                    if (
+                        year is not None
+                        and filing_date.year == year
+                    ):
+                        break
+            except Exception as exc:  # noqa: BLE001
+                logger.info("SEC live fetch limited: %s", exc)
+    except Exception as exc:  # noqa: BLE001
         logger.info("SEC live fetch skipped: %s", exc)
 
     # 2. Fall back to the Hugging Face EDGAR corpus (streaming).
@@ -502,6 +524,27 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
     except Exception as exc:
         logger.warning("opportunity pipeline failed: %s", exc)
         hypotheses = []
+
+    # 4b. Critic pass — drop claims without evidence and lower
+    # overconfident high-confidence / low-evidence claims. This is the
+    # last gate before the report is rendered so the body only asserts
+    # what the evidence actually supports.
+    try:
+        from src.agents.critic import CriticAgent
+
+        # Update state.claims with the critic's filtered list before
+        # the report agent reads it.
+        critic_state = AgentState(
+            goal=f"analyze {ticker}",
+            ticker=ticker,
+            company_name=company_name,
+        )
+        critic_state.claims = list(all_claims)
+        critic_state.evidence = list(deduped_evidence)
+        CriticAgent().run(critic_state)
+        all_claims = list(critic_state.claims)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("critic agent failed: %s", exc)
 
     # 5. Generate the Markdown report.
     report = generate_company_report(
