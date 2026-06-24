@@ -18,7 +18,6 @@ from src.evaluation.models import (
 )
 from src.workflows.state import FinRiskWorkflowState
 
-
 # Short aliases used in import sites.
 Finding = GuardrailFinding
 FindingStatus = GuardrailStatus
@@ -45,4 +44,4 @@ class Validator(Protocol):
         ...
 
 
-__all__ = ["Validator", "Finding", "FindingStatus", "FindingSeverity"]
+__all__ = ["Finding", "FindingSeverity", "FindingStatus", "Validator"]

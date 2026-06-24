@@ -1,7 +1,11 @@
-import type { RiskReport as RiskReportType } from "../types";
+import type {
+  RiskReport as RiskReportType,
+  RiskReportV16Wire,
+} from "../types";
 
 interface Props {
   report: RiskReportType | null;
+  reportV16?: RiskReportV16Wire | null;
 }
 
 function severityClass(severity: number): string {
@@ -15,7 +19,52 @@ function scoreForRisk(
   return report.risk_scores.find((s) => s.risk_id === riskId)?.final_score;
 }
 
-export function RiskReport({ report }: Props) {
+export function RiskReport({ report, reportV16 }: Props) {
+  if (reportV16) {
+    return (
+      <div className="section" data-testid="risk-report">
+        <h2>Risk Report (v16)</h2>
+        <h1 style={{ fontSize: 18, margin: "0 0 8px 0" }}>
+          {reportV16.title}
+        </h1>
+        <p style={{ margin: "0 0 12px 0" }}>{reportV16.executive_summary}</p>
+        <h3>Top Risks</h3>
+        {reportV16.top_risks.map((item) => (
+          <div
+            className="risk-card"
+            key={item.risk_id}
+            data-testid={`risk-${item.risk_id}`}
+          >
+            <header>
+              <div>
+                <strong>{item.risk_type}</strong>{" "}
+                <span className="risk-id mono">{item.risk_id}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span
+                  className="severity-pill"
+                  data-testid={`score-${item.risk_id}`}
+                >
+                  score {item.final_score.toFixed(2)}
+                </span>
+                <span className={severityClass(item.severity)}>
+                  severity {item.severity}/5
+                </span>
+              </div>
+            </header>
+            <div style={{ marginBottom: 8 }}>{item.summary}</div>
+            {item.supporting_evidence_ids.length > 0 ? (
+              <div className="muted" style={{ fontSize: 12 }}>
+                Evidence: {item.supporting_evidence_ids.join(", ")}
+              </div>
+            ) : null}
+          </div>
+        ))}
+        <h3>Disclaimer</h3>
+        <p>{reportV16.disclaimer}</p>
+      </div>
+    );
+  }
   if (!report) {
     return (
       <div className="section empty-state" data-testid="risk-report-empty">

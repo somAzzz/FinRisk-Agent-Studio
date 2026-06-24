@@ -17,7 +17,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.workflows.state import utcnow
 
-
 NodeType = Literal[
     "Company",
     "Ticker",

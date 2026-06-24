@@ -10,7 +10,6 @@ from __future__ import annotations
 from src.graph_reasoning.models import GraphQueryContext
 from src.schemas.finrisk import FinRiskWorkflowState
 
-
 _RISK_TYPE_TO_EDGE_TYPES: dict[str, list[str]] = {
     "supply_chain": ["SUPPLIES", "LOCATED_IN", "EXPOSED_TO", "DEPENDS_ON"],
     "policy": ["REGULATED_BY", "EXPOSED_TO", "AFFECTS"],

@@ -84,4 +84,4 @@ def _default_fixture_loader(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-__all__ = ["CompanyResolverStep", "DEMO_FIXTURE_PATH"]
+__all__ = ["DEMO_FIXTURE_PATH", "CompanyResolverStep"]

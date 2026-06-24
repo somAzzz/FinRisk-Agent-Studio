@@ -91,6 +91,15 @@ class RiskScorerStep(WorkflowStep):
             for risk in state.filing_risks
         ]
         state.risk_scores = scores
+        # v17: also produce the v16 0-100 score list so the report
+        # renderer and the frontend ``RiskScoreBreakdown`` component
+        # can consume a single canonical score.
+        from src.reports.models import compute_risk_score_v16
+
+        state.risk_scores_v16 = [
+            compute_risk_score_v16(score).model_dump(mode="json")
+            for score in scores
+        ]
         return state
 
 

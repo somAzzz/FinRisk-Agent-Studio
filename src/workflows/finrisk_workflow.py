@@ -5,6 +5,23 @@ The orchestrator runs the eight steps in order and updates
 mutable object passed between steps; the orchestrator never reads loose
 dicts.
 
+v16 quality-gated mode
+----------------------
+
+When ``quality_gated=True`` and a ``quality_engine`` is supplied, the
+orchestrator wraps every step in
+:func:`src.workflows.quality_gate.run_step_with_quality_gate`. Each
+step then produces a pre- and post-step :class:`StepEvaluation` that
+is appended to ``state.evaluations``. The orchestrator applies the
+following blocker policy:
+
+- critical step (company_resolver, filing_risk_extractor,
+  evidence_normalizer, risk_scorer, report_generator, evaluator)
+  → state.status = "failed" on any BLOCKER finding.
+- non-critical step (market_explorer, graph_reasoner)
+  → state.status = "needs_review" on any BLOCKER finding;
+  the workflow continues to the next step.
+
 The CLI is the canonical demo entry point:
 
     uv run python -m src.workflows.finrisk_workflow \\
@@ -17,15 +34,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import logging
 import sys
 import uuid
 from pathlib import Path
+from typing import Any
 
 from src.workflows.state import (
     FinRiskRequest,
     FinRiskWorkflowState,
+    WorkflowTraceEvent,
     utcnow,
 )
 from src.workflows.steps.company_resolver import CompanyResolverStep
@@ -40,6 +58,21 @@ from src.workflows.steps.risk_scorer import RiskScorerStep
 logger = logging.getLogger(__name__)
 
 DEFAULT_FIXTURE_DIR = Path("tests/fixtures/finrisk")
+
+
+# Steps whose failure must abort the workflow. Non-critical steps
+# (market_explorer, graph_reasoner) fall back gracefully and mark
+# the workflow as ``needs_review``.
+_CRITICAL_STEPS: frozenset[str] = frozenset(
+    {
+        "company_resolver",
+        "filing_risk_extractor",
+        "evidence_normalizer",
+        "risk_scorer",
+        "report_generator",
+        "evaluator",
+    }
+)
 
 
 def _build_default_steps(fixture_path: Path):
@@ -59,6 +92,18 @@ def _build_default_steps(fixture_path: Path):
     ]
 
 
+def _has_blocker(state: FinRiskWorkflowState) -> bool:
+    """Return ``True`` if the latest :class:`StepEvaluation` is a blocker."""
+    if not state.evaluations:
+        return False
+    from src.evaluation.models import GuardrailSeverity
+
+    last = state.evaluations[-1]
+    return any(
+        f.severity == GuardrailSeverity.BLOCKER for f in last.findings
+    )
+
+
 async def run_finrisk_workflow(
     request: FinRiskRequest,
     *,
@@ -66,6 +111,8 @@ async def run_finrisk_workflow(
     steps=None,
     run_id: str | None = None,
     initial_state: FinRiskWorkflowState | None = None,
+    quality_engine: Any | None = None,
+    quality_gated: bool = False,
 ) -> FinRiskWorkflowState:
     """Execute the workflow end-to-end and return the final state.
 
@@ -81,6 +128,12 @@ async def run_finrisk_workflow(
             the orchestrator reuses this object (and its run_id)
             instead of building a fresh one. ``request`` is still
             required so CLI callers can construct one.
+        quality_engine: Optional :class:`GuardrailEngine` that runs
+            pre/post-step validation when ``quality_gated`` is true.
+        quality_gated: When true, each step is wrapped in
+            :func:`run_step_with_quality_gate`. The default ``False``
+            keeps the v15 behaviour so existing tests are not
+            affected.
     """
     fixture_path = fixture_path or DEFAULT_FIXTURE_DIR / "aapl_demo_workflow.json"
     if initial_state is not None:
@@ -93,11 +146,14 @@ async def run_finrisk_workflow(
     state.status = "running"
     steps = steps or _build_default_steps(fixture_path)
 
+    if quality_gated and quality_engine is None:
+        raise ValueError(
+            "quality_gated=True requires a non-None quality_engine"
+        )
+
     for step in steps:
         if state.status == "failed":
             # Mark remaining steps as skipped.
-            from src.workflows.state import WorkflowTraceEvent
-
             state.trace.append(
                 WorkflowTraceEvent(
                     step_name=step.name,
@@ -108,7 +164,32 @@ async def run_finrisk_workflow(
                 )
             )
             continue
-        state = await step(state)
+
+        if quality_gated and quality_engine is not None:
+            from src.workflows.quality_gate import run_step_with_quality_gate
+
+            state = await run_step_with_quality_gate(
+                state,
+                step=step,
+                engine=quality_engine,
+            )
+            if _has_blocker(state):
+                if step.name in _CRITICAL_STEPS:
+                    state.status = "failed"
+                    logger.warning(
+                        "critical step %s produced a BLOCKER; aborting",
+                        step.name,
+                    )
+                else:
+                    state.status = "needs_review"
+                    logger.info(
+                        "non-critical step %s produced a BLOCKER; "
+                        "continuing with needs_review",
+                        step.name,
+                    )
+                    state.status = "running"  # keep going
+        else:
+            state = await step(state)
 
     return state
 

@@ -25,7 +25,7 @@ Review-issue (final_status = "needs_review") rules:
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.workflows.state import (
     EvaluationStatus,
@@ -33,7 +33,6 @@ from src.workflows.state import (
     RiskReport,
     WorkflowEvaluation,
 )
-
 
 # ---------------------------------------------------------------------------
 # Forbidden / suspicious phrase lists
@@ -201,18 +200,14 @@ def evaluate_workflow_state(
     # - any review issue -> "needs_review"
     # - otherwise -> "pass"
     final_status: EvaluationStatus = "pass"
-    if hard_advice:
-        final_status = "fail"
-    elif not schema_valid or not has_evidence_for_each_risk or graph_bad:
+    if hard_advice or not schema_valid or not has_evidence_for_each_risk or graph_bad:
         final_status = "fail"
     elif (
         soft_advice
         or missing_sections
         or diversity < _DIVERSITY_THRESHOLD
         or risk_overflow > 0
-    ):
-        final_status = "needs_review"
-    elif hallucination_risk >= 0.5:
+    ) or hallucination_risk >= 0.5:
         final_status = "needs_review"
 
     return WorkflowEvaluation(

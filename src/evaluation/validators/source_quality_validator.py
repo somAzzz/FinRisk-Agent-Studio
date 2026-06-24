@@ -23,7 +23,6 @@ from src.evaluation.models import (
     GuardrailStatus,
 )
 from src.evaluation.source_quality import build_source_quality
-from src.evaluation.validators.base import Validator
 from src.schemas.finrisk import FinRiskWorkflowState, NormalizedEvidence
 
 

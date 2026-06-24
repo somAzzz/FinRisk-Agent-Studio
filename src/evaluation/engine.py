@@ -17,6 +17,10 @@ import logging
 import time
 from typing import Any
 
+from src.evaluation.metrics import (
+    hallucination_risk_score,
+    source_diversity_score,
+)
 from src.evaluation.models import (
     FallbackEvent,
     GuardrailFinding,
@@ -26,10 +30,6 @@ from src.evaluation.models import (
     WorkflowEvaluationV16,
     aggregate_status,
     build_workflow_evaluation,
-)
-from src.evaluation.metrics import (
-    hallucination_risk_score,
-    source_diversity_score,
 )
 from src.evaluation.validators.base import Validator
 from src.schemas.finrisk import FinRiskWorkflowState
@@ -52,7 +52,7 @@ def _safe_validate(
     for v in validators:
         try:
             findings.extend(v.validate(step_name, output, state))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("validator %s raised", getattr(v, "name", v))
             findings.append(
                 GuardrailFinding(

@@ -73,7 +73,6 @@ class MarketExplorerStep(WorkflowStep):
         if router is None:
             return []
         try:
-            from src.schemas.evidence import Evidence as LegacyEvidence
             from src.tools.search_router import to_evidence
 
             collected: list[MarketEvidence] = []
@@ -100,7 +99,7 @@ class MarketExplorerStep(WorkflowStep):
                     )
                 )
             return collected
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.info("MarketExplorer live search failed: %s", exc)
             return []
 
@@ -111,4 +110,4 @@ def _default_fixture_loader(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-__all__ = ["MarketExplorerStep", "DEMO_FIXTURE_PATH"]
+__all__ = ["DEMO_FIXTURE_PATH", "MarketExplorerStep"]

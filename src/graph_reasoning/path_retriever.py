@@ -15,7 +15,7 @@ at most a handful of candidate paths, well within MVP scope.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.graph_reasoning.fixture_graph import EDGES as FIXTURE_EDGES
 from src.graph_reasoning.fixture_graph import NODES as FIXTURE_NODES
@@ -25,7 +25,6 @@ from src.graph_reasoning.models import (
     GraphNode,
     GraphQueryContext,
 )
-
 
 MIN_EDGE_CONFIDENCE = 0.5
 
@@ -56,8 +55,8 @@ def retrieve_candidate_paths(
     The traversal is depth-first up to ``context.max_hops``. We
     exclude cycles by tracking the visited node set per branch.
     """
-    nodes = list(nodes or FIXTURE_NODES)
-    edges = list(edges or FIXTURE_EDGES)
+    nodes = list(FIXTURE_NODES) if nodes is None else list(nodes)
+    edges = list(FIXTURE_EDGES) if edges is None else list(edges)
     nodes_by_id = {n.node_id: n for n in nodes}
     adj = _build_adjacency(nodes, edges)
     allowed_edges = set(context.allowed_edge_types)

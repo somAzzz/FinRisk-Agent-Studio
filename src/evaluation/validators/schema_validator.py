@@ -11,7 +11,6 @@ from src.evaluation.models import (
     GuardrailSeverity,
     GuardrailStatus,
 )
-from src.evaluation.validators.base import Validator
 from src.workflows.state import FinRiskWorkflowState
 
 

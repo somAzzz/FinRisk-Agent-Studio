@@ -13,7 +13,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 ClaimType = Literal["evidence", "inference", "hypothesis"]
 
 

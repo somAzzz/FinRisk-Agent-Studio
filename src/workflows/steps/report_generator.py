@@ -68,7 +68,6 @@ class ReportGeneratorStep(WorkflowStep):
                 )
                 markdown = markdown.replace(phrase, "[REDACTED]")
 
-        evidence_summary = _render_evidence_table(state.normalized_evidence)
         evidence_vs_inference = (
             "**Evidence**: filing quotes and recent market/news reports "
             "that are cited verbatim above.\n"
@@ -182,6 +181,92 @@ class ReportGeneratorStep(WorkflowStep):
                 )
             )
         state.claims = claims
+
+        # v17: build the structured v16 ``RiskReportV16`` so the API
+        # can serve ``report_v16`` and the frontend can prefer the
+        # structured fields over the v15 markdown blob. The
+        # renderer is reused for ``markdown`` so both views share a
+        # single source of truth.
+        from src.reports.models import (
+            EvidenceReference,
+            RecentChange,
+            RiskReportItem,
+            RiskReportV16,
+        )
+        from src.reports.renderer import render_risk_report_markdown
+
+        top_risk_items = [
+            RiskReportItem(
+                risk_id=r.risk_id,
+                title=r.risk_type,
+                risk_type=r.risk_type,
+                severity=r.severity,
+                final_score=next(
+                    (
+                        float(sc.get("final_score", 0.0))
+                        for sc in state.risk_scores_v16
+                        if isinstance(sc, dict) and sc.get("risk_id") == r.risk_id
+                    ),
+                    0.0,
+                ),
+                summary=r.risk_factor,
+                supporting_claim_ids=[
+                    c.claim_id for c in claims if r.risk_id in c.text
+                ],
+                supporting_evidence_ids=[
+                    ev.evidence_id
+                    for ev in state.normalized_evidence
+                    if r.risk_id in (ev.related_risk_ids or [])
+                ],
+                related_graph_insight_ids=[
+                    ins.get("insight_id")
+                    for ins in state.graph_insights_v16
+                    if isinstance(ins, dict)
+                ],
+            )
+            for r in report.top_risks
+        ]
+        recent_changes = [
+            RecentChange(
+                change_id=f"rc-{i:03d}",
+                text=ev.summary,
+                supporting_evidence_ids=[ev.evidence_id],
+                confidence=ev.credibility_score or 0.0,
+            )
+            for i, ev in enumerate(state.normalized_evidence)
+            if ev.source_type in {"web", "transcript"}
+        ]
+        evidence_refs = [
+            EvidenceReference(
+                evidence_id=ev.evidence_id,
+                source_name=ev.source_name,
+                source_url=ev.source_url,
+                quote_or_summary=ev.quote or ev.summary,
+                source_quality_score=ev.credibility_score or 0.0,
+            )
+            for ev in state.normalized_evidence
+        ]
+        report_v16 = RiskReportV16(
+            title=f"{company_name} Risk Intelligence Brief",
+            executive_summary=report.executive_summary,
+            top_risks=top_risk_items,
+            recent_changes=recent_changes,
+            evidence_table=evidence_refs,
+            second_order_effects=state.graph_insights_v16 or [],
+            evidence_vs_inference=claims,
+            limitations=[limitations],
+            recommended_next_questions=list(
+                report.recommended_next_questions
+            ),
+            disclaimer=(
+                "Disclaimer: This report is for research only and is not "
+                "investment advice."
+            ),
+        )
+        report_v16 = report_v16.model_copy(
+            update={"markdown": render_risk_report_markdown(report_v16)}
+        )
+        state.report_v16 = report_v16.model_dump(mode="json")
         return state
 
 

@@ -133,8 +133,50 @@ export interface WorkflowReportResponse {
   run_id: string;
   status: WorkflowStatus;
   report: RiskReport | null;
+  report_v16: RiskReportV16Wire | null;
   markdown: string | null;
   evaluation: WorkflowEvaluation | null;
+}
+
+export interface RiskReportV16Wire {
+  title: string;
+  executive_summary: string;
+  top_risks: Array<{
+    risk_id: string;
+    title: string;
+    risk_type: string;
+    severity: number;
+    final_score: number;
+    summary: string;
+    supporting_claim_ids: string[];
+    supporting_evidence_ids: string[];
+    related_graph_insight_ids: string[];
+  }>;
+  recent_changes: Array<{
+    change_id: string;
+    text: string;
+    supporting_evidence_ids: string[];
+    confidence: number;
+  }>;
+  evidence_table: Array<{
+    evidence_id: string;
+    source_name: string;
+    source_url: string | null;
+    quote_or_summary: string;
+    source_quality_score: number;
+  }>;
+  second_order_effects: GraphInsightV16[];
+  evidence_vs_inference: Array<{
+    claim_id: string;
+    text: string;
+    claim_type: "evidence" | "inference" | "hypothesis";
+    supporting_evidence_ids: string[];
+    confidence: number;
+  }>;
+  limitations: string[];
+  recommended_next_questions: string[];
+  disclaimer: string;
+  markdown: string | null;
 }
 
 // ---------------------------------------------------------------------------

@@ -159,7 +159,10 @@ export function App() {
             <EvaluationTab evaluation={evaluation} />
           ) : null}
           {summary ? (
-            <RiskReport report={report?.report ?? null} />
+            <RiskReport
+              report={report?.report_v16 ? null : report?.report ?? null}
+              reportV16={report?.report_v16 ?? null}
+            />
           ) : null}
           {summary ? (
             <RiskScoreBreakdown

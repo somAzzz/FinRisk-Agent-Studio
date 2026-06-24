@@ -75,15 +75,22 @@ class GraphReasonerStep(WorkflowStep):
         # the API can still surface what happened.
         try:
             payload = self._v16.run(state)
-            state.graph_context = payload.paths[0].model_dump() if payload.paths else None
+            # v17: persist the typed payload so the /graph endpoint
+            # serves the v16 ``EvidenceGraphPayload`` instead of
+            # patching together the v15 ``graph_insights`` list.
+            state.graph_payload = payload
             state.graph_paths = [p.model_dump() for p in payload.paths]
+            state.graph_insights_v16 = list(payload.insights)
+            state.graph_context = (
+                payload.paths[0].model_dump() if payload.paths else None
+            )
             for finding in payload.guardrail_findings:
                 state.guardrail_findings.append(
                     # findings are already Pydantic dicts; coerce via
                     # model_validate so the state stores typed objects.
                     _coerce_finding(finding, self.name)
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("v16 graph reasoning subsystem failed")
             state.guardrail_findings.append(
                 _coerce_finding(
@@ -161,7 +168,7 @@ class GraphReasonerStep(WorkflowStep):
                     )
                 )
             return insights
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.info("GraphReasoner live failed, falling back: %s", exc)
             return self._reason_live_fallback(state, company)
 
@@ -210,4 +217,4 @@ def _coerce_finding(payload: dict, default_step: str):
     return GuardrailFinding.model_validate(payload)
 
 
-__all__ = ["GraphReasonerStep", "DEMO_FIXTURE_PATH"]
+__all__ = ["DEMO_FIXTURE_PATH", "GraphReasonerStep"]

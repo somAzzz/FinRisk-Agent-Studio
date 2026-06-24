@@ -29,19 +29,19 @@ from src.graph_reasoning.path_scorer import rank_paths, score_path
 from src.graph_reasoning.subsystem import GraphReasoningSubsystem
 
 __all__ = [
-    "CandidateGraphPath",
-    "EvidenceGraphPayload",
     "FIXTURE_EDGES",
     "FIXTURE_NODES",
+    "MIN_EDGE_CONFIDENCE",
+    "CandidateGraphPath",
+    "EvidenceGraphPayload",
     "GraphEdge",
     "GraphEdgeMetadata",
     "GraphInsightV16",
     "GraphNode",
     "GraphQueryContext",
     "GraphReasoningSubsystem",
-    "MIN_EDGE_CONFIDENCE",
-    "build_graph_context",
     "bind_evidence",
+    "build_graph_context",
     "interpret_paths",
     "rank_paths",
     "retrieve_candidate_paths",

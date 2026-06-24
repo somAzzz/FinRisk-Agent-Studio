@@ -201,7 +201,9 @@ def test_evidence_validator_passes_when_risks_have_evidence() -> None:
 def test_evidence_validator_blocks_risk_without_evidence() -> None:
     risk = _sample_risk("r-orphan")
     state = _state(normalized_evidence=[])
-    findings = EvidenceValidator().validate("step", [risk], state)
+    # v17: the strict evidence-gate only fires for steps that run
+    # *after* the evidence normaliser.
+    findings = EvidenceValidator().validate("evidence_normalizer", [risk], state)
     assert findings and findings[0].severity == GuardrailSeverity.BLOCKER
 
 

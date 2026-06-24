@@ -60,13 +60,23 @@ async def run_finrisk_workflow_v16(
     steps: Any = None,
     initial_state: FinRiskWorkflowState | None = None,
 ) -> FinRiskWorkflowState:
-    """Run the v15 workflow and then compute the v16 evaluation."""
+    """Run the v15 workflow and then compute the v16 evaluation.
+
+    v17 alignment: the v16 runner delegates the per-step evaluation
+    to ``run_finrisk_workflow(..., quality_gated=True)`` so the
+    runtime quality layer is the *primary* mechanism for collecting
+    guardrail findings. ``engine.summarize_workflow`` is then called
+    to roll the per-step evaluations up into a single
+    ``WorkflowEvaluationV16`` that the API can serve.
+    """
     engine = engine or build_default_engine()
     state = await run_finrisk_workflow(
         request,
         fixture_path=fixture_path,
         steps=steps,
         initial_state=initial_state,
+        quality_engine=engine,
+        quality_gated=True,
     )
     # Record a fallback event when running in demo mode (every step
     # was a fixture-backed read). The event helps the v16 demo show
@@ -81,21 +91,6 @@ async def run_finrisk_workflow_v16(
                 to_mode="demo",
                 reason="demo mode requested by client",
             )
-        )
-    # Walk the v15 trace and emit one StepEvaluation per step. The
-    # ``output`` we pass to each validator is the final state, which
-    # is the most informative view for validators that look at
-    # risks/evidence/report (the state aggregates everything).
-    for event in state.trace:
-        engine.validate_post_step(
-            event.step_name,
-            output=state,
-            state=state,
-            fallback_used=(
-                "demo" if (request.demo_mode or request.cached_mode) else None
-            )
-            if event.status != "completed"
-            else None,
         )
     # If the v15 trace is empty (e.g. the workflow short-circuited
     # before running any step), make sure the engine still records

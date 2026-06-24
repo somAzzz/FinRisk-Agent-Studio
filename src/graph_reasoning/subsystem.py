@@ -11,9 +11,12 @@ so the rest of the workflow can still finish.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from src.evaluation.models import GuardrailFinding
+from src.graph_reasoning.backends import (
+    FixtureGraphBackend,
+    GraphPathBackend,
+)
 from src.graph_reasoning.context_builder import build_graph_context
 from src.graph_reasoning.insight_validator import validate_all
 from src.graph_reasoning.models import (
@@ -22,7 +25,6 @@ from src.graph_reasoning.models import (
     GraphInsightV16,
 )
 from src.graph_reasoning.path_interpreter import interpret_paths
-from src.graph_reasoning.path_retriever import retrieve_candidate_paths
 from src.graph_reasoning.path_scorer import rank_paths
 from src.schemas.finrisk import FinRiskWorkflowState
 
@@ -32,9 +34,16 @@ logger = logging.getLogger(__name__)
 class GraphReasoningSubsystem:
     """Run the six-stage pipeline against a workflow state."""
 
-    def __init__(self, *, top_k_paths: int = 3, top_k_insights: int = 1) -> None:
+    def __init__(
+        self,
+        *,
+        top_k_paths: int = 3,
+        top_k_insights: int = 1,
+        backend: GraphPathBackend | None = None,
+    ) -> None:
         self.top_k_paths = top_k_paths
         self.top_k_insights = top_k_insights
+        self.backend = backend or FixtureGraphBackend()
 
     def run(
         self,
@@ -44,8 +53,11 @@ class GraphReasoningSubsystem:
     ) -> EvidenceGraphPayload:
         context = build_graph_context(state)
         try:
-            candidates = custom_paths or retrieve_candidate_paths(context)
-        except Exception as exc:  # noqa: BLE001
+            if custom_paths is not None:
+                candidates = custom_paths
+            else:
+                candidates = self.backend.retrieve(context)
+        except Exception as exc:
             logger.exception("path retriever failed")
             return EvidenceGraphPayload(
                 guardrail_findings=[

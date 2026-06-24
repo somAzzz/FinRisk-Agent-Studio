@@ -53,7 +53,7 @@ def has_primary_source(evidence: list[NormalizedEvidence]) -> bool:
 
 
 __all__ = [
+    "has_primary_source",
     "source_diversity_score",
     "source_type_distribution",
-    "has_primary_source",
 ]

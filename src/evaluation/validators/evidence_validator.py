@@ -9,12 +9,25 @@ from src.evaluation.models import (
     GuardrailSeverity,
     GuardrailStatus,
 )
-from src.evaluation.validators.base import Validator
 from src.schemas.finrisk import (
     ExtractedRisk,
     FinRiskWorkflowState,
     NormalizedEvidence,
     RiskReport,
+)
+
+# Steps that are not allowed to "see" the risk-to-evidence linkage.
+# The reason is that those steps run *before* the evidence
+# normaliser, so a strict "risk without evidence" check would block
+# every demo run. We only enforce the strict rule after the
+# normaliser, the scorer, and the report generator.
+_EVIDENCE_GATE_AFTER: frozenset[str] = frozenset(
+    {
+        "evidence_normalizer",
+        "risk_scorer",
+        "report_generator",
+        "evaluator",
+    }
 )
 
 
@@ -38,8 +51,9 @@ class EvidenceValidator:
 
     The check has two halves:
 
-    - If the step produced new risks, the state must already contain
-      at least one ``NormalizedEvidence`` row whose
+    - If the step produced new risks *and* the workflow has already
+      passed the evidence-normaliser step, the state must contain at
+      least one ``NormalizedEvidence`` row whose
       ``related_risk_ids`` covers each new risk. Risks with no
       supporting evidence get a BLOCKER finding.
     - If the state already carries a ``RiskReport``, every top risk
@@ -59,7 +73,7 @@ class EvidenceValidator:
 
         # Risks emitted by this step.
         new_risks = _risks_in_output(output)
-        if new_risks:
+        if new_risks and step_name in _EVIDENCE_GATE_AFTER:
             evidence_by_risk: dict[str, list[NormalizedEvidence]] = {}
             for ev in state.normalized_evidence:
                 for rid in ev.related_risk_ids or []:

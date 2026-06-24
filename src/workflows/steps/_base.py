@@ -48,7 +48,7 @@ class WorkflowStep:
         state.trace.append(event)
         try:
             state = await self.run(state)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             event.status = "failed"
             event.completed_at = utcnow()
             event.error = f"{type(exc).__name__}: {exc}"
@@ -99,4 +99,4 @@ def _step_output(state: FinRiskWorkflowState, step_name: str) -> Any:
     return str(type(value).__name__)
 
 
-__all__ = ["WorkflowStep", "_summarize", "_step_output"]
+__all__ = ["WorkflowStep", "_step_output", "_summarize"]

@@ -14,7 +14,6 @@ from pathlib import Path
 from src.workflows.state import (
     ExtractedRisk,
     FinRiskWorkflowState,
-    utcnow,
 )
 from src.workflows.steps._base import WorkflowStep
 
@@ -149,7 +148,7 @@ class FilingRiskExtractorStep(WorkflowStep):
                 )
                 r.filing_section = "section_1a"
             return risks
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.info("FilingRiskExtractor live fetch failed: %s", exc)
             return []
 
@@ -193,4 +192,4 @@ def _default_fixture_loader(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-__all__ = ["FilingRiskExtractorStep", "DEMO_FIXTURE_PATH"]
+__all__ = ["DEMO_FIXTURE_PATH", "FilingRiskExtractorStep"]

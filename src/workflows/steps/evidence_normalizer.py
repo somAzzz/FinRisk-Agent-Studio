@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-
 from src.workflows.state import (
     FinRiskWorkflowState,
     NormalizedEvidence,

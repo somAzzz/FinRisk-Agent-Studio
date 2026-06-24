@@ -17,13 +17,11 @@ from src.evaluation.models import (
     GuardrailSeverity,
     GuardrailStatus,
 )
-from src.evaluation.validators.base import Validator
 from src.schemas.finrisk import FinRiskWorkflowState
 from src.workflows.evaluation import (
     _HARD_ADVICE_PATTERNS,
     _SOFT_ADVICE_PHRASES,
 )
-
 
 # A small compile-once cache so we don't re-evaluate the same
 # markdown for every validator pass.

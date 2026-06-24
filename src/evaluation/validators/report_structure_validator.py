@@ -22,9 +22,7 @@ from src.evaluation.models import (
     GuardrailSeverity,
     GuardrailStatus,
 )
-from src.evaluation.validators.base import Validator
 from src.schemas.finrisk import FinRiskWorkflowState
-
 
 _REQUIRED_SECTIONS: tuple[str, ...] = (
     "executive summary",

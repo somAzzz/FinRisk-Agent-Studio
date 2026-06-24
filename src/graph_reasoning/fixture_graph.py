@@ -8,14 +8,13 @@ backend so the demo runs offline.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.graph_reasoning.models import (
     GraphEdge,
     GraphEdgeMetadata,
     GraphNode,
 )
-
 
 # Node ids are stable so the same fixture produces the same path
 # ids across runs.
@@ -63,4 +62,4 @@ EDGES: list[GraphEdge] = [
 ]
 
 
-__all__ = ["NODES", "EDGES"]
+__all__ = ["EDGES", "NODES"]

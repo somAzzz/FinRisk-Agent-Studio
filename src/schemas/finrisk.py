@@ -377,6 +377,10 @@ class FinRiskWorkflowState(BaseModel):
     claims: list = Field(default_factory=list)
     graph_context: Any | None = None
     graph_paths: list = Field(default_factory=list)
+    graph_payload: Any | None = None  # v16 EvidenceGraphPayload (dict after dump)
+    graph_insights_v16: list = Field(default_factory=list)  # v16 GraphInsightV16 (dicts)
+    risk_scores_v16: list = Field(default_factory=list)  # v16 RiskScoreV16 (dicts)
+    report_v16: Any | None = None  # v16 RiskReportV16 (dict after dump)
     evaluations: list = Field(default_factory=list)
     workflow_evaluation: Any | None = None
     guardrail_findings: list = Field(default_factory=list)

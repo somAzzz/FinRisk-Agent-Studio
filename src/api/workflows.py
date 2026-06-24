@@ -26,14 +26,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
-
-
-def _background_enabled() -> bool:
-    return os.environ.get("FINRISK_SKIP_BACKGROUND") != "1"
-
 from src.api.run_store import InMemoryRunStore
-from src.workflows.finrisk_workflow import DEFAULT_FIXTURE_DIR, run_finrisk_workflow
+from src.workflows.finrisk_workflow import DEFAULT_FIXTURE_DIR
 from src.workflows.state import (
     FinRiskRequest,
     WorkflowEvaluation,
@@ -43,6 +37,11 @@ from src.workflows.state import (
 from src.workflows.v16_runner import run_finrisk_workflow_v16
 
 logger = logging.getLogger(__name__)
+
+
+def _background_enabled() -> bool:
+    return os.environ.get("FINRISK_SKIP_BACKGROUND") != "1"
+
 
 router = APIRouter(prefix="/workflows")
 
@@ -104,6 +103,7 @@ class WorkflowReportResponse(BaseModel):
     run_id: str
     status: str
     report: Any | None = None
+    report_v16: Any | None = None
     markdown: str | None = None
     evaluation: WorkflowEvaluation | None = None
 
@@ -139,7 +139,7 @@ async def _run_and_store(state) -> None:
             initial_state=state,
         )
         await _run_store.update(finished)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("workflow %s failed", state.run_id)
         state.status = "failed"
         state.trace.append(
@@ -229,6 +229,7 @@ async def get_workflow_report(run_id: str) -> WorkflowReportResponse:
             run_id=state.run_id,
             status=state.status,
             report=None,
+            report_v16=None,
             markdown=None,
             evaluation=state.evaluation,
         )
@@ -236,6 +237,7 @@ async def get_workflow_report(run_id: str) -> WorkflowReportResponse:
         run_id=state.run_id,
         status=state.status,
         report=state.report.model_dump(),
+        report_v16=state.report_v16,
         markdown=state.report.markdown,
         evaluation=state.evaluation,
     )
@@ -287,7 +289,11 @@ async def get_workflow_graph(run_id: str) -> dict:
         "nodes": _as_list(state.graph_paths, "nodes"),
         "edges": _as_list(state.graph_paths, "edges"),
         "paths": list(state.graph_paths or []),
-        "insights": [i.model_dump(mode="json") for i in state.graph_insights],
+        # v17 alignment: serve the v16 ``GraphInsightV16`` list when
+        # present (each entry has ``risk_path_ids`` and
+        # ``affected_entities``); fall back to the v15 ``GraphInsight``
+        # dump for backward compatibility with existing clients.
+        "insights": _v16_insights(state),
         "guardrail_findings": [
             f.model_dump(mode="json") for f in state.guardrail_findings
         ],
@@ -348,12 +354,33 @@ def _as_list(graph_paths: Any, key: str) -> list:
     return out
 
 
+def _v16_insights(state) -> list[dict]:
+    """Return the v16 ``GraphInsightV16`` list when present.
+
+    Falls back to the v15 ``GraphInsight`` dump for backward
+    compatibility with clients that pre-date v17. The fallback path
+    adds an empty ``risk_path_ids`` list so the response shape is
+    stable.
+    """
+    v16 = getattr(state, "graph_insights_v16", None) or []
+    if v16:
+        return [i if isinstance(i, dict) else i.model_dump(mode="json") for i in v16]
+    out: list[dict] = []
+    for ins in state.graph_insights:
+        dumped = ins.model_dump(mode="json")
+        dumped.setdefault("risk_path_ids", [])
+        dumped.setdefault("affected_entities", [dumped.get("affected_entity", "")])
+        dumped.setdefault("research_theme", dumped.get("investment_theme"))
+        out.append(dumped)
+    return out
+
+
 __all__ = [
-    "router",
+    "WorkflowReportResponse",
     "WorkflowRunSummary",
     "WorkflowStatusResponse",
-    "WorkflowReportResponse",
-    "get_run_store",
-    "set_fixture_path",
     "get_fixture_path",
+    "get_run_store",
+    "router",
+    "set_fixture_path",
 ]

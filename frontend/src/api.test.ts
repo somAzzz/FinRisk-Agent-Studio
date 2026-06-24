@@ -35,6 +35,7 @@ const REPORT: WorkflowReportResponse = {
   run_id: "run-abc",
   status: "completed",
   report: null,
+  report_v16: null,
   markdown: null,
   evaluation: null,
 };

@@ -8,7 +8,6 @@ CPython, so we do not need an explicit lock for the in-memory case.
 from __future__ import annotations
 
 import uuid
-from typing import Iterable
 
 from src.workflows.state import (
     FinRiskRequest,
