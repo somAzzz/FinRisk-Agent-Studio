@@ -26,6 +26,7 @@
 12. `12-stabilization-and-next-steps.md`
 13. `13-production-execution-roadmap.md`
 14. `14-current-progress-and-next-plan.md`
+15. `15-finrisk-agent-studio-workflow-roadmap.md`
 
 ## 当前代码基础
 
@@ -129,3 +130,13 @@ docs/implementation-plan/14-current-progress-and-next-plan.md
 ```
 
 该文档基于最近本地 Git 提交重新评估当前实现进度，并把下一步拆成质量收口、真实 SEC 数据闭环、电话会议、网页搜索、LLM Agent、Neo4j 图推理、政策/地缘风险和评估回测等执行阶段。
+
+## Agent Workflow 产品化路线
+
+在正式生产路线之外，还应参考：
+
+```text
+docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
+```
+
+该文档把当前工具库和 pipeline 重新组织为 `FinRisk Agent Studio`：一个可运行、可解释、可评估、可部署的 Agent Workflow Demo。它重点规划 workflow skeleton、Pydantic structured outputs、guardrails、evaluation、FastAPI、前端 timeline/report/graph，以及 local-LLM/API 双运行模式。
