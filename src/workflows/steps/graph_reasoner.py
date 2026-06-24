@@ -53,8 +53,30 @@ class GraphReasonerStep(WorkflowStep):
         else:
             insights = self._reason_live(state, company)
 
-        state.graph_insights = insights
+        # Translate raw IDs (risk_id, market evidence_id) into the
+        # normalized evidence_id space so the report and the
+        # ``supporting_evidence_ids`` guardrail reference the same
+        # evidence table rows.
+        normalized = self._translate_supporting_ids(insights, state)
+        state.graph_insights = normalized
         return state
+
+    @staticmethod
+    def _translate_supporting_ids(
+        insights: list[GraphInsight], state: FinRiskWorkflowState
+    ) -> list[GraphInsight]:
+        raw_to_normalized: dict[str, str] = {}
+        for risk in state.filing_risks:
+            raw_to_normalized[risk.risk_id] = f"ne-{risk.risk_id}"
+        for ev in state.market_evidence:
+            raw_to_normalized[ev.evidence_id] = f"ne-{ev.evidence_id}"
+        result: list[GraphInsight] = []
+        for ins in insights:
+            translated = [
+                raw_to_normalized.get(eid, eid) for eid in ins.supporting_evidence_ids
+            ]
+            result.append(ins.model_copy(update={"supporting_evidence_ids": translated}))
+        return result
 
     def _reason_live(
         self,
@@ -94,7 +116,7 @@ class GraphReasonerStep(WorkflowStep):
                         risk_path=nodes,
                         investment_theme=None,
                         supporting_evidence_ids=[
-                            r.risk_id for r in state.filing_risks[:3]
+                            f"ne-{r.risk_id}" for r in state.filing_risks[:3]
                         ],
                         confidence=0.6,
                     )
@@ -119,7 +141,7 @@ class GraphReasonerStep(WorkflowStep):
                 source_company=company or state.request.ticker,
                 affected_entity=risk.risk_factor[:60],
                 risk_path=[company or state.request.ticker, risk.risk_type],
-                supporting_evidence_ids=[risk.risk_id],
+                supporting_evidence_ids=[f"ne-{risk.risk_id}"],
                 confidence=0.4,
             )
         ]

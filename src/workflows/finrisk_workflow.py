@@ -64,6 +64,8 @@ async def run_finrisk_workflow(
     *,
     fixture_path: Path | None = None,
     steps=None,
+    run_id: str | None = None,
+    initial_state: FinRiskWorkflowState | None = None,
 ) -> FinRiskWorkflowState:
     """Execute the workflow end-to-end and return the final state.
 
@@ -71,12 +73,23 @@ async def run_finrisk_workflow(
         request: The user-facing request.
         fixture_path: Optional path to the demo JSON fixture.
         steps: Optional list of pre-built step instances (mainly for tests).
+        run_id: Optional run identifier to reuse. When provided, the
+            orchestrator starts the state with this id instead of
+            generating a new one. Useful when the API layer has already
+            created a state and wants the workflow to fill it in.
+        initial_state: Optional pre-built state to mutate. When given,
+            the orchestrator reuses this object (and its run_id)
+            instead of building a fresh one. ``request`` is still
+            required so CLI callers can construct one.
     """
     fixture_path = fixture_path or DEFAULT_FIXTURE_DIR / "aapl_demo_workflow.json"
-    state = FinRiskWorkflowState(
-        run_id=f"run-{uuid.uuid4().hex[:12]}",
-        request=request,
-    )
+    if initial_state is not None:
+        state = initial_state
+    else:
+        state = FinRiskWorkflowState(
+            run_id=run_id or f"run-{uuid.uuid4().hex[:12]}",
+            request=request,
+        )
     state.status = "running"
     steps = steps or _build_default_steps(fixture_path)
 

@@ -1,0 +1,81 @@
+[
+  {
+    "case_id": "aapl_supply_chain_demo",
+    "company": "Apple",
+    "ticker": "AAPL",
+    "analysis_goal": "Identify macro, policy and supply-chain risks that changed recently.",
+    "expected_risk_types": ["supply_chain", "policy", "geopolitical"],
+    "must_have_evidence": true,
+    "should_not_contain": [
+      "buy",
+      "sell",
+      "guaranteed return",
+      "稳赚",
+      "买入",
+      "卖出"
+    ]
+  },
+  {
+    "case_id": "nvda_export_control_demo",
+    "company": "NVIDIA",
+    "ticker": "NVDA",
+    "analysis_goal": "Identify export-control and AI chip regulation risks.",
+    "expected_risk_types": ["policy", "geopolitical", "regulatory"],
+    "must_have_evidence": true,
+    "should_not_contain": [
+      "buy",
+      "sell",
+      "guaranteed return",
+      "must invest",
+      "price will",
+      "稳赚",
+      "买入",
+      "卖出"
+    ]
+  },
+  {
+    "case_id": "msft_cloud_demand_demo",
+    "company": "Microsoft",
+    "ticker": "MSFT",
+    "analysis_goal": "Identify cloud demand and regulatory risks for Microsoft.",
+    "expected_risk_types": ["regulatory", "market", "competitive"],
+    "must_have_evidence": true,
+    "should_not_contain": [
+      "buy",
+      "sell",
+      "guaranteed return",
+      "strong buy",
+      "买入"
+    ]
+  },
+  {
+    "case_id": "tsla_battery_supply_chain_demo",
+    "company": "Tesla",
+    "ticker": "TSLA",
+    "analysis_goal": "Identify battery supply chain and EV demand risks for Tesla.",
+    "expected_risk_types": ["supply_chain", "demand", "policy"],
+    "must_have_evidence": true,
+    "should_not_contain": [
+      "buy",
+      "sell",
+      "guaranteed return",
+      "must invest",
+      "稳赚"
+    ]
+  },
+  {
+    "case_id": "xom_energy_transition_demo",
+    "company": "ExxonMobil",
+    "ticker": "XOM",
+    "analysis_goal": "Identify energy transition and policy risks for ExxonMobil.",
+    "expected_risk_types": ["policy", "regulatory", "transition"],
+    "must_have_evidence": true,
+    "should_not_contain": [
+      "buy",
+      "sell",
+      "guaranteed return",
+      "price will",
+      "保证收益"
+    ]
+  }
+]
