@@ -28,6 +28,7 @@
 14. `14-current-progress-and-next-plan.md`
 15. `15-finrisk-agent-studio-workflow-roadmap.md`
 16. `16-quality-layer-and-graph-reasoning-roadmap.md`
+17. `17-code-audit-remediation-plan.md`
 
 ## 当前代码基础
 
@@ -152,3 +153,13 @@ docs/specs/v16-quality-graph/
 ```
 
 该版本把 Evaluation/Guardrails 从最终验收项升级为横跨每个 workflow step 的 Quality Layer，并把 Graph Reasoning 拆成图上下文构建、候选路径检索、路径排序、证据绑定、LLM/模板解释和图路径校验的完整子系统。
+
+## 当前代码审查与 V16 对齐修正
+
+在完成 Step 16 的初步实现后，应参考：
+
+```text
+docs/implementation-plan/17-code-audit-remediation-plan.md
+```
+
+该文档基于当前完整代码审查结果，列出与 V16 设计不一致的关键问题和修正优先级，包括 runtime Quality Layer 接入主 workflow、Graph API V15/V16 payload 类型错位、V16 state 强类型化、RiskReportV16 主路径迁移、Graph narrative 安全措辞、Neo4j backend 和 ruff 质量门禁。

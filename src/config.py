@@ -49,8 +49,33 @@ class Settings:
         default_factory=lambda: _env("OPENAI_BASE_URL", "http://localhost:30000/v1")
     )
     openai_api_key: str = field(default_factory=lambda: _env("OPENAI_API_KEY", "EMPTY"))
+    openai_model: str = field(
+        default_factory=lambda: _env("OPENAI_MODEL", "gpt-4o-mini")
+    )
     llm_model: str = field(
         default_factory=lambda: _env("LLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
+    )
+    # ---- DeepSeek (https://api-docs.deepseek.com) -------------------------
+    deepseek_base_url: str = field(
+        default_factory=lambda: _env("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    )
+    deepseek_model: str = field(
+        default_factory=lambda: _env("DEEPSEEK_MODEL", "deepseek-chat")
+    )
+    deepseek_api_key: str | None = field(
+        default_factory=lambda: os.environ.get("DEEPSEEK_API_KEY")
+    )
+    deepseek_temperature: float = field(
+        default_factory=lambda: _env_float("DEEPSEEK_TEMPERATURE", 0.1)
+    )
+    deepseek_max_tokens: int = field(
+        default_factory=lambda: int(_env("DEEPSEEK_MAX_TOKENS", "2000"))
+    )
+    deepseek_timeout_s: float = field(
+        default_factory=lambda: _env_float("DEEPSEEK_TIMEOUT_S", 60.0)
+    )
+    llm_provider: str = field(
+        default_factory=lambda: _env("LLM_PROVIDER", "sglang")
     )
     hf_edgar_dataset: str = field(
         default_factory=lambda: _env("HF_EDGAR_DATASET", "eloukas/edgar-corpus")
@@ -70,6 +95,24 @@ class Settings:
             "SEARCH_PROVIDER_ORDER", "duckduckgo"
         )
     )
+
+    def deepseek_configured(self) -> bool:
+        """Return ``True`` when a real DeepSeek API key is present.
+
+        Placeholder strings (e.g. ``REPLACE_ME``, ``replace-me-...``,
+        empty / ``EMPTY`` / ``dummy``) are treated as "not configured"
+        so demo environments never accidentally send requests to the
+        real API.
+        """
+        key = self.deepseek_api_key
+        if not key:
+            return False
+        lowered = key.strip().lower()
+        if not lowered or lowered in {"empty", "dummy", "replace_me"}:
+            return False
+        if lowered.startswith("replace-me"):
+            return False
+        return True
 
 
 @functools.lru_cache(maxsize=1)

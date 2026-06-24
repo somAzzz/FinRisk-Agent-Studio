@@ -247,6 +247,7 @@ The planned provider configuration:
 ```text
 LLM_PROVIDER=sglang
 LLM_PROVIDER=openai
+LLM_PROVIDER=deepseek
 LLM_PROVIDER=gemini
 LLM_PROVIDER=claude
 LLM_BASE_URL=http://localhost:30000/v1
@@ -254,6 +255,65 @@ LLM_MODEL=Qwen/Qwen3.5-35B-A3B
 ```
 
 Demo mode should not require GPU, API keys, Neo4j, browser automation, or live network access.
+
+## LLM Providers
+
+The LLM layer is OpenAI-compatible across all providers — the only
+thing that changes per provider is the `base_url` and the API key.
+
+| Provider   | `LLM_PROVIDER` | `*_BASE_URL`              | Auth env var        | Default model        |
+|------------|----------------|---------------------------|---------------------|----------------------|
+| SGLang     | `sglang`       | `http://localhost:30000/v1` | `SGLANG_API_KEY`    | `Qwen/Qwen3.5-35B-A3B` |
+| vLLM       | `vllm`         | `http://localhost:8000/v1`   | `VLLM_API_KEY`      | `Qwen/Qwen3.5-35B-A3B` |
+| OpenAI     | `openai`       | `https://api.openai.com/v1`  | `OPENAI_API_KEY`    | `gpt-4o-mini`        |
+| DeepSeek   | `deepseek`     | `https://api.deepseek.com`   | `DEEPSEEK_API_KEY`  | `deepseek-chat`      |
+| Gemini     | `gemini`       | (OpenAI-compat shim)         | `GEMINI_API_KEY`    | `gemini-1.5-flash`   |
+| Claude     | `claude`       | (Anthropic SDK)              | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet`  |
+
+### DeepSeek quickstart
+
+DeepSeek's public API is OpenAI-compatible
+([docs](https://api-docs.deepseek.com)), so the standard
+`openai` Python SDK is used directly.
+
+1. Apply for a key at <https://platform.deepseek.com>.
+2. Copy `.env.example` to `.env` and fill in `DEEPSEEK_API_KEY`:
+
+   ```text
+   LLM_PROVIDER=deepseek
+   DEEPSEEK_BASE_URL=https://api.deepseek.com
+   DEEPSEEK_MODEL=deepseek-chat
+   DEEPSEEK_API_KEY=sk-...
+   ```
+
+3. Use the client in code:
+
+   ```python
+   from src.llm import build_client_from_settings
+
+   client = build_client_from_settings()
+   if client.configured:
+       text = client.complete("Summarise today's Apple 10-K risk factors.")
+   ```
+
+4. Or call the structured risk extractor:
+
+   ```python
+   from src.llm.deepseek_client import DeepSeekClient
+
+   client = DeepSeekClient()
+   result = client.extract_risks(
+       section_1a, company_name="Apple", year=2024
+   )
+   ```
+
+The client raises `DeepSeekNotConfigured` when `DEEPSEEK_API_KEY` is
+missing or still a placeholder, so demo / CI runs never accidentally
+call the real API. `deepseek-reasoner` is the chain-of-thought model;
+swap it in via `DEEPSEEK_MODEL=deepseek-reasoner` (note: both
+`deepseek-chat` and `deepseek-reasoner` are scheduled to be
+deprecated on 2026-07-24; the long-term models are `deepseek-v4-flash`
+and `deepseek-v4-pro`).
 
 ## Browser Exploration
 
