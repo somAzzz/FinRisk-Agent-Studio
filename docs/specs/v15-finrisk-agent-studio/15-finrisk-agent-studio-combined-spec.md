@@ -2,7 +2,7 @@
 
 ## 目标
 
-本文件把 `docs/specs/00-06` 中第 15 版 FinRisk Agent Studio 规格整理为单文件版本，方便后续编程助手一次性阅读完整上下文。
+本文件把 `docs/specs/v15-finrisk-agent-studio/00-06` 中第 15 版 FinRisk Agent Studio 规格整理为单文件版本，方便后续编程助手一次性阅读完整上下文。
 
 第 15 版目标：
 
@@ -422,4 +422,3 @@ see evaluation result
 ```
 
 且整个流程不依赖 GPU、不依赖真实 API key、不依赖外网。
-

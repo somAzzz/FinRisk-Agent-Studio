@@ -28,7 +28,7 @@
 第 16 版最新升级规格：
 
 ```text
-v16-quality-graph/00-index.md
+docs/specs/v16-quality-graph/00-index.md
 ```
 
 V16 将 Evaluation/Guardrails 从最终验收项升级为横跨每个 workflow step 的 Quality Layer，并将 Graph Reasoning 拆成图上下文构建、路径检索、路径排序、证据绑定、解释和路径校验子系统。后续实现应优先参考 V16，再回看本目录 Step 15 规格。

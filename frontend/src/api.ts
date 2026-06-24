@@ -5,9 +5,13 @@
 
 import type {
   FinRiskRequest,
+  WorkflowArtifactsResponse,
+  WorkflowEvaluationResponse,
+  WorkflowGraphResponse,
   WorkflowReportResponse,
   WorkflowRunSummary,
   WorkflowStatusResponse,
+  WorkflowTraceResponse,
 } from "./types";
 
 const DEFAULT_BASE = "";
@@ -61,6 +65,22 @@ export const api = {
   getReport(runId: string): Promise<WorkflowReportResponse> {
     return sendRequest<WorkflowReportResponse>(`/workflows/${runId}/report`);
   },
+  getTrace(runId: string): Promise<WorkflowTraceResponse> {
+    return sendRequest<WorkflowTraceResponse>(`/workflows/${runId}/trace`);
+  },
+  getGraph(runId: string): Promise<WorkflowGraphResponse> {
+    return sendRequest<WorkflowGraphResponse>(`/workflows/${runId}/graph`);
+  },
+  getEvaluation(runId: string): Promise<WorkflowEvaluationResponse> {
+    return sendRequest<WorkflowEvaluationResponse>(
+      `/workflows/${runId}/evaluation`,
+    );
+  },
+  getArtifacts(runId: string): Promise<WorkflowArtifactsResponse> {
+    return sendRequest<WorkflowArtifactsResponse>(
+      `/workflows/${runId}/artifacts`,
+    );
+  },
   health(): Promise<{ status: string; runs: number }> {
     return sendRequest<{ status: string; runs: number }>("/workflows/health");
   },
@@ -70,5 +90,9 @@ export const apiPaths = {
   startWorkflow: "/workflows/finrisk/run",
   status: (runId: string) => `/workflows/${runId}`,
   report: (runId: string) => `/workflows/${runId}/report`,
+  trace: (runId: string) => `/workflows/${runId}/trace`,
+  graph: (runId: string) => `/workflows/${runId}/graph`,
+  evaluation: (runId: string) => `/workflows/${runId}/evaluation`,
+  artifacts: (runId: string) => `/workflows/${runId}/artifacts`,
   health: "/workflows/health",
 };

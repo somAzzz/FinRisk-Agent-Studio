@@ -391,6 +391,110 @@ button.ghost {
 .muted { color: var(--muted); }
 .mono { font-family: ui-monospace, monospace; }
 
+/* v16 Evaluation tab */
+.evaluation-severity {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-right: 6px;
+}
+
+.evaluation-severity.info {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.evaluation-severity.warning {
+  background: var(--warn-soft);
+  color: #92400e;
+}
+
+.evaluation-severity.error {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.evaluation-severity.blocker {
+  background: var(--danger-soft);
+  color: #991b1b;
+}
+
+.finding-row {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  font-size: 12px;
+}
+
+.finding-row summary {
+  cursor: pointer;
+  outline: none;
+}
+
+.finding-body {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.step-eval-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.step-eval-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 12px;
+}
+
+/* v16 graph edges */
+.react-flow__edge.path {
+  stroke: #94a3b8;
+}
+
+.react-flow__edge.hypothesis {
+  stroke: #f59e0b;
+  stroke-dasharray: 4 3;
+}
+
+.react-flow__node.kind-insight {
+  background: #ede9fe;
+  color: #5b21b6;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 10px;
+  width: 160px;
+  white-space: pre-wrap;
+  border: 1px solid #c4b5fd;
+}
+
+.react-flow__node.kind-claim {
+  background: #cffafe;
+  color: #155e75;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  width: 150px;
+  white-space: pre-wrap;
+  border: 1px solid #67e8f9;
+}
+
 @media (max-width: 920px) {
   .app-body {
     grid-template-columns: 1fr;

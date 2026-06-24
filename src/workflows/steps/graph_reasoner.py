@@ -6,6 +6,7 @@ import json
 import logging
 from pathlib import Path
 
+from src.graph_reasoning import GraphReasoningSubsystem
 from src.workflows.state import (
     FinRiskWorkflowState,
     GraphInsight,
@@ -23,6 +24,12 @@ class GraphReasonerStep(WorkflowStep):
     In demo mode the step reads from the fixture. In real mode it
     delegates to the existing :class:`src.agents.graph_agent.GraphReasoningAgent`,
     falling back to the fixture when Neo4j is unavailable.
+
+    In v16 the step also runs the
+    :class:`src.graph_reasoning.GraphReasoningSubsystem` and stores
+    the resulting ``graph_paths`` / ``graph_context`` / ``guardrail_findings``
+    on the state. The v15 ``graph_insights`` field is preserved
+    so existing API consumers keep working.
     """
 
     name = "graph_reasoner"
@@ -33,12 +40,14 @@ class GraphReasonerStep(WorkflowStep):
         graph_client=None,
         graph_agent_factory=None,
         fixture_path: Path | None = None,
+        v16_subsystem: GraphReasoningSubsystem | None = None,
     ) -> None:
         super().__init__()
         self._load_fixture = fixture_loader or _default_fixture_loader
         self._graph_client = graph_client
         self._graph_agent_factory = graph_agent_factory
         self._fixture_path = fixture_path or DEMO_FIXTURE_PATH
+        self._v16 = v16_subsystem or GraphReasoningSubsystem()
 
     async def run(self, state: FinRiskWorkflowState) -> FinRiskWorkflowState:
         request = state.request
@@ -59,6 +68,36 @@ class GraphReasonerStep(WorkflowStep):
         # evidence table rows.
         normalized = self._translate_supporting_ids(insights, state)
         state.graph_insights = normalized
+
+        # v16: run the full graph reasoning subsystem and persist
+        # the rich payload (nodes/edges/paths/insights/findings) on
+        # the state. Failures are recorded as guardrail findings so
+        # the API can still surface what happened.
+        try:
+            payload = self._v16.run(state)
+            state.graph_context = payload.paths[0].model_dump() if payload.paths else None
+            state.graph_paths = [p.model_dump() for p in payload.paths]
+            for finding in payload.guardrail_findings:
+                state.guardrail_findings.append(
+                    # findings are already Pydantic dicts; coerce via
+                    # model_validate so the state stores typed objects.
+                    _coerce_finding(finding, self.name)
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("v16 graph reasoning subsystem failed")
+            state.guardrail_findings.append(
+                _coerce_finding(
+                    {
+                        "step_name": self.name,
+                        "check_name": "graph_path",
+                        "status": "needs_review",
+                        "severity": "warning",
+                        "message": f"subsystem failed: {type(exc).__name__}: {exc}",
+                        "affected_object_type": "graph_path",
+                    },
+                    self.name,
+                )
+            )
         return state
 
     @staticmethod
@@ -149,6 +188,26 @@ class GraphReasonerStep(WorkflowStep):
 
 def _default_fixture_loader(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _coerce_finding(payload: dict, default_step: str):
+    """Convert a v16 subsystem finding (dict) into a typed
+    :class:`GuardrailFinding`. Importing here to avoid a cycle with
+    the v16 models module.
+    """
+    from src.evaluation.models import GuardrailFinding
+
+    payload = dict(payload)
+    payload.setdefault("step_name", default_step)
+    if payload.get("status") in {"pass", "warning", "fail", "needs_review"} and not isinstance(
+        payload.get("status"), str
+    ):
+        payload["status"] = str(payload["status"])
+    if payload.get("severity") in {"info", "warning", "error", "blocker"} and not isinstance(
+        payload.get("severity"), str
+    ):
+        payload["severity"] = str(payload["severity"])
+    return GuardrailFinding.model_validate(payload)
 
 
 __all__ = ["GraphReasonerStep", "DEMO_FIXTURE_PATH"]

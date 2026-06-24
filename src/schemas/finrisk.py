@@ -368,6 +368,20 @@ class FinRiskWorkflowState(BaseModel):
     evaluation: WorkflowEvaluation | None = None
     trace: list[WorkflowTraceEvent] = Field(default_factory=list)
     status: WorkflowStatus = "created"
+    # --- v16 quality layer / graph reasoning additions ---
+    # The fields below are typed as Any to avoid an import cycle with
+    # :mod:`src.evaluation.models`; the v16 code populates them with
+    # Claim / StepEvaluation / WorkflowEvaluationV16 / FallbackEvent
+    # / GuardrailFinding / CandidateGraphPath instances whose schema
+    # is enforced at the assignment site via ``model_validate``.
+    claims: list = Field(default_factory=list)
+    graph_context: Any | None = None
+    graph_paths: list = Field(default_factory=list)
+    evaluations: list = Field(default_factory=list)
+    workflow_evaluation: Any | None = None
+    guardrail_findings: list = Field(default_factory=list)
+    fallback_events: list = Field(default_factory=list)
+    artifacts: dict[str, str] = Field(default_factory=dict)
 
 
 def utcnow() -> datetime:

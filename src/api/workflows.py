@@ -40,6 +40,7 @@ from src.workflows.state import (
     WorkflowTraceEvent,
     utcnow,
 )
+from src.workflows.v16_runner import run_finrisk_workflow_v16
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +129,11 @@ async def _run_and_store(state) -> None:
             return
         state.status = "running"
         await _run_store.update(state)
-        finished = await run_finrisk_workflow(
+        # v16: the v16 runner composes the v15 orchestrator with the
+        # quality-layer engine and the graph-reasoning subsystem, so
+        # all the v16 fields on the state are populated by the time
+        # the request returns.
+        finished = await run_finrisk_workflow_v16(
             state.request,
             fixture_path=get_fixture_path(),
             initial_state=state,
@@ -245,6 +250,102 @@ def _current_step(state) -> str | None:
         return None
     completed = [e for e in state.trace if e.status == "completed"]
     return completed[-1].step_name if completed else None
+
+
+# ---------------------------------------------------------------------------
+# v16 routes
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{run_id}/trace", response_model=dict)
+async def get_workflow_trace(run_id: str) -> dict:
+    """Return the v15 trace plus v16 fallback events."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "trace": [e.model_dump(mode="json") for e in state.trace],
+        "fallback_events": [
+            (e.model_dump(mode="json") if hasattr(e, "model_dump") else e)
+            for e in state.fallback_events
+        ],
+    }
+
+
+@router.get("/{run_id}/graph", response_model=dict)
+async def get_workflow_graph(run_id: str) -> dict:
+    """Return the v16 evidence-graph payload."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "nodes": _as_list(state.graph_paths, "nodes"),
+        "edges": _as_list(state.graph_paths, "edges"),
+        "paths": list(state.graph_paths or []),
+        "insights": [i.model_dump(mode="json") for i in state.graph_insights],
+        "guardrail_findings": [
+            f.model_dump(mode="json") for f in state.guardrail_findings
+        ],
+    }
+
+
+@router.get("/{run_id}/evaluation", response_model=dict)
+async def get_workflow_evaluation(run_id: str) -> dict:
+    """Return the v16 workflow-level evaluation."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    if state.workflow_evaluation is None:
+        return {
+            "run_id": state.run_id,
+            "final_status": "pass",
+            "overall_metrics": {},
+            "blocker_count": 0,
+            "warning_count": 0,
+            "unsupported_claims": [],
+            "human_review_required": False,
+            "step_evaluations": [],
+        }
+    we = state.workflow_evaluation
+    # v16 stores the Pydantic model on the state; convert to dict
+    # for the API response. The model_validate / model_dump round
+    # trip is intentional to keep the wire format stable.
+    payload = we.model_dump(mode="json") if hasattr(we, "model_dump") else we
+    return payload
+
+
+@router.get("/{run_id}/artifacts", response_model=dict)
+async def get_workflow_artifacts(run_id: str) -> dict:
+    """Return the v16 artifacts dict (paths to generated files)."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "artifacts": dict(state.artifacts or {}),
+    }
+
+
+def _as_list(graph_paths: Any, key: str) -> list:
+    """Flatten a list of path dicts into a single list of nodes/edges."""
+    if not graph_paths:
+        return []
+    out: list = []
+    for path in graph_paths:
+        if isinstance(path, dict):
+            out.extend(path.get(key, []))
+        else:
+            out.extend(getattr(path, key, []))
+    return out
 
 
 __all__ = [

@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { AgentTimeline } from "./components/AgentTimeline";
-import { EvidenceGraph } from "./components/EvidenceGraph";
+import { ClaimEvidenceMatrix } from "./components/ClaimEvidenceMatrix";
 import { EvaluationPanel } from "./components/EvaluationPanel";
+import { EvaluationTab } from "./components/EvaluationTab";
+import { EvidenceGraph } from "./components/EvidenceGraph";
 import { RiskReport } from "./components/RiskReport";
+import { RiskScoreBreakdown } from "./components/RiskScoreBreakdown";
 import { WorkflowLauncher } from "./components/WorkflowLauncher";
 import { api, FinRiskApiError } from "./api";
 import type {
   FinRiskRequest,
+  WorkflowEvaluationResponse,
+  WorkflowGraphResponse,
   WorkflowReportResponse,
   WorkflowRunSummary,
   WorkflowStatusResponse,
@@ -19,6 +24,10 @@ export function App() {
   const [summary, setSummary] = useState<WorkflowRunSummary | null>(null);
   const [status, setStatus] = useState<WorkflowStatusResponse | null>(null);
   const [report, setReport] = useState<WorkflowReportResponse | null>(null);
+  const [graph, setGraph] = useState<WorkflowGraphResponse | null>(null);
+  const [evaluation, setEvaluation] = useState<WorkflowEvaluationResponse | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
   const pollRef = useRef<number | null>(null);
@@ -44,7 +53,22 @@ export function App() {
           const r = await api.getReport(runId);
           setReport(r);
         } catch (err) {
-          // 404 / 500 is acceptable while finalising.
+          if (!(err instanceof FinRiskApiError)) {
+            setError((err as Error).message);
+          }
+        }
+        try {
+          const g = await api.getGraph(runId);
+          setGraph(g);
+        } catch (err) {
+          if (!(err instanceof FinRiskApiError)) {
+            setError((err as Error).message);
+          }
+        }
+        try {
+          const e = await api.getEvaluation(runId);
+          setEvaluation(e);
+        } catch (err) {
           if (!(err instanceof FinRiskApiError)) {
             setError((err as Error).message);
           }
@@ -77,6 +101,8 @@ export function App() {
     setError(null);
     setReport(null);
     setStatus(null);
+    setGraph(null);
+    setEvaluation(null);
     setSummary(newSummary);
     setRequest(newRequest);
     startPolling(newSummary.run_id);
@@ -113,7 +139,8 @@ export function App() {
             <div className="section empty-state" data-testid="empty-state">
               <p>
                 Configure a workflow on the left and press <strong>Run Risk Workflow</strong>{" "}
-                to see the timeline, report, and evidence graph populate here.
+                to see the timeline, report, evidence graph, and v16 evaluation
+                populate here.
               </p>
               <p className="muted" style={{ fontSize: 12 }}>
                 Default inputs target Apple (AAPL) in demo mode. Demo mode runs
@@ -129,12 +156,24 @@ export function App() {
             />
           ) : null}
           {summary ? (
+            <EvaluationTab evaluation={evaluation} />
+          ) : null}
+          {summary ? (
             <RiskReport report={report?.report ?? null} />
+          ) : null}
+          {summary ? (
+            <RiskScoreBreakdown
+              scores={report?.report?.risk_scores ?? []}
+            />
+          ) : null}
+          {summary ? (
+            <ClaimEvidenceMatrix claims={[]} />
           ) : null}
           {summary ? (
             <EvidenceGraph
               report={report?.report ?? null}
               companyName={status?.company?.company_name ?? null}
+              v16Paths={graph?.paths ?? null}
             />
           ) : null}
         </main>

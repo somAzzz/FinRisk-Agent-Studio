@@ -136,3 +136,117 @@ export interface WorkflowReportResponse {
   markdown: string | null;
   evaluation: WorkflowEvaluation | null;
 }
+
+// ---------------------------------------------------------------------------
+// v16 types
+// ---------------------------------------------------------------------------
+
+export type GuardrailSeverityV16 = "info" | "warning" | "error" | "blocker";
+export type GuardrailStatusV16 = "pass" | "warning" | "fail" | "needs_review";
+
+export interface GuardrailFindingV16 {
+  finding_id?: string;
+  step_name: string;
+  check_name: string;
+  status: GuardrailStatusV16;
+  severity: GuardrailSeverityV16;
+  message: string;
+  affected_object_type: string;
+  affected_object_id?: string | null;
+  recommendation?: string | null;
+}
+
+export interface FallbackEventV16 {
+  event_id?: string;
+  step_name: string;
+  from_mode: string;
+  to_mode: string;
+  reason: string;
+  occurred_at: string;
+}
+
+export interface StepEvaluationV16 {
+  step_name: string;
+  status: GuardrailStatusV16;
+  findings: GuardrailFindingV16[];
+  metrics?: Record<string, number>;
+  latency_ms?: number | null;
+  fallback_used?: string | null;
+}
+
+export interface WorkflowEvaluationV16 {
+  run_id: string;
+  final_status: GuardrailStatusV16;
+  step_evaluations: StepEvaluationV16[];
+  overall_metrics: Record<string, number>;
+  blocker_count: number;
+  warning_count: number;
+  unsupported_claims: string[];
+  human_review_required: boolean;
+}
+
+export interface GraphNodeV16 {
+  node_id: string;
+  node_type: string;
+  label: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface GraphEdgeV16 {
+  edge_id?: string;
+  source_node_id: string;
+  target_node_id: string;
+  edge_type: string;
+  metadata: {
+    source?: string;
+    evidence_ids?: string[];
+    confidence?: number;
+    extraction_method?: string;
+  };
+}
+
+export interface GraphPathV16 {
+  path_id: string;
+  nodes: GraphNodeV16[];
+  edges: GraphEdgeV16[];
+  path_text: string;
+  evidence_ids: string[];
+  hop_count: number;
+  path_score: number | null;
+  score_breakdown?: Record<string, number>;
+}
+
+export interface GraphInsightV16 {
+  insight_id?: string;
+  source_company: string;
+  insight_type: string;
+  risk_path_ids: string[];
+  affected_entities: string[];
+  explanation: string;
+  evidence_ids: string[];
+  confidence: number;
+  uncertainty?: string;
+  recommended_next_questions?: string[];
+  research_theme?: string | null;
+}
+
+export interface WorkflowTraceResponse {
+  run_id: string;
+  trace: WorkflowTraceEvent[];
+  fallback_events: FallbackEventV16[];
+}
+
+export interface WorkflowGraphResponse {
+  nodes: GraphNodeV16[];
+  edges: GraphEdgeV16[];
+  paths: GraphPathV16[];
+  insights: GraphInsightV16[];
+  guardrail_findings: GuardrailFindingV16[];
+}
+
+export interface WorkflowEvaluationResponse extends WorkflowEvaluationV16 {}
+
+export interface WorkflowArtifactsResponse {
+  run_id: string;
+  artifacts: Record<string, string>;
+}

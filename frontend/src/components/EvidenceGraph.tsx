@@ -7,11 +7,15 @@ import ReactFlow, {
   type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { RiskReport as RiskReportType } from "../types";
+import type {
+  GraphPathV16,
+  RiskReport as RiskReportType,
+} from "../types";
 
 interface Props {
   report: RiskReportType | null;
   companyName?: string | null;
+  v16Paths?: GraphPathV16[] | null;
 }
 
 interface GraphData {
@@ -22,6 +26,7 @@ interface GraphData {
 function buildGraph(
   report: RiskReportType,
   companyName: string | null,
+  v16Paths?: GraphPathV16[] | null,
 ): GraphData {
   const company = companyName || "Company";
   const companyId = "company";
@@ -106,12 +111,8 @@ function buildGraph(
       id: nodeId,
       data: { label: `${ins.affected_entity}\n(insight)` },
       position: { x: -180 + i * 180, y: 440 },
+      className: "kind-insight",
       style: {
-        background: "#ede9fe",
-        color: "#5b21b6",
-        borderRadius: 6,
-        padding: 6,
-        fontSize: 10,
         width: 160,
         whiteSpace: "pre-wrap",
       },
@@ -122,27 +123,86 @@ function buildGraph(
         source: companyId,
         target: nodeId,
         label: "AFFECTS",
+        className: "hypothesis",
         markerEnd: { type: MarkerType.ArrowClosed, color: "#8b5cf6" },
         style: { stroke: "#8b5cf6", strokeDasharray: "4 3" },
       });
     }
   });
 
+  // v16 path-derived nodes: include each path's node chain so the
+  // graph highlights the second-order path.
+  (v16Paths || []).forEach((path, pi) => {
+    path.nodes.forEach((pn, ni) => {
+      if (pn.node_id === companyId) {
+        return;
+      }
+      const nodeId = `v16-${path.path_id}-${pn.node_id}`;
+      if (nodes.find((n) => n.id === nodeId)) {
+        return;
+      }
+      nodes.push({
+        id: nodeId,
+        data: { label: `${pn.node_type}\n${pn.label}` },
+        position: { x: -260 + pi * 200, y: 600 + ni * 90 },
+        style: {
+          background: "#fef9c3",
+          color: "#854d0e",
+          borderRadius: 6,
+          padding: 6,
+          fontSize: 10,
+          width: 160,
+          whiteSpace: "pre-wrap",
+        },
+      });
+    });
+    path.edges.forEach((pe) => {
+      edges.push({
+        id: `v16e-${path.path_id}-${pe.edge_id || pe.source_node_id}`,
+        source: `v16-${path.path_id}-${pe.source_node_id}`,
+        target: `v16-${path.path_id}-${pe.target_node_id}`,
+        label: pe.edge_type,
+        className: "path",
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#0ea5e9" },
+        style: { stroke: "#0ea5e9" },
+      });
+    });
+  });
+
   return { nodes, edges };
 }
 
-export function EvidenceGraph({ report, companyName }: Props) {
+export function EvidenceGraph({ report, companyName, v16Paths }: Props) {
   const data = useMemo<GraphData | null>(() => {
-    if (!report) return null;
+    if (!report) {
+      if (!v16Paths || v16Paths.length === 0) return null;
+      return buildGraph(
+        {
+          title: "",
+          executive_summary: "",
+          top_risks: [],
+          risk_scores: [],
+          evidence_table: [],
+          graph_insights: [],
+          evidence_vs_inference: "",
+          limitations: "",
+          recommended_next_questions: [],
+          markdown: "",
+        },
+        companyName ?? null,
+        v16Paths,
+      );
+    }
     if (
       report.top_risks.length === 0 &&
       report.evidence_table.length === 0 &&
-      report.graph_insights.length === 0
+      report.graph_insights.length === 0 &&
+      (!v16Paths || v16Paths.length === 0)
     ) {
       return null;
     }
-    return buildGraph(report, companyName ?? null);
-  }, [report, companyName]);
+    return buildGraph(report, companyName ?? null, v16Paths);
+  }, [report, companyName, v16Paths]);
 
   if (!data) {
     return (

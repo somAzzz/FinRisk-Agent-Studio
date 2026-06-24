@@ -102,4 +102,62 @@ describe("api client", () => {
     vi.stubGlobal("fetch", fetchMock);
     await expect(api.getStatus("run-x")).rejects.toBeInstanceOf(FinRiskApiError);
   });
+
+  it("fetches v16 trace from /workflows/{run_id}/trace", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        run_id: "run-abc",
+        trace: [],
+        fallback_events: [],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.getTrace("run-abc");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/workflows/run-abc/trace",
+      expect.any(Object),
+    );
+  });
+
+  it("fetches v16 graph from /workflows/{run_id}/graph", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        nodes: [],
+        edges: [],
+        paths: [],
+        insights: [],
+        guardrail_findings: [],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.getGraph("run-abc");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/workflows/run-abc/graph",
+      expect.any(Object),
+    );
+  });
+
+  it("fetches v16 evaluation from /workflows/{run_id}/evaluation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        run_id: "run-abc",
+        final_status: "pass",
+        step_evaluations: [],
+        overall_metrics: {},
+        blocker_count: 0,
+        warning_count: 0,
+        unsupported_claims: [],
+        human_review_required: false,
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.getEvaluation("run-abc");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/workflows/run-abc/evaluation",
+      expect.any(Object),
+    );
+  });
 });

@@ -939,8 +939,8 @@ Step 15 关注展示和工程组织：
 详细执行规格见：
 
 ```text
-docs/specs/01-workflow-state-and-schemas.md
-docs/specs/02-workflow-steps-and-orchestration.md
+docs/specs/v15-finrisk-agent-studio/01-workflow-state-and-schemas.md
+docs/specs/v15-finrisk-agent-studio/02-workflow-steps-and-orchestration.md
 ```
 
 ### 第 4-5 天：接入现有模块
@@ -959,7 +959,7 @@ docs/specs/02-workflow-steps-and-orchestration.md
 详细执行规格见：
 
 ```text
-docs/specs/04-evaluation-guardrails-and-golden-cases.md
+docs/specs/v15-finrisk-agent-studio/04-evaluation-guardrails-and-golden-cases.md
 ```
 
 ### 第 8-10 天：FastAPI 和前端
@@ -971,8 +971,8 @@ docs/specs/04-evaluation-guardrails-and-golden-cases.md
 详细执行规格见：
 
 ```text
-docs/specs/03-api-runtime-and-run-storage.md
-docs/specs/05-frontend-dashboard-spec.md
+docs/specs/v15-finrisk-agent-studio/03-api-runtime-and-run-storage.md
+docs/specs/v15-finrisk-agent-studio/05-frontend-dashboard-spec.md
 ```
 
 ### 第 11-12 天：Provider mode 和 cached fallback
@@ -991,7 +991,7 @@ docs/specs/05-frontend-dashboard-spec.md
 详细集成验收规格见：
 
 ```text
-docs/specs/06-demo-integration-and-acceptance.md
+docs/specs/v15-finrisk-agent-studio/06-demo-integration-and-acceptance.md
 ```
 
 ## 下一步优先级
