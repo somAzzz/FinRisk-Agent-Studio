@@ -10,12 +10,28 @@
 
 ## 推荐执行顺序
 
+单文件合并版：
+
+```text
+15-finrisk-agent-studio-combined-spec.md
+```
+
+拆分版：
+
 1. `01-workflow-state-and-schemas.md`
 2. `02-workflow-steps-and-orchestration.md`
 3. `03-api-runtime-and-run-storage.md`
 4. `04-evaluation-guardrails-and-golden-cases.md`
 5. `05-frontend-dashboard-spec.md`
 6. `06-demo-integration-and-acceptance.md`
+
+第 16 版最新升级规格：
+
+```text
+v16-quality-graph/00-index.md
+```
+
+V16 将 Evaluation/Guardrails 从最终验收项升级为横跨每个 workflow step 的 Quality Layer，并将 Graph Reasoning 拆成图上下文构建、路径检索、路径排序、证据绑定、解释和路径校验子系统。后续实现应优先参考 V16，再回看本目录 Step 15 规格。
 
 ## 开发原则
 
@@ -95,4 +111,3 @@ npm run test
 ```
 
 如果前端技术栈尚未建立，应在 `05-frontend-dashboard-spec.md` 的实现中补齐。
-
