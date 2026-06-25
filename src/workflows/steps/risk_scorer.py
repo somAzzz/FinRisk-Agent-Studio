@@ -97,8 +97,7 @@ class RiskScorerStep(WorkflowStep):
         from src.reports.models import compute_risk_score_v16
 
         state.risk_scores_v16 = [
-            compute_risk_score_v16(score).model_dump(mode="json")
-            for score in scores
+            compute_risk_score_v16(score) for score in scores
         ]
         return state
 

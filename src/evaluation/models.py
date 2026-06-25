@@ -11,13 +11,22 @@ aggregates them.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.workflows.state import utcnow
+
+def utcnow() -> datetime:
+    """Return the current UTC time as a timezone-aware datetime.
+
+    Inlined here (rather than imported from ``src.workflows.state``)
+    to break an import cycle: the state model imports the v16 types
+    declared in this module, and importing ``src.workflows.state``
+    back here would close the cycle.
+    """
+    return datetime.now(tz=UTC)
 
 # ---------------------------------------------------------------------------
 # Enums

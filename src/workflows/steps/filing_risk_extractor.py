@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
+from src.evaluation.models import FallbackEvent
 from src.workflows.state import (
     ExtractedRisk,
     FinRiskWorkflowState,
@@ -70,7 +72,9 @@ class FilingRiskExtractorStep(WorkflowStep):
                 for item in data.get("filing_risks", [])
             ]
         else:
-            risks = await self._extract_live(state, ticker)
+            risks, fallback = await self._extract_live(state, ticker)
+            if fallback is not None:
+                state.fallback_events.append(fallback)
 
         # Drop any risks without evidence (defensive; should not happen).
         state.filing_risks = [r for r in risks if r.evidence_quote.strip()]
@@ -80,8 +84,17 @@ class FilingRiskExtractorStep(WorkflowStep):
         self,
         state: FinRiskWorkflowState,
         ticker: str,
-    ) -> list[ExtractedRisk]:
-        """Try to fetch a real 10-K/10-Q and emit keyword-tagged risks."""
+    ) -> tuple[list[ExtractedRisk], FallbackEvent | None]:
+        """Try to fetch a real 10-K/10-Q and emit keyword-tagged risks.
+
+        Returns ``(risks, fallback_event)`` so the step can surface
+        failures as a :class:`FallbackEvent` on the state. LLM-based
+        extraction is layered on top of the keyword fallback (see
+        :meth:`_llm_extract`); the keyword path remains the safety
+        net when the LLM client is unavailable.
+        """
+        from src.evaluation.models import FallbackEvent
+
         try:
             from src.data.filing_fetcher import FilingFetcher
             from src.data.sec_client import SECClient
@@ -97,7 +110,12 @@ class FilingRiskExtractorStep(WorkflowStep):
                     "FilingRiskExtractor: cannot resolve %s; skipping live fetch",
                     ticker,
                 )
-                return []
+                return [], FallbackEvent(
+                    step_name=self.name,
+                    from_mode="live",
+                    to_mode="cached",
+                    reason=f"could not resolve ticker {ticker}",
+                )
 
             client = client_factory()
             payload = client.get_submissions(ident.cik)
@@ -137,20 +155,104 @@ class FilingRiskExtractorStep(WorkflowStep):
                 break
 
             if target is None:
-                return []
+                return [], FallbackEvent(
+                    step_name=self.name,
+                    from_mode="live",
+                    to_mode="cached",
+                    reason="no 10-K / 10-Q in recent submissions",
+                )
 
             filing = fetcher.fetch_filing(target)
-            risks = _keyword_tagged_risks(filing.sections.get("section_1a", ""))
+            section_text = filing.sections.get("section_1a", "")
+            risks = _llm_extract(section_text)
+            if not risks:
+                risks = _keyword_tagged_risks(section_text)
             # Tag each risk with the source accession for traceability.
             for r in risks:
                 r.source = (
                     f"sec_filing:{target.accession_number}:{target.form_type}"
                 )
                 r.filing_section = "section_1a"
-            return risks
+            return risks, None
         except Exception as exc:
             logger.info("FilingRiskExtractor live fetch failed: %s", exc)
-            return []
+            return [], FallbackEvent(
+                step_name=self.name,
+                from_mode="live",
+                to_mode="cached",
+                reason=f"SEC fetch raised {type(exc).__name__}: {exc}",
+            )
+
+
+def _llm_extract(section_text: str) -> list[ExtractedRisk]:
+    """LLM structured extraction adapter.
+
+    The v17 spec requires an LLM structured extractor as the
+    primary path with the keyword fallback as a safety net. The
+    real client lives behind an import so unit tests (which run
+    without a real LLM) still exercise the keyword path; in v18
+    this function will be promoted to a real
+    ``src.llm.deepseek_client.extract_risks`` call.
+
+    The function returns ``[]`` whenever:
+
+    - the section text is empty;
+    - the DeepSeek client is not configured (no real key);
+    - the DeepSeek client raises.
+
+    In all of those cases the keyword path picks up the slack.
+    """
+    if not section_text:
+        return []
+    client = _build_llm_client()
+    if client is None:
+        return []
+    if not getattr(client, "configured", False):
+        return []
+    try:
+        result = client.extract_risks(
+            section_text,
+            company_name="live",
+            year=0,
+        )
+    except Exception:
+        return []
+    risks: list[ExtractedRisk] = []
+    for i, item in enumerate(result.get("risks", [])):
+        if not isinstance(item, dict):
+            continue
+        risk_factor = item.get("risk_factor") or ""
+        quote = item.get("quote") or ""
+        if not risk_factor or not quote:
+            continue
+        risks.append(
+            ExtractedRisk(
+                risk_id=f"live-llm-{i:03d}",
+                risk_type=item.get("risk_type") or "operational",
+                risk_factor=risk_factor,
+                severity=int(item.get("severity") or 3),
+                evidence_quote=quote,
+                source="sec_filing:live:llm",
+                filing_section="section_1a",
+                confidence=float(item.get("confidence") or 0.7),
+            )
+        )
+    return risks
+
+
+def _build_llm_client() -> Any | None:
+    """Return the configured DeepSeek client, or ``None`` on failure.
+
+    Extracted into a top-level function so unit tests can monkey
+    patch the client factory via
+    ``monkeypatch.setattr(mod, "_build_llm_client", ...)``.
+    """
+    try:
+        from src.llm.deepseek_client import build_client_from_settings
+
+        return build_client_from_settings()
+    except Exception:
+        return None
 
 
 def _keyword_tagged_risks(section_text: str) -> list[ExtractedRisk]:

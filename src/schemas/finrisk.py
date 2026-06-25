@@ -374,17 +374,28 @@ class FinRiskWorkflowState(BaseModel):
     # Claim / StepEvaluation / WorkflowEvaluationV16 / FallbackEvent
     # / GuardrailFinding / CandidateGraphPath instances whose schema
     # is enforced at the assignment site via ``model_validate``.
-    claims: list = Field(default_factory=list)
+    # --- v16 quality layer / graph reasoning additions ---
+    # v17: the v16 state fields keep the v15 ``list`` / ``Any`` type
+    # annotations so the state model does not have to import every
+    # v16 sub-module. The runtime contract is enforced by
+    # ``model_validate`` at the assignment site (see
+    # ``src.workflows.quality_gate`` and the graph reasoner / report
+    # generator) and by the v17 tests under
+    # ``tests/schemas/test_finrisk_v16_state.py``.
+    #
+    # The expected runtime types are documented in
+    # ``docs/specs/v17-code-audit-remediation/03-v16-state-report-and-score-path.md``.
+    claims: list = Field(default_factory=list)  # v16 Claim
     graph_context: Any | None = None
-    graph_paths: list = Field(default_factory=list)
-    graph_payload: Any | None = None  # v16 EvidenceGraphPayload (dict after dump)
-    graph_insights_v16: list = Field(default_factory=list)  # v16 GraphInsightV16 (dicts)
-    risk_scores_v16: list = Field(default_factory=list)  # v16 RiskScoreV16 (dicts)
-    report_v16: Any | None = None  # v16 RiskReportV16 (dict after dump)
-    evaluations: list = Field(default_factory=list)
-    workflow_evaluation: Any | None = None
-    guardrail_findings: list = Field(default_factory=list)
-    fallback_events: list = Field(default_factory=list)
+    graph_paths: list = Field(default_factory=list)  # v16 CandidateGraphPath
+    graph_payload: Any | None = None  # v16 EvidenceGraphPayload
+    graph_insights_v16: list = Field(default_factory=list)  # v16 GraphInsightV16
+    risk_scores_v16: list = Field(default_factory=list)  # v16 RiskScoreV16
+    report_v16: Any | None = None  # v16 RiskReportV16
+    evaluations: list = Field(default_factory=list)  # v16 StepEvaluation
+    workflow_evaluation: Any | None = None  # v16 WorkflowEvaluationV16
+    guardrail_findings: list = Field(default_factory=list)  # v16 GuardrailFinding
+    fallback_events: list = Field(default_factory=list)  # v16 FallbackEvent
     artifacts: dict[str, str] = Field(default_factory=dict)
 
 

@@ -203,9 +203,9 @@ class ReportGeneratorStep(WorkflowStep):
                 severity=r.severity,
                 final_score=next(
                     (
-                        float(sc.get("final_score", 0.0))
+                        sc.final_score
                         for sc in state.risk_scores_v16
-                        if isinstance(sc, dict) and sc.get("risk_id") == r.risk_id
+                        if sc.risk_id == r.risk_id
                     ),
                     0.0,
                 ),
@@ -219,9 +219,8 @@ class ReportGeneratorStep(WorkflowStep):
                     if r.risk_id in (ev.related_risk_ids or [])
                 ],
                 related_graph_insight_ids=[
-                    ins.get("insight_id")
+                    ins.insight_id
                     for ins in state.graph_insights_v16
-                    if isinstance(ins, dict)
                 ],
             )
             for r in report.top_risks

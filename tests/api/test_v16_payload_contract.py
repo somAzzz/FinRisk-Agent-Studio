@@ -158,7 +158,8 @@ async def test_score_breakdown_uses_v16_zero_to_hundred() -> None:
     state = await get_run_store().get(run_id)
     assert state is not None
     for score in state.risk_scores_v16:
-        assert 0.0 <= score["final_score"] <= 100.0
+        # v17: scores are Pydantic models, not dicts.
+        assert 0.0 <= score.final_score <= 100.0
         # Per spec the breakdown must include every component.
         for key in (
             "base_severity",
@@ -168,7 +169,7 @@ async def test_score_breakdown_uses_v16_zero_to_hundred() -> None:
             "novelty_score",
             "graph_centrality",
         ):
-            assert key in score["score_breakdown"]
+            assert key in score.score_breakdown
 
 
 async def test_graph_findings_can_be_located() -> None:

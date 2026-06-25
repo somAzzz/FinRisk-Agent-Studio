@@ -223,3 +223,65 @@ def test_state_round_trips_v16_fields() -> None:
     blob = json.loads(state.model_dump_json())
     assert blob["guardrail_findings"]
     assert blob["guardrail_findings"][0]["check_name"] == "evidence"
+
+
+def test_state_holds_pydantic_models_for_v16_fields() -> None:
+    """The v17 runtime contract: v16 fields carry typed models, not dicts.
+
+    The state model keeps ``list`` / ``Any`` annotations to avoid
+    a circular import, but the actual values must be instances of
+    the v16 Pydantic models. This test pins the contract so a
+    regression that stores raw dicts (e.g. via ``model_dump``) is
+    caught.
+    """
+    from src.evaluation.claim_grounding import Claim
+    from src.evaluation.models import (
+        FallbackEvent,
+        GuardrailFinding,
+        StepEvaluation,
+    )
+
+    state = _state(
+        claims=[
+            Claim(
+                claim_id="c-1",
+                text="x",
+                claim_type="evidence",
+                supporting_evidence_ids=["ne-1"],
+                confidence=0.9,
+            )
+        ],
+        evaluations=[
+            StepEvaluation(
+                step_name="company_resolver",
+                status="pass",
+                findings=[],
+            )
+        ],
+        guardrail_findings=[
+            GuardrailFinding(
+                step_name="company_resolver",
+                check_name="schema",
+                status="pass",
+                severity="info",
+                message="ok",
+                affected_object_type="workflow",
+            )
+        ],
+        fallback_events=[
+            FallbackEvent(
+                step_name="market_explorer",
+                from_mode="live",
+                to_mode="demo",
+                reason="demo mode",
+            )
+        ],
+    )
+    assert isinstance(state.claims[0], Claim)
+    assert isinstance(state.evaluations[0], StepEvaluation)
+    assert isinstance(state.guardrail_findings[0], GuardrailFinding)
+    assert isinstance(state.fallback_events[0], FallbackEvent)
+    # JSON round-trip is also lossless for the model types.
+    blob = json.loads(state.model_dump_json())
+    assert blob["claims"][0]["claim_id"] == "c-1"
+    assert blob["fallback_events"][0]["to_mode"] == "demo"
