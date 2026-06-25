@@ -51,6 +51,7 @@ from src.workflows.steps.evaluator import EvaluatorStep
 from src.workflows.steps.evidence_normalizer import EvidenceNormalizerStep
 from src.workflows.steps.filing_risk_extractor import FilingRiskExtractorStep
 from src.workflows.steps.graph_reasoner import GraphReasonerStep
+from src.workflows.steps.lifecycle_classifier import LifecycleClassifierStep
 from src.workflows.steps.market_explorer_step import MarketExplorerStep
 from src.workflows.steps.report_generator import ReportGeneratorStep
 from src.workflows.steps.risk_scorer import RiskScorerStep
@@ -86,6 +87,7 @@ def _build_default_steps(fixture_path: Path):
         MarketExplorerStep(fixture_path=fixture_path),
         EvidenceNormalizerStep(),
         RiskScorerStep(),
+        LifecycleClassifierStep(),
         GraphReasonerStep(fixture_path=fixture_path),
         ReportGeneratorStep(),
         EvaluatorStep(),

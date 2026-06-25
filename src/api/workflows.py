@@ -274,6 +274,18 @@ async def get_workflow_trace(run_id: str) -> dict:
             (e.model_dump(mode="json") if hasattr(e, "model_dump") else e)
             for e in state.fallback_events
         ],
+        # Per-step observability slices (added 2026-06-25). Each step's
+        # contribution is rendered by the frontend ``StepOutputInspector``.
+        "llm_log": [c.model_dump(mode="json") for c in state.llm_log],
+        "chunk_validations": [
+            c.model_dump(mode="json") for c in state.chunk_validations
+        ],
+        "section_locations": [
+            s.model_dump(mode="json") for s in state.section_locations
+        ],
+        "risk_lifecycles": [
+            a.model_dump(mode="json") for a in state.risk_lifecycles
+        ],
     }
 
 
@@ -338,6 +350,73 @@ async def get_workflow_artifacts(run_id: str) -> dict:
     return {
         "run_id": state.run_id,
         "artifacts": dict(state.artifacts or {}),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Per-step observability routes (added 2026-06-25)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{run_id}/llm_log", response_model=dict)
+async def get_workflow_llm_log(run_id: str) -> dict:
+    """Return every :class:`LLMCall` row emitted by the workflow."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "llm_log": [c.model_dump(mode="json") for c in state.llm_log],
+    }
+
+
+@router.get("/{run_id}/chunks", response_model=dict)
+async def get_workflow_chunks(run_id: str) -> dict:
+    """Return every :class:`ChunkValidation` row from the workflow."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "chunk_validations": [
+            c.model_dump(mode="json") for c in state.chunk_validations
+        ],
+    }
+
+
+@router.get("/{run_id}/sections", response_model=dict)
+async def get_workflow_sections(run_id: str) -> dict:
+    """Return every :class:`SectionLocation` row from the workflow."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "section_locations": [
+            s.model_dump(mode="json") for s in state.section_locations
+        ],
+    }
+
+
+@router.get("/{run_id}/lifecycles", response_model=dict)
+async def get_workflow_lifecycles(run_id: str) -> dict:
+    """Return every :class:`RiskLifecycleAnnotation` row from the workflow."""
+    state = await _run_store.get(run_id)
+    if state is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="unknown run"
+        )
+    return {
+        "run_id": state.run_id,
+        "risk_lifecycles": [
+            a.model_dump(mode="json") for a in state.risk_lifecycles
+        ],
     }
 
 

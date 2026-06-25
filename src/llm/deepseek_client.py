@@ -30,9 +30,14 @@ import json
 import logging
 import os
 import re
+import uuid
+from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Any
 
 from openai import OpenAI
+
+from src.schemas.finrisk import LLMCall
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +84,8 @@ class DeepSeekClient:
         temperature: float = DEFAULT_TEMPERATURE,
         max_tokens: int = DEFAULT_MAX_TOKENS,
         timeout_s: float = DEFAULT_TIMEOUT_S,
+        *,
+        llm_call_sink: Callable[[LLMCall], None] | None = None,
     ) -> None:
         resolved_base = (
             base_url
@@ -107,6 +114,76 @@ class DeepSeekClient:
             timeout=timeout_s,
         )
         self.base_url = resolved_base
+        self._llm_call_sink: Callable[[LLMCall], None] = (
+            llm_call_sink or (lambda _c: None)
+        )
+        self.provider = "deepseek"
+
+    # -- audit helpers ----------------------------------------------------
+
+    def _chat(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        step_name: str,
+        chunk_id: str | None,
+        max_tokens: int | None,
+        temperature: float | None,
+    ) -> tuple[str, LLMCall]:
+        """Run a chat completion and emit a :class:`LLMCall` row.
+
+        Mirrors :meth:`EdgarLLMClient._chat` so the workflow state has
+        identical audit rows regardless of provider.
+        """
+        started = datetime.now(tz=UTC)
+        call_id = f"ds-{uuid.uuid4().hex[:12]}"
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature if temperature is not None else self.temperature,
+                max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
+            )
+        except Exception as exc:
+            completed = datetime.now(tz=UTC)
+            latency_ms = int((completed - started).total_seconds() * 1000)
+            call = LLMCall(
+                call_id=call_id,
+                step_name=step_name,
+                chunk_id=chunk_id,
+                provider=self.provider,
+                model=self.model,
+                messages=messages,
+                prompt_text=messages[-1]["content"] if messages else "",
+                latency_ms=latency_ms,
+                error=f"{type(exc).__name__}: {exc}",
+                started_at=started,
+                completed_at=completed,
+            )
+            self._llm_call_sink(call)
+            raise
+        content = response.choices[0].message.content or ""
+        usage = getattr(response, "usage", None)
+        completed = datetime.now(tz=UTC)
+        latency_ms = int((completed - started).total_seconds() * 1000)
+        call = LLMCall(
+            call_id=call_id,
+            step_name=step_name,
+            chunk_id=chunk_id,
+            provider=self.provider,
+            model=self.model,
+            messages=list(messages),
+            prompt_text=messages[-1]["content"] if messages else "",
+            response_text=content,
+            prompt_tokens=getattr(usage, "prompt_tokens", None) if usage else None,
+            completion_tokens=getattr(usage, "completion_tokens", None) if usage else None,
+            total_tokens=getattr(usage, "total_tokens", None) if usage else None,
+            latency_ms=latency_ms,
+            started_at=started,
+            completed_at=completed,
+        )
+        self._llm_call_sink(call)
+        return content, call
 
     @property
     def configured(self) -> bool:
@@ -138,13 +215,17 @@ class DeepSeekClient:
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=temperature if temperature is not None else self.temperature,
-            max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
-        )
-        return response.choices[0].message.content or ""
+        try:
+            content, _call = self._chat(
+                messages,
+                step_name="deepseek_complete",
+                chunk_id=None,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except Exception:
+            return ""
+        return content
 
     # ------------------------------------------------------------------
     # High-level: structured risk extraction
@@ -156,34 +237,49 @@ class DeepSeekClient:
         company_name: str = "Unknown",
         year: int = 2020,
     ) -> dict[str, Any]:
-        """Extract risks from a 10-K Item 1A section.
+        """Extract risks from a 10-K Item 1A section (legacy dict shape).
 
         Returns a dict in the same shape as
         :meth:`src.llm.client.EdgarLLMClient.extract_risks` so
         callers can switch providers without rewriting downstream
-        code.
+        code. Prefer :meth:`extract_risks_chunked` for new code.
         """
         if not section_1a or not section_1a.strip():
             raise ValueError("section_1a cannot be empty or None")
         self._ensure_configured()
+        # The legacy path uses one chat per call and truncates to
+        # DEFAULT_CHUNK_SIZE; the chunked variant below handles long
+        # sections properly.
         prompt = self._build_prompt(section_1a, company_name)
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
-        content = response.choices[0].message.content or ""
+        messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
+        try:
+            content, _call = self._chat(
+                messages,
+                step_name="deepseek_extract_risks",
+                chunk_id=None,
+                max_tokens=None,
+                temperature=None,
+            )
+        except Exception:
+            return {
+                "company": company_name,
+                "year": year,
+                "risks": [],
+                "avg_severity": 0,
+                "raw_response": "",
+                "error": "LLM call failed",
+            }
         return self._parse_response(content, company_name, year)
 
     def _build_prompt(self, section_1a: str, company_name: str) -> str:
         """Build the structured-output prompt for risk extraction."""
-        truncated_text = section_1a[:MAX_INPUT_TOKENS]
+        # ``section_1a`` is already truncated to one chunk's worth of
+        # text by the caller (legacy dict-shape API only sees one chunk).
         return (
             "Output only valid JSON in a code block. No thinking.\n\n"
             f"Extract risks from 10-K Item 1A.\n\n"
             f"Company: {company_name}\n"
-            f"Text: {truncated_text}"
+            f"Text: {section_1a}"
         )
 
     def _parse_response(

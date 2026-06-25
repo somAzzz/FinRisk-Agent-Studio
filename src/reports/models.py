@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +42,13 @@ class RiskReportItem(BaseModel):
     supporting_claim_ids: list[str] = Field(default_factory=list)
     supporting_evidence_ids: list[str] = Field(default_factory=list)
     related_graph_insight_ids: list[str] = Field(default_factory=list)
+    # Lifecycle classification (added 2026-06-25). Surfaced on the
+    # frontend as a ``LifecycleBadge`` (green=current, amber=emerging,
+    # gray=receding). Populated by ``LifecycleClassifierStep``;
+    # missing for risks classified before the step was added.
+    lifecycle: Literal["current", "emerging", "receding", "unknown"] = "unknown"
+    lifecycle_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    lifecycle_reasoning: str = ""
 
 
 class RecentChange(BaseModel):

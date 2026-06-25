@@ -166,7 +166,16 @@ class FilingFetcher:
         return results
 
     def fetch_filing(self, metadata: FilingMetadata) -> FilingRecord:
-        """Download and parse a single filing into a :class:`FilingRecord`."""
+        """Download and parse a single filing into a :class:`FilingRecord`.
+
+        Uses :class:`SectionParser` with ``prefer_substantive_match=True``
+        by default — the longest match per section name wins, which
+        defends against the Forward-Looking Statements disclaimer trap
+        on Apple's 10-K (where the disclaimer appears earlier than
+        the real ``Item 1A. Risk Factors`` heading). Pass
+        ``prefer_substantive_match=False`` to fall back to first-match
+        behaviour (only useful for tests / fixture compatibility).
+        """
         html = self.sec_client.get_filing_html(
             metadata.accession_number,
             metadata.cik,
@@ -182,7 +191,7 @@ class FilingFetcher:
         # implementation when the parser raises (e.g. malformed HTML).
         try:
             extracted_sections: dict[str, Section] = self.section_parser.parse(
-                html
+                html, prefer_substantive_match=True
             )
             for name, section in extracted_sections.items():
                 sections[name] = section.text

@@ -339,6 +339,119 @@ class WorkflowTraceEvent(BaseModel):
     retry_count: int = 0
 
 
+# ---------------------------------------------------------------------------
+# Per-step / per-chunk observability (added 2026-06-25).
+#
+# Every LLM call the workflow makes writes one ``LLMCall`` row; every
+# chunk that flows through ``filing_risk_extractor`` writes one
+# ``ChunkValidation`` row; the section parser writes one
+# ``SectionLocation`` row per matched section; the lifecycle
+# classifier writes one ``RiskLifecycleAnnotation`` per risk.
+#
+# The frontend's ``StepOutputInspector`` component renders these as
+# JSON-formatted lists with one tab per category so an engineer
+# debugging a real run can see exactly what the LLM saw, what it
+# returned, and whether the Pydantic validation succeeded.
+# ---------------------------------------------------------------------------
+
+RiskLifecycle = Literal["current", "emerging", "receding", "unknown"]
+
+
+class SectionLocation(BaseModel):
+    """Where a canonical section was located in the source filing.
+
+    ``char_start`` and ``char_end`` are offsets into ``full_text`` after
+    HTML stripping + entity unescape. ``matched_against_real_section``
+    is True when the parser picked a substantive match (the longest
+    candidate >= the min-substantive threshold) rather than the
+    Forward-Looking Statements disclaimer match.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    section_name: str
+    char_start: int = Field(ge=0)
+    char_end: int = Field(ge=0)
+    char_count: int = Field(ge=0)
+    matched_against_real_section: bool = True
+    matched_section_reason: str = ""
+    is_disclaimer_text: bool = False
+    filing_accession: str | None = None
+    filing_form: str | None = None
+
+
+class ChunkValidation(BaseModel):
+    """Result of Pydantic-validating one chunk's LLM output.
+
+    ``ok`` is True when every item the LLM returned parsed cleanly
+    against the target schema (``ExtractedRisk``). ``dropped_count``
+    is the number of items that failed validation and were excluded
+    from the final risk list (they still appear in ``llm_log`` for
+    audit).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    chunk_id: str
+    pydantic_model: str = "ExtractedRisk"
+    ok: bool = True
+    errors: list[str] = Field(default_factory=list)
+    validated_count: int = 0
+    dropped_count: int = 0
+    fallback_used: Literal["llm", "keyword", "fixture", "demo"] | None = None
+    section_name: str | None = None
+    char_start: int | None = None
+    char_end: int | None = None
+    validated_at: datetime
+
+
+class LLMCall(BaseModel):
+    """One chat-completion call made by any step.
+
+    Captures the full chat history, the structured response (when
+    parsable), token usage, latency, and any error. The frontend
+    inspector renders ``prompt_text`` + ``response_text`` as
+    collapsible JSON blocks.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    call_id: str
+    step_name: str
+    chunk_id: str | None = None
+    provider: str
+    model: str
+    messages: list[dict[str, Any]] = Field(default_factory=list)
+    prompt_text: str = ""
+    response_text: str = ""
+    response_structured: dict[str, Any] | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    latency_ms: int = Field(ge=0)
+    error: str | None = None
+    started_at: datetime
+    completed_at: datetime
+
+
+class RiskLifecycleAnnotation(BaseModel):
+    """Lifecycle classification for one ``ExtractedRisk``.
+
+    ``lifecycle`` is one of ``current`` / ``emerging`` / ``receding`` /
+    ``unknown``. ``basis`` lists the evidence_ids that drove the
+    classification; ``reasoning`` is the human-readable explanation.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    risk_id: str
+    lifecycle: RiskLifecycle = "unknown"
+    confidence: float = Field(ge=0.0, le=1.0)
+    reasoning: str
+    basis: list[str] = Field(default_factory=list)
+    classified_at: datetime
+
+
 class WorkflowEvaluation(BaseModel):
     """Guardrail verdict for a completed workflow."""
 
@@ -398,6 +511,14 @@ class FinRiskWorkflowState(BaseModel):
     workflow_evaluation: Any | None = None  # v16 WorkflowEvaluationV16
     guardrail_findings: list = Field(default_factory=list)  # v16 GuardrailFinding
     fallback_events: list = Field(default_factory=list)  # v16 FallbackEvent
+    # --- v17 per-step observability (LLMCall / ChunkValidation /
+    # SectionLocation / RiskLifecycleAnnotation). The StepOutputInspector
+    # on the frontend reads these via /workflows/{id}/llm_log,
+    # /chunks, /sections, /lifecycles respectively. ---
+    llm_log: list[LLMCall] = Field(default_factory=list)
+    chunk_validations: list[ChunkValidation] = Field(default_factory=list)
+    section_locations: list[SectionLocation] = Field(default_factory=list)
+    risk_lifecycles: list[RiskLifecycleAnnotation] = Field(default_factory=list)
     artifacts: dict[str, str] = Field(default_factory=dict)
 
 

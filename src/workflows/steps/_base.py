@@ -84,6 +84,7 @@ def _step_output(state: FinRiskWorkflowState, step_name: str) -> Any:
         "market_explorer": "market_evidence",
         "evidence_normalizer": "normalized_evidence",
         "risk_scorer": "risk_scores",
+        "lifecycle_classifier": "risk_lifecycles",
         "graph_reasoner": "graph_insights",
         "report_generator": "report",
         "evaluator": "evaluation",
