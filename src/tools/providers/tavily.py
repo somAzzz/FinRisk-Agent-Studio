@@ -27,6 +27,10 @@ class TavilyProvider:
         self._api_key = api_key if api_key is not None else os.environ.get("TAVILY_API_KEY")
         self._session = session or requests.Session()
 
+    def is_available(self) -> bool:
+        """Tavily is reachable only when an API key has been configured."""
+        return bool(self._api_key)
+
     def search(
         self,
         query: str,
@@ -41,6 +45,9 @@ class TavilyProvider:
             "api_key": self._api_key,
             "query": query,
             "max_results": max_results,
+            "search_depth": "basic",
+            "include_answer": False,
+            "include_raw_content": False,
         }
         if time_range is not None:
             payload["time_range"] = _time_range_to_tavily(time_range)
@@ -66,7 +73,10 @@ class TavilyProvider:
                         published_at=published_at,
                         source=self.provider_name,
                         rank=index,
-                        metadata={},
+                        metadata={
+                            "score": item.get("score"),
+                            "provider": self.provider_name,
+                        },
                     )
                 )
             except Exception:

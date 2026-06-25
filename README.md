@@ -327,6 +327,35 @@ Preferred evidence acquisition order:
 3. Browser exploration
 ```
 
+`SearchRouter` supports configurable provider priority. Tavily can be
+used as the first live web-search provider for the FinRisk workflow,
+market exploration, and product supply-chain discovery:
+
+```bash
+export TAVILY_API_KEY=tvly-...
+export SEARCH_PROVIDER_ORDER=tavily,duckduckgo
+```
+
+For Brave Search API, either key variable is accepted:
+
+```bash
+export BRAVE_API_KEY=...
+# or
+export BRAVE_SEARCH_API_KEY=...
+export SEARCH_PROVIDER_ORDER=brave,duckduckgo
+```
+
+Supported provider names include:
+
+```text
+duckduckgo
+brave
+tavily
+```
+
+If `TAVILY_API_KEY` is missing, Tavily is skipped automatically and the
+router falls back to the next configured provider.
+
 Optional setup:
 
 ```bash

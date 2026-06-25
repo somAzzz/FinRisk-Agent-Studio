@@ -401,6 +401,41 @@ def test_search_router_skips_unconfigured_providers(
     assert "brave" not in names
 
 
+def test_search_router_uses_configured_tavily_provider(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """``SEARCH_PROVIDER_ORDER=tavily,duckduckgo`` honors a configured Tavily key."""
+    from src.config import get_settings
+    from src.tools.search_router import SearchRouter
+
+    monkeypatch.setenv("SEARCH_PROVIDER_ORDER", "tavily,duckduckgo")
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+    monkeypatch.setenv("CACHE_DIR", str(tmp_path))
+    get_settings.cache_clear()
+
+    router = SearchRouter()
+
+    assert [p.provider_name for p in router.providers] == ["tavily", "duckduckgo"]
+
+
+def test_search_router_skips_unconfigured_tavily_provider(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """Tavily is skipped without ``TAVILY_API_KEY`` and DuckDuckGo remains usable."""
+    from src.config import get_settings
+    from src.tools.search_router import SearchRouter
+
+    monkeypatch.setenv("SEARCH_PROVIDER_ORDER", "tavily,duckduckgo")
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+    monkeypatch.setenv("CACHE_DIR", str(tmp_path))
+    get_settings.cache_clear()
+
+    router = SearchRouter()
+
+    names = [p.provider_name for p in router.providers]
+    assert names == ["duckduckgo"]
+
+
 def test_intent_template_supply_chain_appends_keywords() -> None:
     """``supply_chain`` intent augments the user query with vendor keywords."""
     from src.tools.search_router import _apply_intent_template
@@ -426,7 +461,7 @@ def test_search_router_uses_intent_template_in_provider_call(
     captured = {}
 
     class CaptureProvider(FakeProvider):
-        def search(self, query, max_results=5, time_range=None):  # noqa: ANN001
+        def search(self, query, max_results=5, time_range=None):
             captured["query"] = query
             return super().search(query, max_results, time_range)
 

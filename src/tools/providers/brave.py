@@ -32,7 +32,11 @@ class BraveProvider:
     provider_name: str = "brave"
 
     def __init__(self, api_key: str | None = None, session: requests.Session | None = None):
-        self._api_key = api_key if api_key is not None else os.environ.get("BRAVE_API_KEY")
+        self._api_key = (
+            api_key
+            if api_key is not None
+            else os.environ.get("BRAVE_API_KEY") or os.environ.get("BRAVE_SEARCH_API_KEY")
+        )
         self._session = session or requests.Session()
 
     def is_available(self) -> bool:
@@ -49,7 +53,7 @@ class BraveProvider:
         if not self._api_key:
             return empty_response(self.provider_name, query)
 
-        params: dict[str, Any] = {"q": query, "count": max_results}
+        params: dict[str, Any] = {"q": query, "count": _clamp_count(max_results)}
         freshness = _time_range_to_brave(time_range)
         if freshness is not None:
             params["freshness"] = freshness
@@ -103,3 +107,8 @@ def _parse_brave_age(age: str | None) -> datetime | None:
         return None
     # Brave returns a free-form string; we don't attempt full parsing.
     return None
+
+
+def _clamp_count(max_results: int) -> int:
+    """Clamp Brave's ``count`` parameter to the documented 1..20 range."""
+    return max(1, min(20, int(max_results)))

@@ -162,11 +162,12 @@ class SearchRouter:
         """Build the default provider list from ``SEARCH_PROVIDER_ORDER``.
 
         Order is read from :class:`Settings.search_provider_order` (a comma
-        separated string such as ``"brave,duckduckgo"``). Providers with no
+        separated string such as ``"tavily,brave,duckduckgo"``). Providers with no
         API key configured are skipped so the router remains functional
         with zero keys.
         """
         from src.tools.providers.brave import BraveProvider
+        from src.tools.providers.tavily import TavilyProvider
 
         order = get_settings().search_provider_order
         requested = [
@@ -175,6 +176,7 @@ class SearchRouter:
         factories: dict[str, Callable[[], SearchProvider]] = {
             "duckduckgo": DuckDuckGoProvider,
             "brave": BraveProvider,
+            "tavily": TavilyProvider,
         }
         providers: list[SearchProvider] = []
         for name in requested:
