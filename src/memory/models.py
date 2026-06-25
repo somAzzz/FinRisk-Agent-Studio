@@ -30,6 +30,7 @@ MemorySourceType = Literal[
     "domain_prior",
     "human_feedback",
     "fixture",
+    "manual",
 ]
 
 ClaimType = Literal["evidence", "inference", "hypothesis", "policy"]

@@ -24,6 +24,7 @@
 07-episodic-memory-and-feedback.md
 08-testing-and-acceptance.md
 09-productionization-roadmap.md
+10-phase-2-evidence-graph-memory-progress.md
 ```
 
 ## MVP 边界
