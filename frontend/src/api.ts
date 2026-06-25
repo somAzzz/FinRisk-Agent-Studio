@@ -6,10 +6,14 @@
 import type {
   FinRiskRequest,
   WorkflowArtifactsResponse,
+  WorkflowChunksResponse,
   WorkflowEvaluationResponse,
   WorkflowGraphResponse,
+  WorkflowLifecyclesResponse,
+  WorkflowLLMLogResponse,
   WorkflowReportResponse,
   WorkflowRunSummary,
+  WorkflowSectionsResponse,
   WorkflowStatusResponse,
   WorkflowTraceResponse,
 } from "./types";
@@ -67,6 +71,24 @@ export const api = {
   },
   getTrace(runId: string): Promise<WorkflowTraceResponse> {
     return sendRequest<WorkflowTraceResponse>(`/workflows/${runId}/trace`);
+  },
+  getLLMLog(runId: string): Promise<WorkflowLLMLogResponse> {
+    return sendRequest<WorkflowLLMLogResponse>(
+      `/workflows/${runId}/llm_log`,
+    );
+  },
+  getChunks(runId: string): Promise<WorkflowChunksResponse> {
+    return sendRequest<WorkflowChunksResponse>(`/workflows/${runId}/chunks`);
+  },
+  getSections(runId: string): Promise<WorkflowSectionsResponse> {
+    return sendRequest<WorkflowSectionsResponse>(
+      `/workflows/${runId}/sections`,
+    );
+  },
+  getLifecycles(runId: string): Promise<WorkflowLifecyclesResponse> {
+    return sendRequest<WorkflowLifecyclesResponse>(
+      `/workflows/${runId}/lifecycles`,
+    );
   },
   getGraph(runId: string): Promise<WorkflowGraphResponse> {
     return sendRequest<WorkflowGraphResponse>(`/workflows/${runId}/graph`);

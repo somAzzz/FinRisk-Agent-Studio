@@ -80,6 +80,12 @@ export interface ExtractedRisk {
   source: string;
   filing_section?: string | null;
   confidence: number;
+  // Lifecycle classification (added 2026-06-25). Populated by
+  // LifecycleClassifierStep; missing for risks extracted before
+  // the step was added.
+  lifecycle?: RiskLifecycle;
+  lifecycle_confidence?: number;
+  lifecycle_reasoning?: string;
 }
 
 export interface NormalizedEvidence {
@@ -285,6 +291,11 @@ export interface WorkflowTraceResponse {
   run_id: string;
   trace: WorkflowTraceEvent[];
   fallback_events: FallbackEventV16[];
+  // Per-step observability slices (added 2026-06-25).
+  llm_log: LLMCall[];
+  chunk_validations: ChunkValidation[];
+  section_locations: SectionLocation[];
+  risk_lifecycles: RiskLifecycleAnnotation[];
 }
 
 export interface WorkflowGraphResponse {
@@ -300,4 +311,85 @@ export interface WorkflowEvaluationResponse extends WorkflowEvaluationV16 {}
 export interface WorkflowArtifactsResponse {
   run_id: string;
   artifacts: Record<string, string>;
+}
+
+// ---------------------------------------------------------------------------
+// Per-step observability types (added 2026-06-25).
+// Mirrors the backend Pydantic models in src/schemas/finrisk.py.
+// ---------------------------------------------------------------------------
+
+export type RiskLifecycle = "current" | "emerging" | "receding" | "unknown";
+
+export interface LLMCall {
+  call_id: string;
+  step_name: string;
+  chunk_id?: string | null;
+  provider: string;
+  model: string;
+  messages: Array<Record<string, string>>;
+  prompt_text: string;
+  response_text: string;
+  response_structured?: Record<string, unknown> | null;
+  prompt_tokens?: number | null;
+  completion_tokens?: number | null;
+  total_tokens?: number | null;
+  latency_ms: number;
+  error?: string | null;
+  started_at: string;
+  completed_at: string;
+}
+
+export interface ChunkValidation {
+  chunk_id: string;
+  pydantic_model: string;
+  ok: boolean;
+  errors: string[];
+  validated_count: number;
+  dropped_count: number;
+  fallback_used?: string | null;
+  section_name?: string | null;
+  char_start?: number | null;
+  char_end?: number | null;
+  validated_at: string;
+}
+
+export interface SectionLocation {
+  section_name: string;
+  char_start: number;
+  char_end: number;
+  char_count: number;
+  matched_against_real_section: boolean;
+  matched_section_reason: string;
+  is_disclaimer_text: boolean;
+  filing_accession?: string | null;
+  filing_form?: string | null;
+}
+
+export interface RiskLifecycleAnnotation {
+  risk_id: string;
+  lifecycle: RiskLifecycle;
+  confidence: number;
+  reasoning: string;
+  basis: string[];
+  classified_at: string;
+}
+
+export interface WorkflowLLMLogResponse {
+  run_id: string;
+  llm_log: LLMCall[];
+}
+
+export interface WorkflowChunksResponse {
+  run_id: string;
+  chunk_validations: ChunkValidation[];
+}
+
+export interface WorkflowSectionsResponse {
+  run_id: string;
+  section_locations: SectionLocation[];
+}
+
+export interface WorkflowLifecyclesResponse {
+  run_id: string;
+  risk_lifecycles: RiskLifecycleAnnotation[];
 }

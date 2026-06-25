@@ -2,6 +2,7 @@ import type {
   RiskReport as RiskReportType,
   RiskReportV16Wire,
 } from "../types";
+import { LifecycleBadge } from "./LifecycleBadge";
 
 interface Props {
   report: RiskReportType | null;
@@ -50,6 +51,11 @@ export function RiskReport({ report, reportV16 }: Props) {
                 <span className={severityClass(item.severity)}>
                   severity {item.severity}/5
                 </span>
+                <LifecycleBadge
+                  lifecycle={item.lifecycle}
+                  confidence={item.lifecycle_confidence}
+                  reasoning={item.lifecycle_reasoning}
+                />
               </div>
             </header>
             <div style={{ marginBottom: 8 }}>{item.summary}</div>
