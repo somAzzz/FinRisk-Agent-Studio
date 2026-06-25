@@ -22,7 +22,7 @@ class SupplyChainEvaluatorStep(SupplyChainStep):
         # Mirror the v15/v17 pattern: workflow status follows the
         # evaluation verdict.
         verdict = state.evaluation.final_status
-        if verdict == "failed":
+        if verdict == "fail":
             state.status = "failed"
         elif verdict == "needs_review":
             state.status = "needs_review"

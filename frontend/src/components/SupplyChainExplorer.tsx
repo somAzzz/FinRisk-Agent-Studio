@@ -21,6 +21,19 @@ const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   cached_mode: true,
 };
 
+const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
+
+async function waitForSupplyChainRun(runId: string) {
+  for (let i = 0; i < 40; i += 1) {
+    const status = await api.getSupplyChainStatus(runId);
+    if (TERMINAL_STATUSES.has(status.status)) {
+      return status;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+  }
+  throw new Error("Supply chain run timed out");
+}
+
 export function SupplyChainExplorer({
   initialCompany = "OpenAI",
   initialProduct = "ChatGPT",
@@ -43,6 +56,9 @@ export function SupplyChainExplorer({
     setError(null);
     try {
       const resp = await api.startSupplyChain(req);
+      if (!TERMINAL_STATUSES.has(resp.status)) {
+        await waitForSupplyChainRun(resp.run_id);
+      }
       const sankeyResp = await api.getSupplyChainSankey(resp.run_id);
       setSankey(sankeyResp.sankey);
       setRunId(resp.run_id);
@@ -65,6 +81,10 @@ export function SupplyChainExplorer({
         max_depth: 2,
         demo_mode: true,
         cached_mode: true,
+      }).then(async (resp) => {
+        if (!TERMINAL_STATUSES.has(resp.status)) {
+          await waitForSupplyChainRun(resp.run_id);
+        }
       });
       const sankeyResp = await api.getSupplyChainSankey(runId);
       setSankey(sankeyResp.sankey);

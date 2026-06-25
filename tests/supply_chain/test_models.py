@@ -16,7 +16,6 @@ from src.supply_chain.models import (
 )
 from src.workflows.state import utcnow
 
-
 # ---------------------------------------------------------------------------
 # SupplyChainExploreRequest
 # ---------------------------------------------------------------------------

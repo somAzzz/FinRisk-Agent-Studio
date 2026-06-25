@@ -230,7 +230,7 @@ async def expand_supply_chain_workflow(
     merged = _merge_expansion_subgraph(parent.sankey, child.sankey)
     parent.sankey = merged
     base_evaluation = (
-        parent.evaluation.model_dump() if parent.evaluation else {"final_status": "completed"}
+        parent.evaluation.model_dump() if parent.evaluation else {"final_status": "pass"}
     )
     parent.evaluation = SupplyChainEvaluation.model_validate(
         {

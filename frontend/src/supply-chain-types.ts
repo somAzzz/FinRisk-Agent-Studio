@@ -115,9 +115,15 @@ export interface SupplyChainStatusResponseWire {
   parent_run_id?: string | null;
   expanded_from_node_id?: string | null;
   evaluation: {
-    final_status: string;
+    final_status: "pass" | "needs_review" | "fail";
+    schema_valid?: boolean;
+    graph_connected?: boolean;
+    acyclic_for_sankey?: boolean;
+    confirmed_edges_have_evidence?: boolean;
     human_review_required: boolean;
     unsupported_edges: string[];
+    low_confidence_edges?: string[];
+    source_diversity_score?: number;
   } | null;
   trace: Array<Record<string, unknown>>;
   warnings: string[];

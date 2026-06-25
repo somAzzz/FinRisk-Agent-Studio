@@ -117,28 +117,51 @@ def evaluate_state(
         for e in sankey.links
         if e.relation_type != "hypothesized" and not e.evidence_ids
     ]
+    low_confidence = [
+        e.edge_id
+        for e in sankey.links
+        if e.confidence < 0.5
+    ]
     sources = {ev.source_type for ev in sankey.evidence}
     diversity = min(1.0, len(sources) / 3.0) if sources else 0.0
     final_status: str
     if unsupported:
-        final_status = "failed"
-    elif hypothesised and diversity < 0.34:
+        final_status = "fail"
+    elif hypothesised or low_confidence or diversity < 0.34:
         final_status = "needs_review"
     elif not sankey.nodes:
-        final_status = "failed"
+        final_status = "fail"
     else:
-        final_status = "completed"
+        final_status = "pass"
     return SupplyChainEvaluation(
         final_status=final_status,  # type: ignore[arg-type]
+        schema_valid=True,
+        graph_connected=bool(sankey.nodes) and _is_connected(sankey),
+        acyclic_for_sankey=True,
+        confirmed_edges_have_evidence=not unsupported,
         node_count=len(sankey.nodes),
         link_count=len(sankey.links),
         evidence_count=len(sankey.evidence),
         confirmed_edge_count=confirmed,
         hypothesised_edge_count=hypothesised,
         unsupported_edges=unsupported,
+        low_confidence_edges=low_confidence,
+        source_diversity_score=diversity,
         warnings=list(sankey.warnings),
-        human_review_required=final_status != "completed",
+        human_review_required=final_status != "pass",
     )
+
+
+def _is_connected(sankey: SankeyPayload) -> bool:
+    """Return True if every non-root node is touched by at least one edge."""
+    if not sankey.nodes:
+        return False
+    touched: set[str] = set()
+    for edge in sankey.links:
+        touched.add(edge.source_node_id)
+        touched.add(edge.target_node_id)
+    root_ids = {n.node_id for n in sankey.nodes if n.depth == 0}
+    return all(n.node_id in touched or n.node_id in root_ids for n in sankey.nodes)
 
 
 __all__ = ["build_sankey_payload", "evaluate_state"]

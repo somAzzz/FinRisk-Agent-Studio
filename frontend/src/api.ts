@@ -100,6 +100,11 @@ export const api = {
   ): Promise<{ run_id: string; sankey: import("./supply-chain-types").SupplyChainSankeyPayloadWire | null }> {
     return sendRequest(`/supply-chain/${runId}/sankey`);
   },
+  getSupplyChainStatus(
+    runId: string,
+  ): Promise<import("./supply-chain-types").SupplyChainStatusResponseWire> {
+    return sendRequest(`/supply-chain/${runId}`);
+  },
   expandSupplyChain(
     req: import("./supply-chain-types").SupplyChainExpandRequestWire,
   ): Promise<import("./supply-chain-types").SupplyChainExploreResponseWire> {
@@ -123,5 +128,6 @@ export const apiPaths = {
   health: "/workflows/health",
   startSupplyChain: "/supply-chain/explore",
   expandSupplyChain: "/supply-chain/expand",
+  supplyChainStatus: (runId: string) => `/supply-chain/${runId}`,
   supplyChainSankey: (runId: string) => `/supply-chain/${runId}/sankey`,
 };

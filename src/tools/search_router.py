@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Callable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -44,6 +45,12 @@ INTENT_QUERY_TEMPLATES: dict[str, str] = {
     "management_change": "{q} CEO CFO management change turnover",
     "product_demand": "{q} demand growth order book backlog product cycle",
     "litigation": "{q} litigation lawsuit SEC investigation antitrust",
+    "product_supply_chain": "{q} product supply chain suppliers upstream components",
+    "supplier_discovery": "{q} suppliers companies official partnership evidence",
+    "component_supplier": "{q} major suppliers manufacturers market share",
+    "cloud_dependency": "{q} cloud provider datacenter infrastructure supplier",
+    "datacenter_power": "{q} datacenter power electricity supplier energy contract",
+    "semiconductor_supply_chain": "{q} semiconductor upstream foundry HBM lithography suppliers",
 }
 
 
@@ -166,8 +173,8 @@ class SearchRouter:
             token.strip().lower() for token in order.split(",") if token.strip()
         ]
         factories: dict[str, Callable[[], SearchProvider]] = {
-            "duckduckgo": lambda: DuckDuckGoProvider(),
-            "brave": lambda: BraveProvider(),
+            "duckduckgo": DuckDuckGoProvider,
+            "brave": BraveProvider,
         }
         providers: list[SearchProvider] = []
         for name in requested:
@@ -280,7 +287,7 @@ class SearchRouter:
         time_range: TimeRange,
         intent: SearchIntent,
     ) -> None:
-        try:
+        with suppress(Exception):
             self.cache.set(
                 response=response,
                 ttl_seconds=ttl_seconds,
@@ -288,9 +295,6 @@ class SearchRouter:
                 time_range=time_range,
                 intent=intent,
             )
-        except Exception:
-            # Cache write errors must not break the search path.
-            pass
 
     def fetch_search_results(
         self,

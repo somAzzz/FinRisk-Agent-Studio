@@ -16,6 +16,21 @@ FOR (n:Company) REQUIRE n.entity_id IS UNIQUE;
 CREATE CONSTRAINT product_entity_id IF NOT EXISTS
 FOR (n:Product) REQUIRE n.entity_id IS UNIQUE;
 
+CREATE CONSTRAINT component_entity_id IF NOT EXISTS
+FOR (n:Component) REQUIRE n.entity_id IS UNIQUE;
+
+CREATE CONSTRAINT service_entity_id IF NOT EXISTS
+FOR (n:Service) REQUIRE n.entity_id IS UNIQUE;
+
+CREATE CONSTRAINT infrastructure_entity_id IF NOT EXISTS
+FOR (n:Infrastructure) REQUIRE n.entity_id IS UNIQUE;
+
+CREATE CONSTRAINT energy_source_entity_id IF NOT EXISTS
+FOR (n:EnergySource) REQUIRE n.entity_id IS UNIQUE;
+
+CREATE CONSTRAINT datacenter_entity_id IF NOT EXISTS
+FOR (n:DataCenter) REQUIRE n.entity_id IS UNIQUE;
+
 CREATE CONSTRAINT segment_entity_id IF NOT EXISTS
 FOR (n:Segment) REQUIRE n.entity_id IS UNIQUE;
 

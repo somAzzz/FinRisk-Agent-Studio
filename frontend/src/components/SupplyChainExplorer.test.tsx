@@ -53,13 +53,15 @@ const sankeyPayload = {
   },
 };
 
-const startMock = vi.fn().mockResolvedValue({ run_id: "sc-run-1" });
+const startMock = vi.fn().mockResolvedValue({ run_id: "sc-run-1", status: "completed" });
 const sankeyMock = vi.fn().mockResolvedValue(sankeyPayload);
-const expandMock = vi.fn().mockResolvedValue({ run_id: "sc-run-1" });
+const statusMock = vi.fn().mockResolvedValue({ run_id: "sc-run-1", status: "completed" });
+const expandMock = vi.fn().mockResolvedValue({ run_id: "sc-run-1", status: "completed" });
 
 vi.mock("../api", () => ({
   api: {
     startSupplyChain: (...args: unknown[]) => startMock(...args),
+    getSupplyChainStatus: (...args: unknown[]) => statusMock(...args),
     getSupplyChainSankey: (...args: unknown[]) => sankeyMock(...args),
     expandSupplyChain: (...args: unknown[]) => expandMock(...args),
   },
@@ -69,6 +71,7 @@ describe("SupplyChainExplorer", () => {
   beforeEach(() => {
     startMock.mockClear();
     sankeyMock.mockClear();
+    statusMock.mockClear();
     expandMock.mockClear();
   });
 

@@ -68,6 +68,31 @@ html, body, #root {
   font-family: ui-monospace, monospace;
 }
 
+.app-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.app-tabs button {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-tabs button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: #065f46;
+}
+
 .app-body {
   display: grid;
   grid-template-columns: 360px 1fr;
@@ -86,6 +111,10 @@ html, body, #root {
 .app-main {
   padding: 18px 24px 40px 24px;
   overflow-y: auto;
+}
+
+.supply-chain-view {
+  flex: 1;
 }
 
 .section {

@@ -16,6 +16,12 @@ SearchIntent = Literal[
     "semantic",
     "agent_research",
     "verification",
+    "product_supply_chain",
+    "supplier_discovery",
+    "component_supplier",
+    "cloud_dependency",
+    "datacenter_power",
+    "semiconductor_supply_chain",
 ]
 
 TimeRange = Literal["d", "w", "m", "y", None]

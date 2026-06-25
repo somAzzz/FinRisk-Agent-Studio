@@ -15,15 +15,30 @@ class SupplyChainGraphBuilderStep(SupplyChainStep):
 
     name = "graph_builder"
 
+    def __init__(self, *, graph_client=None) -> None:
+        super().__init__()
+        self._graph_client = graph_client
+
     async def run(
         self, state: SupplyChainExploreState
     ) -> SupplyChainExploreState:
-        # v18 keeps the graph in ``state`` directly; a future
-        # iteration can mirror it into Neo4j via
-        # ``src.graph.writer.GraphWriter``.
-        if not (state.request.demo_mode or state.request.cached_mode):
+        if self._graph_client is None:
+            if not (state.request.demo_mode or state.request.cached_mode):
+                state.fallback_events.append(
+                    "graph_builder:Neo4j client unavailable; using in-memory graph"
+                )
+            return state
+        try:
+            from src.graph.supply_chain_writer import SupplyChainGraphWriter
+
+            SupplyChainGraphWriter(self._graph_client).write_graph(
+                nodes=state.nodes,
+                edges=state.links,
+                evidence=state.evidence,
+            )
+        except Exception as exc:
             state.fallback_events.append(
-                "graph_builder:Neo4j wiring not yet enabled; using in-memory graph"
+                f"graph_builder:Neo4j write failed; using in-memory graph: {exc}"
             )
         return state
 

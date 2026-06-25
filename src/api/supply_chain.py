@@ -14,8 +14,10 @@ the demo runs offline; production can swap in SQLite / Redis.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
+import uuid
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -41,6 +43,7 @@ def _background_enabled() -> bool:
 
 
 router = APIRouter(prefix="/supply-chain")
+_background_tasks: set[asyncio.Task] = set()
 
 
 # ---------------------------------------------------------------------------
@@ -89,6 +92,28 @@ async def _run_and_store(request: SupplyChainExploreRequest) -> SupplyChainExplo
         raise
 
 
+async def _run_existing_state(state: SupplyChainExploreState) -> None:
+    """Background entry point that fills an already-created queued state."""
+    try:
+        await run_supply_chain_workflow(
+            state.request,
+            initial_state=state,
+            store=DEFAULT_STATE_STORE,
+        )
+    except Exception as exc:
+        logger.exception("supply chain workflow %s failed", state.run_id)
+        state.status = "failed"
+        state.warnings.append(f"{type(exc).__name__}: {exc}")
+        DEFAULT_STATE_STORE[state.run_id] = state
+
+
+def _schedule(coro) -> None:
+    """Schedule ``coro`` and retain the task until completion."""
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -103,7 +128,20 @@ async def start_supply_chain_explore(
     request: SupplyChainExploreRequest,
 ) -> SupplyChainExploreResponse:
     """Start a new v18 supply chain run."""
-    state = await run_supply_chain_workflow(request)
+    state = SupplyChainExploreState(
+        run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
+        request=request,
+        status="queued",
+    )
+    DEFAULT_STATE_STORE[state.run_id] = state
+    if _background_enabled():
+        _schedule(_run_existing_state(state))
+    else:
+        state = await run_supply_chain_workflow(
+            request,
+            initial_state=state,
+            store=DEFAULT_STATE_STORE,
+        )
     return SupplyChainExploreResponse(
         run_id=state.run_id,
         status=state.status,

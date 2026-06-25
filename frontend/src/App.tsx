@@ -6,6 +6,7 @@ import { EvaluationTab } from "./components/EvaluationTab";
 import { EvidenceGraph } from "./components/EvidenceGraph";
 import { RiskReport } from "./components/RiskReport";
 import { RiskScoreBreakdown } from "./components/RiskScoreBreakdown";
+import { SupplyChainExplorer } from "./components/SupplyChainExplorer";
 import { WorkflowLauncher } from "./components/WorkflowLauncher";
 import { api, FinRiskApiError } from "./api";
 import type {
@@ -30,6 +31,9 @@ export function App() {
   );
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
+  const [activeView, setActiveView] = useState<"finrisk" | "supply-chain">(
+    "finrisk",
+  );
   const pollRef = useRef<number | null>(null);
 
   const stopPolling = () => {
@@ -124,6 +128,29 @@ export function App() {
           </div>
         ) : null}
       </header>
+      <nav className="app-tabs" aria-label="Application views">
+        <button
+          type="button"
+          className={activeView === "finrisk" ? "active" : ""}
+          onClick={() => setActiveView("finrisk")}
+          data-testid="tab-finrisk"
+        >
+          Risk Intelligence
+        </button>
+        <button
+          type="button"
+          className={activeView === "supply-chain" ? "active" : ""}
+          onClick={() => setActiveView("supply-chain")}
+          data-testid="tab-supply-chain"
+        >
+          Product Supply Chain
+        </button>
+      </nav>
+      {activeView === "supply-chain" ? (
+        <main className="app-main supply-chain-view">
+          <SupplyChainExplorer />
+        </main>
+      ) : (
       <div className="app-body">
         <aside className="app-side">
           <div className="section">
@@ -181,6 +208,7 @@ export function App() {
           ) : null}
         </main>
       </div>
+      )}
     </div>
   );
 }

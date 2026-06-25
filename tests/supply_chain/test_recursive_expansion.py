@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from src.supply_chain.models import SupplyChainExploreRequest
 from src.supply_chain.workflow import (
@@ -97,7 +98,7 @@ async def test_expansion_unknown_parent_raises() -> None:
 async def test_expansion_max_depth_clamped_to_4() -> None:
     parent = await run_supply_chain_workflow(_request())
     store: dict = {parent.run_id: parent}
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         await expand_supply_chain_workflow(
             parent.run_id,
             "component:cpu",

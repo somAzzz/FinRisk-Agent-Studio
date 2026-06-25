@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-
-import pytest
-
 from src.supply_chain.models import SupplyChainExploreRequest
 from src.supply_chain.workflow import run_supply_chain_workflow
 
@@ -51,7 +47,7 @@ async def test_demo_workflow_sankey_payload_is_acyclic() -> None:
     for link in state.sankey.links:
         if link.relation_type != "hypothesized":
             adjacency[link.source_node_id].append(link.target_node_id)
-    color: dict[str, int] = {n: 0 for n in adjacency}
+    color: dict[str, int] = dict.fromkeys(adjacency, 0)
 
     def dfs(node: str) -> bool:
         color[node] = 1
@@ -69,6 +65,6 @@ async def test_demo_workflow_sankey_payload_is_acyclic() -> None:
 async def test_demo_workflow_evaluation_passes() -> None:
     state = await run_supply_chain_workflow(_request())
     assert state.evaluation is not None
-    assert state.evaluation.final_status in {"completed", "needs_review"}
+    assert state.evaluation.final_status in {"pass", "needs_review"}
     # All confirmed edges must have evidence.
     assert not state.evaluation.unsupported_edges

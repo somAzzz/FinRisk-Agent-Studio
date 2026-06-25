@@ -50,6 +50,8 @@ CPU
 4. `04-graph-storage-and-sankey-payload.md`
 5. `05-api-and-frontend-sankey.md`
 6. `06-testing-and-acceptance.md`
+7. `08-production-hardening-and-real-data-plan.md`
+8. `09-production-hardening-progress.md`
 
 ## 与现有系统关系
 
@@ -95,3 +97,14 @@ cd frontend && npm run build
 
 如果对应目录尚未创建，实现本 spec 时同步创建。
 
+## Demo 与 Production 的边界
+
+`07-completion-summary.md` 记录的是 v18 demo acceptance：fixture-driven workflow、Sankey payload、API、前端组件和测试已经跑通。
+
+如果目标是“真正工程化项目”，必须继续执行：
+
+```text
+docs/specs/v18-product-supply-chain-sankey/08-production-hardening-and-real-data-plan.md
+```
+
+该文件定义从 demo skeleton 升级到 production-grade product supply chain intelligence system 的修正方案。

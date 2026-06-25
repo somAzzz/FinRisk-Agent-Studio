@@ -5,12 +5,12 @@ from __future__ import annotations
 import pytest
 
 from src.api.supply_chain import (
+    DEFAULT_STATE_STORE,
+    expand_supply_chain,
     get_supply_chain_sankey,
     get_supply_chain_status,
     start_supply_chain_explore,
-    expand_supply_chain,
 )
-from src.api.supply_chain import DEFAULT_STATE_STORE
 from src.supply_chain.models import SupplyChainExploreRequest
 
 
@@ -19,7 +19,8 @@ def _reset() -> None:
 
 
 @pytest.fixture(autouse=True)
-def _clear_store():
+def _clear_store(monkeypatch):
+    monkeypatch.setenv("FINRISK_SKIP_BACKGROUND", "1")
     _reset()
     yield
     _reset()
@@ -37,6 +38,22 @@ async def test_post_explore_returns_202_with_run_id() -> None:
     assert resp.run_id.startswith("sc-run-")
     assert resp.status == "completed"
     assert resp.sankey_url.endswith("/sankey")
+
+
+async def test_post_explore_returns_queued_when_background_enabled(monkeypatch) -> None:
+    monkeypatch.delenv("FINRISK_SKIP_BACKGROUND", raising=False)
+    resp = await start_supply_chain_explore(
+        SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+            max_depth=3,
+            demo_mode=True,
+        )
+    )
+    assert resp.run_id.startswith("sc-run-")
+    assert resp.status == "queued"
+    status = await get_supply_chain_status(resp.run_id)
+    assert status.status in {"queued", "running", "completed", "needs_review"}
 
 
 async def test_get_status_returns_node_and_link_counts() -> None:
@@ -105,6 +122,7 @@ async def test_post_expand_returns_child_run_id() -> None:
 
 async def test_post_expand_unknown_parent_returns_404() -> None:
     from fastapi import HTTPException
+
     from src.supply_chain.models import SupplyChainExpandRequest
 
     with pytest.raises(HTTPException) as exc:

@@ -58,6 +58,10 @@ SupplyChainStatus = Literal[
     "needs_review",
 ]
 
+EvaluationVerdict = Literal["pass", "needs_review", "fail"]
+
+ProviderCallStatus = Literal["success", "failed", "timeout", "cached"]
+
 
 SourceType = Literal[
     "web",
@@ -300,6 +304,25 @@ class SupplyChainTraceEvent(BaseModel):
     completed_at: datetime | None = None
     error: str | None = None
     fallback_used: str | None = None
+    duration_ms: int | None = None
+    input_summary: dict[str, Any] = Field(default_factory=dict)
+    output_summary: dict[str, Any] = Field(default_factory=dict)
+    provider_calls: list[ProviderCall] = Field(default_factory=list)
+    retry_count: int = 0
+    cache_hit: bool = False
+
+
+class ProviderCall(BaseModel):
+    """A single external provider call made by a supply-chain step."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: str
+    operation: str
+    status: ProviderCallStatus
+    latency_ms: int = Field(ge=0)
+    cost_estimate_usd: float | None = Field(default=None, ge=0.0)
+    error: str | None = None
 
 
 class SupplyChainEvaluation(BaseModel):
@@ -307,13 +330,19 @@ class SupplyChainEvaluation(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    final_status: SupplyChainStatus = "completed"
+    final_status: EvaluationVerdict = "pass"
+    schema_valid: bool = True
+    graph_connected: bool = True
+    acyclic_for_sankey: bool = True
+    confirmed_edges_have_evidence: bool = True
     node_count: int = Field(ge=0)
     link_count: int = Field(ge=0)
     evidence_count: int = Field(ge=0)
     confirmed_edge_count: int = Field(ge=0)
     hypothesised_edge_count: int = Field(ge=0)
     unsupported_edges: list[str] = Field(default_factory=list)
+    low_confidence_edges: list[str] = Field(default_factory=list)
+    source_diversity_score: float = Field(default=0.0, ge=0.0, le=1.0)
     warnings: list[str] = Field(default_factory=list)
     human_review_required: bool = False
 
@@ -350,8 +379,11 @@ class SupplyChainExploreState(BaseModel):
 
 __all__ = [
     "EdgeValueMeaning",
+    "EvaluationVerdict",
     "NodeType",
     "NormalizedSupplyChainEvidence",
+    "ProviderCall",
+    "ProviderCallStatus",
     "RelationType",
     "SankeyEvaluation",
     "SankeyPayload",
