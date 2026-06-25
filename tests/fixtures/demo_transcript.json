@@ -1,0 +1,51 @@
+{
+  "ticker": "DEMO",
+  "company_name": "Demo Company, Inc.",
+  "year": 2024,
+  "quarter": 4,
+  "provider": "fmp",
+  "transcript_id": "DEMO-2024-Q4",
+  "title": "Demo Company Q4 2024 Earnings Call",
+  "published_at": "2024-11-15T21:00:00+00:00",
+  "turns": [
+    {
+      "speaker": "Jane Doe",
+      "role": "ceo",
+      "text": "We are pleased with our fourth quarter results. Demand for our demonstration products remained resilient despite ongoing macroeconomic uncertainty and tariff headwinds.",
+      "section": "prepared_remarks",
+      "turn_index": 0
+    },
+    {
+      "speaker": "John Smith",
+      "role": "cfo",
+      "text": "Revenue grew 6% year over year. Margins were pressured by higher input costs and shipping disruptions in Asia, but we maintained our full-year guidance.",
+      "section": "prepared_remarks",
+      "turn_index": 1
+    },
+    {
+      "speaker": "Analyst",
+      "role": "analyst",
+      "text": "Could you comment on how new tariffs might impact your cost structure next year?",
+      "section": "qa",
+      "turn_index": 2
+    },
+    {
+      "speaker": "Jane Doe",
+      "role": "ceo",
+      "text": "We are actively diversifying our supplier base away from concentrated regions to mitigate exposure to tariffs and geopolitical risk.",
+      "section": "qa",
+      "turn_index": 3
+    },
+    {
+      "speaker": "Operator",
+      "role": "operator",
+      "text": "Thank you. We will now begin the question-and-answer session.",
+      "section": "qa",
+      "turn_index": 4
+    }
+  ],
+  "url": "https://example.com/transcripts/demo-2024-q4",
+  "metadata": {
+    "raw_keys": ["symbol", "quarter", "year", "date", "content"]
+  }
+}

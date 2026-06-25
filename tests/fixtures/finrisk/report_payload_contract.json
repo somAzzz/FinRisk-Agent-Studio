@@ -1,0 +1,66 @@
+{
+  "title": "Apple Inc. Risk Intelligence Brief",
+  "executive_summary": "AAPL top 2 risks: supply chain and policy.",
+  "top_risks": [
+    {
+      "risk_id": "risk-supply-asia",
+      "title": "supply_chain",
+      "risk_type": "supply_chain",
+      "severity": 4,
+      "final_score": 72.5,
+      "summary": "Concentration of manufacturing in Asia exposes Apple to tariff and geopolitical disruption.",
+      "supporting_claim_ids": ["c-001"],
+      "supporting_evidence_ids": ["ne-risk-supply-asia"],
+      "related_graph_insight_ids": ["ins-test-001"]
+    }
+  ],
+  "recent_changes": [
+    {
+      "change_id": "rc-001",
+      "text": "Apple diversifying to India",
+      "supporting_evidence_ids": ["ne-m-supply-news"],
+      "confidence": 0.65
+    }
+  ],
+  "evidence_table": [
+    {
+      "evidence_id": "ne-risk-supply-asia",
+      "source_name": "Apple 10-K",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/0000320193-24-000123-index.htm",
+      "quote_or_summary": "The Company utilizes several outsourcing partners to manufacture subassemblies for the Company's products.",
+      "source_quality_score": 0.9
+    }
+  ],
+  "second_order_effects": [
+    {
+      "insight_id": "ins-test-001",
+      "source_company": "Apple Inc.",
+      "insight_type": "second_order_risk",
+      "risk_path_ids": ["p-test-001"],
+      "affected_entities": ["Taiwan"],
+      "explanation": "Apple depends on TSMC located in Taiwan. Path score is 78% (research hypothesis).",
+      "evidence_ids": ["ne-risk-supply-asia"],
+      "confidence": 0.78,
+      "uncertainty": "template-based; scrubbed against the v17 blocklist",
+      "recommended_next_questions": ["Monitor supply diversification announcements."],
+      "research_theme": "supply_chain_exposure"
+    }
+  ],
+  "evidence_vs_inference": [
+    {
+      "claim_id": "c-001",
+      "text": "supply_chain: Concentration of manufacturing in Asia.",
+      "claim_type": "evidence",
+      "supporting_evidence_ids": ["ne-risk-supply-asia"],
+      "confidence": 0.85
+    }
+  ],
+  "limitations": [
+    "Auto-generated brief; small set of SEC filings."
+  ],
+  "recommended_next_questions": [
+    "Pull the most recent 8-K filings."
+  ],
+  "disclaimer": "Disclaimer: This report is for research only and is not investment advice.",
+  "markdown": "# Apple Inc. Risk Intelligence Brief\n\n## Executive Summary\n\nAAPL top 2 risks.\n"
+}

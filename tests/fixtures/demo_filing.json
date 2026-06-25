@@ -1,0 +1,20 @@
+{
+  "source": "huggingface",
+  "cik": "0000320193",
+  "ticker": "DEMO",
+  "company_name": "Demo Company, Inc.",
+  "form_type": "10-K",
+  "year": 2024,
+  "filing_date": "2024-10-31",
+  "accession_number": "0000320193-24-000123",
+  "sections": {
+    "section_1": "Business. Demo Company designs and sells demonstration products for research purposes. The company operates one segment focused on education.",
+    "section_1A": "Risk Factors. We face risks from supply chain disruptions, geopolitical conflicts, and changes in trade policy including tariffs. Demand for our products depends on the broader macroeconomic environment.",
+    "section_7": "Management's Discussion and Analysis. Revenue grew modestly year-over-year. Margins were impacted by higher input costs and shipping disruptions in Asia. We continue to monitor inflation and the potential impact of new tariffs on imported components."
+  },
+  "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/demo-10k.htm",
+  "metadata": {
+    "filename": "demo-10k-2024.htm",
+    "source_id": "hf:eloukas/edgar-corpus:year_2020:train:0"
+  }
+}

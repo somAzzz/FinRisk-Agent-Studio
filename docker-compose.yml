@@ -23,9 +23,23 @@ services:
               count: all
               capabilities: [gpu]
     command: >
-      python3 -m sglang.launch_server 
-      --model-path Qwen/Qwen3.5-35B-A3B 
-      --host 0.0.0.0 
+      python3 -m sglang.launch_server
+      --model-path Qwen/Qwen3.5-35B-A3B
+      --host 0.0.0.0
       --port 30000
       --mem-fraction-static 0.9
       --attention-backend triton
+  neo4j:
+    image: neo4j:5
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
+volumes:
+  neo4j_data:
+  neo4j_logs:

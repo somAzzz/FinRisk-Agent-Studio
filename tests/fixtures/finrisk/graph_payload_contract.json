@@ -1,0 +1,147 @@
+{
+  "nodes": [
+    {
+      "node_id": "company:AAPL",
+      "node_type": "Company",
+      "label": "Apple Inc.",
+      "properties": {}
+    },
+    {
+      "node_id": "supplier:TSMC",
+      "node_type": "Supplier",
+      "label": "TSMC",
+      "properties": {}
+    },
+    {
+      "node_id": "region:Taiwan",
+      "node_type": "Region",
+      "label": "Taiwan",
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "e-test-1",
+      "source_node_id": "company:AAPL",
+      "target_node_id": "supplier:TSMC",
+      "edge_type": "DEPENDS_ON",
+      "metadata": {
+        "source": "fixture",
+        "evidence_ids": ["ne-risk-supply-asia"],
+        "confidence": 0.9,
+        "extraction_method": "rule",
+        "created_at": "2026-06-25T00:00:00+00:00"
+      }
+    },
+    {
+      "edge_id": "e-test-2",
+      "source_node_id": "supplier:TSMC",
+      "target_node_id": "region:Taiwan",
+      "edge_type": "LOCATED_IN",
+      "metadata": {
+        "source": "fixture",
+        "evidence_ids": ["ne-risk-supply-asia"],
+        "confidence": 0.95,
+        "extraction_method": "rule",
+        "created_at": "2026-06-25T00:00:00+00:00"
+      }
+    }
+  ],
+  "paths": [
+    {
+      "path_id": "p-test-001",
+      "nodes": [
+        {
+          "node_id": "company:AAPL",
+          "node_type": "Company",
+          "label": "Apple Inc.",
+          "properties": {}
+        },
+        {
+          "node_id": "supplier:TSMC",
+          "node_type": "Supplier",
+          "label": "TSMC",
+          "properties": {}
+        },
+        {
+          "node_id": "region:Taiwan",
+          "node_type": "Region",
+          "label": "Taiwan",
+          "properties": {}
+        }
+      ],
+      "edges": [
+        {
+          "edge_id": "e-test-1",
+          "source_node_id": "company:AAPL",
+          "target_node_id": "supplier:TSMC",
+          "edge_type": "DEPENDS_ON",
+          "metadata": {
+            "source": "fixture",
+            "evidence_ids": ["ne-risk-supply-asia"],
+            "confidence": 0.9,
+            "extraction_method": "rule",
+            "created_at": "2026-06-25T00:00:00+00:00"
+          }
+        },
+        {
+          "edge_id": "e-test-2",
+          "source_node_id": "supplier:TSMC",
+          "target_node_id": "region:Taiwan",
+          "edge_type": "LOCATED_IN",
+          "metadata": {
+            "source": "fixture",
+            "evidence_ids": ["ne-risk-supply-asia"],
+            "confidence": 0.95,
+            "extraction_method": "rule",
+            "created_at": "2026-06-25T00:00:00+00:00"
+          }
+        }
+      ],
+      "path_text": "Apple Inc. → TSMC → Taiwan",
+      "evidence_ids": ["ne-risk-supply-asia"],
+      "hop_count": 2,
+      "path_score": 0.78,
+      "score_breakdown": {
+        "evidence_coverage": 1.0,
+        "min_edge_confidence": 0.9,
+        "relevance": 0.6,
+        "source_quality": 0.9,
+        "novelty": 0.0,
+        "graph_centrality": 0.66,
+        "hub_penalty": 0.0
+      }
+    }
+  ],
+  "insights": [
+    {
+      "insight_id": "ins-test-001",
+      "source_company": "Apple Inc.",
+      "insight_type": "second_order_risk",
+      "risk_path_ids": ["p-test-001"],
+      "affected_entities": ["Taiwan"],
+      "explanation": "Apple depends on TSMC located in Taiwan. Path score is 78% (research hypothesis, not a financial impact forecast). It does not prove immediate financial impact and should be treated as a research prompt.",
+      "evidence_ids": ["ne-risk-supply-asia"],
+      "confidence": 0.78,
+      "uncertainty": "no LLM judge in v16; explanation is template-based and scrubbed against the v17 financial-advice blocklist",
+      "recommended_next_questions": [
+        "Monitor supply diversification announcements from the source company.",
+        "Track regional policy changes affecting the intermediate node."
+      ],
+      "research_theme": "supply_chain_exposure"
+    }
+  ],
+  "guardrail_findings": [
+    {
+      "finding_id": "f-test-001",
+      "step_name": "graph_reasoner",
+      "check_name": "graph_path",
+      "status": "needs_review",
+      "severity": "warning",
+      "message": "path p-test-001 edge e-test-1 has no evidence; treating as hypothesis",
+      "affected_object_type": "graph_path",
+      "affected_object_id": "p-test-001",
+      "recommendation": "verify with a human reviewer"
+    }
+  ]
+}

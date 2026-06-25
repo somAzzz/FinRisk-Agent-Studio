@@ -1,0 +1,92 @@
+{
+  "company": {
+    "company_name": "Apple Inc.",
+    "ticker": "AAPL",
+    "cik": "0000320193",
+    "filing_type": "10-K",
+    "analysis_year": 2024,
+    "source": "fixture",
+    "resolved_at": "2026-06-23T14:00:00+00:00"
+  },
+  "filing_risks": [
+    {
+      "risk_id": "risk-supply-asia",
+      "risk_type": "supply_chain",
+      "risk_factor": "Concentration of manufacturing in Asia exposes Apple to tariff and geopolitical disruption.",
+      "severity": 4,
+      "evidence_quote": "The Company utilizes several outsourcing partners to manufacture subassemblies for the Company's products and to perform final assembly and testing of finished products.",
+      "source": "sec_filing:0000320193-24-000123",
+      "filing_section": "section_1a",
+      "confidence": 0.85
+    },
+    {
+      "risk_id": "risk-tariff",
+      "risk_type": "policy",
+      "risk_factor": "Tariffs and other trade measures can materially impact Apple's gross margin.",
+      "severity": 4,
+      "evidence_quote": "Tariffs and other measures that are applied to the Company's products or their components can have a material adverse impact on the Company's business, results of operations and financial condition.",
+      "source": "sec_filing:0000320193-24-000123",
+      "filing_section": "section_1a",
+      "confidence": 0.9
+    },
+    {
+      "risk_id": "risk-china-data",
+      "risk_type": "geopolitical",
+      "risk_factor": "China data localization rules limit Apple's ability to collect and transfer data.",
+      "severity": 3,
+      "evidence_quote": "China has regulatory requirements relating to data processing and localization that govern the Company's ability to collect, use, and transfer data in China.",
+      "source": "sec_filing:0000320193-24-000123",
+      "filing_section": "section_1a",
+      "confidence": 0.75
+    },
+    {
+      "risk_id": "risk-cyber",
+      "risk_type": "operational",
+      "risk_factor": "Reliance on global suppliers exposes Apple to cybersecurity and ransomware attacks.",
+      "severity": 3,
+      "evidence_quote": "The Company relies on global suppliers that are also exposed to cybersecurity, ransomware and other malicious attacks that can disrupt business operations.",
+      "source": "sec_filing:0000320193-24-000123",
+      "filing_section": "section_1a",
+      "confidence": 0.7
+    }
+  ],
+  "market_evidence": [
+    {
+      "evidence_id": "m-tariff-news",
+      "risk_id": "risk-tariff",
+      "source_url": "https://www.reuters.com/business/aapl-tariff-impact",
+      "source_title": "Apple warns of tariff impact on Q4 margins",
+      "source_type": "news",
+      "claim": "Apple guided lower Q4 margins citing tariff exposure.",
+      "evidence_summary": "Reuters reports Apple cited tariffs as a headwind to Q4.",
+      "supports_risk": true,
+      "contradicts_risk": false,
+      "confidence": 0.75,
+      "timestamp": "2026-04-15T10:00:00+00:00"
+    },
+    {
+      "evidence_id": "m-supply-news",
+      "risk_id": "risk-supply-asia",
+      "source_url": "https://www.bloomberg.com/news/aapl-supply",
+      "source_title": "Apple diversifies suppliers outside Asia",
+      "source_type": "news",
+      "claim": "Apple has begun qualifying additional suppliers in Vietnam and India to reduce Asia concentration.",
+      "evidence_summary": "Bloomberg reports ongoing supplier diversification.",
+      "supports_risk": false,
+      "contradicts_risk": true,
+      "confidence": 0.65,
+      "timestamp": "2026-05-01T11:00:00+00:00"
+    }
+  ],
+  "graph_insights": [
+    {
+      "insight_id": "g-tsmc-taiwan",
+      "source_company": "Apple Inc.",
+      "affected_entity": "Taiwan Strait risk",
+      "risk_path": ["Apple Inc.", "TSMC", "Taiwan Strait risk"],
+      "investment_theme": "Geographic concentration of advanced fabs.",
+      "supporting_evidence_ids": ["risk-supply-asia", "m-supply-news"],
+      "confidence": 0.7
+    }
+  ]
+}

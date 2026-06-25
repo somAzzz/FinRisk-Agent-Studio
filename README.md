@@ -1,190 +1,447 @@
 # FinText-LLM
 
-Quantamental NLP 系统，利用本地 LLM 分析 SEC EDGAR Filing 与财报电话会，提取结构性金融信号。
+FinText-LLM is evolving into **FinRisk Agent Studio**: an AI-native financial risk intelligence workflow that combines SEC filings, web evidence, local or API-based LLMs, structured outputs, graph reasoning, and runtime quality guardrails.
 
-将非结构化 SEC 文档转化为可投资的量化信号。
+The project goal is not a generic “chat with filings” demo. It is a workflow system for financial research:
 
-## Features
+```text
+Company Resolver
+→ Filing Risk Extraction
+→ Market Evidence Collection
+→ Evidence Normalization
+→ Risk Scoring
+→ Graph Reasoning
+→ Structured Report Generation
+→ Quality Layer / Human Review Gate
+```
 
-| Module | Description | Use Case |
-|--------|-------------|----------|
-| **Macro Risk Alert** | 从 Item 1A 提取宏观风险，1-5 级严重度 | 风险预警 |
-| **Management Sentiment Deviation** | 对比 MD&A（书面）与财报电话会 Q&A（口头）情感差异 | 管理层信心分析 |
-| **Policy & Transition Risk** | 识别 IRA、碳监管等政策影响 | 政策风险评估 |
-| **Second-Order Supply Chain** | 通过知识图谱发现"铲子"机会 | 供应链投资 |
-| **Browser Exploration** | LLM 驱动浏览器，实时抓取金融数据 | 动态市场研究 |
+## Current Direction
+
+The latest roadmap reframes the project around two core ideas:
+
+1. **Quality Layer across every step**
+   Evaluation and guardrails should not only run after the report is generated. Every workflow step should have pre-step and post-step validation, including schema checks, evidence coverage, claim grounding, source quality, financial safety, graph path validation, and fallback tracking.
+
+2. **Graph Reasoning as a subsystem**
+   Graph reasoning should not mean giving an entire graph to an LLM. The intended design is:
+
+```text
+Graph Context Builder
+→ Candidate Path Retriever
+→ Path Scorer
+→ Evidence Binder
+→ LLM / Template Path Interpreter
+→ Graph Insight Validator
+→ Evidence Graph Visualization
+```
+
+LLMs explain verified paths and generate research hypotheses. They do not invent graph paths, create unsupported facts, or issue buy/sell recommendations.
+
+## What This Project Demonstrates
+
+- Pydantic-first agent workflow design
+- Local LLM and OpenAI-compatible API provider support
+- SEC EDGAR filing analysis
+- Targeted market evidence collection
+- Evidence-backed risk extraction
+- Deterministic risk scoring
+- Claim-to-evidence grounding
+- Graph path retrieval and ranking
+- Runtime guardrails and human review gates
+- Cached demo mode for reliable presentations
+- FastAPI and dashboard-oriented productization
+
+## Planned Demo: FinRisk Agent Studio
+
+Example user request:
+
+```text
+Company: Apple
+Ticker: AAPL
+Analysis Goal: Identify macro, policy and supply-chain risks that changed recently.
+Time Horizon: next 6-12 months
+```
+
+Expected output:
+
+- Top risks with severity and score breakdown
+- Filing evidence and recent market evidence
+- Claim-evidence matrix
+- Source quality warnings
+- Supply-chain or policy graph paths
+- Second-order risk insights
+- Structured risk intelligence report
+- Guardrail findings and human review status
+- Evidence graph visualization
+
+## Existing Foundation
+
+The repository already contains foundational modules for:
+
+- EDGAR data loading
+- SEC filing access and section parsing
+- Hugging Face EDGAR corpus loading
+- SGLang / OpenAI-compatible structured LLM client
+- Browser exploration
+- Search routing and caching
+- Risk, sentiment, opportunity, and report agents
+- Neo4j graph writer/query components
+- Offline demo fixtures and tests
+- Roadmap and implementation specs
+
+## Roadmap Documents
+
+Start here:
+
+```text
+docs/implementation-plan/00-overview.md
+```
+
+Most important current plans:
+
+```text
+docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
+docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+```
+
+Step 15 combined spec:
+
+```text
+docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
+```
+
+Step 16 detailed specs:
+
+```text
+docs/specs/v16-quality-graph/00-index.md
+docs/specs/v16-quality-graph/01-quality-layer-runtime.md
+docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
+docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
+docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
+docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
+docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
+```
+
+## Target Architecture
+
+```text
+src/
+├── agents/
+├── api/
+├── browser/
+├── data/
+├── evaluation/
+│   ├── engine.py
+│   ├── models.py
+│   ├── validators/
+│   └── metrics/
+├── graph/
+├── graph_reasoning/
+├── llm/
+├── reports/
+├── schemas/
+├── tools/
+└── workflows/
+    ├── finrisk_workflow.py
+    ├── state.py
+    └── steps/
+
+frontend/
+eval/
+docs/
+tests/
+```
+
+## Workflow Quality Layer
+
+The V16 plan introduces a runtime quality layer:
+
+```text
+Layer 1: Schema & Contract Guardrails
+Layer 2: Evidence & Grounding Guardrails
+Layer 3: Domain & Financial Safety Guardrails
+Layer 4: Workflow Quality & Regression Evaluation
+```
+
+Examples of checks:
+
+- Pydantic schema validity
+- required fields present
+- risk/evidence/claim ID references valid
+- each top risk has evidence
+- each claim has supporting evidence IDs
+- source quality and source diversity
+- no direct buy/sell advice
+- graph path exists in graph
+- graph edge has evidence or is marked as hypothesis
+- fallback events are recorded
+
+## Graph Reasoning
+
+The intended graph flow:
+
+```text
+Company + Risks + Evidence
+→ Graph Query Context
+→ Candidate Graph Paths
+→ Path Score Breakdown
+→ Evidence Binding
+→ Path Interpretation
+→ Graph Insight Validation
+→ Evidence Graph Payload
+```
+
+Example graph path:
+
+```text
+Apple
+→ depends_on
+TSMC
+→ located_in
+Taiwan
+→ exposed_to
+Geopolitical Risk
+```
+
+Insights are allowed to become **research themes** or **hypotheses**, not financial advice.
 
 ## Quick Start
 
-```bash
-# Install dependencies
-uv sync
+Install dependencies:
 
-# Start LLM service (SGLang with Qwen3.5-35B-A3B)
+```bash
+uv sync
+```
+
+Run tests:
+
+```bash
+uv run pytest -q
+```
+
+Run the existing offline company analysis demo:
+
+```bash
+uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+```
+
+The planned FinRisk workflow CLI target is:
+
+```bash
+uv run python -m src.workflows.finrisk_workflow \
+  --ticker AAPL \
+  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
+  --demo-mode
+```
+
+## Optional Local LLM Setup
+
+The project can use SGLang for local LLM inference:
+
+```bash
 docker compose up -d
-
-# Download EDGAR data (optional, for local corpus)
-python -m src.utils.download_edgar_2020
 ```
 
-## Core Features
+The planned provider configuration:
 
-### Browser Exploration
-
-LLM 驱动的 web 探索引擎，用于实时金融数据、市场新闻和研究。
-
-**Architecture**:
-```
-MarketExplorer (LLM Agent)
-├── SGLangClient (LLM with Pydantic Structured Output)
-│   └── BrowserAction, PageSummary models
-├── BrowserWrapper (agent-browser CLI wrapper)
-└── Consent page auto-handling
+```text
+LLM_PROVIDER=sglang
+LLM_PROVIDER=openai
+LLM_PROVIDER=deepseek
+LLM_PROVIDER=gemini
+LLM_PROVIDER=claude
+LLM_BASE_URL=http://localhost:30000/v1
+LLM_MODEL=Qwen/Qwen3.5-35B-A3B
 ```
 
-**Setup**:
+Demo mode should not require GPU, API keys, Neo4j, browser automation, or live network access.
+
+## LLM Providers
+
+The LLM layer is OpenAI-compatible across all providers — the only
+thing that changes per provider is the `base_url` and the API key.
+
+| Provider   | `LLM_PROVIDER` | `*_BASE_URL`              | Auth env var        | Default model        |
+|------------|----------------|---------------------------|---------------------|----------------------|
+| SGLang     | `sglang`       | `http://localhost:30000/v1` | `SGLANG_API_KEY`    | `Qwen/Qwen3.5-35B-A3B` |
+| vLLM       | `vllm`         | `http://localhost:8000/v1`   | `VLLM_API_KEY`      | `Qwen/Qwen3.5-35B-A3B` |
+| OpenAI     | `openai`       | `https://api.openai.com/v1`  | `OPENAI_API_KEY`    | `gpt-4o-mini`        |
+| DeepSeek   | `deepseek`     | `https://api.deepseek.com`   | `DEEPSEEK_API_KEY`  | `deepseek-chat`      |
+| Gemini     | `gemini`       | (OpenAI-compat shim)         | `GEMINI_API_KEY`    | `gemini-1.5-flash`   |
+| Claude     | `claude`       | (Anthropic SDK)              | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet`  |
+
+### DeepSeek quickstart
+
+DeepSeek's public API is OpenAI-compatible
+([docs](https://api-docs.deepseek.com)), so the standard
+`openai` Python SDK is used directly.
+
+1. Apply for a key at <https://platform.deepseek.com>.
+2. Copy `.env.example` to `.env` and fill in `DEEPSEEK_API_KEY`:
+
+   ```text
+   LLM_PROVIDER=deepseek
+   DEEPSEEK_BASE_URL=https://api.deepseek.com
+   DEEPSEEK_MODEL=deepseek-chat
+   DEEPSEEK_API_KEY=sk-...
+   ```
+
+3. Use the client in code:
+
+   ```python
+   from src.llm import build_client_from_settings
+
+   client = build_client_from_settings()
+   if client.configured:
+       text = client.complete("Summarise today's Apple 10-K risk factors.")
+   ```
+
+4. Or call the structured risk extractor:
+
+   ```python
+   from src.llm.deepseek_client import DeepSeekClient
+
+   client = DeepSeekClient()
+   result = client.extract_risks(
+       section_1a, company_name="Apple", year=2024
+   )
+   ```
+
+The client raises `DeepSeekNotConfigured` when `DEEPSEEK_API_KEY` is
+missing or still a placeholder, so demo / CI runs never accidentally
+call the real API. `deepseek-reasoner` is the chain-of-thought model;
+swap it in via `DEEPSEEK_MODEL=deepseek-reasoner` (note: both
+`deepseek-chat` and `deepseek-reasoner` are scheduled to be
+deprecated on 2026-07-24; the long-term models are `deepseek-v4-flash`
+and `deepseek-v4-pro`).
+
+## Browser Exploration
+
+Browser exploration is supported as an optional evidence acquisition path. It should not be the only demo path.
+
+Preferred evidence acquisition order:
+
+```text
+1. Cached evidence
+2. SearchRouter / structured search
+3. Browser exploration
+```
+
+`SearchRouter` supports configurable provider priority. Tavily can be
+used as the first live web-search provider for the FinRisk workflow,
+market exploration, and product supply-chain discovery:
+
 ```bash
-# Install agent-browser (Rust headless browser)
+export TAVILY_API_KEY=tvly-...
+export SEARCH_PROVIDER_ORDER=tavily,duckduckgo
+```
+
+For Brave Search API, either key variable is accepted:
+
+```bash
+export BRAVE_API_KEY=...
+# or
+export BRAVE_SEARCH_API_KEY=...
+export SEARCH_PROVIDER_ORDER=brave,duckduckgo
+```
+
+Supported provider names include:
+
+```text
+duckduckgo
+brave
+tavily
+searxng   # transparent fallback — used only when earlier providers fail
+```
+
+If `TAVILY_API_KEY` is missing, Tavily is skipped automatically and the
+router falls back to the next configured provider. SearXNG can be
+configured via `SEARXNG_BASE_URL` (e.g. `http://localhost:8080`) and is
+invisible to the LLM — it activates only after the higher-priority
+providers have exhausted their retry budget.
+
+Optional setup:
+
+```bash
 cargo install agent-browser
-agent-browser install  # Install Chrome
+agent-browser install
 ```
 
-**Usage**:
-```python
-import asyncio
-from src.browser import BrowserWrapper, MarketExplorer
-from src.llm.sglang_client import SGLangClient
+## Planned API
 
-async def main():
-    explorer = MarketExplorer(
-        llm_client=SGLangClient(),
-        wrapper=BrowserWrapper()
-    )
+Minimum API:
 
-    result = await explorer.explore(
-        goal="Explore Apple's latest earnings news and analyst opinions",
-        checkpoint_callback=lambda state: len(state.findings) < 5
-    )
-
-    for finding in result.findings:
-        print(f"[{finding.source_type}] {finding.summary}")
-
-asyncio.run(main())
+```text
+POST /workflows/finrisk/run
+GET  /workflows/{run_id}
+GET  /workflows/{run_id}/report
 ```
 
-**SGLang Upgrade Path**: 当前使用 OpenAI 兼容 API。sglang 0.6+ 可用时，通过 FSM 约束解码获得更好性能。参见 `docs/sglang_native_reference.py`。
+V16 API extensions:
 
-### Web Tools
-
-多工具 Agent 系统，支持智能路由：
-
-- **ddgs** (DuckDuckGo) — 简单查询：fact-check、股票代码、官方网站
-- **tavily** — 深度搜索：分析报告、多源新闻、趋势研究（RAG 优化，500 chars 摘要）
-- **web_fetch** — URL 内容提取
-- **searxng** — ddgs 失败时的透明容错（LLM 不可见）
-
-**Tiered Routing**:
-- 关键词规则引擎优先检测，简单/深度查询直接路由，不调 LLM
-- 模糊情况 → LLM 路由判断
-
-```python
-from src.tools.router import ToolRouter
-
-router = ToolRouter()
-# Routes to: ddgs, tavily, web_fetch, browser, or finish
+```text
+GET /workflows/{run_id}/trace
+GET /workflows/{run_id}/graph
+GET /workflows/{run_id}/evaluation
+GET /workflows/{run_id}/artifacts
 ```
 
-### EDGAR Analysis
-
-```python
-# Load EDGAR filings
-from src.data.loader import EdgarDataset
-
-ds = EdgarDataset()
-for filing in ds.get_filings_with_content("train"):
-    print(filing["cik"], filing["year"])
-
-# Extract risks using LLM
-from src.llm.client import EdgarLLMClient
-
-client = EdgarLLMClient()
-result = client.extract_risks(section_1a, company_name="Apple")
-```
-
-## Architecture
-
-```
-Data Sources → Preprocessing (Spark) → LLM Inference (SGLang) → Analysis → API Service (FastAPI + Neo4j)
-```
-
-**Hybrid Data Architecture**:
-- `edgar-corpus` (HuggingFace) — ~220K SEC filings (1993-2020)，用于回测
-- `defeatbeta-api` — 最新财报电话会
-- DuckDB — 直接查询 HuggingFace Parquet 文件
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Language** | Python 3.12 |
-| **Package Manager** | uv |
-| **LLM Engine** | SGLang (Qwen/Qwen3.5-35B-A3B) |
-| **Distributed Compute** | PySpark |
-| **Graph Database** | Neo4j |
-| **API Framework** | FastAPI + Pydantic |
-| **Browser Automation** | agent-browser |
-| **Container** | Docker + Docker Compose |
-
-## Data Sources
-
-- **HuggingFace**: `eloukas/edgar-corpus` (~220K filings, 1993-2020)
-- **HuggingFace**: `Joshua-Xia/yahoo-finance-data` (earnings call transcripts)
-- **GitHub**: `lefterisloukas/edgar-crawler` (latest filings)
-- **Stock Data**: yfinance
-
-## Project Structure
-
-```
-FinText-LLM/
-├── src/
-│   ├── browser/              # LLM-driven browser exploration
-│   │   ├── config.py         # BrowserConfig, ExplorationConfig
-│   │   ├── wrapper.py        # BrowserWrapper (agent-browser CLI)
-│   │   ├── explorer.py       # MarketExplorer (LLM agent)
-│   │   └── sanitize.py       # Sensitive data filter
-│   ├── data/
-│   │   └── loader.py         # EdgarDataset for EDGAR corpus
-│   ├── llm/
-│   │   ├── client.py         # EdgarLLMClient for risk extraction
-│   │   └── sglang_client.py  # SGLangClient with Pydantic
-│   ├── tools/
-│   │   ├── router.py         # Tool router (web_search, web_fetch, browser, finish)
-│   │   ├── web_search.py      # DuckDuckGo search with time_range
-│   │   └── web_fetch.py       # URL content extraction
-│   └── utils/
-│       └── download_edgar_2020.py
-├── scripts/
-│   ├── demo_exploration.py    # Browser exploration demo
-│   └── demo_web_search.py     # Web search demo
-├── docs/
-│   └── sglang_native_reference.py  # Future upgrade reference
-├── docker-compose.yml
-├── pyproject.toml
-└── README.md
-```
-
-## Developer Guide
+Planned server command:
 
 ```bash
-# Run tests
-pytest
-
-# Lint
-ruff check .
-
-# Install dependencies
-uv sync
+uvicorn src.api.main:app --reload
 ```
+
+## Planned Dashboard
+
+The dashboard should be a workflow product UI, not a chat interface.
+
+Tabs:
+
+```text
+Launcher
+Timeline
+Risk Report
+Evidence Graph
+Evaluation
+```
+
+The Evaluation tab should expose:
+
+- Evaluation overview
+- Step quality timeline
+- Claim-evidence matrix
+- Risk score breakdown
+- Guardrail findings drawer
+- Source quality warnings
+- Graph path validation status
+
+## Development Priorities
+
+Recommended next order:
+
+1. Stabilize current code and push committed docs.
+2. Implement workflow schemas and state.
+3. Implement cached MVP workflow.
+4. Add runtime Quality Layer.
+5. Add claim grounding and source quality.
+6. Add graph reasoning subsystem with fixture graph.
+7. Generate structured report model and markdown renderer.
+8. Expose API endpoints.
+9. Build dashboard tabs.
+10. Replace fixtures with real SEC, web, transcript, and Neo4j integrations.
+
+## Non-Goals
+
+The first demo should not try to solve everything:
+
+- No direct investment advice
+- No buy/sell recommendations
+- No requirement for live browser success
+- No requirement for GPU
+- No requirement for API keys
+- No requirement for live Neo4j
+- No generic chatbot UI
 
 ## License
 
