@@ -56,6 +56,7 @@ ignore = [
     "PLW0603",  # global statement (intentional in singleton setter)
     "UP042",  # str+Enum subclass; standard Pydantic 2 idiom
     "SIM108",  # use ternary operator (style preference; explicit if/else is fine)
+    "N806",  # uppercase constants inside functions (e.g. DFS color codes)
 ]
 
 fixable = ["ALL"]

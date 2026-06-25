@@ -84,6 +84,32 @@ export const api = {
   health(): Promise<{ status: string; runs: number }> {
     return sendRequest<{ status: string; runs: number }>("/workflows/health");
   },
+  // v18 supply chain
+  startSupplyChain(
+    req: import("./supply-chain-types").SupplyChainExploreRequestWire,
+  ): Promise<import("./supply-chain-types").SupplyChainExploreResponseWire> {
+    return sendRequest<
+      import("./supply-chain-types").SupplyChainExploreResponseWire
+    >("/supply-chain/explore", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  },
+  getSupplyChainSankey(
+    runId: string,
+  ): Promise<{ run_id: string; sankey: import("./supply-chain-types").SupplyChainSankeyPayloadWire | null }> {
+    return sendRequest(`/supply-chain/${runId}/sankey`);
+  },
+  expandSupplyChain(
+    req: import("./supply-chain-types").SupplyChainExpandRequestWire,
+  ): Promise<import("./supply-chain-types").SupplyChainExploreResponseWire> {
+    return sendRequest<
+      import("./supply-chain-types").SupplyChainExploreResponseWire
+    >("/supply-chain/expand", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  },
 };
 
 export const apiPaths = {
@@ -95,4 +121,7 @@ export const apiPaths = {
   evaluation: (runId: string) => `/workflows/${runId}/evaluation`,
   artifacts: (runId: string) => `/workflows/${runId}/artifacts`,
   health: "/workflows/health",
+  startSupplyChain: "/supply-chain/explore",
+  expandSupplyChain: "/supply-chain/expand",
+  supplyChainSankey: (runId: string) => `/supply-chain/${runId}/sankey`,
 };

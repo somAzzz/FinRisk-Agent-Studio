@@ -504,3 +504,89 @@ button.ghost {
     border-bottom: 1px solid var(--line);
   }
 }
+
+/* v18 supply chain */
+.sc-explorer {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.sc-explorer form {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.sc-explorer h2 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.sc-sankey {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.sc-sankey-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.sc-warnings {
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+  color: #92400e;
+  font-size: 12px;
+}
+
+.sc-warnings li {
+  padding: 2px 0;
+}
+
+.sc-drawer {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  align-self: flex-start;
+  min-width: 260px;
+}
+
+.sc-drawer.empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sc-drawer header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sc-drawer dl {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 4px 8px;
+  font-size: 12px;
+  margin: 0 0 12px 0;
+}
+
+.sc-drawer dt {
+  color: var(--muted);
+}
+
+.sc-drawer dd {
+  margin: 0;
+}
