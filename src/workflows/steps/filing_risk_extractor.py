@@ -9,10 +9,13 @@ of keyword-tagged risks so the rest of the workflow has a baseline.
 from __future__ import annotations
 
 import logging
+import os
+import re
 from pathlib import Path
 from typing import Any
 
 from src.evaluation.models import FallbackEvent
+from src.schemas.llm_config import LLMRunConfig
 from src.workflows.state import (
     ExtractedRisk,
     FinRiskWorkflowState,
@@ -39,6 +42,16 @@ _RISK_KEYWORDS: dict[str, str] = {
     "competition": "competition",
     "antitrust": "regulatory",
 }
+
+_MIN_RISK_SECTION_CHARS = 500
+_RISK_SECTION_HEADING_RE = re.compile(
+    r"item\s*1\s*a\s*[\.\:\-\u2013\u2014]?\s*risk\s*factors",
+    re.IGNORECASE,
+)
+_RISK_SECTION_BOUNDARY_RE = re.compile(
+    r"item\s*(?:1\s*b|2)\s*[\.\:\-\u2013\u2014]",
+    re.IGNORECASE,
+)
 
 
 class FilingRiskExtractorStep(WorkflowStep):
@@ -128,9 +141,9 @@ class FilingRiskExtractorStep(WorkflowStep):
             fetcher_factory = self._filing_fetcher_factory or FilingFetcher
             fetcher = fetcher_factory(client)
 
-            target: FilingMetadata | None = None
             from datetime import date
 
+            candidates: list[FilingMetadata] = []
             for idx in range(min(len(forms), 50)):
                 if (forms[idx] or "").upper() not in {"10-K", "10-Q"}:
                     continue
@@ -143,18 +156,21 @@ class FilingRiskExtractorStep(WorkflowStep):
                 primary_doc = (
                     primary_docs[idx] if idx < len(primary_docs) else ""
                 )
-                target = FilingMetadata(
-                    cik=ident.cik,
-                    accession_number=accession_numbers[idx],
-                    form_type=forms[idx].upper(),
-                    filing_date=fd,
-                    report_date=None,
-                    primary_document=primary_doc,
-                    url="",
+                candidates.append(
+                    FilingMetadata(
+                        cik=ident.cik,
+                        accession_number=accession_numbers[idx],
+                        form_type=forms[idx].upper(),
+                        filing_date=fd,
+                        report_date=None,
+                        primary_document=primary_doc,
+                        url="",
+                    )
                 )
-                break
+                if len(candidates) >= 12:
+                    break
 
-            if target is None:
+            if not candidates:
                 return [], FallbackEvent(
                     step_name=self.name,
                     from_mode="live",
@@ -162,18 +178,42 @@ class FilingRiskExtractorStep(WorkflowStep):
                     reason="no 10-K / 10-Q in recent submissions",
                 )
 
-            filing = fetcher.fetch_filing(target)
-            section_text = filing.sections.get("section_1a", "")
-            risks = _llm_extract(section_text)
-            if not risks:
-                risks = _keyword_tagged_risks(section_text)
-            # Tag each risk with the source accession for traceability.
-            for r in risks:
-                r.source = (
-                    f"sec_filing:{target.accession_number}:{target.form_type}"
-                )
-                r.filing_section = "section_1a"
-            return risks, None
+            for target in candidates:
+                try:
+                    filing = fetcher.fetch_filing(target)
+                except Exception as exc:
+                    logger.info(
+                        "FilingRiskExtractor: failed to fetch %s: %s",
+                        target.accession_number,
+                        exc,
+                    )
+                    continue
+                section_text = _risk_section_text(filing.sections)
+                if not section_text:
+                    logger.info(
+                        "FilingRiskExtractor: %s %s has no substantive Item 1A",
+                        target.form_type,
+                        target.accession_number,
+                    )
+                    continue
+                risks = _llm_extract(section_text, state.request.llm_config)
+                if not risks:
+                    risks = _keyword_tagged_risks(section_text)
+                if not risks:
+                    continue
+                # Tag each risk with the source accession for traceability.
+                for r in risks:
+                    r.source = (
+                        f"sec_filing:{target.accession_number}:{target.form_type}"
+                    )
+                    r.filing_section = "section_1a"
+                return risks, None
+            return [], FallbackEvent(
+                step_name=self.name,
+                from_mode="live",
+                to_mode="cached",
+                reason="no substantive risk factors found in recent filings",
+            )
         except Exception as exc:
             logger.info("FilingRiskExtractor live fetch failed: %s", exc)
             return [], FallbackEvent(
@@ -184,7 +224,10 @@ class FilingRiskExtractorStep(WorkflowStep):
             )
 
 
-def _llm_extract(section_text: str) -> list[ExtractedRisk]:
+def _llm_extract(
+    section_text: str,
+    llm_config: LLMRunConfig | None = None,
+) -> list[ExtractedRisk]:
     """LLM structured extraction adapter.
 
     The v17 spec requires an LLM structured extractor as the
@@ -204,10 +247,10 @@ def _llm_extract(section_text: str) -> list[ExtractedRisk]:
     """
     if not section_text:
         return []
-    client = _build_llm_client()
+    client = _build_llm_client(llm_config)
     if client is None:
         return []
-    if not getattr(client, "configured", False):
+    if hasattr(client, "configured") and not client.configured:
         return []
     try:
         result = client.extract_risks(
@@ -240,19 +283,68 @@ def _llm_extract(section_text: str) -> list[ExtractedRisk]:
     return risks
 
 
-def _build_llm_client() -> Any | None:
-    """Return the configured DeepSeek client, or ``None`` on failure.
+def _build_llm_client(llm_config: LLMRunConfig | None = None) -> Any | None:
+    """Return a configured LLM client, or ``None`` on failure.
 
     Extracted into a top-level function so unit tests can monkey
     patch the client factory via
     ``monkeypatch.setattr(mod, "_build_llm_client", ...)``.
     """
+    config = llm_config or LLMRunConfig()
+    provider = config.provider
     try:
-        from src.llm.deepseek_client import build_client_from_settings
+        if provider == "deepseek":
+            from src.llm.deepseek_client import DeepSeekClient
 
-        return build_client_from_settings()
+            return DeepSeekClient(
+                base_url=config.base_url,
+                model=config.model,
+            )
+        from src.llm.client import EdgarLLMClient
+
+        defaults = {
+            "sglang": (
+                os.environ.get("SGLANG_BASE_URL", "http://localhost:30000/v1"),
+                os.environ.get("SGLANG_API_KEY", "EMPTY"),
+                os.environ.get("SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"),
+            ),
+            "vllm": (
+                os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1"),
+                os.environ.get("VLLM_API_KEY", "dummy"),
+                os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B"),
+            ),
+            "openai": (
+                os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                os.environ.get("OPENAI_API_KEY", "REPLACE_ME"),
+                os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+            ),
+        }
+        base_url, api_key, model = defaults[provider]
+        return EdgarLLMClient(
+            base_url=config.base_url or base_url,
+            api_key=api_key,
+            model=config.model or model,
+        )
     except Exception:
         return None
+
+
+def _risk_section_text(sections: dict[str, str]) -> str:
+    """Return substantive Item 1A text, ignoring title-only sections."""
+    section_text = (sections.get("section_1a") or "").strip()
+    if len(section_text) >= _MIN_RISK_SECTION_CHARS:
+        return section_text
+    full_text = sections.get("full_text") or ""
+    candidates: list[str] = []
+    for match in _RISK_SECTION_HEADING_RE.finditer(full_text):
+        boundary = _RISK_SECTION_BOUNDARY_RE.search(full_text, match.end())
+        end = boundary.start() if boundary is not None else len(full_text)
+        chunk = full_text[match.start():end].strip()
+        if len(chunk) >= _MIN_RISK_SECTION_CHARS:
+            candidates.append(chunk)
+    if not candidates:
+        return ""
+    return max(candidates, key=len)
 
 
 def _keyword_tagged_risks(section_text: str) -> list[ExtractedRisk]:

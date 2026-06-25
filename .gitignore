@@ -21,6 +21,8 @@ env/
 cache/
 /data/
 reports/
+!src/reports/
+!src/reports/**
 demo_output/
 
 # Environment and secrets
@@ -39,3 +41,7 @@ dist/
 # IDE
 .idea/
 .vscode/
+
+# Local direnv config (per-developer shell environment)
+.envrc
+src/reports/__pycache__/

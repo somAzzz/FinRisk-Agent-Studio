@@ -14,11 +14,12 @@ Conventions:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from src.schemas.llm_config import LLMRunConfig
 
 RiskType = Literal[
     "macro",
@@ -86,6 +87,7 @@ class FinRiskRequest(BaseModel):
     max_browser_steps: int = Field(default=5, ge=0, le=20)
     demo_mode: bool = False
     cached_mode: bool = False
+    llm_config: LLMRunConfig = Field(default_factory=LLMRunConfig)
 
     @field_validator("ticker")
     @classmethod
@@ -401,7 +403,7 @@ class FinRiskWorkflowState(BaseModel):
 
 def utcnow() -> datetime:
     """Return the current UTC time as a timezone-aware datetime."""
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 __all__ = [

@@ -18,7 +18,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.evaluation.models import FallbackEvent
 from src.schemas.finrisk import (
     CompanyProfile,
     ExtractedRisk,
@@ -28,7 +27,6 @@ from src.schemas.finrisk import (
 )
 from src.workflows.steps.filing_risk_extractor import FilingRiskExtractorStep
 from src.workflows.steps.market_explorer_step import MarketExplorerStep
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -136,7 +134,7 @@ async def test_market_explorer_real_mode_swallows_router_exception() -> None:
         search_router=raising_router,
     )
     new_state = await step.run(state)
-    assert not new_state.fallback_events == False  # state still valid
+    assert new_state.fallback_events  # state still valid
     assert any(
         e.step_name == "market_explorer" for e in new_state.fallback_events
     )
@@ -170,10 +168,82 @@ async def test_filing_extractor_real_mode_without_deps_records_fallback() -> Non
     )
 
 
+async def test_filing_extractor_skips_title_only_item_1a() -> None:
+    """Latest 10-Q can carry only an Item 1A heading; fall back to 10-K."""
+
+    class Resolver:
+        def resolve(self, ticker):
+            return type(
+                "Ident",
+                (),
+                {"cik": "0000320193", "name": "Apple Inc."},
+            )()
+
+    class Client:
+        def get_submissions(self, cik):
+            return {
+                "filings": {
+                    "recent": {
+                        "form": ["10-Q", "10-K"],
+                        "accessionNumber": ["short-10q", "long-10k"],
+                        "filingDate": ["2026-05-01", "2025-10-31"],
+                        "primaryDocument": ["short.htm", "long.htm"],
+                    }
+                }
+            }
+
+    class Fetcher:
+        def __init__(self, client):
+            self.client = client
+
+        def fetch_filing(self, metadata):
+            if metadata.accession_number == "short-10q":
+                sections = {"section_1a": "Item 1A. Risk Factors"}
+            else:
+                sections = {
+                    "section_1a": (
+                        "Item 1A. Risk Factors. "
+                        + "Supplier and supply chain risks may affect operations. "
+                        * 20
+                    )
+                }
+            return type("Filing", (), {"sections": sections})()
+
+    state = _state(demo_mode=False)
+    step = FilingRiskExtractorStep(
+        fixture_path=FIXTURE_PATH,
+        ticker_resolver=Resolver,
+        sec_client=Client,
+        filing_fetcher=Fetcher,
+    )
+    new_state = await step.run(state)
+    assert new_state.filing_risks
+    assert new_state.filing_risks[0].source.startswith("sec_filing:long-10k")
+
+
+def test_risk_section_text_uses_full_text_when_parser_hits_toc() -> None:
+    from src.workflows.steps.filing_risk_extractor import _risk_section_text
+
+    full_text = (
+        "Table of Contents\n"
+        "Item 1A. Risk Factors\n"
+        "5\n"
+        "Item 1B. Unresolved Staff Comments\n"
+        "Item 1A. Risk Factors\n"
+        + "Supplier concentration and supply chain disruption risks. " * 20
+        + "Item 1B. Unresolved Staff Comments\n"
+    )
+    text = _risk_section_text(
+        {"section_1a": "Item 1A. Risk Factors\n5", "full_text": full_text}
+    )
+    assert "Supplier concentration" in text
+    assert len(text) > 500
+
+
 async def test_filing_extractor_llm_falls_back_to_keywords() -> None:
     """When the LLM extractor returns ``[]`` we fall back to keywords."""
-    from src.workflows.steps.filing_risk_extractor import _llm_extract
     from src.llm.deepseek_client import DeepSeekClient
+    from src.workflows.steps.filing_risk_extractor import _llm_extract
 
     class StubClient(DeepSeekClient):
         configured = True
@@ -185,7 +255,7 @@ async def test_filing_extractor_llm_falls_back_to_keywords() -> None:
     try:
         from src.workflows.steps import filing_risk_extractor as mod
 
-        def _factory():
+        def _factory(_config=None):
             return StubClient(api_key="sk-test")
 
         monkeypatch.setattr(mod, "_build_llm_client", _factory)

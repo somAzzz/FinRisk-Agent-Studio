@@ -148,21 +148,24 @@ class ReportGeneratorStep(WorkflowStep):
         from src.evaluation.claim_grounding import Claim
 
         claims: list[Claim] = []
+        claim_ids_by_risk_id: dict[str, list[str]] = {}
         for i, risk in enumerate(report.top_risks, start=1):
             supporting = [
                 ev.evidence_id
                 for ev in state.normalized_evidence
                 if risk.risk_id in (ev.related_risk_ids or [])
             ]
+            claim_id = f"c-{i:03d}"
             claims.append(
                 Claim(
-                    claim_id=f"c-{i:03d}",
+                    claim_id=claim_id,
                     text=f"{risk.risk_type}: {risk.risk_factor}",
                     claim_type="evidence",
                     supporting_evidence_ids=supporting,
                     confidence=0.85,
                 )
             )
+            claim_ids_by_risk_id.setdefault(risk.risk_id, []).append(claim_id)
         if state.graph_insights:
             claims.append(
                 Claim(
@@ -210,9 +213,7 @@ class ReportGeneratorStep(WorkflowStep):
                     0.0,
                 ),
                 summary=r.risk_factor,
-                supporting_claim_ids=[
-                    c.claim_id for c in claims if r.risk_id in c.text
-                ],
+                supporting_claim_ids=claim_ids_by_risk_id.get(r.risk_id, []),
                 supporting_evidence_ids=[
                     ev.evidence_id
                     for ev in state.normalized_evidence

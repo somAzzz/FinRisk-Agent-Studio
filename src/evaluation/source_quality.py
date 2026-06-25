@@ -10,7 +10,7 @@ the diversity guardrail.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -112,6 +112,8 @@ def build_source_quality(
     normalised_type = classify_source_type(source_type)
     age_days: float | None = None
     if collected_at is not None:
+        if collected_at.tzinfo is None:
+            collected_at = collected_at.replace(tzinfo=UTC)
         delta = utcnow() - collected_at
         age_days = max(0.0, delta.total_seconds() / 86400.0)
     return SourceQuality(

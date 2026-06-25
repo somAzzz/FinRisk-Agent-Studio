@@ -80,6 +80,7 @@ describe("SupplyChainExplorer", () => {
     expect(screen.getByTestId("sc-company-input")).toHaveValue("OpenAI");
     expect(screen.getByTestId("sc-product-input")).toHaveValue("ChatGPT");
     expect(screen.getByTestId("sc-demo-mode")).toBeChecked();
+    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
   });
 
   it("clicking Run calls the API and renders the Sankey", async () => {
@@ -89,7 +90,31 @@ describe("SupplyChainExplorer", () => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
     });
     expect(startMock).toHaveBeenCalled();
+    expect(startMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        llm_config: expect.objectContaining({ provider: "sglang" }),
+      }),
+    );
     expect(sankeyMock).toHaveBeenCalledWith("sc-run-1");
+  });
+
+  it("submits selected LLM provider", async () => {
+    render(<SupplyChainExplorer />);
+    fireEvent.change(screen.getByTestId("llm-provider-select"), {
+      target: { value: "deepseek" },
+    });
+    fireEvent.click(screen.getByTestId("sc-run-button"));
+    await waitFor(() => {
+      expect(startMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          llm_config: expect.objectContaining({
+            provider: "deepseek",
+            base_url: "https://api.deepseek.com",
+            model: "deepseek-chat",
+          }),
+        }),
+      );
+    });
   });
 
   it("clicking a node opens the drawer", async () => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, FinRiskApiError } from "../api";
 import type { FinRiskRequest, WorkflowRunSummary } from "../types";
+import { LLMProviderSelector } from "./LLMProviderSelector";
 
 const DEFAULT_REQUEST: FinRiskRequest = {
   ticker: "AAPL",
@@ -12,6 +13,11 @@ const DEFAULT_REQUEST: FinRiskRequest = {
   max_browser_steps: 5,
   demo_mode: true,
   cached_mode: false,
+  llm_config: {
+    provider: "sglang",
+    base_url: "http://localhost:30000/v1",
+    model: "Qwen/Qwen3.5-35B-A3B",
+  },
 };
 
 interface Props {
@@ -136,6 +142,10 @@ export function WorkflowLauncher({ onStarted, busy }: Props) {
         />
         <label htmlFor="cached-mode">Cached mode (use cache when available)</label>
       </div>
+      <LLMProviderSelector
+        value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
+        onChange={(next) => update("llm_config", next)}
+      />
       {error ? <div className="error-banner" data-testid="launcher-error">{error}</div> : null}
       <button
         type="submit"

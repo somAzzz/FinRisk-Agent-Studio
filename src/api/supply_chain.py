@@ -168,6 +168,7 @@ async def expand_supply_chain(
             max_suppliers_per_node=request.max_suppliers_per_node,
             demo_mode=request.demo_mode,
             cached_mode=request.cached_mode,
+            llm_config=request.llm_config,
         )
     except KeyError as exc:
         raise HTTPException(
@@ -200,6 +201,11 @@ async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="unknown supply-chain run",
         )
+    node_count = len(state.sankey.nodes) if state.sankey is not None else len(state.nodes)
+    link_count = len(state.sankey.links) if state.sankey is not None else len(state.links)
+    evidence_count = (
+        len(state.sankey.evidence) if state.sankey is not None else len(state.evidence)
+    )
     current_step = None
     for event in reversed(state.trace):
         if event.status == "running":
@@ -209,9 +215,9 @@ async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
         run_id=state.run_id,
         status=state.status,
         current_step=current_step,
-        node_count=len(state.nodes),
-        link_count=len(state.links),
-        evidence_count=len(state.evidence),
+        node_count=node_count,
+        link_count=link_count,
+        evidence_count=evidence_count,
         parent_run_id=state.parent_run_id,
         expanded_from_node_id=state.expanded_from_node_id,
         evaluation=state.evaluation,

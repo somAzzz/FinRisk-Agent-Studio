@@ -85,6 +85,7 @@ export interface SupplyChainExploreRequestWire {
   include_private_companies?: boolean;
   demo_mode?: boolean;
   cached_mode?: boolean;
+  llm_config?: LLMRunConfig;
 }
 
 export interface SupplyChainExpandRequestWire {
@@ -96,6 +97,7 @@ export interface SupplyChainExpandRequestWire {
   max_suppliers_per_node?: number;
   demo_mode?: boolean;
   cached_mode?: boolean;
+  llm_config?: LLMRunConfig;
 }
 
 export interface SupplyChainExploreResponseWire {
@@ -129,3 +131,4 @@ export interface SupplyChainStatusResponseWire {
   warnings: string[];
   fallback_events: string[];
 }
+import type { LLMRunConfig } from "./types";

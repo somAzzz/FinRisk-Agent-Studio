@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from src.schemas.llm_config import LLMRunConfig
 from src.workflows.state import utcnow
 
 NodeType = Literal[
@@ -101,6 +102,7 @@ class SupplyChainExploreRequest(BaseModel):
     include_private_companies: bool = True
     demo_mode: bool = False
     cached_mode: bool = False
+    llm_config: LLMRunConfig = Field(default_factory=LLMRunConfig)
 
     @model_validator(mode="after")
     def _require_company(self) -> SupplyChainExploreRequest:
@@ -132,6 +134,7 @@ class SupplyChainExpandRequest(BaseModel):
     max_suppliers_per_node: int = Field(default=5, ge=1, le=10)
     demo_mode: bool = False
     cached_mode: bool = False
+    llm_config: LLMRunConfig = Field(default_factory=LLMRunConfig)
 
     @field_validator("node_id")
     @classmethod

@@ -4,6 +4,7 @@ import type {
   SupplyChainSankeyPayloadWire,
 } from "../supply-chain-types";
 import { api } from "../api";
+import { LLMProviderSelector } from "./LLMProviderSelector";
 import { SupplyChainSankey } from "./SupplyChainSankey";
 import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
 
@@ -19,6 +20,11 @@ const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   max_suppliers_per_node: 5,
   demo_mode: true,
   cached_mode: true,
+  llm_config: {
+    provider: "sglang",
+    base_url: "http://localhost:30000/v1",
+    model: "Qwen/Qwen3.5-35B-A3B",
+  },
 };
 
 const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
@@ -73,14 +79,16 @@ export function SupplyChainExplorer({
     if (!runId) return;
     setBusy(true);
     setError(null);
+    const currentRequest = requestRef.current;
     try {
       await api.expandSupplyChain({
         parent_run_id: runId,
         node_id: nodeId,
         product_name: nodeId.split(":").slice(-1)[0],
         max_depth: 2,
-        demo_mode: true,
-        cached_mode: true,
+        demo_mode: currentRequest.demo_mode ?? false,
+        cached_mode: currentRequest.cached_mode ?? false,
+        llm_config: currentRequest.llm_config,
       }).then(async (resp) => {
         if (!TERMINAL_STATUSES.has(resp.status)) {
           await waitForSupplyChainRun(resp.run_id);
@@ -152,13 +160,23 @@ export function SupplyChainExplorer({
             id="sc-demo"
             type="checkbox"
             data-testid="sc-demo-mode"
-            checked={request.demo_mode ?? true}
-            onChange={(e) =>
-              setRequest((r) => ({ ...r, demo_mode: e.target.checked }))
-            }
-          />
+          checked={request.demo_mode ?? true}
+          onChange={(e) =>
+              setRequest((r) => ({
+                ...r,
+                demo_mode: e.target.checked,
+                cached_mode: e.target.checked,
+              }))
+          }
+        />
           <label htmlFor="sc-demo">Demo mode (offline fixture)</label>
         </div>
+        <LLMProviderSelector
+          value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
+          onChange={(next) =>
+            setRequest((r) => ({ ...r, llm_config: next }))
+          }
+        />
         <button
           type="submit"
           className="primary"

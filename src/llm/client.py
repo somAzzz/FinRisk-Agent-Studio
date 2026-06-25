@@ -7,6 +7,8 @@ from typing import Any
 
 from openai import OpenAI
 
+from src.llm.sglang_client import BrowserAction
+
 DEFAULT_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 DEFAULT_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
 DEFAULT_TEMPERATURE = 0.1
@@ -208,6 +210,70 @@ Text: {truncated_text}
         )
         return response.choices[0].message.content
 
+    def summarize(self, content: str) -> str:
+        """Summarize browser page content for market exploration.
+
+        ``MarketExplorer`` historically used :class:`SGLangClient`,
+        which exposes ``summarize``. The EDGAR client is also passed
+        into that explorer in integration tests and demo scripts, so
+        it provides the same small interface here.
+        """
+        if not content:
+            return ""
+        prompt = (
+            "Summarize this financial web page in 2-3 concise sentences. "
+            "Focus on facts relevant to the user's market research task.\n\n"
+            f"{content[:5000]}"
+        )
+        try:
+            return self.complete(
+                prompt,
+                system="You are a financial research assistant.",
+                max_tokens=256,
+                temperature=0.1,
+            ).strip()
+        except Exception:
+            return content[:200]
+
+    def decide_action(
+        self,
+        goal: str,
+        visited_urls: list[str],
+        recent_findings: list[tuple[str, str]],
+    ) -> BrowserAction | None:
+        """Decide the next browser action for ``MarketExplorer``.
+
+        The method mirrors ``SGLangClient.decide_action`` but uses the
+        generic completion endpoint and a defensive JSON parser. If the
+        model or parser fails, returning ``None`` cleanly stops the
+        exploration loop instead of crashing the run.
+        """
+        visited_str = ", ".join(visited_urls[:5])
+        findings_str = "; ".join(
+            f"{summary} ({url})" for summary, url in recent_findings[-3:]
+        )
+        prompt = f"""Goal: {goal}
+
+Visited URLs: {visited_str}
+Recent findings: {findings_str}
+
+Choose the next browser action. Respond only as JSON with keys:
+thought, action, query, url, selector.
+Allowed actions: search, navigate, click, scroll, stop."""
+        try:
+            raw = self.complete(
+                prompt,
+                system="You are a web browsing assistant. Output only JSON.",
+                max_tokens=256,
+                temperature=0.1,
+            )
+            payload = _extract_json_object(raw)
+            if payload is None:
+                return None
+            return BrowserAction.model_validate(payload)
+        except Exception:
+            return None
+
     def compute_embedding(self, text: str) -> list[float]:
         """Compute text embedding for novelty detection.
 
@@ -217,3 +283,29 @@ Text: {truncated_text}
 
         model = SentenceTransformer("all-MiniLM-L6-v2")
         return model.encode(text).tolist()
+
+
+def _extract_json_object(text: str) -> dict[str, Any] | None:
+    """Extract the first JSON object from a model response."""
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, dict) else None
+    except json.JSONDecodeError:
+        pass
+    code_blocks = re.findall(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", text)
+    for block in code_blocks:
+        try:
+            parsed = json.loads(block)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
+    match = re.search(r"\{[\s\S]*\}", text)
+    if match:
+        try:
+            parsed = json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return None
+        if isinstance(parsed, dict):
+            return parsed
+    return None

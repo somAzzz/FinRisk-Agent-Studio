@@ -21,6 +21,7 @@ import sys
 import uuid
 from pathlib import Path
 
+from src.schemas.llm_config import LLMRunConfig
 from src.supply_chain.models import (
     SankeyPayload,
     SupplyChainEvaluation,
@@ -65,6 +66,7 @@ def _seed_state_for_expansion(
     max_suppliers_per_node: int,
     demo_mode: bool,
     cached_mode: bool,
+    llm_config: LLMRunConfig,
 ) -> SupplyChainExploreState:
     """Create a child state that re-uses the parent's nodes / links.
 
@@ -80,6 +82,7 @@ def _seed_state_for_expansion(
         max_suppliers_per_node=max_suppliers_per_node,
         demo_mode=demo_mode,
         cached_mode=cached_mode,
+        llm_config=llm_config,
     )
     child = SupplyChainExploreState(
         run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
@@ -160,6 +163,7 @@ async def expand_supply_chain_workflow(
     max_suppliers_per_node: int = 5,
     demo_mode: bool = True,
     cached_mode: bool = True,
+    llm_config: LLMRunConfig | None = None,
     store: dict[str, SupplyChainExploreState] | None = None,
 ) -> SupplyChainExploreState:
     """Run a recursive expansion off an existing run.
@@ -182,6 +186,7 @@ async def expand_supply_chain_workflow(
         max_suppliers_per_node=max_suppliers_per_node,
         demo_mode=demo_mode,
         cached_mode=cached_mode,
+        llm_config=llm_config or LLMRunConfig(),
     )
     target_store = store if store is not None else DEFAULT_STATE_STORE
     parent = target_store.get(parent_run_id)
@@ -191,6 +196,7 @@ async def expand_supply_chain_workflow(
         raise ValueError(
             f"parent run {parent_run_id} has no sankey payload yet"
         )
+    resolved_llm_config = llm_config or parent.request.llm_config
     # v18: the expansion re-runs the workflow against a child
     # request that is seeded with the chosen node id. Demo mode
     # pulls the same fixture; the new state carries the parent
@@ -206,6 +212,7 @@ async def expand_supply_chain_workflow(
         max_suppliers_per_node=max_suppliers_per_node,
         demo_mode=demo_mode,
         cached_mode=cached_mode,
+        llm_config=resolved_llm_config,
     )
     child = _seed_state_for_expansion(
         parent,
@@ -215,6 +222,7 @@ async def expand_supply_chain_workflow(
         max_suppliers_per_node=max_suppliers_per_node,
         demo_mode=demo_mode,
         cached_mode=cached_mode,
+        llm_config=resolved_llm_config,
     )
     # The child inherits the parent's request above; reset it to
     # the child-specific request so the trace records the

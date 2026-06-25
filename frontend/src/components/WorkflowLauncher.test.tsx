@@ -33,6 +33,7 @@ describe("WorkflowLauncher", () => {
     const ticker = screen.getByTestId("ticker-input") as HTMLInputElement;
     expect(ticker.value).toBe("AAPL");
     expect(screen.getByTestId("demo-mode")).toBeChecked();
+    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
   });
 
   it("submits the request and invokes onStarted", async () => {
@@ -45,8 +46,32 @@ describe("WorkflowLauncher", () => {
     });
     expect(onStarted).toHaveBeenCalledWith(
       SUMMARY,
-      expect.objectContaining({ ticker: "AAPL", demo_mode: true }),
+      expect.objectContaining({
+        ticker: "AAPL",
+        demo_mode: true,
+        llm_config: expect.objectContaining({ provider: "sglang" }),
+      }),
     );
+  });
+
+  it("submits the selected LLM provider", async () => {
+    (api.startWorkflow as ReturnType<typeof vi.fn>).mockResolvedValue(SUMMARY);
+    render(<WorkflowLauncher onStarted={() => {}} busy={false} />);
+    fireEvent.change(screen.getByTestId("llm-provider-select"), {
+      target: { value: "openai" },
+    });
+    fireEvent.click(screen.getByTestId("run-button"));
+    await waitFor(() => {
+      expect(api.startWorkflow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          llm_config: expect.objectContaining({
+            provider: "openai",
+            base_url: "https://api.openai.com/v1",
+            model: "gpt-4o-mini",
+          }),
+        }),
+      );
+    });
   });
 
   it("surfaces API errors", async () => {

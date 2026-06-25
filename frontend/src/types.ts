@@ -21,6 +21,15 @@ export interface FinRiskRequest {
   max_browser_steps?: number;
   demo_mode?: boolean;
   cached_mode?: boolean;
+  llm_config?: LLMRunConfig;
+}
+
+export type LLMProvider = "sglang" | "vllm" | "deepseek" | "openai";
+
+export interface LLMRunConfig {
+  provider: LLMProvider;
+  base_url?: string | null;
+  model?: string | null;
 }
 
 export interface WorkflowRunSummary {
