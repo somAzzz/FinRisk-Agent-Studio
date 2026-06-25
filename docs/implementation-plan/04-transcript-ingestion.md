@@ -14,9 +14,11 @@
 src/data/transcripts.py
 src/data/providers/__init__.py
 src/data/providers/alpha_vantage.py
+src/data/providers/defeatbeta.py   # 2026-06-25: free, no-API-key provider
 src/data/providers/fmp.py
 tests/data/test_transcripts.py
 tests/data/providers/test_alpha_vantage.py
+tests/data/providers/test_defeatbeta.py
 tests/data/providers/test_fmp.py
 ```
 
@@ -25,6 +27,7 @@ tests/data/providers/test_fmp.py
 ```text
 src/data/__init__.py
 src/config.py
+src/pipelines/analyze_company.py   # dispatcher now tries defeatbeta first
 pyproject.toml
 ```
 
@@ -95,6 +98,27 @@ FMP_API_KEY
 - 支持 search/list transcript。
 - 支持获取指定 quarter transcript。
 - 统一 speaker turn。
+
+## Defeatbeta Provider (2026-06-25)
+
+无 API key — 数据来自 HuggingFace parquet 镜像 `defeatbeta/yahoo-finance-data`，由 DuckDB + `cache_httpfs` 在本地缓存。已成为 `_load_transcripts_live` 的默认首选 provider（无 key 时仍可工作），FMP / Alpha Vantage 作为付费备选。
+
+环境变量（可选）：
+
+```text
+DEFEATBETA_PROXY   # 仅在受限网络下设置 HTTP 代理
+```
+
+文件：`src/data/providers/defeatbeta.py`
+
+提供：
+
+- `DefeatBetaProvider` — 实现 `TranscriptProvider` Protocol（duck-type）。`list_transcripts(ticker)` 调 `ticker.earning_call_transcripts().get_transcripts_list()`，返回 80+ 历史季度的 metadata。`get_transcript(ticker, year, quarter)` 调 `.get_transcript(year, quarter)` 返回 paragraph-level DataFrame。
+- `fetch_filings_catalog_defeatbeta(ticker, form_types, since, limit)` — 用 defeatbeta 的 `sec_filing()` 给 FilingMetadata 列表（仅 catalog，不含 body）。
+- `fetch_financial_metrics_defeatbeta(ticker)` — 最新一期 TTM PE / PS / PB / PEG / ROE / ROIC / Debt-to-Equity 比率字典。
+- `fetch_revenue_breakdown_defeatbeta(ticker, breakdown, period_type)` — long-format 分部收入数据。**注**：defeatbeta 0.0.48 的 `revenue_by_segment/geography/product` 有 binder bug，此函数在受影响版本上返回 `[]`。
+
+依赖安装：`pyproject.toml` 已声明 `defeatbeta-api>=0.0.47`，首次调用会触发 DuckDB 引导 (~10s)。
 
 ## Transcript Parsing
 

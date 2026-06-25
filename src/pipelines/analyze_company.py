@@ -188,7 +188,95 @@ def _load_filings_live(
     except Exception as exc:  # noqa: BLE001
         logger.info("SEC live fetch skipped: %s", exc)
 
-    # 2. Fall back to the Hugging Face EDGAR corpus (streaming).
+    # 2. If SEC returned nothing, try defeatbeta-api's filing catalog.
+    #    Defeatbeta requires no API key and usually covers more years than
+    #    SEC's "recent" submissions endpoint; bodies still come from
+    #    SECClient via FilingFetcher so we just feed it the catalog
+    #    metadata. We use SEC's submissions API once to map accession
+    #    numbers to primary documents (defeatbeta's URL omits the
+    #    document filename).
+    if not filings:
+        try:
+            from src.data.providers.defeatbeta import (
+                fetch_filings_catalog_defeatbeta,
+            )
+            from src.data.sec_client import SECClient as _SECClient
+            from src.data.ticker_resolver import TickerResolver
+
+            catalog = fetch_filings_catalog_defeatbeta(
+                ticker,
+                form_types=["10-K", "10-Q"],
+                limit=5,
+            )
+            if catalog:
+                client = _SECClient()
+                # Build accession_number -> primary_document map from
+                # SEC's submissions JSON. The "recent" block carries
+                # primaryDocument for up to the last ~1000 filings.
+                primary_doc_by_accession: dict[str, str] = {}
+                fallback_ident = TickerResolver().resolve(ticker)
+                if fallback_ident is not None:
+                    try:
+                        sub_payload = client.get_submissions(
+                            fallback_ident.cik
+                        )
+                        recent = (
+                            sub_payload.get("filings", {}).get("recent", {})
+                            or {}
+                        )
+                        accs = recent.get("accessionNumber", []) or []
+                        docs = recent.get("primaryDocument", []) or []
+                        for idx, acc in enumerate(accs):
+                            if idx < len(docs) and docs[idx]:
+                                primary_doc_by_accession[acc] = docs[idx]
+                    except Exception as exc:  # noqa: BLE001
+                        logger.info(
+                            "SEC submissions lookup for catalog enrichment failed: %s",
+                            exc,
+                        )
+
+                fetcher = FilingFetcher(client)
+                for metadata_obj in catalog:
+                    # Enrich the catalog metadata with the SEC-supplied
+                    # primary document; without it, SECClient.get_filing_html
+                    # cannot construct the body URL.
+                    primary_doc = primary_doc_by_accession.get(
+                        metadata_obj.accession_number, ""
+                    )
+                    if not primary_doc:
+                        logger.info(
+                            "defeatbeta catalog entry %s has no primary_document; skipping",
+                            metadata_obj.accession_number,
+                        )
+                        continue
+                    enriched_metadata = metadata_obj.model_copy(
+                        update={"primary_document": primary_doc}
+                    )
+                    try:
+                        filing = fetcher.fetch_filing(enriched_metadata)
+                    except Exception as exc:  # noqa: BLE001
+                        logger.info(
+                            "Failed to download %s via defeatbeta catalog: %s",
+                            enriched_metadata.accession_number,
+                            exc,
+                        )
+                        continue
+                    # Tag provenance so downstream consumers can see the
+                    # catalog source — the FilingRecord itself still has
+                    # source="sec" because the body came from SEC.
+                    if isinstance(filing.metadata, dict):
+                        filing.metadata["catalog_source"] = "defeatbeta"
+                    filings.append(filing)
+                    if (
+                        year is not None
+                        and enriched_metadata.filing_date is not None
+                        and enriched_metadata.filing_date.year == year
+                    ):
+                        break
+        except Exception as exc:  # noqa: BLE001
+            logger.info("defeatbeta catalog fetch skipped: %s", exc)
+
+    # 3. Fall back to the Hugging Face EDGAR corpus (streaming).
     if not filings:
         try:
             from src.data.edgar_hf import EdgarCorpusLoader
@@ -224,9 +312,9 @@ def _load_transcripts_live(
     if max_transcripts <= 0:
         return transcripts
 
-    # Try FMP first, then Alpha Vantage. Any provider missing its API key
-    # is silently skipped.
-    for provider_name in ("fmp", "alpha_vantage"):
+    # Try defeatbeta (free, no key) first, then FMP and Alpha Vantage.
+    # Any provider missing its dependency is silently skipped.
+    for provider_name in ("defeatbeta", "fmp", "alpha_vantage"):
         if provider_name == "fmp" and not os.environ.get("FMP_API_KEY"):
             continue
         if provider_name == "alpha_vantage" and not os.environ.get(
@@ -238,12 +326,16 @@ def _load_transcripts_live(
                 from src.data.providers.fmp import FMPProvider
 
                 provider = FMPProvider()
-            else:
+            elif provider_name == "alpha_vantage":
                 from src.data.providers.alpha_vantage import (
                     AlphaVantageProvider,
                 )
 
                 provider = AlphaVantageProvider()
+            else:
+                from src.data.providers.defeatbeta import DefeatBetaProvider
+
+                provider = DefeatBetaProvider()
             metas = provider.list_transcripts(ticker)
             for meta in metas[:max_transcripts]:
                 try:

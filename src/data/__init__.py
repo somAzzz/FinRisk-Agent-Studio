@@ -4,6 +4,12 @@ from src.data.edgar_hf import EdgarCorpusLoader
 from src.data.filing_fetcher import FilingFetcher
 from src.data.loader import EdgarDataset
 from src.data.providers.alpha_vantage import AlphaVantageProvider
+from src.data.providers.defeatbeta import (
+    DefeatBetaProvider,
+    fetch_filings_catalog_defeatbeta,
+    fetch_financial_metrics_defeatbeta,
+    fetch_revenue_breakdown_defeatbeta,
+)
 from src.data.providers.fmp import FMPProvider
 from src.data.sec_client import (
     SECClient,
@@ -29,6 +35,7 @@ from src.schemas.filings import FilingMetadata, FilingRecord
 __all__ = [
     "AlphaVantageProvider",
     "CompanyFacts",
+    "DefeatBetaProvider",
     "EdgarCorpusLoader",
     "EdgarDataset",
     "FMPProvider",
@@ -49,6 +56,9 @@ __all__ = [
     "TranscriptProviderError",
     "TranscriptRateLimitError",
     "extract_metric",
+    "fetch_filings_catalog_defeatbeta",
+    "fetch_financial_metrics_defeatbeta",
+    "fetch_revenue_breakdown_defeatbeta",
     "infer_role",
     "infer_section",
 ]
