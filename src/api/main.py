@@ -16,6 +16,7 @@ import logging
 from fastapi import Depends, FastAPI
 
 from src.api.auth import require_api_key
+from src.api.rate_limit import RateLimitMiddleware, build_default_limiter
 from src.api.supply_chain import router as supply_chain_router
 from src.api.workflows import router as workflows_router
 
@@ -30,6 +31,37 @@ app = FastAPI(
         "based reasoning."
     ),
 )
+
+# R1 (supplement): per-key / per-IP rate limiting. The middleware runs
+# before the ``Depends(require_api_key)`` resolution, which is fine —
+# 401s are still subject to the budget and an attacker cannot amplify
+# load on the LLM by hammering unauthenticated requests. Set
+# ``RATE_LIMIT_DISABLED=1`` to opt out (e.g. handler-direct tests).
+#
+# The limiter is rebuilt lazily on every request via :func:`get_limiter`
+# so tests that ``monkeypatch.setenv("RATE_LIMIT_RPM", ...)`` see the
+# new value without re-importing. The cache is busted by
+# :func:`reset_rate_limiter_for_tests`; for tests that only need
+# ``RATE_LIMIT_DISABLED=1`` no reset is required.
+_limiter_cache: SlidingWindowLimiter | None = None
+
+
+def get_limiter() -> SlidingWindowLimiter:
+    global _limiter_cache
+    if _limiter_cache is None:
+        _limiter_cache = build_default_limiter()
+    return _limiter_cache
+
+
+def reset_rate_limiter_for_tests() -> None:
+    """Drop the cached limiter and reset its buckets. Test-only helper."""
+    global _limiter_cache
+    _limiter_cache = None
+
+
+from src.api.rate_limit import SlidingWindowLimiter  # noqa: E402
+
+app.add_middleware(RateLimitMiddleware, get_limiter=get_limiter)
 
 # R1: every workflow / supply-chain route is gated by ``X-API-Key``,
 # enforced through a single FastAPI dependency. Set ``AUTH_DISABLED=1``
