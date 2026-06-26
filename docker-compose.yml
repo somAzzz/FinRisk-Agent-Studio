@@ -1,6 +1,11 @@
 services:
   sglang:
-    image: lmsysorg/sglang:latest-cu130-runtime
+    # Pinned 2026-06-26 (audit remediation R8). Floating ``latest``
+    # tags were the audit's R8 finding. Bump quarterly; see
+    # docs/docker-image-pinning.md for the rationale (we prefer
+    # minor-version pinning over digest pinning to preserve layered
+    # image caching and easy cross-registry promotion).
+    image: lmsysorg/sglang:v0.4.10-cu130-runtime
     # Read HF_TOKEN / CUDA / etc. from a local .env file. Copy
     # .env.example to .env and fill in the values; the .env file is
     # gitignored.
@@ -26,7 +31,8 @@ services:
               capabilities: [gpu]
     command: ["sh", "-c", "pip install --no-cache-dir distro && pip uninstall -y torchcodec && exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.5-35B-A3B --host 0.0.0.0 --port 30000 --mem-fraction-static 0.9 --attention-backend triton"]
   neo4j:
-    image: neo4j:5
+    # Pinned 2026-06-26 (audit remediation R8). Quarterly review.
+    image: neo4j:5.26.0
     env_file:
       - .env
     ports:
