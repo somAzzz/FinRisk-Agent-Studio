@@ -23,7 +23,11 @@
   - `Product Supply Chain`
 - 前端 `SupplyChainExplorer` 支持 queued/running 状态轮询后再拉取 Sankey。
 - `RequirementDecomposerStep` 在 real mode 下不再返回空图，改为 rule-based requirement decomposition。
-- `SupplierDiscoveryStep` 在 real mode 下接入 `SearchRouter`，能从搜索结果生成 evidence-backed supplier edge。
+- `SupplierDiscoveryStep` 在 real mode 下接入 `SearchRouter` + LLM structured extraction：
+  - 规则只生成搜索方向。
+  - LLM 从 snippets 中抽取 supplier relation。
+  - Pydantic 校验通过后才生成 evidence-backed supplier edge。
+  - 新发现 supplier company 可作为下一轮 frontier 做 bounded upstream expansion。
 - `SearchRouter` 和 `SearchIntent` 增加 v18 供应链 intents：
   - `product_supply_chain`
   - `supplier_discovery`
@@ -46,7 +50,7 @@
   - `provider_calls`
   - `retry_count`
   - `cache_hit`
-- `SupplierDiscoveryStep` 会记录 search provider call。
+- `SupplierDiscoveryStep` 会记录 search provider call 和 LLM extraction provider call。
 - 新增测试：
   - `tests/graph/test_supply_chain_writer.py`
   - `tests/supply_chain/test_observability.py`
@@ -91,12 +95,12 @@ uv run python -m src.supply_chain.workflow --company OpenAI --product ChatGPT --
 
 ### LLM / NLI supplier relation extractor
 
-当前 supplier discovery 使用 SearchRouter + deterministic keyword extraction。还需要：
+当前 supplier discovery 已从 deterministic keyword extraction 升级为 SearchRouter + LLM structured extraction。后续还需要：
 
-- 对 fetched page / search snippets 做 LLM relation extraction。
-- 输出 `ExtractedSupplierRelation` Pydantic model。
-- 区分 confirmed / hypothesized。
-- 防止 LLM-only relation 进入 confirmed graph。
+- 对 fetched full page summaries 做二次 extraction，而不仅是 snippets。
+- 增加 prompt version / model metadata 到 evidence metadata。
+- 加 provider budget / timeout，限制递归轮次内的总 LLM calls。
+- 引入 NLI/verification pass，对高价值 edge 做第二模型或规则校验。
 
 ### Neo4j integration test
 

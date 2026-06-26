@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { CheckCircle2, AlertTriangle, XCircle, Info } from "lucide-react";
 import type {
   GuardrailFindingV16,
   StepEvaluationV16,
   WorkflowEvaluationV16,
 } from "../types";
+import { StepOutputInspector } from "./StepOutputInspector";
 
 interface Props {
   evaluation: WorkflowEvaluationV16 | null;
+  runId?: string | null;
 }
 
 const STATUS_LABELS: Record<WorkflowEvaluationV16["final_status"], string> = {
@@ -77,7 +79,7 @@ function StepRow({ step }: { step: StepEvaluationV16 }) {
   );
 }
 
-export function EvaluationTab({ evaluation }: Props) {
+export function EvaluationTab({ evaluation, runId }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(true);
   if (!evaluation) {
     return (
@@ -146,7 +148,21 @@ export function EvaluationTab({ evaluation }: Props) {
       <h3 style={{ marginTop: 16 }}>Step Quality Timeline</h3>
       <ul className="step-eval-list" data-testid="step-eval-list">
         {evaluation.step_evaluations.map((step) => (
-          <StepRow key={step.step_name} step={step} />
+          <Fragment key={step.step_name}>
+            <StepRow step={step} />
+            {runId ? (
+              <li className="step-eval-inspector">
+                <StepOutputInspector
+                  runId={runId}
+                  stepName={step.step_name}
+                  llmCalls={[]}
+                  chunkValidations={[]}
+                  sectionLocations={[]}
+                  riskLifecycles={[]}
+                />
+              </li>
+            ) : null}
+          </Fragment>
         ))}
       </ul>
 

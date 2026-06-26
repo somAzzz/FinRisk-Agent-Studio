@@ -309,6 +309,43 @@ def test_extract_risks_handles_unparseable_response(
     assert "raw_response" in result
 
 
+def test_extract_risks_chunked_reuses_shared_adapter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DeepSeek uses the same 4k chunked adapter as sglang/vLLM/OpenAI."""
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-real")
+    payload = json.dumps(
+        {
+            "risks": [
+                {
+                    "risk_factor": "Supply chain dependency",
+                    "severity": 4,
+                    "quote": "supply chain dependency may affect operations",
+                }
+            ]
+        }
+    )
+    fake_response = MagicMock()
+    fake_response.choices = [MagicMock(message=MagicMock(content=payload))]
+    long_section = "supply chain dependency may affect operations. " * 120
+    with patch("src.llm.deepseek_client.OpenAI") as OpenAIMock:
+        sdk = OpenAIMock.return_value
+        sdk.chat.completions.create.return_value = fake_response
+        client = DeepSeekClient()
+        risks, validations, calls = client.extract_risks_chunked(
+            long_section,
+            company_name="Apple",
+            year=2024,
+            source_id="fixture:aapl",
+            chunk_size=4000,
+        )
+    assert len(validations) == 2
+    assert len(calls) == 2
+    assert risks
+    assert all(v.fallback_used == "llm" for v in validations)
+    assert sdk.chat.completions.create.call_count == 2
+
+
 # ---------------------------------------------------------------------------
 # Settings wiring
 # ---------------------------------------------------------------------------

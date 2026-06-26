@@ -37,8 +37,9 @@ from typing import Any
 
 from openai import OpenAI
 
+from src.llm.client import DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, EdgarLLMClient
 from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
-from src.schemas.finrisk import LLMCall
+from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
 from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 
 logger = logging.getLogger(__name__)
@@ -132,7 +133,8 @@ class DeepSeekClient:
         step_name: str,
         chunk_id: str | None,
         max_tokens: int | None,
-        temperature: float | None,
+        temperature: float | None = None,
+        emit_call: bool = True,
     ) -> tuple[str, LLMCall]:
         """Run a chat completion and emit a :class:`LLMCall` row.
 
@@ -164,7 +166,8 @@ class DeepSeekClient:
                 started_at=started,
                 completed_at=completed,
             )
-            self._llm_call_sink(call)
+            if emit_call:
+                self._llm_call_sink(call)
             raise
         content = response.choices[0].message.content or ""
         usage = getattr(response, "usage", None)
@@ -186,7 +189,8 @@ class DeepSeekClient:
             started_at=started,
             completed_at=completed,
         )
-        self._llm_call_sink(call)
+        if emit_call:
+            self._llm_call_sink(call)
         return content, call
 
     @property
@@ -369,6 +373,42 @@ class DeepSeekClient:
                 "error": "LLM call failed",
             }
         return self._parse_response(content, company_name, year)
+
+    def extract_risks_chunked(
+        self,
+        section_1a: str,
+        company_name: str = "Unknown",
+        year: int = 2020,
+        *,
+        source_id: str = "unknown",
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
+        overlap: int = DEFAULT_CHUNK_OVERLAP,
+        step_name: str = "filing_risk_extractor",
+    ) -> tuple[list[ExtractedRisk], list[ChunkValidation], list[LLMCall]]:
+        """Extract risks through the canonical OpenAI-compatible adapter."""
+        self._ensure_configured()
+        adapter = self._risk_extraction_adapter()
+        return adapter.extract_risks_chunked(
+            section_1a,
+            company_name=company_name,
+            year=year,
+            source_id=source_id,
+            chunk_size=chunk_size,
+            overlap=overlap,
+            step_name=step_name,
+        )
+
+    def _risk_extraction_adapter(self) -> EdgarLLMClient:
+        """Build a lightweight adapter without creating a second SDK client."""
+        adapter = object.__new__(EdgarLLMClient)
+        adapter.client = self.client
+        adapter.model = self.model
+        adapter.temperature = self.temperature
+        adapter.max_tokens = self.max_tokens
+        adapter._llm_call_sink = self._llm_call_sink
+        adapter.provider = self.provider
+        adapter._chat = self._chat  # type: ignore[method-assign]
+        return adapter
 
     def _build_prompt(self, section_1a: str, company_name: str) -> str:
         """Build the structured-output prompt for risk extraction."""

@@ -118,7 +118,9 @@ service:cloud-compute -requires-> energy:datacenter-power
 
 - 对每个 requirement 找供应商公司。
 - demo mode 从 fixture 读取。
-- real mode 调 SearchRouter。
+- real mode 先用轻量规则生成搜索任务，再调用 SearchRouter 收集候选材料，最后由 LLM 读取 snippets 并输出结构化 supplier relation。
+- LLM 输出必须通过 Pydantic 校验后才能写入 nodes / links。
+- `max_depth > 1` 时，新发现的 supplier company 会作为下一轮 frontier 继续搜索 upstream supplier / provider。
 
 搜索意图：
 
@@ -138,6 +140,8 @@ component:gpu-accelerator -supplied_by-> company:nvidia
 component:cpu -supplied_by-> company:amd
 component:cpu -supplied_by-> company:intel
 ```
+
+注意：real mode 不再用供应商关键词规则直接生成 confirmed edge。规则只决定搜索方向；关系判断来自 evidence-backed LLM structured extraction。LLM 无法解析或证据不足时记录 warning / fallback event，并让 evaluator 降级为 needs_review。
 
 ## Evidence Normalizer
 
@@ -240,4 +244,3 @@ tests/supply_chain/test_recursive_expansion.py
 uv run pytest tests/supply_chain/test_workflow_demo.py tests/supply_chain/test_recursive_expansion.py -q
 uv run python -m src.supply_chain.workflow --company OpenAI --product ChatGPT --demo-mode
 ```
-

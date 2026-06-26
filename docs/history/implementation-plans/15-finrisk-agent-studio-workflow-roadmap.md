@@ -1041,3 +1041,29 @@ Launch Workflow
 - workflow trace 可查看。
 - cached mode 可离线演示。
 - API mode 和 local-LLM mode 都有配置入口。
+
+## 后续：LLM Step Inspector 集成
+
+当前 FinRisk workflow 已提供 per-step observability 数据：
+
+- `LLMCall`：每次 LLM 调用的 prompt、response、token usage、latency、error。
+- `ChunkValidation`：每个 4k filing chunk 的 Pydantic 校验结果。
+- `SectionLocation`：Item 1A 等 section 的定位 offset 和匹配原因。
+- `RiskLifecycleAnnotation`：每个 risk 的 current / emerging / receding / unknown 分类。
+
+短期先在 `EvaluationTab` 的 Step Quality Timeline 中挂载
+`StepOutputInspector`。后续产品化时，应把同一个 inspector 抽到
+`AgentTimeline` 的每个 step 行内，形成统一的 agent 运行流程可视化：
+
+```text
+Agent Timeline
+→ step row
+→ Chunks / LLM Log / Section Match / Lifecycle tabs
+→ raw prompt + raw response + structured validation details
+```
+
+验收标准：
+
+- real mode 下 `filing_risk_extractor` 至少显示 1 条 chunk validation。
+- 使用本地 sglang / vLLM / DeepSeek / OpenAI 时都走同一套 4k chunked adapter。
+- LLM response 接近 `max_tokens` 时在 inspector 中可见 token usage，便于判断是否需要调大输出长度或进入 reduce/merge 阶段。

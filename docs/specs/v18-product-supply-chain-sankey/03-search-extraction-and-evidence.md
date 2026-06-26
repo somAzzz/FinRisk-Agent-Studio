@@ -103,6 +103,7 @@ LLM 输入：
 - product context。
 - component / requirement。
 - search snippets 或 fetched page summaries。
+- 当前 frontier node；第一轮通常是 requirement，后续轮次可以是新发现的 supplier company。
 
 LLM 输出：
 
@@ -126,6 +127,8 @@ class ExtractedSupplierRelation(BaseModel):
 - `source_url` 为空时不能 confirmed。
 - `evidence_quote` 为空时不能 confirmed。
 - `confidence < 0.5` 默认进入 `hypothesized`。
+- 规则只能生成 search query / frontier，不允许直接把关键词命中转换为 supplier edge。
+- 每轮流程为：rule-guided query → SearchRouter evidence collection → LLM extraction → Pydantic validation → graph update → next frontier。
 
 ## Evidence Normalization
 
@@ -160,9 +163,11 @@ product
 ```text
 Search failure → cached search result
 Cached miss → fixture edge marked needs_review
-LLM failure → rule fallback
+LLM failure → warning / fallback event / needs_review
 Browser failure → snippet evidence only
 ```
+
+LLM 失败或 JSON 无法解析时，不应使用简单关键词规则伪造 confirmed supplier relation；该节点保持未确认，并由 evaluator / guardrail 暴露。
 
 记录：
 
@@ -197,4 +202,3 @@ tests/supply_chain/test_evidence_normalizer.py
 ```bash
 uv run pytest tests/supply_chain/test_supplier_discovery.py tests/supply_chain/test_evidence_normalizer.py -q
 ```
-
