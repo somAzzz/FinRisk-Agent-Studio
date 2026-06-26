@@ -325,7 +325,13 @@ async def get_workflow_graph(run_id: str) -> dict:
     return {
         "nodes": _as_list(state.graph_paths, "nodes"),
         "edges": _as_list(state.graph_paths, "edges"),
-        "paths": list(state.graph_paths or []),
+        # P2.1: paths are now typed ``list[CandidateGraphPath]``;
+        # serialise to JSON-friendly dicts so the existing client
+        # contract (``p["path_id"]``) keeps working.
+        "paths": [
+            p.model_dump(mode="json") if hasattr(p, "model_dump") else p
+            for p in (state.graph_paths or [])
+        ],
         # v17 alignment: serve the v16 ``GraphInsightV16`` list when
         # present (each entry has ``risk_path_ids`` and
         # ``affected_entities``); fall back to the v15 ``GraphInsight``

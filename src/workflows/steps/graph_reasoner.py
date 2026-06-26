@@ -78,12 +78,30 @@ class GraphReasonerStep(WorkflowStep):
             # v17: persist the typed payload so the /graph endpoint
             # serves the v16 ``EvidenceGraphPayload`` instead of
             # patching together the v15 ``graph_insights`` list.
+            # P2.1: keep the typed Pydantic instances on the
+            # state — the previous ``.model_dump()`` calls
+            # bypassed the v16 schema validation and round-tripped
+            # the data as raw ``dict`` objects.
             state.graph_payload = payload
-            state.graph_paths = [p.model_dump() for p in payload.paths]
+            state.graph_paths = list(payload.paths)
             state.graph_insights_v16 = list(payload.insights)
-            state.graph_context = (
-                payload.paths[0].model_dump() if payload.paths else None
-            )
+            # ``state.graph_context`` is typed as ``GraphQueryContext``
+            # but ``payload.paths[0]`` is a ``CandidateGraphPath``.
+            # Build a minimal GraphQueryContext from the first path
+            # so the typed field carries a real model instance; the
+            # graph-reasoning subsystem already maintains its own
+            # internal context object.
+            if payload.paths:
+                from src.graph_reasoning.models import GraphQueryContext
+
+                head = payload.paths[0]
+                state.graph_context = GraphQueryContext(
+                    company_id=state.request.ticker,
+                    ticker=state.request.ticker,
+                    focus_entities=[head.path_id],
+                )
+            else:
+                state.graph_context = None
             for finding in payload.guardrail_findings:
                 state.guardrail_findings.append(
                     # findings are already Pydantic dicts; coerce via

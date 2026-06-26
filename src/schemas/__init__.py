@@ -70,3 +70,9 @@ __all__ += [
     "WorkflowTraceEvent",
     "utcnow",
 ]
+
+# Note: the v16 forward-reference resolution happens inside
+# :mod:`src.schemas.finrisk` (see the post-class import block there).
+# We deliberately do *not* call ``model_rebuild`` here because
+# ``FinRiskWorkflowState.model_rebuild`` is invoked by the
+# ``finrisk`` module itself once the v16 types are bound.

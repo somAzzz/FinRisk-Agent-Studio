@@ -271,7 +271,10 @@ class ReportGeneratorStep(WorkflowStep):
         report_v16 = report_v16.model_copy(
             update={"markdown": render_risk_report_markdown(report_v16)}
         )
-        state.report_v16 = report_v16.model_dump(mode="json")
+        # P2.1: keep the typed Pydantic model on the state so the
+        # v16 schema is enforced. The previous ``.model_dump()``
+        # assignment bypassed validation and stored a ``dict``.
+        state.report_v16 = report_v16
         return state
 
 

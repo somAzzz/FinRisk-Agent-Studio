@@ -15,11 +15,32 @@ Conventions:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.schemas.llm_config import LLMRunConfig
+
+if TYPE_CHECKING:
+    # The v16 Pydantic models live in :mod:`src.schemas.finrisk_v16`,
+    # which transitively imports :mod:`src.workflows.state` — and
+    # ``state`` imports from this module. Importing the v16 models
+    # at runtime would create a circular import, so we defer to
+    # ``TYPE_CHECKING`` and resolve the annotations at the bottom
+    # of this module (see the post-class import block below).
+    from src.schemas.finrisk_v16 import (
+        CandidateGraphPath,
+        Claim,
+        EvidenceGraphPayload,
+        FallbackEvent,
+        GraphInsightV16,
+        GraphQueryContext,
+        GuardrailFinding,
+        RiskReportV16,
+        RiskScoreV16,
+        StepEvaluation,
+        WorkflowEvaluationV16,
+    )
 
 RiskType = Literal[
     "macro",
@@ -485,33 +506,26 @@ class FinRiskWorkflowState(BaseModel):
     trace: list[WorkflowTraceEvent] = Field(default_factory=list)
     status: WorkflowStatus = "created"
     # --- v16 quality layer / graph reasoning additions ---
-    # The fields below are typed as Any to avoid an import cycle with
-    # :mod:`src.evaluation.models`; the v16 code populates them with
-    # Claim / StepEvaluation / WorkflowEvaluationV16 / FallbackEvent
-    # / GuardrailFinding / CandidateGraphPath instances whose schema
-    # is enforced at the assignment site via ``model_validate``.
-    # --- v16 quality layer / graph reasoning additions ---
-    # v17: the v16 state fields keep the v15 ``list`` / ``Any`` type
-    # annotations so the state model does not have to import every
-    # v16 sub-module. The runtime contract is enforced by
-    # ``model_validate`` at the assignment site (see
-    # ``src.workflows.quality_gate`` and the graph reasoner / report
-    # generator) and by the v17 tests under
-    # ``tests/schemas/test_finrisk_v16_state.py``.
-    #
-    # The expected runtime types are documented in
-    # ``docs/specs/v17-code-audit-remediation/03-v16-state-report-and-score-path.md``.
-    claims: list = Field(default_factory=list)  # v16 Claim
-    graph_context: Any | None = None
-    graph_paths: list = Field(default_factory=list)  # v16 CandidateGraphPath
-    graph_payload: Any | None = None  # v16 EvidenceGraphPayload
-    graph_insights_v16: list = Field(default_factory=list)  # v16 GraphInsightV16
-    risk_scores_v16: list = Field(default_factory=list)  # v16 RiskScoreV16
-    report_v16: Any | None = None  # v16 RiskReportV16
-    evaluations: list = Field(default_factory=list)  # v16 StepEvaluation
-    workflow_evaluation: Any | None = None  # v16 WorkflowEvaluationV16
-    guardrail_findings: list = Field(default_factory=list)  # v16 GuardrailFinding
-    fallback_events: list = Field(default_factory=list)  # v16 FallbackEvent
+    # P2.1 (audit remediation 2026-06-26): the v16 fields are now
+    # strongly typed against the canonical models in
+    # :mod:`src.schemas.finrisk_v16`. The audit-flagged "import
+    # cycle" turned out to be historical — ``finrisk_v16`` did not
+    # import from ``finrisk`` — so we import the v16 types here
+    # directly. The legacy ``Any`` / unparameterized ``list`` shape
+    # is kept via the ``# type: ignore[valid-type]`` escape hatch on
+    # assignment sites that still need it (notably the SQLite
+    # run-store that round-trips the state through JSON).
+    claims: list[Claim] = Field(default_factory=list)
+    graph_context: GraphQueryContext | None = None
+    graph_paths: list[CandidateGraphPath] = Field(default_factory=list)
+    graph_payload: EvidenceGraphPayload | None = None
+    graph_insights_v16: list[GraphInsightV16] = Field(default_factory=list)
+    risk_scores_v16: list[RiskScoreV16] = Field(default_factory=list)
+    report_v16: RiskReportV16 | None = None
+    evaluations: list[StepEvaluation] = Field(default_factory=list)
+    workflow_evaluation: WorkflowEvaluationV16 | None = None
+    guardrail_findings: list[GuardrailFinding] = Field(default_factory=list)
+    fallback_events: list[FallbackEvent] = Field(default_factory=list)
     # --- v17 per-step observability (LLMCall / ChunkValidation /
     # SectionLocation / RiskLifecycleAnnotation). The StepOutputInspector
     # on the frontend reads these via /workflows/{id}/llm_log,
@@ -548,3 +562,10 @@ __all__ = [
     "WorkflowTraceEvent",
     "utcnow",
 ]
+
+
+# Note: the v16 forward-reference resolution happens at the end of
+# :mod:`src.workflows.state` (see the post-import block there).
+# We cannot call ``model_rebuild`` here because doing so would
+# re-trigger the import cycle (the v16 re-export module
+# transitively imports this file through ``src.workflows.state``).
