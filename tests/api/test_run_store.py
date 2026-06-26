@@ -12,7 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from src.api.run_store import InMemoryRunStore, SQLiteRunStore
+from src.api.run_store import (
+    FinRiskInMemoryRunStore,
+    FinRiskSQLiteRunStore,
+)
 from src.api.store_factory import (
     get_run_store,
     reset_run_store_for_tests,
@@ -30,14 +33,14 @@ def _reset_factory() -> None:
 def test_factory_defaults_to_memory(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("RUN_STORE_BACKEND", raising=False)
     store = get_run_store()
-    assert isinstance(store, InMemoryRunStore)
+    assert isinstance(store, FinRiskInMemoryRunStore)
 
 
 def test_factory_supports_sqlite(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("RUN_STORE_BACKEND", "sqlite")
     monkeypatch.setenv("RUN_STORE_DB", ":memory:")
     store = get_run_store()
-    assert isinstance(store, SQLiteRunStore)
+    assert isinstance(store, FinRiskSQLiteRunStore)
 
 
 def test_factory_rejects_unknown_backend(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -49,7 +52,7 @@ def test_factory_rejects_unknown_backend(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_sqlite_round_trip(tmp_path: Path) -> None:
     """A state written by one instance can be read by another on the same file."""
     db = tmp_path / "runs.sqlite3"
-    store_a = SQLiteRunStore(db)
+    store_a = FinRiskSQLiteRunStore(db)
     request = FinRiskRequest.model_validate(
         {"ticker": "AAPL", "analysis_goal": "Identify risks.", "demo_mode": True}
     )
@@ -63,7 +66,7 @@ def test_sqlite_round_trip(tmp_path: Path) -> None:
     asyncio_run(store_a.update(state))
 
     # New instance against the same file sees the update.
-    store_b = SQLiteRunStore(db)
+    store_b = FinRiskSQLiteRunStore(db)
     loaded = asyncio_run(store_b.get(state.run_id))
     assert loaded is not None
     assert loaded.status == "completed"
@@ -72,7 +75,7 @@ def test_sqlite_round_trip(tmp_path: Path) -> None:
 
 def test_sqlite_size_and_clear(tmp_path: Path) -> None:
     db = tmp_path / "runs.sqlite3"
-    store = SQLiteRunStore(db)
+    store = FinRiskSQLiteRunStore(db)
     request = FinRiskRequest.model_validate(
         {"ticker": "MSFT", "analysis_goal": "Identify risks.", "demo_mode": True}
     )
@@ -85,7 +88,7 @@ def test_sqlite_size_and_clear(tmp_path: Path) -> None:
 
 def test_sqlite_list_recent_ordering(tmp_path: Path) -> None:
     db = tmp_path / "runs.sqlite3"
-    store = SQLiteRunStore(db)
+    store = FinRiskSQLiteRunStore(db)
     request = FinRiskRequest.model_validate(
         {"ticker": "AAPL", "analysis_goal": "Identify risks.", "demo_mode": True}
     )

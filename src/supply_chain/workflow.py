@@ -41,7 +41,53 @@ from src.supply_chain.steps import (
 logger = logging.getLogger(__name__)
 
 
+# Legacy module-level dict. Retained as a *default* for callers that
+# pass a plain ``dict`` as the ``store=`` argument. The default
+# store used by the API is now the supply-chain backend from
+# :func:`src.api.store_factory.get_supply_chain_store`; this dict
+# is no longer populated by the API routes.
 DEFAULT_STATE_STORE: dict[str, SupplyChainExploreState] = {}
+
+
+def _is_backend(store) -> bool:
+    """Return ``True`` for ``RunStoreBackend`` instances.
+
+    We duck-type on the *async* ``update`` method — plain ``dict``
+    has a synchronous ``update`` and is therefore excluded.
+    """
+    import inspect
+
+    update = getattr(store, "update", None)
+    return callable(update) and inspect.iscoroutinefunction(update)
+
+
+def _resolve_store(store):
+    """Return the active store: the explicit ``store`` argument if
+    given, otherwise the shared supply-chain backend.
+
+    Accepts either a ``dict`` (legacy) or a
+    :class:`RunStoreBackend` instance.
+    """
+    if store is not None:
+        return store
+    from src.api.store_factory import get_supply_chain_store
+
+    return get_supply_chain_store()
+
+
+async def _store_set(store, state) -> None:
+    """Persist ``state`` to either a dict or a backend."""
+    if _is_backend(store):
+        await store.update(state)
+    else:
+        store[state.run_id] = state
+
+
+async def _store_get(store, run_id: str):
+    """Read a state by run id from either a dict or a backend."""
+    if _is_backend(store):
+        return await store.get(run_id)
+    return store.get(run_id)
 
 
 def _default_steps() -> list:
@@ -133,10 +179,16 @@ async def run_supply_chain_workflow(
     *,
     steps: list | None = None,
     initial_state: SupplyChainExploreState | None = None,
-    store: dict[str, SupplyChainExploreState] | None = None,
+    store: dict | None = None,
 ) -> SupplyChainExploreState:
-    """Execute the v18 workflow end-to-end and return the final state."""
-    target_store = store if store is not None else DEFAULT_STATE_STORE
+    """Execute the v18 workflow end-to-end and return the final state.
+
+    ``store`` accepts either a plain ``dict`` (legacy callers) or a
+    :class:`~src.api.run_store.RunStoreBackend` instance. When
+    ``None``, the shared supply-chain backend from
+    :func:`src.api.store_factory.get_supply_chain_store` is used.
+    """
+    target_store = _resolve_store(store)
     if initial_state is not None:
         state = initial_state
     else:
@@ -145,11 +197,11 @@ async def run_supply_chain_workflow(
             request=request,
         )
     state.status = "running"
-    target_store[state.run_id] = state
+    await _store_set(target_store, state)
     pipeline = steps or _default_steps()
     for step in pipeline:
         state = await step(state)
-    target_store[state.run_id] = state
+    await _store_set(target_store, state)
     return state
 
 
@@ -188,8 +240,8 @@ async def expand_supply_chain_workflow(
         cached_mode=cached_mode,
         llm_config=llm_config or LLMRunConfig(),
     )
-    target_store = store if store is not None else DEFAULT_STATE_STORE
-    parent = target_store.get(parent_run_id)
+    target_store = _resolve_store(store)
+    parent = await _store_get(target_store, parent_run_id)
     if parent is None:
         raise KeyError(f"unknown parent run_id: {parent_run_id}")
     if parent.sankey is None:
@@ -229,7 +281,7 @@ async def expand_supply_chain_workflow(
     # expansion scope.
     child = child.model_copy(update={"request": child_request})
     child.status = "running"
-    target_store[child.run_id] = child
+    await _store_set(target_store, child)
     pipeline = _default_steps()
     for step in pipeline:
         child = await step(child)
@@ -248,8 +300,8 @@ async def expand_supply_chain_workflow(
             "evidence_count": len(merged.evidence),
         }
     )
-    target_store[parent.run_id] = parent
-    target_store[child.run_id] = child
+    await _store_set(target_store, parent)
+    await _store_set(target_store, child)
     return child
 
 

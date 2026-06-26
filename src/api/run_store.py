@@ -1,7 +1,7 @@
 """Run-store backends for FinRisk workflow runs.
 
-Defines a :class:`RunStoreBackend` :class:`typing.Protocol` plus
-two implementations:
+Defines a generic :class:`RunStoreBackend` :class:`typing.Protocol`
+parameterized over the state type, plus two implementations:
 
 - :class:`InMemoryRunStore` — the original process-local dict store.
 - :class:`SQLiteRunStore` — a durable, single-file backend backed by
@@ -11,7 +11,10 @@ two implementations:
 
 The factory in :mod:`src.api.store_factory` picks the backend at
 runtime from the ``RUN_STORE_BACKEND`` env var (``memory`` |
-``sqlite``, default ``memory``).
+``sqlite``, default ``memory``). A separate
+:func:`get_supply_chain_store` factory returns a backend specialised
+for ``SupplyChainExploreState`` so the supply-chain routes share
+the same persistence machinery.
 """
 
 from __future__ import annotations
@@ -20,27 +23,31 @@ import asyncio
 import sqlite3
 import uuid
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 from src.workflows.state import (
     FinRiskRequest,
     FinRiskWorkflowState,
 )
 
+T = TypeVar("T")
+
 
 @runtime_checkable
-class RunStoreBackend(Protocol):
-    """The minimal contract that workflow route handlers depend on."""
+class RunStoreBackend[T](Protocol):
+    """The minimal contract that route handlers depend on.
 
-    async def create(
-        self, request: FinRiskRequest
-    ) -> FinRiskWorkflowState: ...
+    A concrete backend is keyed by a string ``run_id`` and stores
+    Pydantic state objects. ``create`` is supplied only by the
+    FinRisk workflow backend (the supply-chain backend mints its
+    own run ids inside the workflow and only needs ``update`` /
+    ``get`` / ``clear``); supply-chain implementations may
+    implement ``create`` by raising :class:`NotImplementedError`.
+    """
 
-    async def get(self, run_id: str) -> FinRiskWorkflowState | None: ...
+    async def get(self, run_id: str) -> T | None: ...
 
-    async def update(self, state: FinRiskWorkflowState) -> None: ...
-
-    async def list_recent(self, limit: int = 20) -> list[FinRiskWorkflowState]: ...
+    async def update(self, state: T) -> None: ...
 
     async def size(self) -> int: ...
 
@@ -49,34 +56,27 @@ class RunStoreBackend(Protocol):
         ...
 
 
-class InMemoryRunStore:
-    """Process-local store for ``FinRiskWorkflowState`` instances.
+class InMemoryRunStore(RunStoreBackend[T]):
+    """Process-local store for state objects keyed by ``run_id``.
 
-    The store maintains insertion order so ``list_recent`` returns
-    the newest runs first. All mutations are synchronous dict
-    updates, which are atomic in CPython; production multi-process
-    deployments should swap this implementation for SQLite +
-    asyncio lock or Redis.
+    Maintains insertion order so :meth:`list_recent` returns the
+    newest runs first. All mutations are synchronous dict updates,
+    which are atomic in CPython; production multi-process
+    deployments should swap this for SQLite + asyncio lock or
+    Redis.
     """
 
     def __init__(self) -> None:
-        self._states: dict[str, FinRiskWorkflowState] = {}
+        self._states: dict[str, T] = {}
 
-    async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
-        """Create a new run, store it, and return the initial state."""
-        run_id = f"run-{uuid.uuid4().hex[:12]}"
-        state = FinRiskWorkflowState(run_id=run_id, request=request)
-        self._states[run_id] = state
-        return state
-
-    async def get(self, run_id: str) -> FinRiskWorkflowState | None:
+    async def get(self, run_id: str) -> T | None:
         return self._states.get(run_id)
 
-    async def update(self, state: FinRiskWorkflowState) -> None:
+    async def update(self, state: T) -> None:
         """Replace the stored state for ``state.run_id``."""
-        self._states[state.run_id] = state
+        self._states[state.run_id] = state  # type: ignore[attr-defined]
 
-    async def list_recent(self, limit: int = 20) -> list[FinRiskWorkflowState]:
+    async def list_recent(self, limit: int = 20) -> list[T]:
         states_list = list(self._states.values())
         states_list.reverse()
         return states_list[:limit]
@@ -85,30 +85,28 @@ class InMemoryRunStore:
         return len(self._states)
 
     async def clear(self) -> None:
-        """Drop every run."""
         self._states.clear()
 
 
-class SQLiteRunStore:
+class SQLiteRunStore(RunStoreBackend[T]):
     """Durable, single-file ``sqlite3``-backed run store.
 
-    State is serialized with Pydantic's ``model_dump`` /
-    ``model_validate`` round-trip so any Pydantic-aware field on
-    :class:`FinRiskWorkflowState` round-trips correctly. The
-    connection is opened lazily and held per-instance; concurrent
-    asyncio tasks are serialized through ``asyncio.to_thread`` to
-    keep the stdlib ``sqlite3`` module happy in an async context.
+    State is serialized with Pydantic's ``model_dump_json`` /
+    ``model_validate_json`` round-trip so any Pydantic-aware field
+    round-trips correctly. The connection is opened lazily and
+    held per-instance; concurrent asyncio tasks are serialized
+    through ``asyncio.to_thread`` to keep stdlib ``sqlite3`` happy
+    in an async context.
 
     Multi-writer concurrency is limited — the underlying
     ``sqlite3.Connection`` serializes writes. For multi-process
     deployments use Postgres / Redis instead.
     """
 
-    def __init__(self, db_path: str | Path) -> None:
+    def __init__(self, db_path: str | Path, *, table: str = "runs") -> None:
         self._db_path = Path(db_path)
+        self._table = table
         self._lock = asyncio.Lock()
-        self._init_lock = asyncio.Lock()
-        self._initialized = False
         self._conn: sqlite3.Connection | None = None
 
     def _connect(self) -> sqlite3.Connection:
@@ -116,8 +114,8 @@ class SQLiteRunStore:
         conn = sqlite3.connect(self._db_path, isolation_level=None)
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS runs (
+            f"""
+            CREATE TABLE IF NOT EXISTS {self._table} (
                 run_id TEXT PRIMARY KEY,
                 payload TEXT NOT NULL,
                 created_at REAL NOT NULL
@@ -129,84 +127,70 @@ class SQLiteRunStore:
     def _ensure(self) -> sqlite3.Connection:
         if self._conn is None:
             self._conn = self._connect()
-            self._initialized = True
         return self._conn
 
-    def _row_to_state(self, row: tuple[Any, ...]) -> FinRiskWorkflowState:
-        payload = row[0]
-        return FinRiskWorkflowState.model_validate_json(payload)
+    def _row_to_state(self, row: tuple[Any, ...], model: type[T]) -> T:
+        return model.model_validate_json(row[0])
 
-    def _sync_create(self, request_payload: str) -> str:
-        """Persist a fresh state built from a request payload.
-
-        ``request_payload`` is a JSON-serialized ``FinRiskRequest``
-        (not a full state). We rebuild a real :class:`FinRiskWorkflowState`
-        from it, assign the new ``run_id``, and persist.
-        """
-        run_id = f"run-{uuid.uuid4().hex[:12]}"
-        request = FinRiskRequest.model_validate_json(request_payload)
-        state = FinRiskWorkflowState(run_id=run_id, request=request)
-        payload = state.model_dump_json()
+    def _sync_update(self, state: T) -> None:
         conn = self._ensure()
+        payload = state.model_dump_json()  # type: ignore[attr-defined]
         conn.execute(
-            "INSERT OR REPLACE INTO runs(run_id, payload, created_at) VALUES (?, ?, ?)",
-            (run_id, payload, _now()),
+            f"INSERT OR REPLACE INTO {self._table}(run_id, payload, created_at) "
+            "VALUES (?, ?, ?)",
+            (state.run_id, payload, _now()),  # type: ignore[attr-defined]
         )
-        return run_id
 
-    def _sync_get(self, run_id: str) -> FinRiskWorkflowState | None:
+    def _sync_get(self, run_id: str, model: type[T]) -> T | None:
         conn = self._ensure()
         row = conn.execute(
-            "SELECT payload FROM runs WHERE run_id = ?", (run_id,)
+            f"SELECT payload FROM {self._table} WHERE run_id = ?", (run_id,)
         ).fetchone()
         if row is None:
             return None
-        return self._row_to_state(row)
-
-    def _sync_update(self, state: FinRiskWorkflowState) -> None:
-        conn = self._ensure()
-        payload = state.model_dump_json()
-        conn.execute(
-            "INSERT OR REPLACE INTO runs(run_id, payload, created_at) VALUES (?, ?, ?)",
-            (state.run_id, payload, _now()),
-        )
-
-    def _sync_list_recent(self, limit: int) -> list[FinRiskWorkflowState]:
-        conn = self._ensure()
-        rows = conn.execute(
-            "SELECT payload FROM runs ORDER BY created_at DESC LIMIT ?",
-            (limit,),
-        ).fetchall()
-        return [self._row_to_state(r) for r in rows]
+        return self._row_to_state(row, model)
 
     def _sync_size(self) -> int:
         conn = self._ensure()
-        row = conn.execute("SELECT COUNT(*) FROM runs").fetchone()
+        row = conn.execute(f"SELECT COUNT(*) FROM {self._table}").fetchone()
         return int(row[0]) if row else 0
+
+    def _sync_list_recent(self, limit: int, model: type[T]) -> list[T]:
+        conn = self._ensure()
+        rows = conn.execute(
+            f"SELECT payload FROM {self._table} ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [self._row_to_state(r, model) for r in rows]
 
     def _sync_clear(self) -> None:
         conn = self._ensure()
-        conn.execute("DELETE FROM runs")
+        conn.execute(f"DELETE FROM {self._table}")
 
-    async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
-        request_payload = request.model_dump_json()
+    async def get(self, run_id: str, model: type[T] | None = None) -> T | None:
+        if model is None:
+            raise ValueError(
+                "SQLiteRunStore.get requires an explicit `model=` "
+                "argument because it is generic."
+            )
         async with self._lock:
-            run_id = await asyncio.to_thread(self._sync_create, request_payload)
-        result = await self.get(run_id)
-        assert result is not None
-        return result
+            return await asyncio.to_thread(self._sync_get, run_id, model)
 
-    async def get(self, run_id: str) -> FinRiskWorkflowState | None:
-        async with self._lock:
-            return await asyncio.to_thread(self._sync_get, run_id)
-
-    async def update(self, state: FinRiskWorkflowState) -> None:
+    async def update(self, state: T) -> None:
         async with self._lock:
             await asyncio.to_thread(self._sync_update, state)
 
-    async def list_recent(self, limit: int = 20) -> list[FinRiskWorkflowState]:
+    async def list_recent(self, limit: int = 20) -> list[T]:
+        # ``model`` is intentionally not part of the public API; the
+        # FinRisk-typed subclass passes it for us.
+        raise NotImplementedError(
+            "SQLiteRunStore is generic; use the FinRiskSQLiteRunStore "
+            "subclass or pass a typed helper."
+        )
+
+    async def _list_recent_typed(self, limit: int, model: type[T]) -> list[T]:
         async with self._lock:
-            return await asyncio.to_thread(self._sync_list_recent, limit)
+            return await asyncio.to_thread(self._sync_list_recent, limit, model)
 
     async def size(self) -> int:
         async with self._lock:
@@ -221,18 +205,54 @@ class SQLiteRunStore:
         if self._conn is not None:
             self._conn.close()
             self._conn = None
-            self._initialized = False
+
+
+# ---------------------------------------------------------------------------
+# FinRisk-typed helpers (kept here so the rest of the codebase has a
+# single import surface for the workflow store).
+# ---------------------------------------------------------------------------
+
+
+class FinRiskInMemoryRunStore(InMemoryRunStore[FinRiskWorkflowState]):
+    """In-memory backend specialised for ``FinRiskWorkflowState``."""
+
+    async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
+        run_id = f"run-{uuid.uuid4().hex[:12]}"
+        state = FinRiskWorkflowState(run_id=run_id, request=request)
+        self._states[run_id] = state
+        return state
+
+
+class FinRiskSQLiteRunStore(SQLiteRunStore[FinRiskWorkflowState]):
+    """SQLite backend specialised for ``FinRiskWorkflowState``."""
+
+    async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
+        run_id = f"run-{uuid.uuid4().hex[:12]}"
+        state = FinRiskWorkflowState(run_id=run_id, request=request)
+        await self.update(state)
+        return state
+
+    async def get(self, run_id: str) -> FinRiskWorkflowState | None:
+        return await super().get(run_id, FinRiskWorkflowState)
+
+    async def list_recent(self, limit: int = 20) -> list[FinRiskWorkflowState]:
+        return await self._list_recent_typed(limit, FinRiskWorkflowState)
 
 
 def _now() -> float:
-    """Monotonic-ish clock used for ordering."""
     import time
 
     return time.time()
 
 
-# Re-export for backwards-compat with the original module surface.
+# Backwards-compat alias for code that still imports ``InMemoryRunStore``
+# expecting the original FinRisk-typed class.
+InMemoryRunStoreForFinRisk = FinRiskInMemoryRunStore
+
+
 __all__ = [
+    "FinRiskInMemoryRunStore",
+    "FinRiskSQLiteRunStore",
     "InMemoryRunStore",
     "RunStoreBackend",
     "SQLiteRunStore",

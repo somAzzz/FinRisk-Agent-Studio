@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
+from src.api.store_factory import get_supply_chain_store
 from src.api.supply_chain import (
-    DEFAULT_STATE_STORE,
     expand_supply_chain,
     get_supply_chain_sankey,
     get_supply_chain_status,
@@ -15,7 +17,27 @@ from src.supply_chain.models import SupplyChainExploreRequest
 
 
 def _reset() -> None:
-    DEFAULT_STATE_STORE.clear()
+    """Clear the shared supply-chain backend synchronously.
+
+    The backend's ``clear`` is a coroutine; we drive it on whatever
+    event loop is currently running.
+    """
+    store = get_supply_chain_store()
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # pytest-asyncio is in auto mode and there is no
+            # synchronous bridge; schedule a task. Because the
+            # underlying dict is just ``.clear()`` we can call it
+            # directly via the attribute path.
+            store._states.clear()  # type: ignore[attr-defined]
+        else:
+            loop.run_until_complete(store.clear())
+    except RuntimeError:
+        # No event loop in this thread — fall back to the
+        # underlying dict, which is the only path the in-memory
+        # backend uses anyway.
+        store._states.clear()  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True)

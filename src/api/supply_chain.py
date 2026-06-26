@@ -22,6 +22,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
+from src.api.store_factory import get_supply_chain_store
 from src.supply_chain.models import (
     SankeyPayload,
     SupplyChainEvaluation,
@@ -30,7 +31,6 @@ from src.supply_chain.models import (
     SupplyChainExploreState,
 )
 from src.supply_chain.workflow import (
-    DEFAULT_STATE_STORE,
     expand_supply_chain_workflow,
     run_supply_chain_workflow,
 )
@@ -98,13 +98,13 @@ async def _run_existing_state(state: SupplyChainExploreState) -> None:
         await run_supply_chain_workflow(
             state.request,
             initial_state=state,
-            store=DEFAULT_STATE_STORE,
+            store=get_supply_chain_store(),
         )
     except Exception as exc:
         logger.exception("supply chain workflow %s failed", state.run_id)
         state.status = "failed"
         state.warnings.append(f"{type(exc).__name__}: {exc}")
-        DEFAULT_STATE_STORE[state.run_id] = state
+        await get_supply_chain_store().update(state)
 
 
 def _schedule(coro) -> None:
@@ -133,14 +133,14 @@ async def start_supply_chain_explore(
         request=request,
         status="queued",
     )
-    DEFAULT_STATE_STORE[state.run_id] = state
+    await get_supply_chain_store().update(state)
     if _background_enabled():
         _schedule(_run_existing_state(state))
     else:
         state = await run_supply_chain_workflow(
             request,
             initial_state=state,
-            store=DEFAULT_STATE_STORE,
+            store=get_supply_chain_store(),
         )
     return SupplyChainExploreResponse(
         run_id=state.run_id,
@@ -187,7 +187,7 @@ async def expand_supply_chain(
     response_model=dict,
 )
 async def supply_chain_health() -> dict:
-    return {"status": "ok", "runs": len(DEFAULT_STATE_STORE)}
+    return {"status": "ok", "runs": await get_supply_chain_store().size()}
 
 
 @router.get(
@@ -195,7 +195,7 @@ async def supply_chain_health() -> dict:
     response_model=SupplyChainStatusResponse,
 )
 async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
-    state = DEFAULT_STATE_STORE.get(run_id)
+    state = await get_supply_chain_store().get(run_id)
     if state is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -232,7 +232,7 @@ async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
     response_model=SupplyChainSankeyResponse,
 )
 async def get_supply_chain_sankey(run_id: str) -> SupplyChainSankeyResponse:
-    state = DEFAULT_STATE_STORE.get(run_id)
+    state = await get_supply_chain_store().get(run_id)
     if state is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
