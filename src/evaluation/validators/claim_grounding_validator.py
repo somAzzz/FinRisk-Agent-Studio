@@ -66,6 +66,7 @@ class ClaimGroundingValidator:
             return []
 
         evidence_by_id = _evidence_by_id(state)
+        valid_risk_ids = {risk.risk_id for risk in state.filing_risks}
         findings: list[GuardrailFinding] = []
         for claim in claims:
             # Layer 1: rule check.
@@ -101,6 +102,72 @@ class ClaimGroundingValidator:
                             recommendation="add the missing evidence row",
                         )
                     )
+
+            # Risk lineage check: when the workflow has extracted risks,
+            # every report claim should point back to one or more valid
+            # risk ids so the chain remains risk -> claim -> evidence.
+            if valid_risk_ids and not claim.related_risk_ids:
+                findings.append(
+                    GuardrailFinding(
+                        step_name=step_name,
+                        check_name=self.name,
+                        status=GuardrailStatus.FAIL,
+                        severity=GuardrailSeverity.BLOCKER,
+                        message=(
+                            f"claim {claim.claim_id} has no related risk ids"
+                        ),
+                        affected_object_type="claim",
+                        affected_object_id=claim.claim_id,
+                        recommendation="attach at least one related risk id",
+                    )
+                )
+            for risk_id in claim.related_risk_ids:
+                if valid_risk_ids and risk_id not in valid_risk_ids:
+                    findings.append(
+                        GuardrailFinding(
+                            step_name=step_name,
+                            check_name=self.name,
+                            status=GuardrailStatus.FAIL,
+                            severity=GuardrailSeverity.BLOCKER,
+                            message=(
+                                f"claim {claim.claim_id} cites missing risk {risk_id}"
+                            ),
+                            affected_object_type="claim",
+                            affected_object_id=claim.claim_id,
+                            recommendation="use a risk id present in filing_risks",
+                        )
+                    )
+
+            cited_risk_ids = {
+                risk_id
+                for evidence_id in claim.supporting_evidence_ids
+                if evidence_id in evidence_by_id
+                for risk_id in evidence_by_id[evidence_id].related_risk_ids
+            }
+            missing_from_evidence = [
+                risk_id
+                for risk_id in claim.related_risk_ids
+                if risk_id not in cited_risk_ids
+            ]
+            if cited_risk_ids and missing_from_evidence:
+                findings.append(
+                    GuardrailFinding(
+                        step_name=step_name,
+                        check_name=self.name,
+                        status=GuardrailStatus.NEEDS_REVIEW,
+                        severity=GuardrailSeverity.WARNING,
+                        message=(
+                            f"claim {claim.claim_id} risk ids are not fully "
+                            "backed by cited evidence"
+                        ),
+                        affected_object_type="claim",
+                        affected_object_id=claim.claim_id,
+                        recommendation=(
+                            "cite evidence rows whose related_risk_ids cover "
+                            "the claim's related_risk_ids"
+                        ),
+                    )
+                )
 
             # Layer 2: lexical overlap. We average across the cited
             # evidence rows; a hypothesis claim with a single

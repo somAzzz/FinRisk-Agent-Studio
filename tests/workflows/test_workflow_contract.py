@@ -154,6 +154,22 @@ def test_report_includes_disclaimer(state: FinRiskWorkflowState) -> None:
     assert "not investment advice" in md.lower()
 
 
+def test_claims_link_back_to_risks_and_evidence(state: FinRiskWorkflowState) -> None:
+    assert state.claims
+    risk_ids = {risk.risk_id for risk in state.filing_risks}
+    evidence_by_id = {ev.evidence_id: ev for ev in state.normalized_evidence}
+    for claim in state.claims:
+        assert claim.related_risk_ids, f"{claim.claim_id} has no risk lineage"
+        assert set(claim.related_risk_ids).issubset(risk_ids)
+        cited_risk_ids = {
+            risk_id
+            for evidence_id in claim.supporting_evidence_ids
+            if evidence_id in evidence_by_id
+            for risk_id in evidence_by_id[evidence_id].related_risk_ids
+        }
+        assert set(claim.related_risk_ids).issubset(cited_risk_ids)
+
+
 def test_evaluation_status_is_allowed(state: FinRiskWorkflowState) -> None:
     assert state.evaluation is not None
     assert state.evaluation.final_status in {"pass", "needs_review", "fail"}

@@ -30,12 +30,12 @@ from src.schemas.finrisk_v16 import (
 
 
 def _state(**overrides) -> FinRiskWorkflowState:
-    defaults: dict = dict(
-        run_id="run-test",
-        request=FinRiskRequest(
+    defaults: dict = {
+        "run_id": "run-test",
+        "request": FinRiskRequest(
             ticker="AAPL", analysis_goal="test", demo_mode=True
         ),
-    )
+    }
     defaults.update(overrides)
     return FinRiskWorkflowState(**defaults)
 
@@ -50,11 +50,13 @@ def test_claim_round_trips() -> None:
         claim_id="c-1",
         text="Apple depends on Asia",
         claim_type="evidence",
+        related_risk_ids=["risk-supply-asia"],
         supporting_evidence_ids=["ne-1"],
         confidence=0.9,
     )
     blob = json.loads(claim.model_dump_json())
     assert Claim.model_validate(blob) == claim
+    assert blob["related_risk_ids"] == ["risk-supply-asia"]
 
 
 def test_claim_rejects_garbage_claim_type() -> None:

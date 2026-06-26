@@ -6,14 +6,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-import pytest
-
 from src.graph.writer import GraphWriter
 from src.schemas.claims import Claim
 from src.schemas.entities import Entity
 from src.schemas.evidence import Evidence
 from src.schemas.relations import Relation
-
 
 # ---------------------------------------------------------------------------
 # Fake client
@@ -80,6 +77,7 @@ def _claim(
         claim_id=cid,
         claim_type="supply_chain",
         statement="Acme depends on TSMC.",
+        related_risk_ids=["risk-supply"],
         entities=entities or [],
         evidence=evidence,
         confidence=0.8,
@@ -275,3 +273,13 @@ def test_claim_node_retains_both_entity_id_and_claim_id() -> None:
     claim_call = next(c for c in fake.calls if "MERGE (c:Claim" in c.cypher)
     assert claim_call.parameters["entity_id"] == "claim-1"
     assert claim_call.parameters["props"]["claim_id"] == "claim-1"
+
+
+def test_claim_node_persists_related_risk_ids() -> None:
+    fake = FakeNeo4jClient()
+    writer = GraphWriter(fake)  # type: ignore[arg-type]
+
+    writer.write_claim(_claim())
+
+    claim_call = next(c for c in fake.calls if "MERGE (c:Claim" in c.cypher)
+    assert claim_call.parameters["props"]["related_risk_ids"] == ["risk-supply"]

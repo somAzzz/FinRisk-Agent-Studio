@@ -95,6 +95,7 @@ def _claim_props(claim: Claim) -> dict[str, Any]:
         "claim_id": claim.claim_id,
         "claim_type": claim.claim_type,
         "statement": claim.statement,
+        "related_risk_ids": list(claim.related_risk_ids),
         "confidence": claim.confidence,
         "metadata": dict(claim.metadata),
         "entity_ids": [e.entity_id for e in claim.entities],

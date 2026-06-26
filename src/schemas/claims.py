@@ -29,6 +29,7 @@ class Claim(BaseModel):
     claim_id: str
     claim_type: ClaimType
     statement: str
+    related_risk_ids: list[str] = Field(default_factory=list)
     entities: list[Entity] = Field(default_factory=list)
     relations: list[Relation] = Field(default_factory=list)
     evidence: list[Evidence]

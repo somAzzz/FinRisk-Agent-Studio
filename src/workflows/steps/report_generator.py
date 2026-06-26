@@ -161,12 +161,18 @@ class ReportGeneratorStep(WorkflowStep):
                     claim_id=claim_id,
                     text=f"{risk.risk_type}: {risk.risk_factor}",
                     claim_type="evidence",
+                    related_risk_ids=[risk.risk_id],
                     supporting_evidence_ids=supporting,
                     confidence=0.85,
                 )
             )
             claim_ids_by_risk_id.setdefault(risk.risk_id, []).append(claim_id)
         if state.graph_insights:
+            hypothesis_evidence_ids = [
+                ins.supporting_evidence_ids[0]
+                for ins in state.graph_insights
+                if ins.supporting_evidence_ids
+            ][:1]
             claims.append(
                 Claim(
                     claim_id="c-hyp-001",
@@ -175,11 +181,10 @@ class ReportGeneratorStep(WorkflowStep):
                         "the filing risks; monitor the affected regions."
                     ),
                     claim_type="hypothesis",
-                    supporting_evidence_ids=[
-                        ins.supporting_evidence_ids[0]
-                        for ins in state.graph_insights
-                        if ins.supporting_evidence_ids
-                    ][:1],
+                    related_risk_ids=_risk_ids_for_evidence(
+                        hypothesis_evidence_ids, state.normalized_evidence
+                    ),
+                    supporting_evidence_ids=hypothesis_evidence_ids,
                     confidence=0.5,
                 )
             )
@@ -282,6 +287,22 @@ def _executive_summary(ticker: str, top_risks, scores) -> str:
         f"{ticker} top {len(top_risks)} risks (final scores: {joined}). "
         "Each risk is grounded in a SEC filing quote; see evidence table."
     )
+
+
+def _risk_ids_for_evidence(evidence_ids: list[str], evidence) -> list[str]:
+    """Return unique risk ids linked to the supplied evidence ids."""
+    requested = set(evidence_ids)
+    risk_ids: list[str] = []
+    seen: set[str] = set()
+    for ev in evidence:
+        if ev.evidence_id not in requested:
+            continue
+        for risk_id in ev.related_risk_ids or []:
+            if risk_id in seen:
+                continue
+            seen.add(risk_id)
+            risk_ids.append(risk_id)
+    return risk_ids
 
 
 def _render_evidence_table(evidence) -> str:

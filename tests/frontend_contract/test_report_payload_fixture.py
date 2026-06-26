@@ -76,3 +76,13 @@ def test_report_payload_no_direct_buy_sell_advice() -> None:
         assert phrase not in markdown.lower(), (
             f"report contains forbidden phrase {phrase!r}"
         )
+
+
+def test_report_payload_claims_link_to_top_risks() -> None:
+    payload = _load_fixture()
+    risk_ids = {item["risk_id"] for item in payload["top_risks"]}
+    for claim in payload["evidence_vs_inference"]:
+        assert claim["related_risk_ids"], (
+            f"claim {claim['claim_id']} has no related_risk_ids"
+        )
+        assert set(claim["related_risk_ids"]).issubset(risk_ids)

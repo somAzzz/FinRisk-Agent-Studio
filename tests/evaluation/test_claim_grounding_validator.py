@@ -10,6 +10,7 @@ from src.evaluation.claim_grounding import (
 from src.evaluation.models import GuardrailSeverity
 from src.evaluation.validators import ClaimGroundingValidator
 from src.schemas.finrisk import (
+    ExtractedRisk,
     FinRiskRequest,
     FinRiskWorkflowState,
     NormalizedEvidence,
@@ -17,15 +18,35 @@ from src.schemas.finrisk import (
 )
 
 
-def _state(*, evidence: list[NormalizedEvidence]) -> FinRiskWorkflowState:
+def _risk(risk_id: str = "r-1") -> ExtractedRisk:
+    return ExtractedRisk(
+        risk_id=risk_id,
+        risk_type="supply_chain",
+        risk_factor="Apple faces Asia supply chain risk",
+        severity=4,
+        evidence_quote="Apple supply chain partners in Asia face tariff risk",
+        source="sec_filing:test",
+        filing_section="section_1a",
+        confidence=0.8,
+    )
+
+
+def _state(
+    *,
+    evidence: list[NormalizedEvidence],
+    risks: list[ExtractedRisk] | None = None,
+) -> FinRiskWorkflowState:
     return FinRiskWorkflowState(
         run_id="r",
         request=FinRiskRequest(ticker="AAPL", analysis_goal="goal", demo_mode=True),
         normalized_evidence=evidence,
+        filing_risks=risks or [],
     )
 
 
-def _evidence(eid: str, quote: str) -> NormalizedEvidence:
+def _evidence(
+    eid: str, quote: str, related_risk_ids: list[str] | None = None
+) -> NormalizedEvidence:
     return NormalizedEvidence(
         evidence_id=eid,
         source_type="filing",
@@ -33,14 +54,20 @@ def _evidence(eid: str, quote: str) -> NormalizedEvidence:
         source_url=None,
         quote=quote,
         summary=quote,
-        related_risk_ids=[],
+        related_risk_ids=related_risk_ids or [],
         credibility_score=0.9,
         collected_at=utcnow(),
     )
 
 
 def test_lexical_overlap_grounded_for_high_overlap() -> None:
-    assert lexical_overlap("Apple faces supply chain risks in Asia", "Apple relies on supply chain partners in Asia") > 0.25
+    assert (
+        lexical_overlap(
+            "Apple faces supply chain risks in Asia",
+            "Apple relies on supply chain partners in Asia",
+        )
+        > 0.25
+    )
     assert grounding_label(0.6) == "grounded"
 
 
@@ -72,13 +99,16 @@ def test_claim_grounding_validator_passes_for_grounded_claim() -> None:
     claim = Claim(
         claim_id="c-1", text="Apple faces Asia supply chain risk",
         claim_type="evidence",
+        related_risk_ids=["r-1"],
         supporting_evidence_ids=["ne-1"], confidence=0.8,
     )
     ev = _evidence(
-        "ne-1", "Apple supply chain partners in Asia face tariff risk"
+        "ne-1",
+        "Apple supply chain partners in Asia face tariff risk",
+        related_risk_ids=["r-1"],
     )
     findings = ClaimGroundingValidator().validate(
-        "step", [claim], _state(evidence=[ev])
+        "step", [claim], _state(evidence=[ev], risks=[_risk()])
     )
     assert findings == []
 
@@ -97,4 +127,69 @@ def test_claim_grounding_validator_warns_for_partial_overlap() -> None:
     )
     # Overlap is partial; we expect at least a warning or needs_review.
     assert findings
+    assert any(f.severity == GuardrailSeverity.WARNING for f in findings)
+
+
+def test_claim_grounding_validator_blocks_claim_without_risk_lineage() -> None:
+    claim = Claim(
+        claim_id="c-1",
+        text="Apple faces Asia supply chain risk",
+        claim_type="evidence",
+        supporting_evidence_ids=["ne-1"],
+        confidence=0.8,
+    )
+    ev = _evidence(
+        "ne-1",
+        "Apple supply chain partners in Asia face tariff risk",
+        related_risk_ids=["r-1"],
+    )
+    findings = ClaimGroundingValidator().validate(
+        "step", [claim], _state(evidence=[ev], risks=[_risk()])
+    )
+    assert findings
+    assert any("no related risk ids" in f.message for f in findings)
+    assert any(f.severity == GuardrailSeverity.BLOCKER for f in findings)
+
+
+def test_claim_grounding_validator_blocks_unknown_related_risk() -> None:
+    claim = Claim(
+        claim_id="c-1",
+        text="Apple faces Asia supply chain risk",
+        claim_type="evidence",
+        related_risk_ids=["r-missing"],
+        supporting_evidence_ids=["ne-1"],
+        confidence=0.8,
+    )
+    ev = _evidence(
+        "ne-1",
+        "Apple supply chain partners in Asia face tariff risk",
+        related_risk_ids=["r-1"],
+    )
+    findings = ClaimGroundingValidator().validate(
+        "step", [claim], _state(evidence=[ev], risks=[_risk()])
+    )
+    assert findings
+    assert any("cites missing risk" in f.message for f in findings)
+    assert any(f.severity == GuardrailSeverity.BLOCKER for f in findings)
+
+
+def test_claim_grounding_validator_warns_when_evidence_does_not_cover_risk() -> None:
+    claim = Claim(
+        claim_id="c-1",
+        text="Apple faces Asia supply chain risk",
+        claim_type="evidence",
+        related_risk_ids=["r-1"],
+        supporting_evidence_ids=["ne-1"],
+        confidence=0.8,
+    )
+    ev = _evidence(
+        "ne-1",
+        "Apple supply chain partners in Asia face tariff risk",
+        related_risk_ids=["r-other"],
+    )
+    findings = ClaimGroundingValidator().validate(
+        "step", [claim], _state(evidence=[ev], risks=[_risk()])
+    )
+    assert findings
+    assert any("not fully backed" in f.message for f in findings)
     assert any(f.severity == GuardrailSeverity.WARNING for f in findings)

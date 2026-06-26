@@ -77,10 +77,12 @@ def render_risk_report_markdown(report: RiskReportV16) -> str:
     if not report.evidence_vs_inference:
         lines.extend(["No claims available.", ""])
     for claim in report.evidence_vs_inference:
+        risk_refs = ", ".join(claim.related_risk_ids) or "none"
         lines.extend(
             [
                 f"- `{claim.claim_id}` (**{claim.claim_type}**, "
-                f"confidence {claim.confidence:.2f}): {claim.text}",
+                f"confidence {claim.confidence:.2f}; risks {risk_refs}): "
+                f"{claim.text}",
             ]
         )
     lines.append("")

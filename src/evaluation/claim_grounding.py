@@ -26,7 +26,9 @@ class Claim(BaseModel):
     - ``hypothesis`` — speculative link, allowed with low confidence.
 
     Claims with empty ``supporting_evidence_ids`` are treated as
-    unsupported by the v16 validators.
+    unsupported by the v16 validators. ``related_risk_ids`` links the
+    claim back to the risk object(s) it explains so the full chain is:
+    ``risk -> claim -> evidence``.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -34,6 +36,7 @@ class Claim(BaseModel):
     claim_id: str
     text: str
     claim_type: ClaimType
+    related_risk_ids: list[str] = Field(default_factory=list)
     supporting_evidence_ids: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
 

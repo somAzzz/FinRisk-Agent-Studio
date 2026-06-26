@@ -51,6 +51,7 @@
       "claim_id": "c-001",
       "text": "supply_chain: Concentration of manufacturing in Asia.",
       "claim_type": "evidence",
+      "related_risk_ids": ["risk-supply-asia"],
       "supporting_evidence_ids": ["ne-risk-supply-asia"],
       "confidence": 0.85
     }
