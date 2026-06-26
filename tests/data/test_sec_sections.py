@@ -130,8 +130,10 @@ def test_parser_prefers_substantive_match_over_disclaimer() -> None:
         "We are exposed to inflation and interest rate changes.\n\n"
         "Supply Chain Risks\n"
         "We depend on TSMC for advanced semiconductors.\n\n"
-        "Legal and Regulatory Risks\n"
-        "We are subject to global privacy regulations.\n"
+        + (
+            "Legal and Regulatory Risks\n"
+            "We are subject to global privacy regulations.\n"
+        )
         * 20  # pad the body so the real section is much longer than the disclaimer
         + "\n\n"
         "Item 1B. Unresolved Staff Comments\n"
@@ -167,7 +169,7 @@ def test_parser_strips_forward_looking_disclaimer() -> None:
     sec_1a = sections.get("section_1a")
     assert sec_1a is not None
     assert "FORWARD-LOOKING STATEMENTS" not in sec_1a.text
-    assert "Macroeconomic" in sec_1a.text
+    assert "macroeconomic" in sec_1a.text.lower()
 
 
 def test_parser_first_match_mode_still_works() -> None:
@@ -190,7 +192,12 @@ def test_parser_first_match_mode_still_works() -> None:
 
 
 def _load_aapl_fixture() -> dict:
-    path = Path(__file__).parents[2] / "fixtures" / "real_10k" / "aapl_2023_item_1a.json"
+    path = (
+        Path(__file__).parents[1]
+        / "fixtures"
+        / "real_10k"
+        / "aapl_2023_item_1a.json"
+    )
     return json.loads(path.read_text())
 
 

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from src.schemas.finrisk import RiskLifecycleAnnotation
 from src.workflows.state import FinRiskWorkflowState
@@ -69,12 +70,12 @@ class LifecycleClassifierStep(WorkflowStep):
         recent_web = [
             e
             for e in web_evidence
-            if _is_recent(e.published_at, now, RECENT_WEB_WINDOW)
+            if _is_recent(e.published_at, now, _RECENT_WEB_WINDOW)
         ]
         contradicting_web = [
             e
             for e in web_evidence
-            if any(hint in e.quote.lower() for hint in _CONTRADICTION_HINTS)
+            if any(hint in _evidence_text(e).lower() for hint in _CONTRADICTION_HINTS)
         ]
 
         for risk in state.filing_risks:
@@ -125,8 +126,8 @@ def _classify_one(
         supporting = [
             e
             for e in recent_web
-            if _quote_overlaps(quote, e.quote)
-            or _factor_overlaps(risk_factor, e.quote)
+            if _quote_overlaps(quote, _evidence_text(e))
+            or _factor_overlaps(risk_factor, _evidence_text(e))
         ]
         if supporting:
             return RiskLifecycleAnnotation(
@@ -135,7 +136,7 @@ def _classify_one(
                 confidence=0.85,
                 reasoning=(
                     f"{len(supporting)} recent web evidence row(s) within "
-                    f"{int(RECENT_WEB_WINDOW.days)}d share phrasing with the "
+                    f"{int(_RECENT_WEB_WINDOW.days)}d share phrasing with the "
                     f"filing's risk quote."
                 ),
                 basis=[e.evidence_id for e in supporting[:3]],
@@ -162,7 +163,7 @@ def _classify_one(
         mentioning = [
             e
             for e in web_evidence
-            if _factor_overlaps(risk_factor, e.quote)
+            if _factor_overlaps(risk_factor, _evidence_text(e))
         ]
         if mentioning:
             return RiskLifecycleAnnotation(
@@ -198,6 +199,18 @@ def _quote_overlaps(a: str, b: str, min_words: int = 4) -> bool:
     a_tokens = {t.lower() for t in a.split() if len(t) > 3}
     b_tokens = {t.lower() for t in b.split() if len(t) > 3}
     return len(a_tokens & b_tokens) >= min_words
+
+
+def _evidence_text(evidence: Any) -> str:
+    """Return quote + summary text for normalized evidence."""
+    return " ".join(
+        str(part)
+        for part in [
+            getattr(evidence, "quote", None),
+            getattr(evidence, "summary", None),
+        ]
+        if part
+    )
 
 
 def _factor_overlaps(factor: str, text: str, min_chars: int = 12) -> bool:

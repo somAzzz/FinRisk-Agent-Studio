@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 from pathlib import Path
 
 import pytest
@@ -19,10 +18,8 @@ from src.workflows.state import (
     NormalizedEvidence,
     RiskReport,
     RiskScore,
-    WorkflowEvaluation,
     WorkflowTraceEvent,
 )
-
 
 FIXTURE_PATH = (
     Path(__file__).resolve().parents[2]
@@ -76,7 +73,7 @@ def test_demo_workflow_completes_end_to_end(state: FinRiskWorkflowState) -> None
     assert state.company.cik == "0000320193"
 
 
-def test_trace_has_all_eight_steps(state: FinRiskWorkflowState) -> None:
+def test_trace_has_all_nine_steps(state: FinRiskWorkflowState) -> None:
     names = [event.step_name for event in state.trace]
     expected = [
         "company_resolver",
@@ -84,6 +81,7 @@ def test_trace_has_all_eight_steps(state: FinRiskWorkflowState) -> None:
         "market_explorer",
         "evidence_normalizer",
         "risk_scorer",
+        "lifecycle_classifier",
         "graph_reasoner",
         "report_generator",
         "evaluator",
@@ -187,8 +185,7 @@ def test_workflow_handles_provider_failure_without_crashing() -> None:
         name = "company_resolver"
         critical = False
 
-        async def __call__(self, state):  # noqa: ANN001
-            from src.workflows.steps._base import WorkflowStep
+        async def __call__(self, state):
             from src.workflows.state import utcnow
 
             state.trace.append(

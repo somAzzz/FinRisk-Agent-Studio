@@ -22,7 +22,6 @@ from src.api.workflows import (
 from src.schemas.finrisk import FinRiskRequest
 from src.workflows.finrisk_workflow import run_finrisk_workflow
 
-
 FIXTURE_PATH = (
     Path(__file__).resolve().parents[2]
     / "tests"
@@ -96,7 +95,7 @@ async def test_status_endpoint_returns_full_trace() -> None:
         }
     )
     response = await get_workflow_status(run_id)
-    assert len(response.trace) == 8
+    assert len(response.trace) == 9
     assert response.risk_count >= 3
     assert response.evidence_count >= 3
     assert response.company is not None

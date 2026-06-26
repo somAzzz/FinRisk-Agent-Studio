@@ -134,7 +134,18 @@ class FilingRiskExtractorStep(WorkflowStep):
         resolver_factory = self._resolver_factory or TickerResolver
         client_factory = self._sec_client_factory or SECClient
 
-        ident = resolver_factory().resolve(ticker)
+        try:
+            ident = resolver_factory().resolve(ticker)
+        except Exception as exc:
+            logger.info("Ticker resolver failed for %s: %s", ticker, exc)
+            return [], FallbackEvent(
+                step_name=self.name,
+                from_mode="live",
+                to_mode="cached",
+                reason=(
+                    f"ticker resolver raised {type(exc).__name__}: {exc}"
+                ),
+            )
         if ident is None:
             logger.info(
                 "FilingRiskExtractor: cannot resolve %s; skipping live fetch",
@@ -383,6 +394,13 @@ class FilingRiskExtractorStep(WorkflowStep):
             try:
                 risks.append(
                     ExtractedRisk(
+                        risk_id=str(
+                            item.get("risk_id")
+                            or f"llm-risk-{len(risks) + 1:03d}"
+                        ),
+                        risk_type=str(
+                            item.get("risk_type") or "operational"
+                        ),  # type: ignore[arg-type]
                         risk_factor=str(rf),
                         severity=int(item.get("severity") or 3),
                         evidence_quote=str(quote),
@@ -480,6 +498,64 @@ def _build_llm_client(
         return None
 
 
+def _llm_extract(section_text: str) -> list[ExtractedRisk]:
+    """Legacy single-shot LLM extraction helper.
+
+    Older tests and scripts imported this private helper directly. The
+    production step now uses ``_chunked_llm_extract`` so this shim keeps
+    the old entry point available without changing the new path.
+    """
+    try:
+        client_obj = _build_llm_client(LLMRunConfig(), None)
+    except TypeError:
+        client_obj = _build_llm_client(LLMRunConfig())
+    if client_obj is None:
+        return _keyword_tagged_risks(section_text)
+
+    try:
+        result = client_obj.extract_risks(
+            section_text, company_name="live", year=0
+        )
+    except Exception:
+        return _keyword_tagged_risks(section_text)
+
+    risks: list[ExtractedRisk] = []
+    if not isinstance(result, dict):
+        return _keyword_tagged_risks(section_text)
+
+    for item in result.get("risks", []):
+        if not isinstance(item, dict):
+            continue
+        risk_factor = str(item.get("risk_factor") or "").strip()
+        evidence_quote = str(
+            item.get("quote") or item.get("evidence_quote") or ""
+        ).strip()
+        if not risk_factor or not evidence_quote:
+            continue
+        try:
+            risks.append(
+                ExtractedRisk(
+                    risk_id=str(
+                        item.get("risk_id")
+                        or f"llm-risk-{len(risks) + 1:03d}"
+                    ),
+                    risk_type=str(
+                        item.get("risk_type") or "operational"
+                    ),  # type: ignore[arg-type]
+                    risk_factor=risk_factor,
+                    severity=int(item.get("severity") or 3),
+                    evidence_quote=evidence_quote,
+                    source="sec_filing:live:llm",
+                    filing_section="section_1a",
+                    confidence=float(item.get("confidence") or 0.7),
+                )
+            )
+        except Exception:
+            continue
+
+    return risks or _keyword_tagged_risks(section_text)
+
+
 # Backwards-compat shim: a handful of older tests import the
 # ``_risk_section_text`` helper from this module. The new
 # ``_select_section_1a`` returns the same value.
@@ -495,11 +571,11 @@ def _keyword_fallback_section(sections: dict[str, str]) -> str:
     """Last-resort regex extraction when the parser missed Item 1A."""
     full_text = sections.get("full_text") or ""
     heading_re = re.compile(
-        r"item\s*1\s*a\s*[\.\:\-–— ]?\s*risk\s*factors",
+        r"item\s*1\s*a\s*[\.\:\-\u2013\u2014 ]?\s*risk\s*factors",
         re.IGNORECASE,
     )
     boundary_re = re.compile(
-        r"item\s*(?:1\s*b|2)\s*[\.\:\-–—]",
+        r"item\s*(?:1\s*b|2)\s*[\.\:\-\u2013\u2014]",
         re.IGNORECASE,
     )
     candidates: list[str] = []

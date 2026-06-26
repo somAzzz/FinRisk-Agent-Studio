@@ -58,7 +58,7 @@ def render_risk_report_markdown(report: RiskReportV16) -> str:
             )
         lines.append("")
 
-    lines.extend(["## Evidence References", ""])
+    lines.extend(["## Evidence Table", ""])
     if not report.evidence_table:
         lines.extend(["No evidence references available.", ""])
     for evidence in report.evidence_table:
@@ -79,20 +79,20 @@ def render_risk_report_markdown(report: RiskReportV16) -> str:
     for claim in report.evidence_vs_inference:
         lines.extend(
             [
-                f"- `{claim.claim_id}` ({claim.claim_type}, "
+                f"- `{claim.claim_id}` (**{claim.claim_type}**, "
                 f"confidence {claim.confidence:.2f}): {claim.text}",
             ]
         )
     lines.append("")
 
-    lines.extend(["## Limitations", ""])
+    lines.extend(["## Confidence & Limitations", ""])
     if not report.limitations:
         lines.extend(["No limitations recorded.", ""])
     for limitation in report.limitations:
         lines.append(f"- {limitation}")
     lines.append("")
 
-    lines.extend(["## Recommended Next Questions", ""])
+    lines.extend(["## Recommended Next Research Questions", ""])
     if not report.recommended_next_questions:
         lines.extend(["No follow-up questions recorded.", ""])
     for question in report.recommended_next_questions:

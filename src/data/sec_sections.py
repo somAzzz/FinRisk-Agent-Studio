@@ -40,12 +40,12 @@ from typing import Any
 
 # Mapping of canonical section names to heading patterns.
 # Patterns intentionally tolerate em-dashes, whitespace, and Roman numerals.
-# The character class for the separator also accepts NBSP ( ) so that
-# ``Item&#160;1A.`` (which becomes ``Item 1A.`` after html.unescape)
+# The character class for the separator also accepts NBSP (U+00A0) so that
+# ``Item&#160;1A.`` after html.unescape
 # still matches.
 _ROMAN_NUMERALS = r"(?:i{1,3}|iv|v|vi{1,3}|ix|x)"
 _DIGIT_OR_ROMAN = r"(?:\d|" + _ROMAN_NUMERALS + r")"
-_SEPARATOR = r"[\.\:\-–— ]?"
+_SEPARATOR = r"[\.\:\-\u2013\u2014\u00a0]?"
 
 SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
     "section_1": (
@@ -80,12 +80,12 @@ SECTION_PATTERNS: dict[str, tuple[str, ...]] = {
 # SEC filings using ``Item&#160;1B.`` are still recognised as the next
 # item boundary after Item 1A.
 _NEXT_ITEM_PATTERN = re.compile(
-    r"item\s*\d+\s*[a-z]?\s*[\.\:\-–— ]",
+    r"item\s*\d+\s*[a-z]?\s*[\.\:\-\u2013\u2014\u00a0]",
     re.IGNORECASE,
 )
 
 # Characters that survive BeautifulSoup.get_text() but should not break
-# regex whitespace matching: NBSP ( ), zero-width space (​),
+# regex whitespace matching: NBSP (U+00A0), zero-width space (U+200B),
 # zero-width non-joiner (‌), zero-width joiner (‍), word
 # joiner (⁠), and the BOM (﻿).
 _WEIRD_WHITESPACE_RE = re.compile("[\\u00a0\\u200b\\u200c\\u200d\\u2060\\ufeff]")
@@ -99,6 +99,11 @@ _FORWARD_LOOKING_HEADINGS_RE = re.compile(
     r"|cautionary\s+note\s+regarding"
     r"|safe\s+harbor(?:\s+statement)?"
     r"|risk\s+factors\s+summary)",
+    re.IGNORECASE,
+)
+
+_LEADING_ITEM_HEADING_RE = re.compile(
+    r"^\s*item\s*\d+\s*[a-z]?\s*[\.\:\-\u2013\u2014\u00a0]?\s*[^\n]*\n?",
     re.IGNORECASE,
 )
 
@@ -275,6 +280,7 @@ class SectionParser:
             chunk = text[best_match.start():end]
             if self._strip_forward_looking and name == "section_1a":
                 chunk, _ = _strip_forward_looking(chunk)
+            chunk = _strip_leading_item_heading(chunk)
             chunk = chunk.strip()
             if not chunk:
                 continue
@@ -323,6 +329,11 @@ def summarise_sections(sections: dict[str, Section]) -> dict[str, dict[str, Any]
             "preview": preview,
         }
     return summary
+
+
+def _strip_leading_item_heading(text: str) -> str:
+    """Remove the matched Item heading from the returned section body."""
+    return _LEADING_ITEM_HEADING_RE.sub("", text, count=1)
 
 
 __all__ = [
