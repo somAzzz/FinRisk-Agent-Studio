@@ -171,7 +171,7 @@ async def test_web_fetch_sets_fetched_at_on_success():
         mock_client_class.return_value = mock_client
         mock_client.__aenter__.return_value = mock_client
 
-        result = await web_fetch("http://test.com")
+        result = await web_fetch("http://example.com")
 
         assert result.status == "success"
         assert result.fetched_at is not None

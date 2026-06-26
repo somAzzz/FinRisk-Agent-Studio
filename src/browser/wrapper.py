@@ -1,12 +1,13 @@
 import asyncio
 import base64
 import json
+import os
 import re
 import subprocess
 import tempfile
-from typing import Any, TypedDict
+from typing import TypedDict
 
-from src.browser.config import BrowserConfig
+from src.security.url_guard import SSRFBlocked, validate_url
 
 
 class BrowserResult(TypedDict):
@@ -86,6 +87,21 @@ class BrowserWrapper:
                 url="",
                 error=f"Invalid URL scheme: {url}. Must start with http:// or https://",
             )
+        # SSRF guard — the agent-browser CLI follows redirects freely
+        # and there is no redirect hook in this path, so we filter at
+        # the entry point. Tests can opt out with
+        # ``WEB_FETCH_ALLOW_PRIVATE=1``.
+        if os.environ.get("WEB_FETCH_ALLOW_PRIVATE") != "1":
+            try:
+                validate_url(url)
+            except SSRFBlocked as exc:
+                return BrowserResult(
+                    success=False,
+                    content=None,
+                    screenshot=None,
+                    url=url,
+                    error=f"SSRF guard: {exc.reason} ({exc.host})",
+                )
         success, output, current_url = self._run_command("open", url)
         if not success:
             # Extract URL from output if present

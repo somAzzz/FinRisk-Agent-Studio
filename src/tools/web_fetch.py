@@ -1,13 +1,16 @@
 import asyncio
 import json
+import os
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 from urllib.parse import urlparse
 
 import httpx
 import trafilatura
 from bs4 import BeautifulSoup
+
+from src.security.url_guard import SSRFBlocked, validate_url
 
 ERROR_SUGGESTIONS = {
     "BLACKLISTED_DOMAIN": "Use MarketExplorer (real browser) to access this URL.",
@@ -17,6 +20,7 @@ ERROR_SUGGESTIONS = {
     "404_NOT_FOUND": "Try searching for alternative sources.",
     "403_FORBIDDEN": "Use MarketExplorer with real browser.",
     "PARSE_ERROR": "Use MarketExplorer for complex pages.",
+    "SSRF_BLOCKED": "Internal / private hosts are blocked by the SSRF guard.",
     "UNKNOWN": "Report this issue.",
 }
 
@@ -30,6 +34,7 @@ _ERROR_MESSAGES = {
         "Access denied. This site may have anti-bot protection (Cloudflare, etc.)."
     ),
     "PARSE_ERROR": "Failed to parse HTML content.",
+    "SSRF_BLOCKED": "URL targets a private / loopback / link-local address.",
     "UNKNOWN": "An unexpected error occurred.",
 }
 
@@ -162,7 +167,7 @@ async def web_fetch(url: str) -> WebFetchResult:
             suggestion=ERROR_SUGGESTIONS["BLACKLISTED_DOMAIN"],
         )
 
-    # 2. Validate URL
+    # 2. Validate URL (scheme + host presence)
     try:
         parsed = urlparse(url)
         if not parsed.scheme or not parsed.netloc:
@@ -175,6 +180,22 @@ async def web_fetch(url: str) -> WebFetchResult:
             error_message=_ERROR_MESSAGES["INVALID_URL"],
             suggestion=ERROR_SUGGESTIONS["INVALID_URL"],
         )
+
+    # 3. SSRF guard: refuse loopback / link-local / private / etc.
+    # Run *after* INVALID_URL so a malformed URL still surfaces as
+    # ``INVALID_URL`` rather than ``SSRF_BLOCKED``. Tests can opt
+    # out via the ``WEB_FETCH_ALLOW_PRIVATE=1`` env var.
+    if os.environ.get("WEB_FETCH_ALLOW_PRIVATE") != "1":
+        try:
+            validate_url(url)
+        except SSRFBlocked as exc:
+            return WebFetchResult(
+                url=url,
+                status="failed",
+                error_code="SSRF_BLOCKED",
+                error_message=f"{_ERROR_MESSAGES['SSRF_BLOCKED']} ({exc.reason})",
+                suggestion=ERROR_SUGGESTIONS["SSRF_BLOCKED"],
+            )
 
     # 3. Fetch via httpx - handle network errors with consolidated exception
     client = httpx.AsyncClient(timeout=TIMEOUT_SECONDS)
@@ -251,7 +272,7 @@ async def web_fetch(url: str) -> WebFetchResult:
         description=description,
         content=content,
         status="success",
-        fetched_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+        fetched_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S"),
     )
 
 
