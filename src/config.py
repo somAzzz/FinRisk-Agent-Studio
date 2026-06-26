@@ -95,6 +95,14 @@ class Settings:
             "SEARCH_PROVIDER_ORDER", "duckduckgo"
         )
     )
+    # ---- API auth (R1) ----------------------------------------------------
+    # Comma-separated allowlist of accepted ``X-API-Key`` values. Empty
+    # means "auth not configured" — the API fails closed (401) unless
+    # ``AUTH_DISABLED=1`` is set explicitly. Reuse the
+    # ``deepseek_configured()`` placeholder-rejection policy.
+    api_keys: tuple[str, ...] = field(
+        default_factory=lambda: _parse_api_keys(os.environ.get("FINRISK_API_KEYS"))
+    )
 
     def deepseek_configured(self) -> bool:
         """Return ``True`` when a real DeepSeek API key is present.
@@ -113,6 +121,32 @@ class Settings:
         if lowered.startswith("replace-me"):
             return False
         return True
+
+    def api_keys_configured(self) -> bool:
+        """Return ``True`` when at least one non-placeholder API key is set."""
+        return len(self.api_keys) > 0
+
+
+_PLACEHOLDER_TOKENS = frozenset(
+    {"empty", "dummy", "replace_me", "replace-me", "changeme", "todo"}
+)
+
+
+def _parse_api_keys(raw: str | None) -> tuple[str, ...]:
+    """Parse a comma-separated allowlist, dropping blanks and placeholders."""
+    if not raw:
+        return ()
+    out: list[str] = []
+    for piece in raw.split(","):
+        token = piece.strip()
+        if not token:
+            continue
+        if token.lower() in _PLACEHOLDER_TOKENS or token.lower().startswith(
+            "replace-me"
+        ):
+            continue
+        out.append(token)
+    return tuple(out)
 
 
 @functools.lru_cache(maxsize=1)

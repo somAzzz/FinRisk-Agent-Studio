@@ -13,8 +13,9 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from src.api.auth import require_api_key
 from src.api.supply_chain import router as supply_chain_router
 from src.api.workflows import router as workflows_router
 
@@ -30,8 +31,17 @@ app = FastAPI(
     ),
 )
 
-app.include_router(workflows_router)
-app.include_router(supply_chain_router)
+# R1: every workflow / supply-chain route is gated by ``X-API-Key``,
+# enforced through a single FastAPI dependency. Set ``AUTH_DISABLED=1``
+# to opt out (e.g. local development, internal handler-direct tests).
+app.include_router(
+    workflows_router,
+    dependencies=[Depends(require_api_key)],
+)
+app.include_router(
+    supply_chain_router,
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @app.get("/")
