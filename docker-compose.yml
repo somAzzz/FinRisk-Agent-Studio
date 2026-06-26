@@ -1,6 +1,11 @@
 services:
   sglang:
     image: lmsysorg/sglang:latest-cu130-runtime
+    # Read HF_TOKEN / CUDA / etc. from a local .env file. Copy
+    # .env.example to .env and fill in the values; the .env file is
+    # gitignored.
+    env_file:
+      - .env
     ports:
       - "30000:30000"
     volumes:
@@ -22,11 +27,19 @@ services:
     command: ["sh", "-c", "pip install --no-cache-dir distro && pip uninstall -y torchcodec && exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.5-35B-A3B --host 0.0.0.0 --port 30000 --mem-fraction-static 0.9 --attention-backend triton"]
   neo4j:
     image: neo4j:5
+    env_file:
+      - .env
     ports:
       - "7474:7474"
       - "7687:7687"
+    # R4: the previous hard-coded ``neo4j/password`` literal is gone.
+    # The credentials now come from ``NEO4J_USER`` and
+    # ``NEO4J_PASSWORD`` in the .env file (copied from
+    # .env.example). The ``:-neo4j`` and ``:-REPLACE_ME`` defaults
+    # are dev-only fallbacks; replace them in .env before any
+    # non-local use.
     environment:
-      - NEO4J_AUTH=neo4j/password
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-REPLACE_ME}
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
