@@ -52,6 +52,11 @@ router = APIRouter(prefix="/workflows")
 # compat) or monkeypatch the env before the first access.
 _run_store = _factory_get_run_store()
 
+# Retain strong references to background tasks so the event loop
+# doesn't garbage-collect them mid-flight. Mirrors the pattern in
+# ``src.api.supply_chain._background_tasks``.
+_background_tasks: set[asyncio.Task] = set()
+
 # Keep the fixture path configurable; tests can swap it via set_fixture_path.
 _fixture_path: Path = DEFAULT_FIXTURE_DIR / "aapl_demo_workflow.json"
 
@@ -170,6 +175,17 @@ async def _run_and_store(state) -> None:
         await _run_store.update(state)
 
 
+def _schedule_background(coro) -> None:
+    """Schedule ``coro`` on the running loop and retain a strong
+    reference so it isn't garbage-collected mid-flight.
+
+    Mirrors :func:`src.api.supply_chain._schedule`.
+    """
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -184,14 +200,7 @@ async def start_workflow(request: FinRiskRequest) -> WorkflowRunSummary:
     """Start a new FinRisk workflow run."""
     state = await _run_store.create(request)
     if _background_enabled():
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-        if loop is not None:
-            loop.create_task(_run_and_store(state))
-        else:
-            asyncio.create_task(_run_and_store(state))
+        _schedule_background(_run_and_store(state))
     return WorkflowRunSummary(
         run_id=state.run_id,
         status="queued",
@@ -476,6 +485,7 @@ __all__ = [
     "WorkflowStatusResponse",
     "get_fixture_path",
     "get_run_store",
+    "reset_run_store_for_tests",
     "router",
     "set_fixture_path",
 ]
