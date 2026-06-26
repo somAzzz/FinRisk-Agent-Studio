@@ -79,3 +79,4 @@ markers = [
     "integration: tests that require external services or network access",
 ]
 asyncio_mode = "auto"
+addopts = "-ra --strict-markers"

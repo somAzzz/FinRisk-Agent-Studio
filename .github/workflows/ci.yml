@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: lint + test (Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Ruff (changed files)
+        # Lint only files changed by this PR / push, not the whole
+        # repository. The repo has pre-existing ruff findings in
+        # legacy code that this workflow does not gate; tracking
+        # the broader cleanup is a follow-up.
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD)
+          else
+            CHANGED=$(git diff --name-only --diff-filter=ACMR HEAD~1...HEAD)
+          fi
+          if [ -z "$CHANGED" ]; then
+            echo "No changed files to lint."
+            exit 0
+          fi
+          PY_CHANGED=$(echo "$CHANGED" | grep -E '\.(py|pyi)$' || true)
+          if [ -z "$PY_CHANGED" ]; then
+            echo "No Python files changed."
+            exit 0
+          fi
+          echo "Linting: $PY_CHANGED"
+          uv run ruff check $PY_CHANGED
+
+      - name: Ruff (full repo, advisory)
+        # The whole-repo ruff is informational only; pre-existing
+        # findings are tracked separately. A non-zero exit is
+        # accepted here so legacy findings don't block the PR.
+        run: uv run ruff check . || echo "::warning::Full-repo ruff found issues; see log."
+
+      - name: Pytest (excluding integration)
+        run: uv run pytest -m "not integration" -q --maxfail=1
