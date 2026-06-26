@@ -26,7 +26,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from src.api.run_store import InMemoryRunStore
+from src.api.store_factory import get_run_store as _factory_get_run_store
 from src.workflows.finrisk_workflow import DEFAULT_FIXTURE_DIR
 from src.workflows.state import (
     FinRiskRequest,
@@ -45,16 +45,32 @@ def _background_enabled() -> bool:
 
 router = APIRouter(prefix="/workflows")
 
-# A single in-memory store instance is shared across all requests.
-_run_store = InMemoryRunStore()
+# The run-store backend is selected by ``RUN_STORE_BACKEND`` env var
+# (see :mod:`src.api.store_factory`). The factory caches the backend
+# per process; tests that need a fresh in-memory store can call
+# :func:`reset_run_store_for_tests` (re-exported below for backwards
+# compat) or monkeypatch the env before the first access.
+_run_store = _factory_get_run_store()
 
 # Keep the fixture path configurable; tests can swap it via set_fixture_path.
 _fixture_path: Path = DEFAULT_FIXTURE_DIR / "aapl_demo_workflow.json"
 
 
-def get_run_store() -> InMemoryRunStore:
+def get_run_store():
     """Return the singleton store (exposed for tests)."""
     return _run_store
+
+
+def reset_run_store_for_tests() -> None:
+    """Drop the cached backend. Test-only helper.
+
+    Re-exported from :mod:`src.api.store_factory` so existing test
+    imports (``from src.api.workflows import reset_run_store_for_tests``)
+    keep working.
+    """
+    from src.api.store_factory import reset_run_store_for_tests as _reset
+
+    _reset()
 
 
 def set_fixture_path(path: Path) -> None:
