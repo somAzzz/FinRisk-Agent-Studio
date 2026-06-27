@@ -55,13 +55,21 @@ class ToolChoice(BaseModel):
     """LLM response for tool selection."""
     thought: str = Field(description="Reasoning about what to do")
     tool: Literal["ddgs", "tavily", "web_fetch", "browser", "finish"] = Field(
-        description="Choose: 'ddgs' for simple queries, 'tavily' for deep search, 'web_fetch' for URL content, 'browser' for complex interaction, 'finish' if done"
+        description=(
+            "Choose: 'ddgs' for simple queries, 'tavily' for deep search, "
+            "'web_fetch' for URL content, 'browser' for complex interaction, "
+            "'finish' if done"
+        )
     )
     query: str | None = Field(default=None, description="Search query if using ddgs or tavily")
     url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
     time_range: Literal["d", "w", "m", "y", None] = Field(
         default=None,
-        description="Time filter for search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
+        description=(
+            "Time filter for search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. "
+            "Only set if query implies recency. MUST be null (not empty string) "
+            "when no time filter is needed."
+        ),
     )
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
@@ -135,10 +143,14 @@ You are a tool-selecting assistant. Choose the best tool for the job:
 
 Current date: 2026-03-19 (use this to evaluate result freshness)
 
-⚠️ Time Anchor Requirement: The LLM must receive current time as an absolute reference to correctly interpret relative time expressions like "last week". The System Prompt (agent role) MUST include "Current system time is: 2026-03-22T14:30:00Z (UTC)".
+⚠️ Time Anchor Requirement: The LLM must receive current time as an absolute reference to
+correctly interpret relative time expressions like "last week". The System Prompt (agent role)
+MUST include "Current system time is: 2026-03-22T14:30:00Z (UTC)".
 
 Respond with ONLY valid JSON:
-{{"thought": "why you chose this tool", "tool": "ddgs|tavily|web_fetch|browser|finish", "query": "search term if ddgs or tavily", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
+{{"thought": "why you chose this tool", "tool": "ddgs|tavily|web_fetch|browser|finish",
+  "query": "search term if ddgs or tavily", "url": "url to fetch if web_fetch",
+  "reason": "why this tool"}}"""
 
     def select_tool(self, goal: str) -> ToolChoice | None:
         """Select appropriate tool using tier detection or LLM."""

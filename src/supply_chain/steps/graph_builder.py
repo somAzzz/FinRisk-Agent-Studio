@@ -32,11 +32,11 @@ class SupplyChainGraphBuilderStep(SupplyChainStep):
         if self._graph_client is None:
             if not (state.request.demo_mode or state.request.cached_mode):
                 state.fallback_events.append(
-                    (
+                    
                         "graph_builder:Neo4j client unavailable; "
                         f"{self._graph_client_error or 'no graph client configured'}; "
                         "using in-memory graph"
-                    )
+                    
                 )
             return state
         try:

@@ -66,10 +66,10 @@ def _is_blacklisted_domain(url: str) -> bool:
     except Exception:
         return False
 
-    for blacklisted in _KNOWN_DYNAMIC_DOMAINS:
-        if domain == blacklisted or domain.endswith("." + blacklisted):
-            return True
-    return False
+    return any(
+        domain == blacklisted or domain.endswith("." + blacklisted)
+        for blacklisted in _KNOWN_DYNAMIC_DOMAINS
+    )
 
 
 @dataclass
@@ -156,7 +156,7 @@ def _check_http_status(status_code: int, url: str) -> WebFetchResult | None:
     return None
 
 
-async def web_fetch(url: str) -> WebFetchResult:
+async def web_fetch(url: str) -> WebFetchResult:  # noqa: PLR0911
     """Fetch URL content and return metadata + Markdown (async)."""
     # 1. Check blacklist
     if _is_blacklisted_domain(url):
