@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.agents.state import AgentState
+from src.agents.state import (
+    AgentDecision,
+    AgentRunState,
+    AgentState,
+    AgentSubgoal,
+    AgentWorkflowKind,
+)
 
 PlanStepAction = Literal[
     "fetch_filing",
@@ -191,3 +198,156 @@ class PlannerAgent:
 def _has_graph_artifact(state: AgentState) -> bool:
     """Return True if a previous ``write_graph`` step was recorded."""
     return any("write_graph" in note for note in state.notes)
+
+
+PlannerOutput = dict[str, Any] | str
+
+
+class AgentPlanner:
+    """V21 planner that emits structured agent decisions.
+
+    The planner accepts an optional callable that can provide an LLM-produced
+    structured plan. If parsing or validation fails, it falls back to a small
+    deterministic plan so agent runs remain testable offline.
+    """
+
+    name = "agent_planner"
+
+    def __init__(
+        self,
+        *,
+        available_tool_scopes: set[str] | None = None,
+        llm_planner: Any | None = None,
+    ) -> None:
+        self.available_tool_scopes = available_tool_scopes or {
+            "company_research",
+            "finrisk_market",
+            "supply_chain",
+        }
+        self.llm_planner = llm_planner
+
+    def decide(self, state: AgentRunState) -> AgentDecision:
+        """Return the next structured decision for ``state``."""
+        if self.llm_planner is not None:
+            try:
+                return self._parse_and_validate(self.llm_planner(state))
+            except Exception as exc:
+                state.fallback_events.append(
+                    f"agent_planner:structured planner fallback: {type(exc).__name__}: {exc}"
+                )
+        return self._deterministic_decision(state)
+
+    def initialize(
+        self,
+        *,
+        user_goal: str,
+        workflow_kind: AgentWorkflowKind = "generic_research",
+    ) -> AgentRunState:
+        """Create an initial run state and append the first plan decision."""
+        state = AgentRunState(user_goal=user_goal, workflow_kind=workflow_kind)
+        state.append_decision(self._deterministic_decision(state))
+        return state
+
+    def _parse_and_validate(self, raw: PlannerOutput) -> AgentDecision:
+        if isinstance(raw, str):
+            payload = json.loads(raw)
+        else:
+            payload = raw
+        decision = AgentDecision.model_validate(payload)
+        self._validate_decision(decision)
+        return decision
+
+    def _validate_decision(self, decision: AgentDecision) -> None:
+        scopes = set()
+        if decision.selected_tool_scope:
+            scopes.add(decision.selected_tool_scope)
+        scopes.update(subgoal.tool_scope for subgoal in decision.next_subgoals)
+        invalid = sorted(scope for scope in scopes if scope not in self.available_tool_scopes)
+        if invalid:
+            raise ValueError(f"unknown tool scope(s): {', '.join(invalid)}")
+
+    def _deterministic_decision(self, state: AgentRunState) -> AgentDecision:
+        pending = state.next_pending_subgoal()
+        if pending is not None:
+            return AgentDecision(
+                subgoal_id=pending.subgoal_id,
+                decision_type="call_tools",
+                rationale=f"Run pending subgoal: {pending.objective}",
+                selected_tool_scope=pending.tool_scope,
+                confidence=0.7,
+            )
+        if state.subgoals:
+            return AgentDecision.stop(
+                rationale="No pending subgoals remain.",
+                stop_reason="enough_evidence",
+                confidence=0.6,
+            )
+        return AgentDecision(
+            decision_type="plan",
+            rationale=f"Create initial {state.workflow_kind} research subgoals.",
+            next_subgoals=_default_subgoals(
+                user_goal=state.user_goal,
+                workflow_kind=state.workflow_kind,
+            ),
+            confidence=0.6,
+        )
+
+
+def _default_subgoals(
+    *,
+    user_goal: str,
+    workflow_kind: AgentWorkflowKind,
+) -> list[AgentSubgoal]:
+    if workflow_kind == "finrisk":
+        return [
+            AgentSubgoal(
+                objective=f"Identify filing-backed risks for: {user_goal}",
+                tool_scope="company_research",
+                required_evidence_types=["filing"],
+                success_criteria=["at least one filing source is inspected"],
+            ),
+            AgentSubgoal(
+                objective=f"Collect recent market evidence for: {user_goal}",
+                tool_scope="finrisk_market",
+                required_evidence_types=["web"],
+                success_criteria=["market evidence includes source URLs"],
+            ),
+            AgentSubgoal(
+                objective=f"Check graph paths and second-order exposure for: {user_goal}",
+                tool_scope="finrisk_market",
+                required_evidence_types=["graph_path"],
+                success_criteria=["graph paths are accepted or uncertainty is recorded"],
+            ),
+        ]
+    if workflow_kind == "supply_chain":
+        return [
+            AgentSubgoal(
+                objective=f"Discover supplier candidates for: {user_goal}",
+                tool_scope="supply_chain",
+                required_evidence_types=["web", "filing"],
+                success_criteria=["supplier candidates are evidence-backed"],
+            ),
+            AgentSubgoal(
+                objective=f"Validate relation type and uncertainty for: {user_goal}",
+                tool_scope="supply_chain",
+                required_evidence_types=["web", "graph_path"],
+                success_criteria=["confirmed edges have accepted evidence"],
+            ),
+        ]
+    return [
+        AgentSubgoal(
+            objective=user_goal,
+            tool_scope="company_research",
+            required_evidence_types=["web"],
+            success_criteria=["answer distinguishes evidence, inference, and uncertainty"],
+        )
+    ]
+
+
+__all__ = [
+    "AgentPlan",
+    "AgentPlanner",
+    "PlanStep",
+    "PlanStepAction",
+    "PlannerAgent",
+]
