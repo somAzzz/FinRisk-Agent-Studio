@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.schemas.llm_config import LLMRunConfig
+from src.schemas.tool_trace import ToolLoopTrace
 from src.security.redaction import redact_obj, redact_text
 
 if TYPE_CHECKING:
@@ -549,6 +550,7 @@ class FinRiskWorkflowState(BaseModel):
     # on the frontend reads these via /workflows/{id}/llm_log,
     # /chunks, /sections, /lifecycles respectively. ---
     llm_log: list[LLMCall] = Field(default_factory=list)
+    tool_traces: list[ToolLoopTrace] = Field(default_factory=list)
     chunk_validations: list[ChunkValidation] = Field(default_factory=list)
     section_locations: list[SectionLocation] = Field(default_factory=list)
     risk_lifecycles: list[RiskLifecycleAnnotation] = Field(default_factory=list)
