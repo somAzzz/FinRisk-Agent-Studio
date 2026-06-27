@@ -6,6 +6,9 @@ into the existing ``src.graph.writer`` (see spec 04).
 
 from __future__ import annotations
 
+import os
+from typing import Any
+
 from src.supply_chain.models import SupplyChainExploreState
 from src.supply_chain.steps._base import SupplyChainStep
 
@@ -17,7 +20,11 @@ class SupplyChainGraphBuilderStep(SupplyChainStep):
 
     def __init__(self, *, graph_client=None) -> None:
         super().__init__()
-        self._graph_client = graph_client
+        if graph_client is not None:
+            self._graph_client = graph_client
+            self._graph_client_error = None
+        else:
+            self._graph_client, self._graph_client_error = _default_graph_client_from_env()
 
     async def run(
         self, state: SupplyChainExploreState
@@ -25,7 +32,11 @@ class SupplyChainGraphBuilderStep(SupplyChainStep):
         if self._graph_client is None:
             if not (state.request.demo_mode or state.request.cached_mode):
                 state.fallback_events.append(
-                    "graph_builder:Neo4j client unavailable; using in-memory graph"
+                    (
+                        "graph_builder:Neo4j client unavailable; "
+                        f"{self._graph_client_error or 'no graph client configured'}; "
+                        "using in-memory graph"
+                    )
                 )
             return state
         try:
@@ -41,6 +52,18 @@ class SupplyChainGraphBuilderStep(SupplyChainStep):
                 f"graph_builder:Neo4j write failed; using in-memory graph: {exc}"
             )
         return state
+
+
+def _default_graph_client_from_env() -> tuple[Any | None, str | None]:
+    password = os.environ.get("NEO4J_PASSWORD")
+    if not password or password == "REPLACE_ME":
+        return None, "NEO4J_PASSWORD is not set"
+    try:
+        from src.graph.client import Neo4jClient
+
+        return Neo4jClient(), None
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
 
 
 __all__ = ["SupplyChainGraphBuilderStep"]

@@ -1,5 +1,14 @@
 import pytest
-from src.tools.web_fetch import _is_blacklisted_domain, _extract_metadata, _truncate_content, WebFetchResult, serialize_result, web_fetch
+
+from src.tools.web_fetch import (
+    WebFetchResult,
+    _extract_metadata,
+    _is_blacklisted_domain,
+    _truncate_content,
+    serialize_result,
+    web_fetch,
+)
+
 
 def test_blacklist_exact_match():
     """tradingview.com should match"""
@@ -156,7 +165,8 @@ def test_fetched_at_none_for_failure():
 async def test_web_fetch_sets_fetched_at_on_success():
     """Successful fetch returns fetched_at timestamp."""
     import re
-    from unittest.mock import patch, AsyncMock, MagicMock
+    from unittest.mock import AsyncMock, MagicMock, patch
+
     from src.tools.web_fetch import web_fetch
 
     mock_response = MagicMock()
@@ -177,3 +187,28 @@ async def test_web_fetch_sets_fetched_at_on_success():
         assert result.fetched_at is not None
         # Verify format: YYYY-MM-DDTHH:MM:SS
         assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", result.fetched_at)
+
+
+@pytest.mark.asyncio
+async def test_web_fetch_sync_works_inside_running_event_loop():
+    """The sync wrapper is safe to call from FastAPI-style async routes."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    from src.tools.web_fetch import web_fetch_sync
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = "<html><head><title>Test</title></head><body><p>Async route content</p></body></html>"
+
+    with patch("src.tools.web_fetch.httpx.AsyncClient") as mock_client_class:
+        mock_client = AsyncMock()
+        mock_client.get.return_value = mock_response
+        mock_client.aclose = AsyncMock()
+        mock_client_class.return_value = mock_client
+        mock_client.__aenter__.return_value = mock_client
+
+        result = web_fetch_sync("http://example.com")
+
+    assert result.status == "success"
+    assert result.title == "Test"
+    assert "Async route content" in result.content

@@ -191,3 +191,27 @@ def test_duplicate_candidates_are_merged() -> None:
     candidates = EvidenceCandidateNormalizer().normalize_events([event_1, event_2])
 
     assert len(candidates) == 1
+
+
+def test_truncated_sec_filing_event_can_be_normalized() -> None:
+    partial = (
+        '{"truncated": true, "truncated_text": "{\\"tool\\": \\"sec_fetch_filing\\", '
+        '\\"status\\": \\"success\\", \\"data\\": {\\"truncated_text\\": '
+        '\\"{\\\\\\"ticker\\\\\\": \\\\\\"AAPL\\\\\\", '
+        '\\\\\\"accession_number\\\\\\": \\\\\\"0000320193-25-000079\\\\\\", '
+        '\\\\\\"form_type\\\\\\": \\\\\\"10-K\\\\\\", '
+        '\\\\\\"section\\\\\\": \\\\\\"section_1a\\\\\\", '
+        '\\\\\\"text\\\\\\": \\\\\\"Apple relies on outsourcing partners and single or limited sources '
+        'for critical components that may affect supply chain planning.'
+    )
+    event = _event("sec_fetch_filing", partial)
+
+    candidate = EvidenceCandidateNormalizer().normalize_event(
+        event,
+        related_text="评估 Apple Inc. 当前供应链风险",
+    )[0]
+
+    assert candidate.kind == "filing"
+    assert candidate.status == "accepted"
+    assert "single or limited sources" in candidate.quote
+    assert candidate.metadata["partial"] is True

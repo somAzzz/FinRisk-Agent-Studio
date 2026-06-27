@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import os
 import threading
 from datetime import date
 from typing import Any, Literal
@@ -265,13 +266,14 @@ def build_project_tool_catalog(
             max_hops=max_hops,
             allowed_edge_types=allowed_edge_types,
         )
-        paths = (
-            graph_backend.retrieve(context)
-            if graph_backend is not None
-            else _fixture_graph_paths(context)
+        paths, graph_source, graph_error = _resolve_graph_paths(
+            graph_backend,
+            context,
         )
         return {
             "context": jsonable(context),
+            "graph_source": graph_source,
+            "error": graph_error,
             "paths": jsonable(paths),
         }
 
@@ -288,10 +290,9 @@ def build_project_tool_catalog(
             max_hops=max_hops,
             allowed_edge_types=allowed_edge_types,
         )
-        paths = (
-            graph_backend.retrieve(context)
-            if graph_backend is not None
-            else _fixture_graph_paths(context)
+        paths, graph_source, graph_error = _resolve_graph_paths(
+            graph_backend,
+            context,
         )
         if target_entity:
             target = target_entity.lower()
@@ -302,6 +303,8 @@ def build_project_tool_catalog(
         return {
             "context": jsonable(context),
             "target_entity": target_entity,
+            "graph_source": graph_source,
+            "error": graph_error,
             "paths": jsonable(paths),
         }
 
@@ -309,16 +312,41 @@ def build_project_tool_catalog(
         goal: str,
         initial_urls: list[str] | None = None,
         max_steps: int = 5,
+        timeout_seconds: float = 60.0,
     ) -> dict[str, Any]:
-        explorer = browser_explorer or _default_browser_explorer(max_steps=max_steps)
-        result = explorer.explore(goal, initial_urls=initial_urls)
-        state = _run_sync(result) if inspect.isawaitable(result) else result
+        bounded_steps = _clamp(max_steps, 1, 10)
+        bounded_timeout = _clamp_float(timeout_seconds, 0.1, 120.0)
+        explorer = browser_explorer or _default_browser_explorer(max_steps=bounded_steps)
+        backend = _browser_backend_name(explorer)
+        state, timed_out, error = _run_browser_explore_with_timeout(
+            explorer,
+            goal=goal,
+            initial_urls=initial_urls,
+            timeout_seconds=bounded_timeout,
+        )
+        if state is None:
+            return {
+                "goal": goal,
+                "browser_backend": backend,
+                "max_steps": bounded_steps,
+                "timeout_seconds": bounded_timeout,
+                "timed_out": timed_out,
+                "error": error,
+                "current_step": None,
+                "findings": [],
+                "visited_urls": [],
+            }
         findings = [
             jsonable(finding)
             for finding in getattr(state, "findings", [])
         ]
         return {
             "goal": goal,
+            "browser_backend": backend,
+            "max_steps": bounded_steps,
+            "timeout_seconds": bounded_timeout,
+            "timed_out": timed_out,
+            "error": error,
             "current_step": getattr(state, "current_step", None),
             "findings": findings,
             "visited_urls": jsonable(getattr(state, "visited_urls", [])),
@@ -723,6 +751,12 @@ BROWSER_EXPLORE_PARAMETERS: dict[str, Any] = {
             "maximum": 10,
             "default": 5,
         },
+        "timeout_seconds": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 120,
+            "default": 60,
+        },
     },
     "required": ["goal"],
 }
@@ -978,6 +1012,33 @@ def _fixture_graph_paths(context: dict[str, Any]) -> list[dict[str, Any]]:
     return paths
 
 
+def _resolve_graph_paths(
+    graph_backend: Any | None,
+    context: dict[str, Any],
+) -> tuple[list[Any], str, str | None]:
+    if graph_backend is not None:
+        return list(graph_backend.retrieve(context)), _graph_backend_name(graph_backend), None
+    if os.environ.get("GRAPH_TOOL_ALLOW_FIXTURE") == "1":
+        return _fixture_graph_paths(context), "fixture", None
+    return (
+        [],
+        "unavailable",
+        (
+            "Graph backend unavailable. Configure a graph backend for real runs, "
+            "or set GRAPH_TOOL_ALLOW_FIXTURE=1 only for demo/fixture testing."
+        ),
+    )
+
+
+def _graph_backend_name(graph_backend: Any) -> str:
+    name = type(graph_backend).__name__
+    if name == "Neo4jGraphBackend":
+        return "neo4j"
+    if name == "FixtureGraphBackend":
+        return "fixture"
+    return name
+
+
 def _path_payload(
     nodes: list[dict[str, Any]],
     edges: list[dict[str, Any]],
@@ -1028,8 +1089,52 @@ def _run_sync(awaitable: Any) -> Any:
     return result_box.get("result")
 
 
+def _run_browser_explore_with_timeout(
+    explorer: Any,
+    *,
+    goal: str,
+    initial_urls: list[str] | None,
+    timeout_seconds: float,
+) -> tuple[Any | None, bool, str | None]:
+    result_box: dict[str, Any] = {}
+    error_box: dict[str, BaseException] = {}
+
+    def _worker() -> None:
+        try:
+            result = explorer.explore(goal, initial_urls=initial_urls)
+            result_box["result"] = _run_sync(result) if inspect.isawaitable(result) else result
+        except BaseException as exc:  # pragma: no cover - defensive thread bridge
+            error_box["error"] = exc
+
+    thread = threading.Thread(target=_worker, daemon=True, name="fintext-browser-explore")
+    thread.start()
+    thread.join(timeout=timeout_seconds)
+    if thread.is_alive():
+        return None, True, f"browser_explore timed out after {timeout_seconds:g}s"
+    if "error" in error_box:
+        exc = error_box["error"]
+        return None, False, f"{type(exc).__name__}: {exc}"
+    return result_box.get("result"), False, None
+
+
+def _browser_backend_name(explorer: Any) -> str:
+    wrapper = getattr(explorer, "wrapper", None)
+    if wrapper is None:
+        return type(explorer).__name__
+    name = type(wrapper).__name__
+    if name == "PlaywrightBrowserWrapper":
+        return "playwright"
+    if name == "BrowserWrapper":
+        return "agent-browser"
+    return name
+
+
 def _clamp(value: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, int(value)))
+
+
+def _clamp_float(value: float, minimum: float, maximum: float) -> float:
+    return max(minimum, min(maximum, float(value)))
 
 
 def _parse_date(value: str | None) -> date | None:

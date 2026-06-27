@@ -18,13 +18,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from src.browser import MarketExplorer
 from src.llm.sglang_client import SGLangClient
+from src.tools.searxng import searxng_search
+from src.tools.tavily import tavily_search
+from src.tools.tier_detection import detect_search_tier, is_direct_url
 from src.tools.web_fetch import serialize_result, web_fetch
 from src.tools.web_search import web_search
-from src.tools.tier_detection import detect_search_tier, is_direct_url
-from src.tools.tavily import tavily_search
-from src.tools.searxng import searxng_search
-from src.browser import BrowserWrapper, MarketExplorer
 
 _VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
 
@@ -244,17 +244,22 @@ Respond with ONLY valid JSON:
 
     async def execute_browser(self, goal: str) -> str:
         """Execute browser exploration."""
-        wrapper = BrowserWrapper()
-        explorer = MarketExplorer(llm_client=self.llm_client, wrapper=wrapper)
-
-        result = await explorer.explore(goal)
-        wrapper.close()
+        explorer = MarketExplorer(llm_client=self.llm_client)
+        try:
+            result = await explorer.explore(goal)
+        finally:
+            explorer.wrapper.close()
 
         findings_str = "\n".join([
             f"- [{f.source_type}] {f.summary}" for f in result.findings
         ])
 
-        browser_result = f"Browser exploration complete:\n- Steps: {result.current_step}\n- Findings: {len(result.findings)}\n\n{findings_str}"
+        browser_result = (
+            "Browser exploration complete:\n"
+            f"- Steps: {result.current_step}\n"
+            f"- Findings: {len(result.findings)}\n\n"
+            f"{findings_str}"
+        )
 
         self.search_history.append({
             "tool": "browser",

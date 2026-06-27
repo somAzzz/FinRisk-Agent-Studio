@@ -108,6 +108,61 @@ def test_get_company_facts_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
+def test_get_company_concept_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``get_company_concept`` hits the companyconcept endpoint."""
+    captured: dict[str, Any] = {}
+    _patch_session_get(monkeypatch, FakeResponse(200, {"units": {}}), captured)
+    client = SECClient(user_agent="Bot bot@example.com")
+    client.get_company_concept("320193", taxonomy="us-gaap", tag="Assets")
+    assert (
+        captured["url"]
+        == "https://data.sec.gov/api/xbrl/companyconcept/"
+        "CIK0000320193/us-gaap/Assets.json"
+    )
+
+
+def test_get_company_tickers_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``get_company_tickers`` downloads SEC's public ticker mapping."""
+    captured: dict[str, Any] = {}
+    _patch_session_get(monkeypatch, FakeResponse(200, {"0": {}}), captured)
+    client = SECClient(user_agent="Bot bot@example.com")
+    payload = client.get_company_tickers()
+    assert payload == {"0": {}}
+    assert captured["url"] == "https://www.sec.gov/files/company_tickers.json"
+
+
+def test_ticker_to_cik_returns_padded_cik(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``ticker_to_cik`` resolves SEC ticker rows to 10-digit CIKs."""
+    captured: dict[str, Any] = {}
+    _patch_session_get(
+        monkeypatch,
+        FakeResponse(
+            200,
+            {
+                "0": {
+                    "cik_str": 320193,
+                    "ticker": "AAPL",
+                    "title": "Apple Inc.",
+                }
+            },
+        ),
+        captured,
+    )
+    client = SECClient(user_agent="Bot bot@example.com")
+    assert client.ticker_to_cik("aapl") == "0000320193"
+
+
+def test_ticker_to_cik_raises_for_missing_ticker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Missing SEC ticker rows raise the same typed not-found error."""
+    captured: dict[str, Any] = {}
+    _patch_session_get(monkeypatch, FakeResponse(200, {"0": {}}), captured)
+    client = SECClient(user_agent="Bot bot@example.com")
+    with pytest.raises(SECNotFoundError):
+        client.ticker_to_cik("MISSING")
+
+
 def test_get_filing_html_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
     """``get_filing_html`` builds the Archives URL without accession dashes."""
     captured: dict[str, Any] = {}
@@ -124,6 +179,19 @@ def test_get_filing_html_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
     assert (
         captured["url"]
         == "https://www.sec.gov/Archives/edgar/data/320193/"
+        "000032019321000105/aapl-20210925.htm"
+    )
+
+
+def test_build_filing_document_url() -> None:
+    """Archives document URL uses unpadded CIK and accession without dashes."""
+    client = SECClient(user_agent="Bot bot@example.com")
+    assert client.build_filing_document_url(
+        cik="0000320193",
+        accession_number="0000320193-21-000105",
+        primary_document="aapl-20210925.htm",
+    ) == (
+        "https://www.sec.gov/Archives/edgar/data/320193/"
         "000032019321000105/aapl-20210925.htm"
     )
 
@@ -205,9 +273,7 @@ def test_wait_for_slot_zero_rate_does_not_sleep(
     """A rate limit of zero (or negative) should not sleep at all."""
     sleeps: list[float] = []
 
-    monkeypatch.setattr(
-        "src.data.sec_client.time.sleep", lambda s: sleeps.append(s)
-    )
+    monkeypatch.setattr("src.data.sec_client.time.sleep", sleeps.append)
     monkeypatch.setattr(
         "src.data.sec_client.time.monotonic", lambda: 0.0
     )
@@ -222,9 +288,7 @@ def test_request_uses_real_time_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
     """``_request`` should call ``time.sleep`` indirectly via the slot wait."""
     _patch_session_get(monkeypatch, FakeResponse(200, {}), {})
     sleeps: list[float] = []
-    monkeypatch.setattr(
-        "src.data.sec_client.time.sleep", lambda s: sleeps.append(s)
-    )
+    monkeypatch.setattr("src.data.sec_client.time.sleep", sleeps.append)
     # Tenacity plus our own probes consume several monotonic calls; provide
     # values that make the slot gap large enough to skip sleeping.
     counter = {"n": 0}

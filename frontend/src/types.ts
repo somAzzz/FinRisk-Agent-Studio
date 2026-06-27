@@ -166,6 +166,9 @@ export interface RiskReportV16Wire {
     supporting_claim_ids: string[];
     supporting_evidence_ids: string[];
     related_graph_insight_ids: string[];
+    lifecycle?: RiskLifecycle;
+    lifecycle_confidence?: number;
+    lifecycle_reasoning?: string;
   }>;
   recent_changes: Array<{
     change_id: string;
@@ -392,4 +395,160 @@ export interface WorkflowSectionsResponse {
 export interface WorkflowLifecyclesResponse {
   run_id: string;
   risk_lifecycles: RiskLifecycleAnnotation[];
+}
+
+// ---------------------------------------------------------------------------
+// V21 LLM-driven agent run types
+// ---------------------------------------------------------------------------
+
+export type AgentWorkflowKind =
+  | "finrisk"
+  | "supply_chain"
+  | "company_research"
+  | "generic_research";
+
+export type AgentRunProvider = "deepseek" | "vllm" | "sglang";
+export type AgentRunToolLoopMode = "native" | "json_fallback" | "auto";
+export type AgentRunToolScope =
+  | "company_research"
+  | "finrisk_market"
+  | "supply_chain";
+
+export type AgentRunStatus =
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "needs_review";
+
+export type AgentSubgoalStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed"
+  | "skipped"
+  | "needs_review";
+
+export interface AgentRunRequest {
+  goal: string;
+  workflow_kind: AgentWorkflowKind;
+  provider: AgentRunProvider;
+  tool_loop_mode?: AgentRunToolLoopMode | null;
+  tool_scope?: AgentRunToolScope | null;
+  max_tool_rounds?: number;
+  model?: string | null;
+  base_url?: string | null;
+  demo_mode?: boolean;
+  cached_mode?: boolean;
+  subject?: Record<string, unknown>;
+}
+
+export interface AgentRunSummary {
+  run_id: string;
+  status: AgentRunStatus;
+  timeline_url: string;
+  trace_url: string;
+}
+
+export interface AgentSubgoalWire {
+  subgoal_id: string;
+  parent_subgoal_id?: string | null;
+  objective: string;
+  status: AgentSubgoalStatus;
+  tool_scope: string;
+  required_evidence_types: string[];
+  success_criteria: string[];
+  attempt_count: number;
+  depends_on: string[];
+}
+
+export interface AgentDecisionWire {
+  decision_id: string;
+  subgoal_id?: string | null;
+  decision_type: string;
+  rationale: string;
+  selected_tool_scope?: string | null;
+  selected_tools: string[];
+  stop_reason?: string | null;
+  confidence: number;
+  created_at: string;
+}
+
+export interface ToolExecutionEventWire {
+  event_id: string;
+  round_id: string;
+  tool_call_id: string;
+  tool_name: string;
+  arguments: Record<string, unknown>;
+  status: "success" | "failed";
+  result_summary: string;
+  latency_ms: number;
+  error?: string | null;
+  result_chars: number;
+  truncated: boolean;
+  created_at: string;
+}
+
+export interface AgentEvidenceCandidateWire {
+  evidence_id?: string;
+  candidate_id?: string;
+  kind?: string;
+  status?: string;
+  source_url?: string | null;
+  source_name?: string | null;
+  summary?: string;
+  quote?: string | null;
+  source_quality_score?: number;
+  grounding_score?: number;
+  confidence?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AgentHumanReviewItemWire {
+  item_id: string;
+  run_id: string;
+  subgoal_id?: string | null;
+  object_type: string;
+  object_id: string;
+  reason: string;
+  suggested_action: string;
+  status: "pending" | "approved" | "rejected" | "commented";
+  reviewer_comment?: string | null;
+  created_at: string;
+  reviewed_at?: string | null;
+}
+
+export interface AgentRunTimelineResponse {
+  run_id: string;
+  status: AgentRunStatus;
+  decisions: AgentDecisionWire[];
+  subgoals: AgentSubgoalWire[];
+  tool_events: ToolExecutionEventWire[];
+  evidence_candidates: AgentEvidenceCandidateWire[];
+  human_review_items: AgentHumanReviewItemWire[];
+}
+
+export interface AgentRunTraceResponse {
+  run_id: string;
+  user_goal: string;
+  workflow_kind: AgentWorkflowKind;
+  status: AgentRunStatus;
+  accepted_evidence_ids?: string[];
+  fallback_events?: string[];
+  budget?: Record<string, unknown>;
+  tool_traces?: Array<{
+    mode: AgentRunToolLoopMode;
+    budget_usage?: {
+      max_tool_result_chars: number;
+      max_total_tool_result_chars: number;
+      used_tool_result_chars: number;
+      truncated_events: number;
+    } | null;
+    tool_events: ToolExecutionEventWire[];
+  }>;
+}
+
+export interface AgentReviewActionRequest {
+  action: "approve" | "reject" | "comment";
+  reviewer_comment?: string | null;
 }

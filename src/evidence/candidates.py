@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import datetime
 from typing import Any, Literal
 
@@ -97,6 +98,17 @@ class EvidenceCandidateNormalizer:
             ]
         payload = _parse_payload(event.result_summary)
         if payload is None:
+            partial_rows = _partial_rows_for_tool(event.tool_name, event.result_summary)
+            if partial_rows:
+                return [
+                    _build_candidate(
+                        event,
+                        row,
+                        related_subgoal_id=related_subgoal_id,
+                        related_text=related_text,
+                    )
+                    for row in partial_rows
+                ]
             return [
                 _rejected_candidate(
                     event,
@@ -107,6 +119,8 @@ class EvidenceCandidateNormalizer:
         data = payload.get("data", payload)
         tool_name = str(payload.get("tool") or event.tool_name)
         rows = _rows_for_tool(tool_name, data)
+        if not rows:
+            rows = _partial_rows_for_tool(tool_name, event.result_summary)
         candidates = [
             _build_candidate(
                 event,
@@ -142,6 +156,8 @@ def _build_candidate(
     rejection_reason = _candidate_rejection_reason(kind, source_url, summary)
     quality = _source_quality_score(kind, source_url)
     grounding = _grounding_score(related_text, quote or summary)
+    if kind in {"filing", "financial_metric"} and quality >= 0.8 and grounding < 0.25:
+        grounding = 0.25
     status: EvidenceCandidateStatus = "accepted"
     if rejection_reason is not None:
         status = "rejected"
@@ -202,6 +218,68 @@ def _parse_payload(text: str) -> dict[str, Any] | None:
     except json.JSONDecodeError:
         return None
     return payload if isinstance(payload, dict) else None
+
+
+def _partial_rows_for_tool(tool_name: str, text: str) -> list[dict[str, Any]]:
+    clean = _loosely_unescape(text)
+    if tool_name == "sec_fetch_filing":
+        quote = _extract_partial_json_string(clean, "text")
+        if not quote:
+            return []
+        return [
+            {
+                "kind": "filing",
+                "source_url": _extract_partial_json_string(clean, "source_url"),
+                "source_title": _extract_partial_json_string(clean, "form_type"),
+                "quote": quote,
+                "summary": quote,
+                "accession_number": _extract_partial_json_string(clean, "accession_number"),
+                "section": _extract_partial_json_string(clean, "section"),
+                "partial": True,
+            }
+        ]
+    if tool_name in {"web_search", "search_and_fetch"}:
+        url = _extract_partial_json_string(clean, "url")
+        snippet = _extract_partial_json_string(clean, "snippet")
+        if not url or not snippet:
+            return []
+        return [
+            {
+                "kind": "web",
+                "source_url": url,
+                "source_title": _extract_partial_json_string(clean, "title"),
+                "quote": snippet,
+                "summary": snippet,
+                "partial": True,
+            }
+        ]
+    return []
+
+
+def _loosely_unescape(text: str) -> str:
+    return (
+        text.replace("\\\\\\\"", "\"")
+        .replace("\\\"", "\"")
+        .replace("\\\\n", "\n")
+        .replace("\\n", "\n")
+    )
+
+
+def _extract_partial_json_string(text: str, key: str, *, max_chars: int = 2000) -> str | None:
+    match = re.search(rf'"{re.escape(key)}"\s*:\s*"', text)
+    if match is None:
+        return None
+    chunk = text[match.end(): match.end() + max_chars]
+    end_candidates = [
+        index for index in (
+            chunk.find('", "'),
+            chunk.find('"}'),
+            chunk.find('"]'),
+        )
+        if index >= 0
+    ]
+    end = min(end_candidates) if end_candidates else len(chunk)
+    return _compact(chunk[:end])
 
 
 def _rows_for_tool(tool_name: str, data: Any) -> list[dict[str, Any]]:

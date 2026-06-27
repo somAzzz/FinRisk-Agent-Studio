@@ -11,6 +11,7 @@ from src.agents.llm_runtime import LLMToolRunResult
 from src.api.agent_runs import (
     AgentRunRequest,
     HumanReviewActionRequest,
+    build_agent_runtime,
     get_agent_run,
     get_agent_run_timeline,
     reset_agent_run_store_for_tests,
@@ -49,6 +50,39 @@ def _review_event() -> ToolExecutionEvent:
         event_id="event-review",
         round_id="round-0",
         tool_call_id="call-review",
+        tool_name="web_search",
+        arguments={"query": "Apple supply chain"},
+        status="success",
+        result_summary=json.dumps(payload),
+        latency_ms=1,
+        result_chars=100,
+        created_at=utcnow(),
+    )
+
+
+def _accepted_event() -> ToolExecutionEvent:
+    payload = {
+        "tool": "web_search",
+        "status": "success",
+        "data": {
+            "query": "Apple supply chain",
+            "results": [
+                {
+                    "title": "Apple supply chain source",
+                    "url": "https://example.com/apple-supply-chain",
+                    "snippet": (
+                        "Identify filing backed risks for Assess Apple supply "
+                        "chain risk using supplier evidence."
+                    ),
+                    "rank": 1,
+                }
+            ],
+        },
+    }
+    return ToolExecutionEvent(
+        event_id="event-accepted",
+        round_id="round-0",
+        tool_call_id="call-accepted",
         tool_name="web_search",
         arguments={"query": "Apple supply chain"},
         status="success",
@@ -103,3 +137,84 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
     assert reviewed.status == "approved"
     assert reviewed.object_id in state.accepted_evidence_ids
     assert state.status == "completed"
+
+
+async def test_start_agent_run_uses_default_runtime_factory(monkeypatch) -> None:
+    class Runtime:
+        def run(self, goal: str, **kwargs) -> object:
+            state = GlobalAgentRuntime(
+                subgoal_runtime_factory=lambda _scope, _subgoal: self
+            ).planner.initialize(
+                user_goal=goal,
+                workflow_kind=kwargs["workflow_kind"],
+            )
+            state.status = "completed"
+            return state
+
+    called = False
+
+    def fake_build_runtime(request: AgentRunRequest) -> Runtime:
+        nonlocal called
+        called = True
+        assert request.provider == "vllm"
+        return Runtime()
+
+    monkeypatch.setattr("src.api.agent_runs.build_agent_runtime", fake_build_runtime)
+
+    summary = await start_agent_run(
+        AgentRunRequest(
+            goal="Assess Apple supply chain risk",
+            workflow_kind="finrisk",
+            provider="vllm",
+        )
+    )
+
+    assert called
+    assert summary.status == "completed"
+
+
+def test_build_agent_runtime_passes_request_options_to_tool_runtime(
+    monkeypatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class Runtime:
+        def run(self, goal: str) -> LLMToolRunResult:
+            return LLMToolRunResult(
+                goal=goal,
+                final_answer="done",
+                tool_events=[_accepted_event()],
+            )
+
+    def fake_build_runtime(**kwargs) -> Runtime:
+        captured.update(kwargs)
+        return Runtime()
+
+    monkeypatch.setattr(
+        "src.pipelines.llm_tool_research.build_runtime",
+        fake_build_runtime,
+    )
+
+    runtime = build_agent_runtime(
+        AgentRunRequest(
+            goal="Assess Apple supply chain risk",
+            workflow_kind="finrisk",
+            provider="vllm",
+            tool_loop_mode="auto",
+            tool_scope="supply_chain",
+            max_tool_rounds=2,
+            model="local-model",
+            base_url="http://localhost:8000/v1",
+        )
+    )
+    state = runtime.run("Assess Apple supply chain risk", workflow_kind="finrisk")
+
+    assert state.status == "completed"
+    assert captured == {
+        "provider": "vllm",
+        "tools_scope": "supply_chain",
+        "max_tool_rounds": 2,
+        "model": "local-model",
+        "base_url": "http://localhost:8000/v1",
+        "tool_loop_mode": "auto",
+    }

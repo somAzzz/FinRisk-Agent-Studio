@@ -2,15 +2,16 @@ import asyncio
 import hashlib
 import random
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable
+from typing import Any
 
 import numpy as np
 
-from src.llm.sglang_client import SGLangClient
-from src.browser.wrapper import BrowserWrapper
 from src.browser.config import BrowserConfig, ExplorationConfig
+from src.browser.factory import build_browser_wrapper
+from src.llm.sglang_client import SGLangClient
 
 
 @dataclass
@@ -88,13 +89,13 @@ class MarketExplorer:
     def __init__(
         self,
         llm_client: SGLangClient | None = None,
-        wrapper: BrowserWrapper | None = None,
+        wrapper: Any | None = None,
         browser_config: BrowserConfig | None = None,
         exploration_config: ExplorationConfig | None = None,
     ):
         self.llm_client = llm_client or SGLangClient()
-        self.wrapper = wrapper or BrowserWrapper()
         self.browser_config = browser_config or BrowserConfig()
+        self.wrapper = wrapper or build_browser_wrapper(browser_config=self.browser_config)
         self.exploration_config = exploration_config or ExplorationConfig()
         self._recent_embeddings: list[list[float]] = []
 

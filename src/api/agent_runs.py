@@ -8,13 +8,15 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.planner import AgentPlanner
 from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
 from src.security.redaction import redact_obj
 
 router = APIRouter(prefix="/agent-runs")
 
 ReviewAction = Literal["approve", "reject", "comment"]
+AgentRunProvider = Literal["deepseek", "vllm", "sglang"]
+AgentRunToolLoopMode = Literal["native", "json_fallback", "auto"]
+AgentRunToolScope = Literal["company_research", "finrisk_market", "supply_chain"]
 
 _agent_runs: dict[str, AgentRunState] = {}
 _agent_runtime: GlobalAgentRuntime | None = None
@@ -27,9 +29,12 @@ class AgentRunRequest(BaseModel):
 
     goal: str = Field(min_length=1)
     workflow_kind: AgentWorkflowKind = "generic_research"
-    provider: str | None = None
-    tool_loop_mode: str | None = None
-    tool_scope: str | None = None
+    provider: AgentRunProvider = "deepseek"
+    tool_loop_mode: AgentRunToolLoopMode | None = None
+    tool_scope: AgentRunToolScope | None = None
+    max_tool_rounds: int = Field(default=4, ge=0, le=10)
+    model: str | None = None
+    base_url: str | None = None
     demo_mode: bool = False
     cached_mode: bool = False
     subject: dict[str, Any] = Field(default_factory=dict)
@@ -80,18 +85,12 @@ def reset_agent_run_store_for_tests() -> None:
 @router.post("", response_model=AgentRunSummary, status_code=status.HTTP_202_ACCEPTED)
 async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
     """Start a local V21 agent run."""
-    if _agent_runtime is None:
-        state = AgentPlanner().initialize(
-            user_goal=request.goal,
-            workflow_kind=request.workflow_kind,
-        )
-        state.status = "completed"
-    else:
-        state = _agent_runtime.run(
-            request.goal,
-            workflow_kind=request.workflow_kind,
-            subject=request.subject,
-        )
+    runtime = _agent_runtime or build_agent_runtime(request)
+    state = runtime.run(
+        request.goal,
+        workflow_kind=request.workflow_kind,
+        subject=request.subject,
+    )
     _agent_runs[state.run_id] = state
     return AgentRunSummary(
         run_id=state.run_id,
@@ -187,11 +186,36 @@ def _find_review_item(state: AgentRunState, item_id: str) -> HumanReviewItem:
     )
 
 
+def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
+    """Build the real V21 runtime used by the local agent-run API."""
+    from src.pipelines.llm_tool_research import build_runtime
+
+    def factory(tool_scope: str, _subgoal) -> Any:
+        selected_scope = request.tool_scope or _coerce_tool_scope(tool_scope)
+        return build_runtime(
+            provider=request.provider,
+            tools_scope=selected_scope,
+            max_tool_rounds=request.max_tool_rounds,
+            model=request.model,
+            base_url=request.base_url,
+            tool_loop_mode=request.tool_loop_mode,
+        )
+
+    return GlobalAgentRuntime(subgoal_runtime_factory=factory)
+
+
+def _coerce_tool_scope(tool_scope: str) -> AgentRunToolScope:
+    if tool_scope in {"company_research", "finrisk_market", "supply_chain"}:
+        return tool_scope  # type: ignore[return-value]
+    return "company_research"
+
+
 __all__ = [
     "AgentRunRequest",
     "AgentRunSummary",
     "AgentRunTimeline",
     "HumanReviewActionRequest",
+    "build_agent_runtime",
     "get_agent_run",
     "get_agent_run_timeline",
     "get_agent_run_trace",

@@ -4,6 +4,7 @@ import { ClaimEvidenceMatrix } from "./components/ClaimEvidenceMatrix";
 import { EvaluationPanel } from "./components/EvaluationPanel";
 import { EvaluationTab } from "./components/EvaluationTab";
 import { EvidenceGraph } from "./components/EvidenceGraph";
+import { LLMAgentRunPanel } from "./components/LLMAgentRunPanel";
 import { RiskReport } from "./components/RiskReport";
 import { RiskScoreBreakdown } from "./components/RiskScoreBreakdown";
 import { SupplyChainExplorer } from "./components/SupplyChainExplorer";
@@ -31,9 +32,9 @@ export function App() {
   );
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
-  const [activeView, setActiveView] = useState<"finrisk" | "supply-chain">(
-    "finrisk",
-  );
+  const [activeView, setActiveView] = useState<
+    "finrisk" | "supply-chain" | "agent-runs"
+  >("finrisk");
   const pollRef = useRef<number | null>(null);
 
   const stopPolling = () => {
@@ -145,8 +146,20 @@ export function App() {
         >
           Product Supply Chain
         </button>
+        <button
+          type="button"
+          className={activeView === "agent-runs" ? "active" : ""}
+          onClick={() => setActiveView("agent-runs")}
+          data-testid="tab-agent-runs"
+        >
+          LLM Agent Runs
+        </button>
       </nav>
-      {activeView === "supply-chain" ? (
+      {activeView === "agent-runs" ? (
+        <main className="app-main agent-runs-view">
+          <LLMAgentRunPanel />
+        </main>
+      ) : activeView === "supply-chain" ? (
         <main className="app-main supply-chain-view">
           <SupplyChainExplorer />
         </main>

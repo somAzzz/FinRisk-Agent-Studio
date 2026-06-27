@@ -47,6 +47,7 @@ class SECClient:
 
     BASE_DATA_URL = "https://data.sec.gov"
     BASE_ARCHIVES_URL = "https://www.sec.gov/Archives/edgar/data"
+    COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 
     def __init__(
         self,
@@ -108,6 +109,13 @@ class SECClient:
         cik10 = self.pad_cik(cik)
         return f"{self.BASE_DATA_URL}/api/xbrl/companyfacts/CIK{cik10}.json"
 
+    def _build_company_concept_url(self, cik: str, taxonomy: str, tag: str) -> str:
+        cik10 = self.pad_cik(cik)
+        return (
+            f"{self.BASE_DATA_URL}/api/xbrl/companyconcept/"
+            f"CIK{cik10}/{taxonomy}/{tag}.json"
+        )
+
     def _build_filing_html_url(
         self, accession_number: str, cik: str, primary_doc: str
     ) -> str:
@@ -117,6 +125,12 @@ class SECClient:
             f"{self.BASE_ARCHIVES_URL}/{cik_int}/"
             f"{accession_no_dashes}/{primary_doc}"
         )
+
+    def build_filing_document_url(
+        self, cik: str, accession_number: str, primary_document: str
+    ) -> str:
+        """Build the public Archives URL for a filing primary document."""
+        return self._build_filing_html_url(accession_number, cik, primary_document)
 
     @retry(
         stop=stop_after_attempt(3),
@@ -159,6 +173,38 @@ class SECClient:
         """
         url = self._build_company_facts_url(cik)
         return self._request(url)
+
+    def get_company_concept(
+        self,
+        cik: str,
+        taxonomy: str = "us-gaap",
+        tag: str = "Assets",
+    ) -> dict:
+        """Return one XBRL company concept for a CIK/taxonomy/tag.
+
+        See: https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/{taxonomy}/{tag}.json
+        """
+        url = self._build_company_concept_url(cik, taxonomy, tag)
+        return self._request(url)
+
+    def get_company_tickers(self) -> dict[str, dict]:
+        """Return SEC's public ticker -> CIK mapping payload."""
+        return self._request(self.COMPANY_TICKERS_URL)
+
+    def ticker_to_cik(self, ticker: str) -> str:
+        """Resolve a ticker to a 10-digit CIK using SEC's ticker mapping."""
+        ticker_upper = ticker.upper().strip()
+        payload = self.get_company_tickers()
+        for entry in payload.values():
+            if not isinstance(entry, dict):
+                continue
+            if str(entry.get("ticker", "")).upper() != ticker_upper:
+                continue
+            raw_cik = entry.get("cik_str")
+            if raw_cik is None:
+                break
+            return self.pad_cik(str(raw_cik))
+        raise SECNotFoundError(f"Ticker not found in SEC company_tickers: {ticker}")
 
     def get_filing_html(
         self, accession_number: str, cik: str, primary_doc: str

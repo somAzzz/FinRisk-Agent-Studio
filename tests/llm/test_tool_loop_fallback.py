@@ -49,6 +49,85 @@ def test_json_tool_choice_loop_executes_tool_and_finishes() -> None:
     assert "Tool result for lookup_metric" in second_kwargs["messages"][-1]["content"]
 
 
+def test_json_tool_choice_loop_finalizes_after_max_rounds() -> None:
+    sdk = MagicMock()
+    sdk.chat.completions.create.side_effect = [
+        _response(json.dumps({"tool": "lookup_metric", "arguments": {"ticker": "AAPL"}})),
+        _response(json.dumps({"tool": "lookup_metric", "arguments": {"ticker": "MSFT"}})),
+        _response(json.dumps({"final_answer": "Final answer from available evidence."})),
+    ]
+    loop = JSONToolChoiceToolLoop(
+        client=sdk,
+        model="local-model",
+        provider="local",
+        temperature=0.1,
+        max_tokens=256,
+    )
+
+    text, calls = loop.chat(
+        [{"role": "user", "content": "Keep looking up metrics."}],
+        tools=[{"type": "function", "function": {"name": "lookup_metric"}}],
+        tool_map={"lookup_metric": lambda ticker: {"ticker": ticker}},
+        max_tool_rounds=1,
+    )
+
+    assert text == "Final answer from available evidence."
+    assert len(calls) == 3
+    assert len(loop.last_tool_events) == 2
+    final_kwargs = sdk.chat.completions.create.call_args_list[2].kwargs
+    assert "tools" not in final_kwargs
+    assert "Tool-call budget is exhausted" in final_kwargs["messages"][-1]["content"]
+
+
+def test_json_tool_choice_loop_does_not_execute_after_total_budget_exhausted() -> None:
+    sdk = MagicMock()
+    sdk.chat.completions.create.side_effect = [
+        _response(json.dumps({"tool": "large_tool", "arguments": {}})),
+        _response(json.dumps({"tool": "second_tool", "arguments": {}})),
+        _response(json.dumps({"final_answer": "Final answer from available evidence."})),
+    ]
+    calls: list[str] = []
+
+    def large_tool() -> dict:
+        calls.append("large_tool")
+        return "x" * 20
+
+    def second_tool() -> dict:
+        calls.append("second_tool")
+        return {"text": "should not execute"}
+
+    loop = JSONToolChoiceToolLoop(
+        client=sdk,
+        model="local-model",
+        provider="local",
+        temperature=0.1,
+        max_tokens=256,
+    )
+
+    text, _calls = loop.chat(
+        [{"role": "user", "content": "Use tools until done."}],
+        tools=[
+            {"type": "function", "function": {"name": "large_tool"}},
+            {"type": "function", "function": {"name": "second_tool"}},
+        ],
+        tool_map={"large_tool": large_tool, "second_tool": second_tool},
+        max_tool_rounds=2,
+        max_tool_result_chars=20,
+        max_total_tool_result_chars=20,
+    )
+
+    assert text == "Final answer from available evidence."
+    assert calls == ["large_tool"]
+    assert len(loop.last_tool_events) == 2
+    assert loop.last_tool_events[1].status == "failed"
+    assert loop.last_tool_events[1].tool_name == "second_tool"
+    assert loop.last_tool_events[1].error is not None
+    assert "budget exhausted" in loop.last_tool_events[1].error
+    assert loop.last_budget_usage.used_tool_result_chars == 20
+    final_messages = sdk.chat.completions.create.call_args_list[2].kwargs["messages"]
+    assert "budget exhausted" in final_messages[-1]["content"]
+
+
 def test_local_client_json_fallback_mode_uses_json_loop() -> None:
     with patch("src.llm.client.OpenAI") as OpenAIMock:
         sdk = OpenAIMock.return_value

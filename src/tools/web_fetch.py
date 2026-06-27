@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Literal
@@ -278,7 +279,26 @@ async def web_fetch(url: str) -> WebFetchResult:
 
 def web_fetch_sync(url: str) -> WebFetchResult:
     """Synchronous wrapper for non-async contexts."""
-    return asyncio.run(web_fetch(url))
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(web_fetch(url))
+
+    result_box: dict[str, WebFetchResult] = {}
+    error_box: dict[str, BaseException] = {}
+
+    def _worker() -> None:
+        try:
+            result_box["result"] = asyncio.run(web_fetch(url))
+        except BaseException as exc:  # pragma: no cover - defensive thread bridge
+            error_box["error"] = exc
+
+    thread = threading.Thread(target=_worker, name="fintext-web-fetch-sync")
+    thread.start()
+    thread.join()
+    if "error" in error_box:
+        raise error_box["error"]
+    return result_box["result"]
 
 
 WEB_FETCH_TOOL = {

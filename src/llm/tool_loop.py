@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import json
+import threading
 import uuid
 from collections.abc import Callable, Mapping
 from copy import deepcopy
@@ -17,6 +20,12 @@ NoOpSink = Callable[[LLMCall], None]
 DEFAULT_MAX_TOOL_RESULT_CHARS = 12000
 DEFAULT_MAX_TOTAL_TOOL_RESULT_CHARS = 40000
 TOOL_EVENT_RESULT_SUMMARY_CHARS = 4000
+TOOL_BUDGET_EXHAUSTED_PROMPT = (
+    "Tool-call budget is exhausted. Do not call any more tools. "
+    "Based only on the evidence and tool results already available in this "
+    "conversation, provide the best final answer now. Explicitly separate "
+    "evidence, inference, and uncertainty."
+)
 
 
 class ToolLoopError(Exception):
@@ -168,25 +177,53 @@ class OpenAICompatibleToolLoop:
                     self.last_budget_usage.max_total_tool_result_chars
                     - self.last_budget_usage.used_tool_result_chars,
                 )
-                tool_message_row, event = execute_tool_call_with_event(
-                    tool_call,
-                    tool_map,
-                    round_id=f"round-{round_index}",
-                    max_result_chars=min(
-                        self.last_budget_usage.max_tool_result_chars,
-                        remaining_budget,
-                    ),
-                )
+                if remaining_budget <= 0:
+                    tool_message_row, event = tool_budget_exhausted_message(
+                        tool_call,
+                        round_id=f"round-{round_index}",
+                    )
+                else:
+                    tool_message_row, event = execute_tool_call_with_event(
+                        tool_call,
+                        tool_map,
+                        round_id=f"round-{round_index}",
+                        max_result_chars=min(
+                            self.last_budget_usage.max_tool_result_chars,
+                            remaining_budget,
+                        ),
+                    )
                 self.last_tool_events.append(event)
-                used_chars = len(tool_message_row.get("content", ""))
-                self.last_budget_usage.used_tool_result_chars += used_chars
+                if remaining_budget > 0:
+                    used_chars = len(tool_message_row.get("content", ""))
+                    self.last_budget_usage.used_tool_result_chars += used_chars
                 if event.truncated:
                     self.last_budget_usage.truncated_events += 1
                 transcript.append(tool_message_row)
 
-        raise ToolLoopError(
-            f"tool-calling loop exceeded max_tool_rounds={max_tool_rounds}"
+        transcript.append({"role": "user", "content": TOOL_BUDGET_EXHAUSTED_PROMPT})
+        started = datetime.now(tz=UTC)
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=deepcopy(transcript),
+            temperature=temperature if temperature is not None else self.temperature,
+            max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
+            **({"extra_body": extra_body} if extra_body is not None else {}),
         )
+        message = response.choices[0].message
+        completed = datetime.now(tz=UTC)
+        content = _field(message, "content", None) or ""
+        audit = self._build_audit_call(
+            messages=transcript,
+            content=content,
+            tool_calls=[],
+            started=started,
+            completed=completed,
+            round_index=max_tool_rounds + 1,
+            usage=getattr(response, "usage", None),
+        )
+        audit_calls.append(audit)
+        self._llm_call_sink(audit)
+        return content, audit_calls
 
     def _build_audit_call(
         self,
@@ -358,18 +395,25 @@ class JSONToolChoiceToolLoop:
                 self.last_budget_usage.max_total_tool_result_chars
                 - self.last_budget_usage.used_tool_result_chars,
             )
-            tool_message_row, event = execute_tool_call_with_event(
-                tool_call,
-                tool_map,
-                round_id=f"round-{round_index}",
-                max_result_chars=min(
-                    self.last_budget_usage.max_tool_result_chars,
-                    remaining_budget,
-                ),
-            )
+            if remaining_budget <= 0:
+                tool_message_row, event = tool_budget_exhausted_message(
+                    tool_call,
+                    round_id=f"round-{round_index}",
+                )
+            else:
+                tool_message_row, event = execute_tool_call_with_event(
+                    tool_call,
+                    tool_map,
+                    round_id=f"round-{round_index}",
+                    max_result_chars=min(
+                        self.last_budget_usage.max_tool_result_chars,
+                        remaining_budget,
+                    ),
+                )
             self.last_tool_events.append(event)
-            used_chars = len(tool_message_row.get("content", ""))
-            self.last_budget_usage.used_tool_result_chars += used_chars
+            if remaining_budget > 0:
+                used_chars = len(tool_message_row.get("content", ""))
+                self.last_budget_usage.used_tool_result_chars += used_chars
             if event.truncated:
                 self.last_budget_usage.truncated_events += 1
             transcript.append(
@@ -383,9 +427,39 @@ class JSONToolChoiceToolLoop:
                 }
             )
 
-        raise ToolLoopError(
-            f"json tool-choice loop exceeded max_tool_rounds={max_tool_rounds}"
+        transcript.append(
+            {
+                "role": "user",
+                "content": (
+                    f"{TOOL_BUDGET_EXHAUSTED_PROMPT} "
+                    "Return JSON with a final_answer field."
+                ),
+            }
         )
+        started = datetime.now(tz=UTC)
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=deepcopy(transcript),
+            temperature=temperature if temperature is not None else self.temperature,
+            max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
+            **({"extra_body": extra_body} if extra_body is not None else {}),
+        )
+        message = response.choices[0].message
+        completed = datetime.now(tz=UTC)
+        content = _field(message, "content", None) or ""
+        parsed = _parse_json_choice(content)
+        audit = self._build_audit_call(
+            messages=transcript,
+            content=content,
+            parsed=parsed,
+            started=started,
+            completed=completed,
+            round_index=max_tool_rounds + 1,
+            usage=getattr(response, "usage", None),
+        )
+        audit_calls.append(audit)
+        self._llm_call_sink(audit)
+        return _json_final_answer(parsed, content) or content, audit_calls
 
     def _build_audit_call(
         self,
@@ -523,6 +597,8 @@ def execute_tool_call_with_event(
         )
     try:
         result = tool(**args)
+        if inspect.isawaitable(result):
+            result = _run_awaitable_sync(result)
     except Exception as exc:
         result = {"error": f"{type(exc).__name__}: {exc}"}
         message = tool_message(tool_call, result, max_result_chars=max_result_chars)
@@ -547,6 +623,63 @@ def execute_tool_call_with_event(
         content=message["content"],
         error=None,
     )
+
+
+def tool_budget_exhausted_message(
+    tool_call: Any,
+    *,
+    round_id: str,
+) -> tuple[dict[str, Any], ToolExecutionEvent]:
+    """Return a failed tool response without executing after budget exhaustion."""
+    started = datetime.now(tz=UTC)
+    function = _field(tool_call, "function", {})
+    name = _field(function, "name", "")
+    raw_args = _field(function, "arguments", "{}") or "{}"
+    try:
+        args = json.loads(raw_args)
+    except json.JSONDecodeError:
+        args = {}
+    if not isinstance(args, dict):
+        args = {}
+    error = (
+        "tool result budget exhausted; no further tools were executed. "
+        "Use the evidence already available and provide a final answer."
+    )
+    result = {"error": error}
+    message = tool_message(tool_call, result, max_result_chars=512)
+    return message, _tool_event(
+        started=started,
+        round_id=round_id,
+        tool_call_id=_field(tool_call, "id", ""),
+        tool_name=name,
+        arguments=args,
+        status="failed",
+        content=message["content"],
+        error=error,
+    )
+
+
+def _run_awaitable_sync(awaitable: Any) -> Any:
+    """Resolve an awaitable from sync code, even inside an active event loop."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(awaitable)
+
+    outcome: dict[str, Any] = {}
+
+    def runner() -> None:
+        try:
+            outcome["value"] = asyncio.run(awaitable)
+        except BaseException as exc:
+            outcome["error"] = exc
+
+    thread = threading.Thread(target=runner, name="fintext-tool-awaitable")
+    thread.start()
+    thread.join()
+    if "error" in outcome:
+        raise outcome["error"]
+    return outcome.get("value")
 
 
 def tool_message(
@@ -599,24 +732,38 @@ def _tool_event(
 
 def _truncate_content(content: str, max_chars: int) -> str:
     if max_chars <= 0:
-        return json.dumps(
+        return ""
+    if len(content) <= max_chars:
+        return content
+    empty_envelope = json.dumps(
+        {"truncated": True, "truncated_text": "", "original_chars": len(content)},
+        ensure_ascii=False,
+    )
+    if len(empty_envelope) > max_chars:
+        minimal_envelope = json.dumps({"truncated": True}, ensure_ascii=False)
+        if len(minimal_envelope) <= max_chars:
+            return minimal_envelope
+        return content[:max_chars]
+
+    low = 0
+    high = len(content)
+    best = empty_envelope
+    while low <= high:
+        mid = (low + high) // 2
+        candidate = json.dumps(
             {
                 "truncated": True,
-                "truncated_text": "",
+                "truncated_text": content[:mid],
                 "original_chars": len(content),
             },
             ensure_ascii=False,
         )
-    if len(content) <= max_chars:
-        return content
-    return json.dumps(
-        {
-            "truncated": True,
-            "truncated_text": content[:max_chars],
-            "original_chars": len(content),
-        },
-        ensure_ascii=False,
-    )
+        if len(candidate) <= max_chars:
+            best = candidate
+            low = mid + 1
+        else:
+            high = mid - 1
+    return best
 
 
 def _json_fallback_system_message(tools: list[dict[str, Any]]) -> dict[str, str]:
