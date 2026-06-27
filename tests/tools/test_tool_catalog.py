@@ -70,8 +70,11 @@ def test_project_tool_catalog_web_search_uses_router() -> None:
             "time_range": "w",
         }
     ]
-    assert result["provider"] == "fake"
-    assert result["results"][0]["url"] == "https://example.com/a"
+    assert result["tool"] == "web_search"
+    assert result["status"] == "success"
+    assert result["evidence_kind"] == "web"
+    assert result["data"]["provider"] == "fake"
+    assert result["data"]["results"][0]["url"] == "https://example.com/a"
 
 
 def test_project_tool_catalog_search_and_fetch_uses_router_fetch() -> None:
@@ -85,8 +88,9 @@ def test_project_tool_catalog_search_and_fetch_uses_router_fetch() -> None:
 
     assert router.search_calls[0]["query"] == "AAPL suppliers"
     assert router.fetch_calls[0]["max_pages"] == 5
-    assert result["search"]["provider"] == "fake"
-    assert result["fetched_pages"][0]["content"] == "Fetched body"
+    assert result["tool"] == "search_and_fetch"
+    assert result["data"]["search"]["provider"] == "fake"
+    assert result["data"]["fetched_pages"][0]["content"] == "Fetched body"
 
 
 def test_project_tool_catalog_select_filters_tools_and_map() -> None:
@@ -96,3 +100,14 @@ def test_project_tool_catalog_select_filters_tools_and_map() -> None:
 
     assert selected.names == ["web_search"]
     assert list(selected.tool_map) == ["web_search"]
+
+
+def test_project_tool_catalog_scope_filters_tools() -> None:
+    catalog = build_project_tool_catalog(search_router=FakeRouter())  # type: ignore[arg-type]
+
+    assert catalog.for_scope("finrisk_market").names == [
+        "web_search",
+        "web_fetch",
+        "search_and_fetch",
+    ]
+    assert catalog.for_scope("unknown").names == []

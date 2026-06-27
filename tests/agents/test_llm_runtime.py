@@ -3,7 +3,7 @@ from typing import Any
 
 from src.agents.llm_runtime import LLMToolAgentRuntime
 from src.schemas.finrisk import LLMCall
-from src.tools.catalog import ToolCatalog
+from src.tools.catalog import ProjectTool, ToolCatalog
 
 
 class FakeToolCallingClient:
@@ -44,8 +44,18 @@ class FakeToolCallingClient:
 def test_llm_tool_agent_runtime_passes_catalog_to_client() -> None:
     client = FakeToolCallingClient()
     catalog = ToolCatalog(
-        tools=[{"type": "function", "function": {"name": "web_search"}}],
-        tool_map={"web_search": lambda query: {"query": query}},
+        project_tools=(
+            ProjectTool(
+                name="web_search",
+                description="Search web.",
+                parameters={
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}},
+                    "required": ["query"],
+                },
+                callable=lambda query: {"query": query},
+            ),
+        )
     )
     runtime = LLMToolAgentRuntime(
         llm_client=client,
@@ -61,6 +71,6 @@ def test_llm_tool_agent_runtime_passes_catalog_to_client() -> None:
     assert result.tool_calls[0].arguments == '{"query": "AAPL"}'
     assert client.kwargs is not None
     assert client.kwargs["tools"] == catalog.tools
-    assert client.kwargs["tool_map"] == catalog.tool_map
+    assert list(client.kwargs["tool_map"]) == ["web_search"]
     assert client.kwargs["max_tool_rounds"] == 2
     assert client.kwargs["temperature"] == 0

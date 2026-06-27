@@ -365,6 +365,17 @@ DeepSeek's public API is OpenAI-compatible
    print([call.tool_name for call in result.tool_calls])
    ```
 
+   The default catalog keeps the general loop web-focused. Use scoped
+   catalogs to expose richer read-only data tools:
+
+   ```python
+   catalog = build_project_tool_catalog(scope="company_research")
+   print(catalog.names)
+   # web_search, web_fetch, search_and_fetch, sec_list_filings,
+   # sec_fetch_filing, transcript_lookup, financial_metrics_lookup,
+   # xbrl_fact_lookup
+   ```
+
    The first implementation plan for this mode is documented in
    `docs/implementation-plan/20-llm-driven-tool-calling-agent-loop.md`.
    For local vLLM/SGLang, replace the client line with:
