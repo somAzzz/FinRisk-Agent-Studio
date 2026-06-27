@@ -8,13 +8,16 @@ evidence-backed supplier nodes and edges.
 
 from __future__ import annotations
 
+import json
 import time
 from typing import Any
 
+from src.schemas.tool_trace import ToolLoopTrace
 from src.supply_chain.evidence import build_evidence_from_search
 from src.supply_chain.models import (
     NormalizedSupplyChainEvidence,
     ProviderCall,
+    SupplierCandidate,
     SupplyChainEdge,
     SupplyChainExploreState,
     SupplyChainNode,
@@ -78,9 +81,18 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
 
     name = "supplier_discovery"
 
-    def __init__(self, *, search_router: Any | None = None, max_results: int = 3) -> None:
+    def __init__(
+        self,
+        *,
+        search_router: Any | None = None,
+        llm_runtime_factory: Any | None = None,
+        llm_shadow_mode: bool = False,
+        max_results: int = 3,
+    ) -> None:
         super().__init__()
         self._search_router = search_router
+        self._llm_runtime_factory = llm_runtime_factory
+        self._llm_shadow_mode = llm_shadow_mode
         self._max_results = max_results
 
     async def run(
@@ -150,7 +162,43 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             state.fallback_events.append(
                 "supplier_discovery:no confirmed suppliers discovered from search"
             )
+        if self._llm_shadow_mode:
+            self._run_llm_shadow(state, requirement_nodes)
         return state
+
+    def _run_llm_shadow(
+        self,
+        state: SupplyChainExploreState,
+        requirement_nodes: list[SupplyChainNode],
+    ) -> None:
+        runtime = self._default_llm_runtime()
+        if runtime is None:
+            state.fallback_events.append(
+                "supplier_discovery:llm shadow unavailable; deterministic path used"
+            )
+            return
+        for requirement in requirement_nodes[: state.request.max_suppliers_per_node * 2]:
+            try:
+                result = runtime.run(_llm_supplier_goal(state, requirement))
+            except Exception as exc:
+                state.fallback_events.append(
+                    "supplier_discovery:llm shadow failed "
+                    f"for {requirement.node_id}: {exc}"
+                )
+                continue
+            state.llm_tool_traces.append(
+                ToolLoopTrace(
+                    mode=result.mode,
+                    tool_events=result.tool_events,
+                    budget_usage=result.budget_usage,
+                )
+            )
+            candidates, evidence = _supplier_candidates_from_tool_events(
+                requirement=requirement,
+                result=result,
+            )
+            _append_unique_evidence(state, evidence)
+            _append_unique_candidates(state, candidates)
 
     def _add_supplier_edges(
         self,
@@ -232,6 +280,180 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         if not state.trace:
             return
         state.trace[-1].provider_calls.append(call)
+
+    def _default_llm_runtime(self) -> Any | None:
+        if self._llm_runtime_factory is not None:
+            try:
+                return self._llm_runtime_factory()
+            except Exception:
+                return None
+        try:
+            from src.agents.llm_runtime import LLMToolAgentRuntime
+            from src.llm.deepseek_client import build_client_from_settings
+            from src.tools.catalog import build_project_tool_catalog
+
+            return LLMToolAgentRuntime(
+                llm_client=build_client_from_settings(),
+                tool_catalog=build_project_tool_catalog(scope="supply_chain"),
+            )
+        except Exception:
+            return None
+
+
+def _llm_supplier_goal(
+    state: SupplyChainExploreState,
+    requirement: SupplyChainNode,
+) -> str:
+    company = state.request.company_name or state.request.ticker or "the company"
+    return (
+        "Discover evidence-backed supplier or infrastructure dependency candidates. "
+        "Use read-only tools only. Do not write graph edges. Return uncertainty. "
+        f"Company: {company}. Product: {state.request.product_name}. "
+        f"Requirement: {requirement.label}."
+    )
+
+
+def _supplier_candidates_from_tool_events(
+    *,
+    requirement: SupplyChainNode,
+    result: Any,
+) -> tuple[list[SupplierCandidate], list[NormalizedSupplyChainEvidence]]:
+    candidates: list[SupplierCandidate] = []
+    evidence_rows: list[NormalizedSupplyChainEvidence] = []
+    for event in result.tool_events:
+        if event.status != "success":
+            continue
+        payload = _parse_tool_payload(event.result_summary)
+        if not payload:
+            continue
+        data = payload.get("data", payload)
+        tool_name = payload.get("tool", event.tool_name)
+        search_rows = _search_rows_from_tool_data(tool_name, data)
+        for index, row in enumerate(search_rows):
+            text = " ".join(
+                str(row.get(key) or "") for key in ("title", "snippet", "url")
+            )
+            supplier = _supplier_from_text(text)
+            if supplier is None:
+                continue
+            evidence_dict = build_evidence_from_search(
+                {
+                    "url": row.get("url", ""),
+                    "title": row.get("title", ""),
+                    "snippet": row.get("snippet", ""),
+                },
+                query=str(row.get("query") or requirement.label),
+            )
+            is_confirmed = bool(evidence_dict.pop("is_confirmed", False))
+            evidence = NormalizedSupplyChainEvidence.model_validate(evidence_dict)
+            evidence_rows.append(evidence)
+            supplier_name, ticker = supplier
+            candidates.append(
+                SupplierCandidate(
+                    supplier_name=supplier_name,
+                    ticker=ticker,
+                    relation_type="supplied_by" if is_confirmed else "hypothesized",
+                    product_or_service=requirement.label,
+                    evidence_ids=[evidence.evidence_id] if is_confirmed else [],
+                    confidence=evidence.confidence,
+                    uncertainty=(
+                        None if is_confirmed
+                        else "tool result did not include enough source-backed evidence"
+                    ),
+                    source_requirement_node_id=requirement.node_id,
+                )
+            )
+            if index + 1 >= 10:
+                break
+    return candidates, evidence_rows
+
+
+def _parse_tool_payload(text: str) -> dict[str, Any] | None:
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _search_rows_from_tool_data(tool_name: str, data: Any) -> list[dict[str, Any]]:
+    if not isinstance(data, dict):
+        return []
+    rows: list[dict[str, Any]] = []
+    if tool_name == "web_search":
+        query = str(data.get("query") or "")
+        for row in data.get("results", []) or []:
+            if isinstance(row, dict):
+                rows.append({**row, "query": query})
+    elif tool_name == "search_and_fetch":
+        search = data.get("search", {})
+        if isinstance(search, dict):
+            query = str(search.get("query") or "")
+            for row in search.get("results", []) or []:
+                if isinstance(row, dict):
+                    rows.append({**row, "query": query})
+        for page in data.get("fetched_pages", []) or []:
+            if isinstance(page, dict):
+                rows.append(
+                    {
+                        "url": page.get("url", ""),
+                        "title": page.get("title", ""),
+                        "snippet": page.get("description") or page.get("content", ""),
+                        "query": query if "query" in locals() else "",
+                    }
+                )
+    elif tool_name == "transcript_lookup":
+        turns = data.get("turns", []) or []
+        snippet = " ".join(
+            str(turn.get("text") or turn.get("content") or "")
+            for turn in turns[:3]
+            if isinstance(turn, dict)
+        )
+        rows.append(
+            {
+                "url": data.get("url", ""),
+                "title": data.get("title", "Transcript"),
+                "snippet": snippet,
+                "query": data.get("ticker", ""),
+            }
+        )
+    return rows
+
+
+def _append_unique_evidence(
+    state: SupplyChainExploreState,
+    evidence_rows: list[NormalizedSupplyChainEvidence],
+) -> None:
+    existing = {row.evidence_id for row in state.evidence}
+    for row in evidence_rows:
+        if row.evidence_id in existing:
+            continue
+        state.evidence.append(row)
+        existing.add(row.evidence_id)
+
+
+def _append_unique_candidates(
+    state: SupplyChainExploreState,
+    candidates: list[SupplierCandidate],
+) -> None:
+    existing = {
+        (
+            candidate.source_requirement_node_id,
+            candidate.supplier_name.lower(),
+            candidate.product_or_service,
+        )
+        for candidate in state.llm_supplier_candidates
+    }
+    for candidate in candidates:
+        key = (
+            candidate.source_requirement_node_id,
+            candidate.supplier_name.lower(),
+            candidate.product_or_service,
+        )
+        if key in existing:
+            continue
+        state.llm_supplier_candidates.append(candidate)
+        existing.add(key)
 
 
 __all__ = ["SupplyChainSupplierDiscoveryStep"]
