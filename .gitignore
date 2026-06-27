@@ -23,12 +23,15 @@ cache/
 reports/
 !src/reports/
 !src/reports/**
+!docs/reports/
+!docs/reports/**
 demo_output/
 
 # Environment and secrets
 .env
 .env.*
 !.env.example
+!.env.neo4j.example
 
 # Build artifacts
 build/
