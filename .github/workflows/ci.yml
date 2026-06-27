@@ -12,6 +12,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so `git diff origin/${{ github.base_ref }}...HEAD`
+          # in the "Ruff (changed files)" step can resolve the base ref.
+          # The default shallow clone (`fetch-depth: 1`) does not include
+          # origin/main, which made the diff command fail with
+          # "ambiguous argument ... unknown revision".
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
