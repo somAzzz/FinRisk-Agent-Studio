@@ -1,11 +1,18 @@
 services:
   sglang:
-    # Pinned 2026-06-26 (audit remediation R8). Floating ``latest``
+    # Pinned 2026-06-27 (audit remediation R8). Floating ``latest``
     # tags were the audit's R8 finding. Bump quarterly; see
     # docs/docker-image-pinning.md for the rationale (we prefer
     # minor-version pinning over digest pinning to preserve layered
     # image caching and easy cross-registry promotion).
-    image: lmsysorg/sglang:v0.4.10-cu130-runtime
+    #
+    # NB: the previous pin (``v0.4.10-cu130-runtime``) never
+    # existed on Docker Hub — the v0.4.10 series only ships
+    # ``-cu126`` / ``-cu128-{b200,gb200}`` / ``-xeon`` suffixes;
+    # ``-cu130-runtime`` only appears from v0.5.13 onward. Bumping
+    # to v0.5.14 here so Blackwell (RTX PRO 6000 / RTX 5070, sm_120)
+    # can actually run the container.
+    image: lmsysorg/sglang:v0.5.14-cu130-runtime
     # Read HF_TOKEN / CUDA / etc. from a local .env file. Copy
     # .env.example to .env and fill in the values; the .env file is
     # gitignored.

@@ -1,7 +1,7 @@
 # Docker Image Pinning
 
 This project pins base images to a specific **minor version**
-(`neo4j:5.26.0`, `lmsysorg/sglang:v0.4.10-cu130-runtime`) rather
+(`neo4j:5.26.0`, `lmsysorg/sglang:v0.5.14-cu130-runtime`) rather
 than to a digest or to a floating `latest` tag. This document
 explains the choice and how to bump.
 
@@ -33,9 +33,9 @@ the minor version. The PR must include:
 - A manual smoke test (`docker compose up -d <service>` and a
   trivial `docker exec` check).
 
-## Pinned images (2026-06-26 baseline)
+## Pinned images (2026-06-27 baseline)
 
 | Service | Image | Pinned version | Upstream |
 |---|---|---|---|
-| `sglang` | `lmsysorg/sglang` | `v0.4.10-cu130-runtime` | <https://github.com/sgl-project/sglang/releases> |
+| `sglang` | `lmsysorg/sglang` | `v0.5.14-cu130-runtime` | <https://github.com/sgl-project/sglang/releases> |
 | `neo4j` | `neo4j` | `5.26.0` | <https://neo4j.com/release-notes/> |
