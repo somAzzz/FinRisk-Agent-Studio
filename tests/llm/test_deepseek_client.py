@@ -35,7 +35,7 @@ def test_client_uses_default_base_url_when_env_missing(
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     client = DeepSeekClient(api_key="sk-real-key")
     assert client.base_url == "https://api.deepseek.com"
-    assert client.model == "deepseek-chat"
+    assert client.model == "deepseek-v4-flash"
     assert client.configured is True
 
 
@@ -101,7 +101,7 @@ def test_complete_calls_openai_sdk(monkeypatch: pytest.MonkeyPatch) -> None:
     assert text == "pong"
     sdk.chat.completions.create.assert_called_once()
     kwargs = sdk.chat.completions.create.call_args.kwargs
-    assert kwargs["model"] == "deepseek-chat"
+    assert kwargs["model"] == "deepseek-v4-flash"
     assert kwargs["messages"] == [{"role": "user", "content": "ping"}]
 
 

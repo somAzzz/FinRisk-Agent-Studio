@@ -975,9 +975,159 @@ button.ghost {
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: space-between;
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 8px;
+}
+
+.sc-sankey-stats,
+.sc-sankey-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.sc-sankey-stats {
+  flex-wrap: wrap;
+}
+
+.sc-sankey-controls {
+  flex: 0 0 auto;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sc-risk-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 9px 46px;
+  color: #607080;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sc-risk-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  background: #eef3f7;
+  border: 1px solid #cbd6df;
+  border-radius: 999px;
+}
+
+.sc-risk-legend i {
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #b9c6d1;
+  border-radius: 6px;
+  background: #f7fafc;
+  color: #21313d;
+}
+
+.icon-button:hover {
+  border-color: #2b8c99;
+  color: #145560;
+}
+
+.sc-sankey-viewport {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  background:
+    linear-gradient(rgba(27, 42, 55, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 42, 55, 0.07) 1px, transparent 1px),
+    #f7fafc;
+  background-size: 22px 22px;
+  border: 0;
+  border-radius: 8px;
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  touch-action: none;
+  transition: outline-color 140ms ease, box-shadow 140ms ease;
+}
+
+.sc-sankey-viewport:focus-within {
+  outline-color: rgba(43, 140, 153, 0.24);
+  box-shadow: 0 0 0 3px rgba(43, 140, 153, 0.08);
+}
+
+.sc-pan-hint {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  background: rgba(247, 250, 252, 0.88);
+  border: 1px solid #cbd6df;
+  border-radius: 6px;
+  color: #607080;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.sc-node-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+  max-height: 84px;
+  overflow: auto;
+}
+
+.sc-node-index button {
+  max-width: 210px;
+  min-height: 24px;
+  padding: 3px 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #eef3f7;
+  border: 1px solid #cbd6df;
+  border-radius: 6px;
+  color: #334554;
+  font-size: 11px;
+  text-align: left;
+}
+
+.sc-node-index button.active,
+.sc-node-index button:hover {
+  border-color: #2b8c99;
+  color: #145560;
+}
+
+.sc-node-index button.risk-stable {
+  border-left: 4px solid #2b8c99;
+}
+
+.sc-node-index button.risk-watch {
+  border-left: 4px solid #d99a22;
+}
+
+.sc-node-index button.risk-critical {
+  border-left: 4px solid #d14b42;
 }
 
 .sc-warnings {
@@ -990,6 +1140,33 @@ button.ghost {
 
 .sc-warnings li {
   padding: 2px 0;
+}
+
+.sc-review-summary {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #713f12;
+  font-size: 12px;
+}
+
+.sc-review-summary strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.sc-review-summary p {
+  margin: 0 0 7px;
+}
+
+.sc-review-summary ul {
+  margin: 0;
+  padding-left: 16px;
 }
 
 .sc-drawer {
@@ -1027,6 +1204,62 @@ button.ghost {
 
 .sc-drawer dd {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sc-node-profile {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.sc-node-profile h3,
+.sc-node-profile h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.sc-node-profile h4 {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.sc-node-profile p {
+  margin: 0;
+  color: #334554;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.sc-profile-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sc-profile-pill-list span {
+  max-width: 100%;
+  border: 1px solid #bfd0dc;
+  border-radius: 999px;
+  background: #edf4f7;
+  color: #263847;
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.sc-node-profile-foot {
+  margin-top: 12px;
+  color: #607080;
+  font-family: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 /* FinRisk Agent Studio: risk lattice console redesign */
@@ -1670,28 +1903,29 @@ button.ghost:hover:not(:disabled) {
   gap: 14px;
 }
 
-.sc-sankey {
-  overflow: auto;
-}
-
 .sc-sankey-header {
   padding-left: 46px;
   min-height: 24px;
 }
 
 .sc-sankey svg {
-  background:
-    linear-gradient(rgba(27, 42, 55, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(27, 42, 55, 0.07) 1px, transparent 1px),
-    #f7fafc;
-  background-size: 22px 22px;
-  border: 1px solid #cbd6df;
-  border-radius: 8px;
+  display: block;
+  cursor: grab;
+  user-select: none;
+}
+
+.sc-sankey svg:active {
+  cursor: grabbing;
 }
 
 .sc-sankey rect {
   stroke: #0f1b24;
   stroke-width: 1;
+}
+
+.sc-sankey rect.sc-sankey-canvas {
+  stroke: none;
+  stroke-width: 0;
 }
 
 .sc-sankey path {

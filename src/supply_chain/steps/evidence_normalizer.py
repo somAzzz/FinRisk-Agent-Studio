@@ -30,11 +30,16 @@ class SupplyChainEvidenceNormalizerStep(SupplyChainStep):
             from src.supply_chain.fixtures import build_default_fixture
 
             fixture = build_default_fixture()
-            for raw in fixture["evidence"]:
-                if raw["evidence_id"] in existing:
-                    continue
-                state.evidence.append(NormalizedSupplyChainEvidence.model_validate(raw))
-                existing.add(raw["evidence_id"])
+            fixture_product = fixture["request"]["product_name"].strip().lower()
+            request_product = state.request.product_name.strip().lower()
+            if request_product == fixture_product:
+                for raw in fixture["evidence"]:
+                    if raw["evidence_id"] in existing:
+                        continue
+                    state.evidence.append(
+                        NormalizedSupplyChainEvidence.model_validate(raw)
+                    )
+                    existing.add(raw["evidence_id"])
 
         # Cross-check edges against the evidence table.
         evidence_ids = {ev.evidence_id for ev in state.evidence}

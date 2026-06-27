@@ -10,7 +10,7 @@ from src.supply_chain.steps.requirement_decomposer import (
 )
 from src.supply_chain.steps.supplier_discovery import SupplyChainSupplierDiscoveryStep
 from src.supply_chain.workflow import run_supply_chain_workflow
-from src.tools.providers.base import SearchResponse
+from src.tools.providers.base import SearchResponse, SearchResult
 from src.workflows.state import utcnow
 
 
@@ -57,6 +57,30 @@ class EmptyRouter:
         )
 
 
+class CandidateConfirmingRouter:
+    def search(self, query, intent="general", max_results=5):
+        results = [
+            SearchResult(
+                title="NVIDIA GPUs power AI data centers",
+                url="https://www.reuters.com/example",
+                snippet="NVIDIA H100 GPUs are used for AI workloads.",
+                rank=1,
+            ),
+            SearchResult(
+                title="Unrelated AMD accelerator note",
+                url="https://www.reuters.com/amd-example",
+                snippet="AMD also sells AI accelerators.",
+                rank=2,
+            ),
+        ]
+        return SearchResponse(
+            provider="stub",
+            query=query,
+            retrieved_at=utcnow(),
+            results=results,
+        )
+
+
 def _fake_client_factory(_config: LLMRunConfig) -> FakeLLMClient:
     return FakeLLMClient()
 
@@ -68,7 +92,7 @@ async def test_real_mode_uses_llm_for_requirements_and_supplier_candidates() -> 
             product_name="ChatGPT",
             demo_mode=False,
             cached_mode=False,
-            llm_config=LLMRunConfig(provider="deepseek", model="deepseek-chat"),
+            llm_config=LLMRunConfig(provider="deepseek", model="deepseek-v4-flash"),
         ),
         steps=[
             SupplyChainProductResolverStep(),
@@ -84,6 +108,9 @@ async def test_real_mode_uses_llm_for_requirements_and_supplier_candidates() -> 
 
     gpu = next(node for node in state.nodes if node.node_id == "component:gpu-accelerator")
     assert gpu.metadata["method"] == "llm_requirement_decomposer"
+    product = next(node for node in state.nodes if node.node_id == "product:chatgpt")
+    assert gpu.parent_node_id == product.node_id
+    assert gpu.depth > product.depth
     assert any(
         edge.source_node_id == "component:gpu-accelerator"
         and edge.target_node_id == "company:nvidia"
@@ -102,3 +129,36 @@ async def test_real_mode_uses_llm_for_requirements_and_supplier_candidates() -> 
     assert decomposer_event.provider_calls[0].provider == "deepseek"
     assert decomposer_event.provider_calls[0].operation == "decompose_requirements"
     assert supplier_event.provider_calls[0].operation == "propose_suppliers"
+
+
+async def test_search_confirms_llm_candidate_instead_of_adding_unmatched_supplier() -> None:
+    state = await run_supply_chain_workflow(
+        SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+            demo_mode=False,
+            cached_mode=False,
+            llm_config=LLMRunConfig(provider="deepseek", model="deepseek-v4-flash"),
+        ),
+        steps=[
+            SupplyChainProductResolverStep(),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=_fake_client_factory,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=CandidateConfirmingRouter(),
+                llm_client_factory=_fake_client_factory,
+            ),
+        ],
+    )
+
+    edge = next(
+        edge
+        for edge in state.links
+        if edge.source_node_id == "component:gpu-accelerator"
+        and edge.target_node_id == "company:nvidia"
+    )
+    assert edge.relation_type == "supplied_by"
+    assert edge.evidence_ids
+    assert edge.metadata["search_confirmed"] is True
+    assert not any(edge.target_node_id == "company:amd" for edge in state.links)

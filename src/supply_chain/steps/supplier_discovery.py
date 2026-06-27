@@ -208,8 +208,9 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 "Treat suppliers as hypotheses unless source-backed evidence exists."
             ),
             prompt=_supplier_prompt(state, requirement_nodes),
-            max_tokens=1600,
+            max_tokens=3200,
             temperature=0.1,
+            retries=1,
         )
         self._record_provider_call(state, call)
         rows = _coerce_supplier_rows(payload)
@@ -234,6 +235,9 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 continue
             supplier_name = row["supplier_name"]
             supplier_id = f"company:{_slug(supplier_name)}"
+            if _is_seed_company(state, supplier_name, supplier_id):
+                _increment_metric(state, "self_supplier_candidate_count")
+                continue
             if supplier_id not in existing_nodes:
                 state.nodes.append(
                     SupplyChainNode(
@@ -332,8 +336,13 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         response: Any,
     ) -> None:
         existing_nodes = {node.node_id for node in state.nodes}
-        existing_edges = {edge.edge_id for edge in state.links}
+        existing_edges = {edge.edge_id: edge for edge in state.links}
         existing_evidence = {ev.evidence_id for ev in state.evidence}
+        llm_candidate_supplier_ids = {
+            f"company:{_slug(candidate.supplier_name)}"
+            for candidate in state.llm_supplier_candidates
+            if candidate.source_requirement_node_id == requirement.node_id
+        }
         added = 0
         for result in response.results:
             text = f"{result.title} {result.snippet} {result.url}"
@@ -342,6 +351,13 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 continue
             _increment_metric(state, "candidate_count")
             supplier_name, ticker = supplier
+            supplier_id = f"company:{_slug(supplier_name)}"
+            if _is_seed_company(state, supplier_name, supplier_id):
+                _increment_metric(state, "self_supplier_candidate_count")
+                continue
+            if llm_candidate_supplier_ids and supplier_id not in llm_candidate_supplier_ids:
+                _increment_metric(state, "search_supplier_not_in_llm_candidates")
+                continue
             evidence_dict = build_evidence_from_search(
                 {
                     "url": result.url,
@@ -356,7 +372,6 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 state.evidence.append(evidence)
                 existing_evidence.add(evidence.evidence_id)
                 _increment_metric(state, "evidence_row_count")
-            supplier_id = f"company:{_slug(supplier_name)}"
             if supplier_id not in existing_nodes:
                 state.nodes.append(
                     SupplyChainNode(
@@ -376,6 +391,16 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             relation_type = "supplied_by" if is_confirmed else "hypothesized"
             edge_id = f"sc-edge:{requirement.node_id}:{supplier_id}:supplied_by"
             if edge_id in existing_edges:
+                if is_confirmed:
+                    _upgrade_existing_edge_with_evidence(
+                        state,
+                        edge_id=edge_id,
+                        evidence_id=evidence.evidence_id,
+                        confidence=evidence.confidence,
+                        provider=response.provider,
+                        query=response.query,
+                    )
+                    _increment_metric(state, "supplier_edge_confirmed_count")
                 continue
             state.links.append(
                 SupplyChainEdge(
@@ -394,7 +419,7 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                     },
                 )
             )
-            existing_edges.add(edge_id)
+            existing_edges[edge_id] = state.links[-1]
             added += 1
             _increment_metric(state, "supplier_edge_count")
             if added >= state.request.max_suppliers_per_node:
@@ -467,12 +492,31 @@ def _supplier_prompt(
         '"requirement_label":"GPU accelerator","supplier_name":"NVIDIA",'
         '"ticker":"NVDA","product_or_service":"AI GPUs","confidence":0.7,'
         '"uncertainty":"why this is still a hypothesis"}]}\n'
-        "Return at most three suppliers per requirement."
+        "Return minified JSON. Keep uncertainty under 12 words. "
+        "Return at most two suppliers per requirement. Do not list the seed "
+        "company itself as its own upstream supplier."
     )
 
 
 def _coerce_supplier_rows(payload: Any) -> list[dict[str, Any]]:
-    rows = payload.get("suppliers") if isinstance(payload, dict) else payload
+    rows = None
+    if isinstance(payload, dict):
+        for key in (
+            "suppliers",
+            "supplier_candidates",
+            "candidates",
+            "dependencies",
+            "upstream_suppliers",
+        ):
+            if isinstance(payload.get(key), list):
+                rows = payload[key]
+                break
+        if rows is None and (
+            payload.get("supplier_name") or payload.get("name") or payload.get("company")
+        ):
+            rows = [payload]
+    else:
+        rows = payload
     if not isinstance(rows, list):
         return []
     out: list[dict[str, Any]] = []
@@ -481,11 +525,18 @@ def _coerce_supplier_rows(payload: Any) -> list[dict[str, Any]]:
             continue
         supplier_name = str(row.get("supplier_name") or "").strip()
         if not supplier_name:
+            supplier_name = str(row.get("name") or row.get("company") or "").strip()
+        if not supplier_name:
             continue
         out.append(
             {
                 "requirement_node_id": str(row.get("requirement_node_id") or "").strip(),
-                "requirement_label": str(row.get("requirement_label") or "").strip(),
+                "requirement_label": str(
+                    row.get("requirement_label")
+                    or row.get("requirement")
+                    or row.get("component")
+                    or ""
+                ).strip(),
                 "supplier_name": supplier_name[:120],
                 "ticker": _clean_ticker(row.get("ticker")),
                 "product_or_service": str(row.get("product_or_service") or "").strip()[:160],
@@ -503,6 +554,54 @@ def _clean_ticker(value: Any) -> str | None:
     if not ticker or ticker in {"N/A", "NA", "NONE", "NULL"}:
         return None
     return ticker[:16]
+
+
+def _is_seed_company(
+    state: SupplyChainExploreState,
+    supplier_name: str,
+    supplier_id: str,
+) -> bool:
+    company = state.request.company_name or ""
+    ticker = state.request.ticker or ""
+    seed_ids = {
+        f"company:{_slug(company)}" if company else "",
+        f"company:{_slug(ticker)}" if ticker else "",
+    }
+    seed_names = {
+        _slug(company) if company else "",
+        _slug(ticker) if ticker else "",
+    }
+    supplier_key = _slug(supplier_name)
+    return supplier_id in seed_ids or supplier_key in seed_names
+
+
+def _upgrade_existing_edge_with_evidence(
+    state: SupplyChainExploreState,
+    *,
+    edge_id: str,
+    evidence_id: str,
+    confidence: float,
+    provider: str,
+    query: str,
+) -> None:
+    for index, edge in enumerate(state.links):
+        if edge.edge_id != edge_id:
+            continue
+        evidence_ids = sorted({*edge.evidence_ids, evidence_id})
+        state.links[index] = edge.model_copy(
+            update={
+                "relation_type": "supplied_by",
+                "confidence": max(edge.confidence, confidence),
+                "evidence_ids": evidence_ids,
+                "metadata": {
+                    **edge.metadata,
+                    "provider": provider,
+                    "query": query,
+                    "search_confirmed": True,
+                },
+            }
+        )
+        return
 
 
 def _clamp_float(value: Any, *, default: float) -> float:

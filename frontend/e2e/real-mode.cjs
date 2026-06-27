@@ -62,8 +62,6 @@ async function main() {
   await page.getByTestId("tab-supply-chain").click();
   await page.getByTestId("sc-company-input").fill("NVIDIA");
   await page.getByTestId("sc-product-input").fill("GPU");
-  const scDemoMode = page.getByTestId("sc-demo-mode");
-  if (await scDemoMode.isChecked()) await scDemoMode.uncheck();
   await page.getByTestId("sc-run-button").click();
   await page.waitForTimeout(500);
   assert.equal(supplyChainPayloads.length, 1, "Supply-chain request was not sent");

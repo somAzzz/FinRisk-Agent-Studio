@@ -147,6 +147,55 @@ async def test_real_supplier_discovery_creates_confirmed_edge() -> None:
     assert state.metrics["supplier_edge_count"] > 0
 
 
+async def test_supplier_discovery_skips_seed_company_self_supplier() -> None:
+    from src.supply_chain.models import SupplyChainExploreRequest
+    from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
+    from src.supply_chain.steps.requirement_decomposer import (
+        SupplyChainRequirementDecomposerStep,
+    )
+    from src.supply_chain.steps.supplier_discovery import (
+        SupplyChainSupplierDiscoveryStep,
+    )
+    from src.supply_chain.workflow import run_supply_chain_workflow
+
+    router = StubRouter(
+        [
+            SearchResult(
+                title="NVIDIA H100 GPUs power AI workloads",
+                url="https://www.reuters.com/example",
+                snippet="NVIDIA H100 GPUs are used in AI data centers.",
+                rank=1,
+            )
+        ]
+    )
+    state = await run_supply_chain_workflow(
+        SupplyChainExploreRequest(
+            company_name="NVIDIA",
+            ticker="NVDA",
+            product_name="H100 GPU",
+            demo_mode=False,
+            cached_mode=False,
+        ),
+        steps=[
+            SupplyChainProductResolverStep(),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=router,
+                llm_client_factory=lambda _config: None,
+            ),
+        ],
+    )
+
+    assert state.metrics["self_supplier_candidate_count"] > 0
+    assert not any(
+        edge.target_node_id == "company:nvidia"
+        and edge.source_node_id != "product:h100-gpu"
+        for edge in state.links
+    )
+
+
 async def test_real_supplier_discovery_records_zero_result_metrics() -> None:
     from src.supply_chain.models import SupplyChainExploreRequest
     from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep

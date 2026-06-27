@@ -27,7 +27,7 @@ const PROVIDERS: Array<{
     value: "deepseek",
     label: "DeepSeek API",
     baseUrl: "https://api.deepseek.com",
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
   },
   {
     value: "openai",

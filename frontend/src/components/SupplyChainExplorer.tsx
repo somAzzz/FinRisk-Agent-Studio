@@ -21,12 +21,10 @@ const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   product_name: "ChatGPT",
   max_depth: 3,
   max_suppliers_per_node: 5,
-  demo_mode: false,
-  cached_mode: false,
   llm_config: {
     provider: "deepseek",
     base_url: "https://api.deepseek.com",
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
   },
 };
 
@@ -70,6 +68,8 @@ export function SupplyChainExplorer({
   const [error, setError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [latestStatus, setLatestStatus] =
+    useState<SupplyChainStatusResponseWire | null>(null);
   const requestRef = useRef(request);
   const pollRef = useRef<number | null>(null);
   requestRef.current = request;
@@ -90,11 +90,14 @@ export function SupplyChainExplorer({
     sankeyRunId = targetRunId,
   ): Promise<SupplyChainStatusResponseWire | null> => {
     const status = await api.getSupplyChainStatus(targetRunId);
+    setLatestStatus(status);
     onProgress?.(status);
+    setRequest((current) => ({ ...current, ...status.request }));
     if (TERMINAL_STATUSES.has(status.status)) {
       stopPolling();
       const sankeyResp = await api.getSupplyChainSankey(sankeyRunId);
       const finalStatus = await api.getSupplyChainStatus(targetRunId);
+      setLatestStatus(finalStatus);
       onProgress?.(finalStatus);
       setSankey(sankeyResp.sankey);
       setBusy(false);
@@ -131,15 +134,22 @@ export function SupplyChainExplorer({
   }, [selectedRunId]);
 
   const run = async (req: SupplyChainExploreRequestWire) => {
+    const liveRequest = {
+      ...req,
+      demo_mode: false,
+      cached_mode: false,
+    };
     setBusy(true);
     setError(null);
+    setLatestStatus(null);
     onProgress?.(null);
     try {
-      const resp = await api.startSupplyChain(req);
+      const resp = await api.startSupplyChain(liveRequest);
       setRunId(resp.run_id);
-      onProgress?.({
+      const queuedStatus: SupplyChainStatusResponseWire = {
         run_id: resp.run_id,
         status: resp.status,
+        request: liveRequest,
         current_step: null,
         node_count: 0,
         link_count: 0,
@@ -148,7 +158,9 @@ export function SupplyChainExplorer({
         trace: [],
         warnings: [],
         fallback_events: [],
-      });
+      };
+      setLatestStatus(queuedStatus);
+      onProgress?.(queuedStatus);
       startPolling(resp.run_id);
     } catch (err) {
       setError(formatApiError(err));
@@ -167,13 +179,18 @@ export function SupplyChainExplorer({
         node_id: nodeId,
         product_name: nodeId.split(":").slice(-1)[0],
         max_depth: 2,
-        demo_mode: currentRequest.demo_mode ?? false,
-        cached_mode: currentRequest.cached_mode ?? false,
+        demo_mode: false,
+        cached_mode: false,
         llm_config: currentRequest.llm_config,
       });
-      onProgress?.({
+      const queuedStatus: SupplyChainStatusResponseWire = {
         run_id: resp.run_id,
         status: resp.status,
+        request: {
+          ...currentRequest,
+          demo_mode: false,
+          cached_mode: false,
+        },
         current_step: null,
         node_count: sankey?.nodes.length ?? 0,
         link_count: sankey?.links.length ?? 0,
@@ -182,7 +199,9 @@ export function SupplyChainExplorer({
         trace: [],
         warnings: [],
         fallback_events: [],
-      });
+      };
+      setLatestStatus(queuedStatus);
+      onProgress?.(queuedStatus);
       startPolling(resp.run_id, runId);
     } catch (err) {
       setError(formatApiError(err));
@@ -255,22 +274,6 @@ export function SupplyChainExplorer({
             </div>
           </div>
         </div>
-        <div className="row-checkbox">
-          <input
-            id="sc-demo"
-            type="checkbox"
-            data-testid="sc-demo-mode"
-            checked={request.demo_mode ?? false}
-            onChange={(e) =>
-              setRequest((r) => ({
-                ...r,
-                demo_mode: e.target.checked,
-                cached_mode: e.target.checked,
-              }))
-            }
-          />
-          <label htmlFor="sc-demo">Demo mode (offline fixture)</label>
-        </div>
         <LLMProviderSelector
           value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
           onChange={(next) =>
@@ -290,6 +293,7 @@ export function SupplyChainExplorer({
             {error}
           </div>
         ) : null}
+        <SupplyChainReviewSummary status={latestStatus} />
       </form>
 
       <div className="sc-body">
@@ -311,11 +315,54 @@ export function SupplyChainExplorer({
         )}
         <SupplyChainNodeDrawer
           node={selectedNode}
+          payload={sankey}
           onClose={() => setSelectedNodeId(null)}
           onExpand={expand}
           canExpand={Boolean(runId)}
         />
       </div>
+    </div>
+  );
+}
+
+function SupplyChainReviewSummary({
+  status,
+}: {
+  status: SupplyChainStatusResponseWire | null;
+}) {
+  if (!status || status.status !== "needs_review") return null;
+  const evaluation = status.evaluation;
+  const reasons: string[] = [];
+  for (const warning of status.warnings) reasons.push(warning);
+  for (const fallback of status.fallback_events) reasons.push(fallback);
+  for (const edge of evaluation?.unsupported_edges ?? []) {
+    reasons.push(`unsupported confirmed edge: ${edge}`);
+  }
+  for (const edge of evaluation?.low_confidence_edges ?? []) {
+    reasons.push(`low confidence edge: ${edge}`);
+  }
+  if ((evaluation?.source_diversity_score ?? 1) < 0.34) {
+    reasons.push("source diversity is below review threshold");
+  }
+  if (status.link_count === 0) {
+    reasons.push("graph contains no supply-chain links");
+  }
+  return (
+    <div className="sc-review-summary" data-testid="sc-review-summary">
+      <strong>Needs review</strong>
+      <p>
+        Inspect the flagged evidence and expand weak nodes before treating this
+        graph as production-grade.
+      </p>
+      {reasons.length ? (
+        <ul>
+          {reasons.slice(0, 5).map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">Hypothesized or low-support links are present.</p>
+      )}
     </div>
   );
 }

@@ -46,7 +46,7 @@ class SupplyChainProductResolverStep(SupplyChainStep):
             node_type="product",
             label=req.product_name,
             normalized_name=_slug(req.product_name),
-            depth=0,
+            depth=1,
             parent_node_id=company_id,
             confidence=1.0,
         )

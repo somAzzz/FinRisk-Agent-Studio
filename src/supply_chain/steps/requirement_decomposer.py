@@ -107,14 +107,19 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                 "Do not include markdown or commentary."
             ),
             prompt=_requirement_prompt(state),
-            max_tokens=1200,
+            max_tokens=1800,
             temperature=0.1,
+            retries=1,
         )
         self._record_provider_call(state, call)
         requirements = _coerce_requirements(payload)
         if not requirements:
             return False
         product_id = f"product:{state.request.product_name.strip().lower().replace(' ', '-')}"
+        product_depth = next(
+            (node.depth for node in state.nodes if node.node_id == product_id),
+            0,
+        )
         existing_nodes = {n.node_id for n in state.nodes}
         existing_edges = {e.edge_id for e in state.links}
         added = 0
@@ -131,7 +136,7 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                         node_type=node_type,  # type: ignore[arg-type]
                         label=label,
                         normalized_name=label.lower(),
-                        depth=1,
+                        depth=min(product_depth + 1, 10),
                         parent_node_id=product_id,
                         confidence=confidence,
                         metadata={
@@ -185,6 +190,10 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
         exists.
         """
         product_id = f"product:{state.request.product_name.strip().lower().replace(' ', '-')}"
+        product_depth = next(
+            (node.depth for node in state.nodes if node.node_id == product_id),
+            0,
+        )
         existing_nodes = {n.node_id for n in state.nodes}
         existing_edges = {e.edge_id for e in state.links}
         for node_id, node_type, label, value in _GENERIC_REQUIREMENTS:
@@ -195,7 +204,7 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                         node_type=node_type,  # type: ignore[arg-type]
                         label=label,
                         normalized_name=label.lower(),
-                        depth=1,
+                        depth=min(product_depth + 1, 10),
                         parent_node_id=product_id,
                         confidence=0.55,
                         metadata={"method": "rule_decomposer"},
@@ -244,12 +253,31 @@ def _requirement_prompt(state: SupplyChainExploreState) -> str:
         '{"requirements":[{"label":"GPU accelerator","node_type":"component",'
         '"importance":0.9,"confidence":0.75,"reason":"why it matters"}]}\n'
         "Allowed node_type values: component, service, infrastructure, energy, "
-        "commodity, region, unknown. Return 4 to 8 concrete requirements."
+        "commodity, region, unknown. Use canonical parent labels for broad "
+        "families and do not emit plural/singular aliases as separate nodes. "
+        "For example, emit one parent requirement named 'Rare earth elements'; "
+        "only emit finer child materials when they are materially distinct. "
+        "Return 4 to 8 concrete requirements."
     )
 
 
 def _coerce_requirements(payload: Any) -> list[dict[str, Any]]:
-    rows = payload.get("requirements") if isinstance(payload, dict) else payload
+    rows = None
+    if isinstance(payload, dict):
+        for key in (
+            "requirements",
+            "product_requirements",
+            "upstream_requirements",
+            "components",
+            "dependencies",
+        ):
+            if isinstance(payload.get(key), list):
+                rows = payload[key]
+                break
+        if rows is None and payload.get("label"):
+            rows = [payload]
+    else:
+        rows = payload
     if not isinstance(rows, list):
         return []
     allowed = {
@@ -266,6 +294,8 @@ def _coerce_requirements(payload: Any) -> list[dict[str, Any]]:
         if not isinstance(row, dict):
             continue
         label = str(row.get("label") or "").strip()
+        if not label:
+            label = str(row.get("name") or row.get("requirement") or "").strip()
         if not label:
             continue
         node_type = str(row.get("node_type") or "unknown").strip().lower()

@@ -26,6 +26,16 @@ export interface SupplyChainNodeWire {
   metadata?: Record<string, unknown>;
 }
 
+export interface SupplyChainNodeProfileWire {
+  summary: string;
+  key_items?: string[];
+  applications?: string[];
+  risk_factors?: string[];
+  comparable_entities?: string[];
+  generated_by?: string;
+  confidence?: number;
+}
+
 export type SupplyChainRelationType =
   | "requires"
   | "supplied_by"
@@ -110,6 +120,7 @@ export interface SupplyChainExploreResponseWire {
 export interface SupplyChainStatusResponseWire {
   run_id: string;
   status: string;
+  request: SupplyChainExploreRequestWire;
   current_step: string | null;
   node_count: number;
   link_count: number;

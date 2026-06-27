@@ -30,6 +30,7 @@ from src.supply_chain.models import (
     SupplyChainExploreRequest,
     SupplyChainExploreState,
 )
+from src.supply_chain.sankey import build_sankey_payload
 from src.supply_chain.workflow import (
     expand_supply_chain_workflow,
     run_supply_chain_workflow,
@@ -40,6 +41,41 @@ logger = logging.getLogger(__name__)
 
 def _background_enabled() -> bool:
     return os.environ.get("FINRISK_SKIP_BACKGROUND") != "1"
+
+
+def _demo_enabled_for_tests() -> bool:
+    """Allow fixture-only supply-chain runs only in explicit test mode."""
+    return os.environ.get("FINRISK_ALLOW_SUPPLY_CHAIN_DEMO") == "1"
+
+
+def _force_real_explore_request(
+    request: SupplyChainExploreRequest,
+) -> SupplyChainExploreRequest:
+    if _demo_enabled_for_tests():
+        return request
+    if not (request.demo_mode or request.cached_mode):
+        return request
+    return request.model_copy(
+        update={
+            "demo_mode": False,
+            "cached_mode": False,
+        }
+    )
+
+
+def _force_real_expand_request(
+    request: SupplyChainExpandRequest,
+) -> SupplyChainExpandRequest:
+    if _demo_enabled_for_tests():
+        return request
+    if not (request.demo_mode or request.cached_mode):
+        return request
+    return request.model_copy(
+        update={
+            "demo_mode": False,
+            "cached_mode": False,
+        }
+    )
 
 
 router = APIRouter(prefix="/supply-chain")
@@ -61,6 +97,7 @@ class SupplyChainExploreResponse(BaseModel):
 class SupplyChainStatusResponse(BaseModel):
     run_id: str
     status: str
+    request: SupplyChainExploreRequest
     current_step: str | None = None
     node_count: int
     link_count: int
@@ -108,6 +145,31 @@ async def _run_existing_state(state: SupplyChainExploreState) -> None:
         await get_supply_chain_store().update(state)
 
 
+async def _expand_existing_state(request: SupplyChainExpandRequest, run_id: str) -> None:
+    """Background entry point for recursive expansion."""
+    try:
+        await expand_supply_chain_workflow(
+            request.parent_run_id,
+            request.node_id,
+            product_name=request.product_name,
+            seed_companies=request.seed_companies,
+            max_depth=request.max_depth,
+            max_suppliers_per_node=request.max_suppliers_per_node,
+            demo_mode=request.demo_mode,
+            cached_mode=request.cached_mode,
+            llm_config=request.llm_config,
+            store=get_supply_chain_store(),
+            run_id=run_id,
+        )
+    except Exception as exc:
+        logger.exception("supply chain expansion %s failed", run_id)
+        child = await get_supply_chain_store().get(run_id)
+        if child is not None:
+            child.status = "failed"
+            child.warnings.append(f"{type(exc).__name__}: {exc}")
+            await get_supply_chain_store().update(child)
+
+
 def _schedule(coro) -> None:
     """Schedule ``coro`` and retain the task until completion."""
     task = asyncio.create_task(coro)
@@ -129,6 +191,7 @@ async def start_supply_chain_explore(
     request: SupplyChainExploreRequest,
 ) -> SupplyChainExploreResponse:
     """Start a new v18 supply chain run."""
+    request = _force_real_explore_request(request)
     state = SupplyChainExploreState(
         run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
         request=request,
@@ -159,6 +222,46 @@ async def expand_supply_chain(
     request: SupplyChainExpandRequest,
 ) -> SupplyChainExploreResponse:
     """Recursively expand from an existing run's node."""
+    request = _force_real_expand_request(request)
+    parent = await get_supply_chain_store().get(request.parent_run_id)
+    if parent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"unknown parent run_id: {request.parent_run_id}",
+        )
+    if parent.sankey is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"parent run {request.parent_run_id} has no sankey payload yet",
+        )
+    child_request = SupplyChainExploreRequest(
+        company_name=parent.request.company_name,
+        ticker=parent.request.ticker,
+        product_name=(
+            request.product_name
+            or request.node_id.split(":", 1)[-1].replace("-", " ").title()
+        ),
+        max_depth=request.max_depth,
+        max_suppliers_per_node=request.max_suppliers_per_node,
+        demo_mode=request.demo_mode,
+        cached_mode=request.cached_mode,
+        llm_config=request.llm_config or parent.request.llm_config,
+    )
+    child = SupplyChainExploreState(
+        run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
+        request=child_request,
+        status="queued",
+        parent_run_id=parent.run_id,
+        expanded_from_node_id=request.node_id,
+    )
+    await get_supply_chain_store().update(child)
+    if _background_enabled():
+        _schedule(_expand_existing_state(request, child.run_id))
+        return SupplyChainExploreResponse(
+            run_id=child.run_id,
+            status=child.status,
+            sankey_url=f"/supply-chain/{parent.run_id}/sankey",
+        )
     try:
         child = await expand_supply_chain_workflow(
             request.parent_run_id,
@@ -170,6 +273,8 @@ async def expand_supply_chain(
             demo_mode=request.demo_mode,
             cached_mode=request.cached_mode,
             llm_config=request.llm_config,
+            store=get_supply_chain_store(),
+            run_id=child.run_id,
         )
     except KeyError as exc:
         raise HTTPException(
@@ -179,7 +284,7 @@ async def expand_supply_chain(
     return SupplyChainExploreResponse(
         run_id=child.run_id,
         status=child.status,
-        sankey_url=f"/supply-chain/{child.run_id}/sankey",
+        sankey_url=f"/supply-chain/{parent.run_id}/sankey",
     )
 
 
@@ -232,6 +337,7 @@ async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
     return SupplyChainStatusResponse(
         run_id=state.run_id,
         status=state.status,
+        request=state.request,
         current_step=current_step,
         node_count=node_count,
         link_count=link_count,
@@ -257,7 +363,22 @@ async def get_supply_chain_sankey(run_id: str) -> SupplyChainSankeyResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="unknown supply-chain run",
         )
-    return SupplyChainSankeyResponse(run_id=state.run_id, sankey=state.sankey)
+    sankey = state.sankey
+    if sankey is not None:
+        repaired_state = state.model_copy(
+            update={
+                "nodes": list(sankey.nodes),
+                "links": list(sankey.links),
+                "evidence": list(sankey.evidence),
+                "warnings": list(sankey.warnings),
+            }
+        )
+        repaired = build_sankey_payload(repaired_state)
+        if repaired != sankey:
+            state.sankey = repaired
+            await get_supply_chain_store().update(state)
+            sankey = repaired
+    return SupplyChainSankeyResponse(run_id=state.run_id, sankey=sankey)
 
 
 __all__ = [

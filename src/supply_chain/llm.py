@@ -62,16 +62,23 @@ def complete_json_with_trace(
     system: str,
     max_tokens: int = 1400,
     temperature: float = 0.1,
+    retries: int = 1,
 ) -> tuple[Any | None, ProviderCall]:
     """Call an LLM and parse a JSON object/array from the response."""
     started = time.perf_counter()
     try:
-        content = client.complete(
-            prompt,
-            system=system,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        content = ""
+        for attempt in range(max(1, retries + 1)):
+            content = client.complete(
+                prompt,
+                system=system,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            if content:
+                break
+            if attempt >= retries:
+                break
         latency_ms = int((time.perf_counter() - started) * 1000)
         if not content:
             return None, ProviderCall(
@@ -82,6 +89,14 @@ def complete_json_with_trace(
                 error="empty LLM response",
             )
         parsed = extract_json(content)
+        if parsed is None:
+            return None, ProviderCall(
+                provider=provider,
+                operation=operation,
+                status="failed",
+                latency_ms=latency_ms,
+                error="LLM response did not contain complete JSON",
+            )
         return parsed, ProviderCall(
             provider=provider,
             operation=operation,
@@ -111,6 +126,8 @@ def extract_json(content: str) -> Any | None:
             return json.loads(fenced.group(1).strip())
         except json.JSONDecodeError:
             pass
+    if stripped[0] in "[{":
+        return None
     decoder = json.JSONDecoder()
     for index, char in enumerate(stripped):
         if char not in "[{":

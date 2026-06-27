@@ -5,7 +5,10 @@ from __future__ import annotations
 from src.graph.supply_chain_writer import SupplyChainGraphWriter
 from src.supply_chain.models import (
     NormalizedSupplyChainEvidence,
+    SankeyPayload,
     SupplyChainEdge,
+    SupplyChainExploreRequest,
+    SupplyChainExploreState,
     SupplyChainNode,
 )
 from src.workflows.state import utcnow
@@ -83,3 +86,79 @@ def test_supply_chain_writer_merges_nodes_edges_and_evidence() -> None:
     )
     assert component_props["metadata"] == '{"nested": {"component": "gpu"}}'
     assert edge_props["metadata"] == '{"reason": {"kind": "reported supplier"}}'
+
+
+def test_supply_chain_writer_projects_final_run_artifact() -> None:
+    client = FakeClient()
+    writer = SupplyChainGraphWriter(client)
+    evidence = NormalizedSupplyChainEvidence(
+        evidence_id="sc:web:profile",
+        source_type="web",
+        quote="SK Hynix supplies HBM.",
+        summary="SK Hynix supplies HBM.",
+        retrieved_at=utcnow(),
+        confidence=0.8,
+    )
+    edge = SupplyChainEdge(
+        edge_id="edge:hbm:sk-hynix",
+        source_node_id="component:hbm",
+        target_node_id="company:sk-hynix",
+        relation_type="hypothesized",
+        value=0.8,
+        confidence=0.8,
+        evidence_ids=[],
+        metadata={"reason": "LLM supplier candidate"},
+    )
+    state = SupplyChainExploreState(
+        run_id="sc-run-projection",
+        request=SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+        ),
+        sankey=SankeyPayload(
+            nodes=[
+                SupplyChainNode(
+                    node_id="component:hbm",
+                    node_type="component",
+                    label="HBM",
+                    normalized_name="hbm",
+                    depth=1,
+                    confidence=0.8,
+                    metadata={"profile": {"summary": "Memory dependency"}},
+                ),
+                SupplyChainNode(
+                    node_id="company:sk-hynix",
+                    node_type="company",
+                    label="SK Hynix",
+                    normalized_name="sk hynix",
+                    depth=2,
+                    parent_node_id="component:hbm",
+                    confidence=0.8,
+                ),
+            ],
+            links=[edge],
+            evidence=[evidence],
+            warnings=[],
+        ),
+    )
+
+    writer.write_projection(state)
+
+    cypher = "\n".join(call[0] for call in client.calls)
+    assert "MERGE (r:SupplyChainRun" in cypher
+    assert "CONTAINS_NODE" in cypher
+    assert "CONTAINS_EDGE" in cypher
+    assert "CONTAINS_EVIDENCE" in cypher
+    component_props = next(
+        call[1]["props"]
+        for call in client.calls
+        if call[1].get("entity_id") == "component:hbm"
+    )
+    edge_props = next(
+        call[1]["props"]
+        for call in client.calls
+        if call[1].get("relation_id") == "edge:hbm:sk-hynix"
+    )
+    assert component_props["last_run_id"] == "sc-run-projection"
+    assert component_props["profile"] == '{"summary": "Memory dependency"}'
+    assert edge_props["run_id"] == "sc-run-projection"
