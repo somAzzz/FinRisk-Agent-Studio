@@ -33,19 +33,27 @@ services:
   neo4j:
     # Pinned 2026-06-26 (audit remediation R8). Quarterly review.
     image: neo4j:5.26.0
-    env_file:
-      - .env
+    # Neo4j 5.x enables ``server.config.strict_validation.enabled`` by
+    # default. Any ``NEO4J_*`` env var that does not name a known
+    # server setting makes the container exit 1 at startup — the
+    # common failure modes in the wild are ``NEO4J_URI`` (read as
+    # setting ``URI``), ``NEO4J_USER`` and ``NEO4J_PASSWORD`` (read
+    # as ``USER`` / ``PASSWORD``). The only Neo4j-blessed auth env
+    # var is ``NEO4J_AUTH`` in ``user/password`` form, so we build
+    # it here from interpolation values and inject only that.
+    #
+    # The interpolation sources are NOT injected into the
+    # container's environment: ``NEO4J_USER`` and ``NEO4J_PASSWORD``
+    # are read from the project's ``.env`` for ``${...}``
+    # substitution only, and the resulting string is the entire
+    # value of the single ``NEO4J_AUTH`` env var we expose.
+    # ``.env.neo4j`` (gitignored) is an optional override file —
+    # set ``NEO4J_AUTH`` there directly to skip the interpolation.
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH:-${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-REPLACE_ME}}
     ports:
       - "7474:7474"
       - "7687:7687"
-    # R4: the previous hard-coded ``neo4j/password`` literal is gone.
-    # The credentials now come from ``NEO4J_USER`` and
-    # ``NEO4J_PASSWORD`` in the .env file (copied from
-    # .env.example). The ``:-neo4j`` and ``:-REPLACE_ME`` defaults
-    # are dev-only fallbacks; replace them in .env before any
-    # non-local use.
-    environment:
-      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-REPLACE_ME}
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
