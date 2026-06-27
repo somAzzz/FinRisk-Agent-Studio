@@ -8,9 +8,9 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.api.store_factory import get_agent_run_store
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
+from src.api.store_factory import get_agent_run_store
 from src.security.redaction import redact_obj
 
 router = APIRouter(prefix="/agent-runs")
@@ -211,11 +211,13 @@ async def review_agent_evidence_candidate(
     else:
         candidate["reviewer_comment"] = request.reviewer_comment
 
-    if not any(c.get("status") == "needs_review" for c in state.evidence_candidates):
-        if not state.human_review_items or all(
-            review.status != "pending" for review in state.human_review_items
-        ):
-            state.status = "completed"
+    if not any(
+        c.get("status") == "needs_review" for c in state.evidence_candidates
+    ) and (
+        not state.human_review_items
+        or all(review.status != "pending" for review in state.human_review_items)
+    ):
+        state.status = "completed"
     state.updated_at = _now()
     await get_agent_run_store().update(state)
     return candidate

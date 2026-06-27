@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 
+from src.agents.state import AgentRunState
 from src.api.run_store import (
     FinRiskInMemoryRunStore,
     FinRiskSQLiteRunStore,
@@ -31,7 +32,6 @@ from src.api.run_store import (
     SQLiteRunStore,
     TypedSQLiteRunStore,
 )
-from src.agents.state import AgentRunState
 from src.supply_chain.models import SupplyChainExploreState
 
 

@@ -10,7 +10,6 @@ import pytest
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.state import AgentRunState
-from src.api.store_factory import get_agent_run_store
 from src.api.agent_runs import (
     AgentRunRequest,
     HumanReviewActionRequest,
@@ -24,6 +23,7 @@ from src.api.agent_runs import (
     set_agent_runtime_for_tests,
     start_agent_run,
 )
+from src.api.store_factory import get_agent_run_store
 from src.schemas.tool_trace import ToolExecutionEvent
 from src.workflows.state import utcnow
 
