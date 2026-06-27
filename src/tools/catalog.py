@@ -7,6 +7,9 @@ behind ``SearchRouter`` so LLMs choose the research action, not raw clients.
 
 from __future__ import annotations
 
+import asyncio
+import inspect
+import threading
 from datetime import date
 from typing import Any, Literal
 
@@ -54,6 +57,8 @@ def build_project_tool_catalog(
     transcript_provider: Any | None = None,
     metrics_fetcher: Any | None = None,
     company_facts_fetcher: Any | None = None,
+    graph_backend: Any | None = None,
+    browser_explorer: Any | None = None,
     scope: str | None = "default",
 ) -> ToolCatalog:
     """Build the default read-only project tools for LLM tool calling."""
@@ -248,6 +253,77 @@ def build_project_tool_catalog(
             "facts": out,
         }
 
+    def graph_query(
+        entity: str,
+        ticker: str | None = None,
+        max_hops: int = 3,
+        allowed_edge_types: list[str] | None = None,
+    ) -> dict[str, Any]:
+        context = _graph_context(
+            entity=entity,
+            ticker=ticker,
+            max_hops=max_hops,
+            allowed_edge_types=allowed_edge_types,
+        )
+        paths = (
+            graph_backend.retrieve(context)
+            if graph_backend is not None
+            else _fixture_graph_paths(context)
+        )
+        return {
+            "context": jsonable(context),
+            "paths": jsonable(paths),
+        }
+
+    def graph_path_search(
+        source_entity: str,
+        target_entity: str | None = None,
+        ticker: str | None = None,
+        max_hops: int = 3,
+        allowed_edge_types: list[str] | None = None,
+    ) -> dict[str, Any]:
+        context = _graph_context(
+            entity=source_entity,
+            ticker=ticker,
+            max_hops=max_hops,
+            allowed_edge_types=allowed_edge_types,
+        )
+        paths = (
+            graph_backend.retrieve(context)
+            if graph_backend is not None
+            else _fixture_graph_paths(context)
+        )
+        if target_entity:
+            target = target_entity.lower()
+            paths = [
+                path for path in paths
+                if target in _path_text(path).lower()
+            ]
+        return {
+            "context": jsonable(context),
+            "target_entity": target_entity,
+            "paths": jsonable(paths),
+        }
+
+    def browser_explore(
+        goal: str,
+        initial_urls: list[str] | None = None,
+        max_steps: int = 5,
+    ) -> dict[str, Any]:
+        explorer = browser_explorer or _default_browser_explorer(max_steps=max_steps)
+        result = explorer.explore(goal, initial_urls=initial_urls)
+        state = _run_sync(result) if inspect.isawaitable(result) else result
+        findings = [
+            jsonable(finding)
+            for finding in getattr(state, "findings", [])
+        ]
+        return {
+            "goal": goal,
+            "current_step": getattr(state, "current_step", None),
+            "findings": findings,
+            "visited_urls": jsonable(getattr(state, "visited_urls", [])),
+        }
+
     catalog = ToolCatalog(
         project_tools=(
             ProjectTool(
@@ -324,6 +400,34 @@ def build_project_tool_catalog(
                 risk_level="read_only",
                 scopes=frozenset({"company_research", "finrisk_filing"}),
                 evidence_kind="financial_metric",
+            ),
+            ProjectTool(
+                name="graph_query",
+                description=GRAPH_QUERY_DESCRIPTION,
+                parameters=GRAPH_QUERY_PARAMETERS,
+                callable=graph_query,
+                risk_level="read_only",
+                scopes=frozenset({"company_research", "finrisk_market", "supply_chain"}),
+                evidence_kind="graph_path",
+            ),
+            ProjectTool(
+                name="graph_path_search",
+                description=GRAPH_PATH_SEARCH_DESCRIPTION,
+                parameters=GRAPH_PATH_SEARCH_PARAMETERS,
+                callable=graph_path_search,
+                risk_level="read_only",
+                scopes=frozenset({"company_research", "finrisk_market", "supply_chain"}),
+                evidence_kind="graph_path",
+            ),
+            ProjectTool(
+                name="browser_explore",
+                description=BROWSER_EXPLORE_DESCRIPTION,
+                parameters=BROWSER_EXPLORE_PARAMETERS,
+                callable=browser_explore,
+                risk_level="interactive",
+                scopes=frozenset({"company_research", "finrisk_market"}),
+                evidence_kind="browser",
+                max_result_chars=18000,
             ),
         )
     )
@@ -543,6 +647,86 @@ XBRL_FACT_LOOKUP_PARAMETERS: dict[str, Any] = {
     "required": ["ticker", "concepts"],
 }
 
+GRAPH_QUERY_DESCRIPTION = (
+    "Read bounded graph paths around an entity using the project's graph "
+    "retriever. This tool accepts structured filters only; it does not "
+    "accept raw Cypher or write graph data."
+)
+
+GRAPH_QUERY_PARAMETERS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "entity": {
+            "type": "string",
+            "description": "Company/entity id or ticker, e.g. company:AAPL or AAPL.",
+        },
+        "ticker": {"type": ["string", "null"], "default": None},
+        "max_hops": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 3,
+        },
+        "allowed_edge_types": {
+            "type": ["array", "null"],
+            "items": {"type": "string"},
+            "default": None,
+        },
+    },
+    "required": ["entity"],
+}
+
+GRAPH_PATH_SEARCH_DESCRIPTION = (
+    "Search bounded graph paths from a source entity, optionally filtered "
+    "to paths mentioning a target entity. No raw Cypher is accepted."
+)
+
+GRAPH_PATH_SEARCH_PARAMETERS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "source_entity": {"type": "string"},
+        "target_entity": {"type": ["string", "null"], "default": None},
+        "ticker": {"type": ["string", "null"], "default": None},
+        "max_hops": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 3,
+        },
+        "allowed_edge_types": {
+            "type": ["array", "null"],
+            "items": {"type": "string"},
+            "default": None,
+        },
+    },
+    "required": ["source_entity"],
+}
+
+BROWSER_EXPLORE_DESCRIPTION = (
+    "Run the project's bounded MarketExplorer sub-agent for pages that need "
+    "browser exploration. This wraps navigation internally and does not expose "
+    "low-level click, type, or scroll actions."
+)
+
+BROWSER_EXPLORE_PARAMETERS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "goal": {"type": "string"},
+        "initial_urls": {
+            "type": ["array", "null"],
+            "items": {"type": "string"},
+            "default": None,
+        },
+        "max_steps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5,
+        },
+    },
+    "required": ["goal"],
+}
+
 WEB_SEARCH_SCHEMA: ToolSchema = {
     "type": "function",
     "function": {
@@ -615,6 +799,33 @@ XBRL_FACT_LOOKUP_SCHEMA: ToolSchema = {
     },
 }
 
+GRAPH_QUERY_SCHEMA: ToolSchema = {
+    "type": "function",
+    "function": {
+        "name": "graph_query",
+        "description": GRAPH_QUERY_DESCRIPTION,
+        "parameters": GRAPH_QUERY_PARAMETERS,
+    },
+}
+
+GRAPH_PATH_SEARCH_SCHEMA: ToolSchema = {
+    "type": "function",
+    "function": {
+        "name": "graph_path_search",
+        "description": GRAPH_PATH_SEARCH_DESCRIPTION,
+        "parameters": GRAPH_PATH_SEARCH_PARAMETERS,
+    },
+}
+
+BROWSER_EXPLORE_SCHEMA: ToolSchema = {
+    "type": "function",
+    "function": {
+        "name": "browser_explore",
+        "description": BROWSER_EXPLORE_DESCRIPTION,
+        "parameters": BROWSER_EXPLORE_PARAMETERS,
+    },
+}
+
 
 def _router_for_provider(provider: str, default_router: SearchRouter) -> SearchRouter:
     if provider == "auto":
@@ -666,6 +877,157 @@ def _default_company_facts_fetcher() -> Any:
     return client.get_company_facts
 
 
+def _default_browser_explorer(*, max_steps: int) -> Any:
+    from src.browser.config import BrowserConfig
+    from src.browser.explorer import MarketExplorer
+
+    return MarketExplorer(browser_config=BrowserConfig(max_steps=_clamp(max_steps, 1, 10)))
+
+
+def _graph_context(
+    *,
+    entity: str,
+    ticker: str | None,
+    max_hops: int,
+    allowed_edge_types: list[str] | None,
+) -> dict[str, Any]:
+    cleaned = entity.strip()
+    if cleaned.startswith("company:"):
+        company_id = cleaned
+        inferred_ticker = cleaned.split(":", 1)[1].upper()
+    else:
+        inferred_ticker = cleaned.upper()
+        company_id = f"company:{inferred_ticker}"
+    return {
+        "company_id": company_id,
+        "ticker": (ticker or inferred_ticker).upper(),
+        "max_hops": _clamp(max_hops, 1, 4),
+        "allowed_edge_types": allowed_edge_types or [],
+    }
+
+
+def _graph_node(node_id: str, node_type: str, label: str) -> dict[str, Any]:
+    return {"node_id": node_id, "node_type": node_type, "label": label}
+
+
+def _graph_edge(
+    source_node_id: str,
+    target_node_id: str,
+    edge_type: str,
+    confidence: float,
+) -> dict[str, Any]:
+    return {
+        "source_node_id": source_node_id,
+        "target_node_id": target_node_id,
+        "edge_type": edge_type,
+        "confidence": confidence,
+    }
+
+
+_GRAPH_NODES: dict[str, dict[str, Any]] = {
+    "company:AAPL": _graph_node("company:AAPL", "Company", "Apple Inc."),
+    "ticker:AAPL": _graph_node("ticker:AAPL", "Ticker", "AAPL"),
+    "supplier:TSMC": _graph_node("supplier:TSMC", "Supplier", "TSMC"),
+    "region:Taiwan": _graph_node("region:Taiwan", "Region", "Taiwan"),
+    "policy:tariff": _graph_node("policy:tariff", "Policy", "US Tariff Regime"),
+    "risk:supply-asia": _graph_node(
+        "risk:supply-asia", "Risk", "Asia supply chain"
+    ),
+    "risk:tariff": _graph_node("risk:tariff", "Risk", "Tariff exposure"),
+    "event:taiwan-strait": _graph_node(
+        "event:taiwan-strait", "Event", "Taiwan Strait tension"
+    ),
+}
+
+_GRAPH_EDGES: tuple[dict[str, Any], ...] = (
+    _graph_edge("company:AAPL", "ticker:AAPL", "ISSUES", 0.7),
+    _graph_edge("company:AAPL", "supplier:TSMC", "DEPENDS_ON", 0.9),
+    _graph_edge("supplier:TSMC", "region:Taiwan", "LOCATED_IN", 0.95),
+    _graph_edge("region:Taiwan", "event:taiwan-strait", "EXPOSED_TO", 0.6),
+    _graph_edge("company:AAPL", "policy:tariff", "EXPOSED_TO", 0.85),
+    _graph_edge("policy:tariff", "risk:tariff", "AFFECTS", 0.7),
+    _graph_edge("region:Taiwan", "risk:supply-asia", "AFFECTS", 0.6),
+)
+
+
+def _fixture_graph_paths(context: dict[str, Any]) -> list[dict[str, Any]]:
+    start = context["company_id"]
+    if start not in _GRAPH_NODES:
+        return []
+    allowed = set(context.get("allowed_edge_types") or [])
+    max_hops = int(context.get("max_hops") or 3)
+    paths: list[dict[str, Any]] = []
+
+    def dfs(current: str, nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> None:
+        if edges:
+            paths.append(_path_payload(nodes, edges))
+        if len(edges) >= max_hops:
+            return
+        visited = {node["node_id"] for node in nodes}
+        for edge in _GRAPH_EDGES:
+            if edge["source_node_id"] != current:
+                continue
+            if allowed and edge["edge_type"] not in allowed:
+                continue
+            target = edge["target_node_id"]
+            if target in visited or target not in _GRAPH_NODES:
+                continue
+            dfs(target, [*nodes, _GRAPH_NODES[target]], [*edges, edge])
+
+    dfs(start, [_GRAPH_NODES[start]], [])
+    return paths
+
+
+def _path_payload(
+    nodes: list[dict[str, Any]],
+    edges: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "path_text": " -> ".join(str(node["label"]) for node in nodes),
+        "nodes": nodes,
+        "edges": [
+            {
+                "source_node_id": edge["source_node_id"],
+                "target_node_id": edge["target_node_id"],
+                "edge_type": edge["edge_type"],
+                "confidence": edge["confidence"],
+            }
+            for edge in edges
+        ],
+        "evidence_ids": [],
+        "hop_count": len(edges),
+    }
+
+
+def _path_text(path: Any) -> str:
+    if isinstance(path, dict):
+        return str(path.get("path_text") or "")
+    return str(getattr(path, "path_text", ""))
+
+
+def _run_sync(awaitable: Any) -> Any:
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(awaitable)
+
+    result_box: dict[str, Any] = {}
+    error_box: dict[str, BaseException] = {}
+
+    def _worker() -> None:
+        try:
+            result_box["result"] = asyncio.run(awaitable)
+        except BaseException as exc:  # pragma: no cover - defensive thread bridge
+            error_box["error"] = exc
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+    thread.join()
+    if "error" in error_box:
+        raise error_box["error"]
+    return result_box.get("result")
+
+
 def _clamp(value: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, int(value)))
 
@@ -696,8 +1058,14 @@ def _canonical_section(section: str) -> str:
 
 
 __all__ = [
+    "BROWSER_EXPLORE_PARAMETERS",
+    "BROWSER_EXPLORE_SCHEMA",
     "FINANCIAL_METRICS_LOOKUP_PARAMETERS",
     "FINANCIAL_METRICS_LOOKUP_SCHEMA",
+    "GRAPH_PATH_SEARCH_PARAMETERS",
+    "GRAPH_PATH_SEARCH_SCHEMA",
+    "GRAPH_QUERY_PARAMETERS",
+    "GRAPH_QUERY_SCHEMA",
     "SEARCH_AND_FETCH_PARAMETERS",
     "SEARCH_AND_FETCH_SCHEMA",
     "SEC_FETCH_FILING_PARAMETERS",
