@@ -15,6 +15,7 @@ top of the project schemas. It exposes:
 
 from src.agents.base import Agent, AsyncAgent
 from src.agents.critic import CriticAgent
+from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.llm_runtime import LLMToolAgentRuntime, LLMToolRunResult
 from src.agents.planner import (
     AgentPlan,
@@ -48,6 +49,7 @@ __all__ = [
     "AgentSubgoal",
     "AsyncAgent",
     "CriticAgent",
+    "GlobalAgentRuntime",
     "LLMToolAgentRuntime",
     "LLMToolRunResult",
     "PlanStep",
