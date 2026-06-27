@@ -111,7 +111,15 @@ class SQLiteRunStore(RunStoreBackend[T]):
 
     def _connect(self) -> sqlite3.Connection:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self._db_path, isolation_level=None)
+        # Public async methods run sqlite work in a thread-pool via
+        # ``asyncio.to_thread``. The instance lock serializes access,
+        # while this flag allows the held connection to be reused by
+        # whichever worker thread handles the next operation.
+        conn = sqlite3.connect(
+            self._db_path,
+            isolation_level=None,
+            check_same_thread=False,
+        )
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute(
             f"""
