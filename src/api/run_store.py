@@ -111,10 +111,14 @@ class SQLiteRunStore(RunStoreBackend[T]):
 
     def _connect(self) -> sqlite3.Connection:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
-        # Public async methods run sqlite work in a thread-pool via
-        # ``asyncio.to_thread``. The instance lock serializes access,
-        # while this flag allows the held connection to be reused by
-        # whichever worker thread handles the next operation.
+        # ``check_same_thread=False`` is required because the public
+        # ``get``/``update``/etc. coroutines dispatch their synchronous
+        # work onto a thread-pool worker via ``asyncio.to_thread``. Each
+        # call may run on a different worker thread, and the connection
+        # is held per-instance for the lifetime of the store. Without
+        # this flag, ``sqlite3`` raises ``ProgrammingError`` on every
+        # cross-thread use, even though the store is otherwise
+        # serialised through ``self._lock``.
         conn = sqlite3.connect(
             self._db_path,
             isolation_level=None,
