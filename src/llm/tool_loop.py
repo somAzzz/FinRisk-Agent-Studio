@@ -16,6 +16,7 @@ ToolFunction = Callable[..., Any]
 NoOpSink = Callable[[LLMCall], None]
 DEFAULT_MAX_TOOL_RESULT_CHARS = 12000
 DEFAULT_MAX_TOTAL_TOOL_RESULT_CHARS = 40000
+TOOL_EVENT_RESULT_SUMMARY_CHARS = 4000
 
 
 class ToolLoopError(Exception):
@@ -381,7 +382,7 @@ def _tool_event(
         tool_name=tool_name,
         arguments=arguments,
         status=status,  # type: ignore[arg-type]
-        result_summary=content[:500],
+        result_summary=content[:TOOL_EVENT_RESULT_SUMMARY_CHARS],
         latency_ms=latency_ms,
         error=error,
         result_chars=len(content),
