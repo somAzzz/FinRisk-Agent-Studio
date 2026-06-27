@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "CHOKIDAR_USEPOLLING=true vite --host 127.0.0.1 --port 5173",
+    "dev:normal": "vite",
+    "dev:poll": "CHOKIDAR_USEPOLLING=true vite --host 127.0.0.1 --port 5173",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",

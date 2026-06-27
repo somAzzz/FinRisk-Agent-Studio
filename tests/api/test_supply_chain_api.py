@@ -90,6 +90,7 @@ async def test_get_status_returns_node_and_link_counts() -> None:
     assert status.node_count > 0
     assert status.link_count > 0
     assert status.evidence_count > 0
+    assert isinstance(status.metrics, dict)
 
 
 async def test_get_sankey_returns_payload() -> None:

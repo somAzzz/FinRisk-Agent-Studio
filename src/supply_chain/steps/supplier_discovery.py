@@ -115,12 +115,14 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             node for node in state.nodes
             if node.node_type in {"component", "service", "energy", "infrastructure"}
         ]
+        _increment_metric(state, "requirement_count", len(requirement_nodes))
         for requirement in requirement_nodes[: state.request.max_suppliers_per_node * 2]:
             intent = _intent_for_requirement(requirement.label)
             query = (
                 f"{state.request.company_name or state.request.ticker} "
                 f"{state.request.product_name} {requirement.label}"
             )
+            _increment_metric(state, "query_count")
             try:
                 started = time.perf_counter()
                 response = router.search(
@@ -153,11 +155,17 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 )
                 continue
             if not response.results:
+                _increment_metric(state, "zero_result_query_count")
                 state.warnings.append(
                     f"supplier_discovery:no search results for {requirement.label}"
                 )
                 continue
+            _increment_metric(state, "raw_result_count", len(response.results))
             self._add_supplier_edges(state, requirement, response)
+        if state.metrics.get("raw_result_count", 0) == 0:
+            state.fallback_events.append("supplier_discovery:ZERO_SEARCH_RESULTS")
+        elif state.metrics.get("evidence_row_count", 0) == 0:
+            state.fallback_events.append("supplier_discovery:ZERO_EVIDENCE_ROWS")
         if not any(edge.relation_type == "supplied_by" for edge in state.links):
             state.fallback_events.append(
                 "supplier_discovery:no confirmed suppliers discovered from search"
@@ -215,6 +223,7 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             supplier = _supplier_from_text(text)
             if supplier is None:
                 continue
+            _increment_metric(state, "candidate_count")
             supplier_name, ticker = supplier
             evidence_dict = build_evidence_from_search(
                 {
@@ -229,6 +238,7 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             if evidence.evidence_id not in existing_evidence:
                 state.evidence.append(evidence)
                 existing_evidence.add(evidence.evidence_id)
+                _increment_metric(state, "evidence_row_count")
             supplier_id = f"company:{_slug(supplier_name)}"
             if supplier_id not in existing_nodes:
                 state.nodes.append(
@@ -269,6 +279,7 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             )
             existing_edges.add(edge_id)
             added += 1
+            _increment_metric(state, "supplier_edge_count")
             if added >= state.request.max_suppliers_per_node:
                 break
 
@@ -430,6 +441,7 @@ def _append_unique_evidence(
             continue
         state.evidence.append(row)
         existing.add(row.evidence_id)
+        _increment_metric(state, "evidence_row_count")
 
 
 def _append_unique_candidates(
@@ -454,6 +466,15 @@ def _append_unique_candidates(
             continue
         state.llm_supplier_candidates.append(candidate)
         existing.add(key)
+        _increment_metric(state, "candidate_count")
+
+
+def _increment_metric(
+    state: SupplyChainExploreState,
+    name: str,
+    amount: int = 1,
+) -> None:
+    state.metrics[name] = state.metrics.get(name, 0) + amount
 
 
 __all__ = ["SupplyChainSupplierDiscoveryStep"]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, status
@@ -20,6 +21,7 @@ AgentRunToolScope = Literal["company_research", "finrisk_market", "supply_chain"
 
 _agent_runs: dict[str, AgentRunState] = {}
 _agent_runtime: GlobalAgentRuntime | None = None
+_background_tasks: set[asyncio.Task] = set()
 
 
 class AgentRunRequest(BaseModel):
@@ -85,13 +87,13 @@ def reset_agent_run_store_for_tests() -> None:
 @router.post("", response_model=AgentRunSummary, status_code=status.HTTP_202_ACCEPTED)
 async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
     """Start a local V21 agent run."""
-    runtime = _agent_runtime or build_agent_runtime(request)
-    state = runtime.run(
-        request.goal,
+    state = AgentRunState(
+        user_goal=request.goal,
         workflow_kind=request.workflow_kind,
-        subject=request.subject,
+        status="queued",
     )
     _agent_runs[state.run_id] = state
+    _schedule(_run_and_store_agent(request, state.run_id))
     return AgentRunSummary(
         run_id=state.run_id,
         status=state.status,
@@ -192,22 +194,59 @@ def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
 
     def factory(tool_scope: str, _subgoal) -> Any:
         selected_scope = request.tool_scope or _coerce_tool_scope(tool_scope)
+        tool_loop_mode = request.tool_loop_mode
+        tool_choice = _tool_choice_for_subgoal(_subgoal, tool_loop_mode)
         return build_runtime(
             provider=request.provider,
             tools_scope=selected_scope,
             max_tool_rounds=request.max_tool_rounds,
             model=request.model,
             base_url=request.base_url,
-            tool_loop_mode=request.tool_loop_mode,
+            tool_loop_mode=tool_loop_mode,
+            tool_choice=tool_choice,
         )
 
     return GlobalAgentRuntime(subgoal_runtime_factory=factory)
+
+
+async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
+    """Run the synchronous agent runtime off the FastAPI event loop."""
+    try:
+        _agent_runs[run_id].status = "running"
+        runtime = _agent_runtime or build_agent_runtime(request)
+        state = await asyncio.to_thread(
+            runtime.run,
+            request.goal,
+            workflow_kind=request.workflow_kind,
+            subject=request.subject,
+            run_id=run_id,
+        )
+    except Exception as exc:
+        state = _agent_runs[run_id]
+        state.status = "failed"
+        state.fallback_events.append(f"agent_run failed: {type(exc).__name__}: {exc}")
+    _agent_runs[run_id] = state
+
+
+def _schedule(coro) -> None:
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
 
 def _coerce_tool_scope(tool_scope: str) -> AgentRunToolScope:
     if tool_scope in {"company_research", "finrisk_market", "supply_chain"}:
         return tool_scope  # type: ignore[return-value]
     return "company_research"
+
+
+def _tool_choice_for_subgoal(subgoal: Any, tool_loop_mode: str | None) -> str:
+    if tool_loop_mode == "json_fallback":
+        return "auto"
+    evidence_types = set(getattr(subgoal, "required_evidence_types", []) or [])
+    if evidence_types:
+        return "required"
+    return "auto"
 
 
 __all__ = [

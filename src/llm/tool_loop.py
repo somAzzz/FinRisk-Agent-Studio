@@ -342,7 +342,7 @@ class JSONToolChoiceToolLoop:
         if not tool_map:
             raise ValueError("tool_map must contain executable functions")
 
-        transcript = [_json_fallback_system_message(tools), *[dict(m) for m in messages]]
+        transcript = _json_fallback_transcript(tools, messages)
         audit_calls: list[LLMCall] = []
         self.last_tool_events = []
         per_tool_limit = (
@@ -783,6 +783,25 @@ def _json_fallback_system_message(tools: list[dict[str, Any]]) -> dict[str, str]
             f"Available tools: {', '.join(tool_names)}."
         ),
     }
+
+
+def _json_fallback_transcript(
+    tools: list[dict[str, Any]],
+    messages: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    fallback = _json_fallback_system_message(tools)
+    if messages and messages[0].get("role") == "system":
+        return [
+            {
+                "role": "system",
+                "content": (
+                    f"{fallback['content']}\n\n"
+                    f"Original system instructions:\n{messages[0].get('content', '')}"
+                ),
+            },
+            *[dict(message) for message in messages[1:]],
+        ]
+    return [fallback, *[dict(message) for message in messages]]
 
 
 def _parse_json_choice(content: str) -> dict[str, Any] | None:

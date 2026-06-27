@@ -135,6 +135,43 @@ async def test_real_supplier_discovery_creates_confirmed_edge() -> None:
         and edge.evidence_ids
         for edge in state.links
     )
+    assert state.metrics["query_count"] > 0
+    assert state.metrics["raw_result_count"] > 0
+    assert state.metrics["candidate_count"] > 0
+    assert state.metrics["evidence_row_count"] > 0
+    assert state.metrics["supplier_edge_count"] > 0
+
+
+async def test_real_supplier_discovery_records_zero_result_metrics() -> None:
+    from src.supply_chain.models import SupplyChainExploreRequest
+    from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
+    from src.supply_chain.steps.requirement_decomposer import (
+        SupplyChainRequirementDecomposerStep,
+    )
+    from src.supply_chain.steps.supplier_discovery import (
+        SupplyChainSupplierDiscoveryStep,
+    )
+    from src.supply_chain.workflow import run_supply_chain_workflow
+
+    router = StubRouter([])
+    state = await run_supply_chain_workflow(
+        SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+            demo_mode=False,
+            cached_mode=False,
+        ),
+        steps=[
+            SupplyChainProductResolverStep(),
+            SupplyChainRequirementDecomposerStep(),
+            SupplyChainSupplierDiscoveryStep(search_router=router),
+        ],
+    )
+
+    assert state.metrics["query_count"] > 0
+    assert state.metrics["zero_result_query_count"] == state.metrics["query_count"]
+    assert state.metrics.get("raw_result_count", 0) == 0
+    assert any("ZERO_SEARCH_RESULTS" in event for event in state.fallback_events)
 
 
 async def test_real_supplier_discovery_records_fallback_on_search_error() -> None:

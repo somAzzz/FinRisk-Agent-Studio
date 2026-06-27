@@ -71,6 +71,7 @@ class SupplyChainStatusResponse(BaseModel):
     trace: list[dict]
     warnings: list[str]
     fallback_events: list[str]
+    metrics: dict[str, int]
 
 
 class SupplyChainSankeyResponse(BaseModel):
@@ -224,6 +225,7 @@ async def get_supply_chain_status(run_id: str) -> SupplyChainStatusResponse:
         trace=[e.model_dump(mode="json") for e in state.trace],
         warnings=list(state.warnings),
         fallback_events=list(state.fallback_events),
+        metrics=dict(state.metrics),
     )
 
 

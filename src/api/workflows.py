@@ -154,10 +154,10 @@ async def _run_and_store(state) -> None:
         # quality-layer engine and the graph-reasoning subsystem, so
         # all the v16 fields on the state are populated by the time
         # the request returns.
-        finished = await run_finrisk_workflow_v16(
-            state.request,
-            fixture_path=get_fixture_path(),
-            initial_state=state,
+        finished = await asyncio.to_thread(
+            _run_workflow_sync,
+            state,
+            get_fixture_path(),
         )
         await _run_store.update(finished)
     except Exception as exc:
@@ -173,6 +173,22 @@ async def _run_and_store(state) -> None:
             )
         )
         await _run_store.update(state)
+
+
+def _run_workflow_sync(state, fixture_path: Path):
+    """Run the blocking workflow in a worker thread.
+
+    The workflow is async at the orchestration boundary, but its live
+    SEC and local-LLM clients perform synchronous I/O. Running it on the
+    FastAPI event loop starves status polling during real-mode runs.
+    """
+    return asyncio.run(
+        run_finrisk_workflow_v16(
+            state.request,
+            fixture_path=fixture_path,
+            initial_state=state,
+        )
+    )
 
 
 def _schedule_background(coro) -> None:

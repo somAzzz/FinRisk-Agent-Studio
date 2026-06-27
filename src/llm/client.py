@@ -119,6 +119,7 @@ class EdgarLLMClient:
         chunk_id: str | None,
         max_tokens: int | None = None,
         temperature: float | None = None,
+        emit_call: bool = True,
     ) -> tuple[str, LLMCall]:
         """Call chat-completions and return ``(content, audit_row)``.
 
@@ -129,11 +130,20 @@ class EdgarLLMClient:
         started = datetime.now(tz=UTC)
         call_id = f"llm-{uuid.uuid4().hex[:12]}"
         try:
+            request_kwargs: dict[str, Any] = {}
+            if self.provider == "sglang":
+                # Qwen reasoning models served by SGLang may prepend a
+                # thinking transcript unless the chat template toggle is
+                # disabled. The extractor needs machine-parseable JSON.
+                request_kwargs["extra_body"] = {
+                    "chat_template_kwargs": {"enable_thinking": False}
+                }
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=temperature if temperature is not None else self.temperature,
                 max_tokens=max_tokens if max_tokens is not None else self.max_tokens,
+                **request_kwargs,
             )
         except Exception as exc:
             completed = datetime.now(tz=UTC)
@@ -153,7 +163,8 @@ class EdgarLLMClient:
                 started_at=started,
                 completed_at=completed,
             )
-            self._llm_call_sink(call)
+            if emit_call:
+                self._llm_call_sink(call)
             raise
         content = response.choices[0].message.content or ""
         usage = getattr(response, "usage", None)
@@ -180,7 +191,8 @@ class EdgarLLMClient:
             started_at=started,
             completed_at=completed,
         )
-        self._llm_call_sink(call)
+        if emit_call:
+            self._llm_call_sink(call)
         return content, call
 
     # -- chunked risk extraction (canonical entry point) ------------------
@@ -238,11 +250,12 @@ class EdgarLLMClient:
         all_validations: list[ChunkValidation] = []
         all_calls: list[LLMCall] = []
         for chunk in chunks:
+            chunk_id = _text_chunk_id(chunk)
             risks, validation, call = self.extract_risks_single_chunk(
                 chunk.text,
                 company_name=company_name,
                 year=year,
-                chunk_id=chunk.chunk_id,
+                chunk_id=chunk_id,
                 section_name="section_1a",
                 char_start=chunk.char_start,
                 char_end=chunk.char_end,
@@ -284,8 +297,20 @@ class EdgarLLMClient:
                 step_name=step_name,
                 chunk_id=chunk_id,
                 max_tokens=self.max_tokens,
+                emit_call=False,
             )
         except Exception as exc:
+            call = _placeholder_call(
+                call_id=f"err-{uuid.uuid4().hex[:8]}",
+                step_name=step_name,
+                chunk_id=chunk_id,
+                provider=self.provider,
+                model=self.model,
+                prompt_text=prompt,
+                error=f"{type(exc).__name__}: {exc}",
+                started_at=started,
+            )
+            self._llm_call_sink(call)
             validation = ChunkValidation(
                 chunk_id=chunk_id,
                 pydantic_model="ExtractedRisk",
@@ -299,24 +324,11 @@ class EdgarLLMClient:
                 char_end=char_end,
                 validated_at=datetime.now(tz=UTC),
             )
-            return [], validation, _placeholder_call(
-                call_id=f"err-{uuid.uuid4().hex[:8]}",
-                step_name=step_name,
-                chunk_id=chunk_id,
-                provider=self.provider,
-                model=self.model,
-                prompt_text=prompt,
-                error=f"{type(exc).__name__}: {exc}",
-                started_at=started,
-            )
+            return [], validation, call
 
         # Persist the structured response alongside the raw text so the
         # inspector can render either.
-        if call.response_structured is None and content:
-            structured = _extract_risk_payload(content)
-            if structured is not None:
-                call = call.model_copy(update={"response_structured": structured})
-                self._llm_call_sink(call)
+        structured = _extract_risk_payload(content) if content else None
 
         risks, errors = self._coerce_risks(content, company_name, year)
         validation = ChunkValidation(
@@ -334,6 +346,7 @@ class EdgarLLMClient:
         )
         # Patch the per-chunk call with the validated_count + a preview.
         call = call.model_copy(update={"response_structured": {
+            "raw_payload": structured,
             "validated_count": len(risks),
             "first_risk": risks[0].risk_factor[:120] if risks else "",
             "errors": errors[:3],
@@ -636,6 +649,8 @@ Allowed actions: search, navigate, click, scroll, stop."""
             "{\n"
             '  "risks": [\n'
             '    {"risk_factor": "<short name>",\n'
+            '     "risk_type": "<one of macro, policy, climate, supply_chain, '
+            'competition, regulatory, technology, geopolitical, financial, operational>",\n'
             '     "severity": <integer 1..5>,\n'
             '     "quote": "<verbatim quote from text>"}\n'
             "  ]\n"
@@ -679,6 +694,7 @@ Allowed actions: search, navigate, click, scroll, stop."""
                 or ""
             )
             quote = item.get("quote") or item.get("text") or ""
+            risk_type = _normalise_risk_type(item.get("risk_type"))
             severity_raw = item.get("severity", item.get("risk_level", 3))
             try:
                 severity = int(severity_raw)
@@ -688,6 +704,7 @@ Allowed actions: search, navigate, click, scroll, stop."""
                 valid.append(
                     ExtractedRisk(
                         risk_id=f"risk-{uuid.uuid4().hex[:8]}",
+                        risk_type=risk_type,
                         risk_factor=str(risk_factor).strip() or "Unknown",
                         severity=max(1, min(5, severity)),
                         evidence_quote=str(quote).strip(),
@@ -729,8 +746,23 @@ _RISK_SYSTEM_PROMPT = (
     "You are a senior financial-risk analyst extracting risks from "
     "a single chunk of a 10-K Item 1A Risk Factors section. Output ONLY "
     "a JSON object with a top-level 'risks' array. Each entry must have "
-    "'risk_factor' (short name), 'severity' (integer 1-5), and 'quote' "
-    "(verbatim from the supplied text). Do not invent quotes."
+    "'risk_factor' (short name), 'risk_type', 'severity' (integer 1-5), "
+    "and 'quote' (verbatim from the supplied text). Do not invent quotes."
+)
+
+_VALID_RISK_TYPES = frozenset(
+    {
+        "macro",
+        "policy",
+        "climate",
+        "supply_chain",
+        "competition",
+        "regulatory",
+        "technology",
+        "geopolitical",
+        "financial",
+        "operational",
+    }
 )
 
 
@@ -763,6 +795,39 @@ def _placeholder_call(
         started_at=started_at,
         completed_at=completed,
     )
+
+
+def _text_chunk_id(chunk: Any) -> str:
+    """Return a stable id for ``src.agents.extraction_agent.TextChunk``.
+
+    The shared chunking helper records source and character offsets but
+    intentionally does not expose a ``chunk_id`` field.
+    """
+    existing = getattr(chunk, "chunk_id", None)
+    if existing:
+        return str(existing)
+    source_id = getattr(chunk, "source_id", "unknown")
+    section = getattr(chunk, "section", None) or "section"
+    char_start = getattr(chunk, "char_start", 0)
+    char_end = getattr(chunk, "char_end", 0)
+    return f"{source_id}:{section}:{char_start}-{char_end}"
+
+
+def _normalise_risk_type(value: Any) -> str:
+    """Coerce loose model labels into the canonical ``RiskType`` enum."""
+    raw = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "supply": "supply_chain",
+        "supply_chain_risk": "supply_chain",
+        "legal": "regulatory",
+        "regulation": "regulatory",
+        "geopolitics": "geopolitical",
+        "cyber": "operational",
+        "cybersecurity": "operational",
+        "operations": "operational",
+    }
+    raw = aliases.get(raw, raw)
+    return raw if raw in _VALID_RISK_TYPES else "operational"
 
 
 def _extract_json_object(text: str) -> dict[str, Any] | None:

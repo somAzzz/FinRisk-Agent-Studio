@@ -2,6 +2,8 @@ import json
 from unittest.mock import MagicMock, patch
 
 from src.llm.client import EdgarLLMClient
+from src.schemas.finrisk import LLMCall
+from src.workflows.state import utcnow
 
 
 def test_complete_method_exists():
@@ -56,3 +58,60 @@ def test_edgar_client_complete_with_tools_uses_openai_compatible_tools():
     }
     assert second_kwargs["tool_choice"] == "auto"
     assert second_kwargs["messages"][-1]["tool_call_id"] == "call-local"
+
+
+def test_extract_risks_chunked_builds_stable_chunk_ids_without_chunk_field():
+    client = EdgarLLMClient(model="local-model", provider="sglang")
+    calls: list[LLMCall] = []
+
+    def fake_chat(
+        messages,
+        *,
+        step_name,
+        chunk_id,
+        max_tokens=None,
+        temperature=None,
+        emit_call=True,
+    ):
+        call = LLMCall(
+            call_id="llm-test",
+            step_name=step_name,
+            chunk_id=chunk_id,
+            provider="sglang",
+            model="local-model",
+            messages=messages,
+            prompt_text=messages[-1]["content"],
+            response_text=json.dumps(
+                {
+                    "risks": [
+                        {
+                            "risk_factor": "Supplier concentration risk",
+                            "risk_type": "supply_chain",
+                            "severity": 4,
+                            "quote": "supplier concentration could disrupt production",
+                        }
+                    ]
+                }
+            ),
+            latency_ms=0,
+            started_at=utcnow(),
+            completed_at=utcnow(),
+        )
+        calls.append(call)
+        return call.response_text, call
+
+    client._chat = fake_chat  # type: ignore[method-assign]
+    risks, validations, returned_calls = client.extract_risks_chunked(
+        "supplier concentration could disrupt production. " * 20,
+        company_name="Apple Inc.",
+        year=2026,
+        source_id="sec:0000320193-26-000013",
+        chunk_size=120,
+        overlap=20,
+    )
+
+    assert risks
+    assert validations
+    assert returned_calls
+    assert calls[0].chunk_id == "sec:0000320193-26-000013:section_1a:0-120"
+    assert validations[0].chunk_id == calls[0].chunk_id

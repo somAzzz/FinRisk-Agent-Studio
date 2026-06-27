@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from src.graph.supply_chain_queries import (
@@ -73,7 +74,7 @@ class SupplyChainGraphWriter:
             cypher,
             {
                 "entity_id": evidence.evidence_id,
-                "props": evidence.model_dump(mode="json"),
+                "props": _neo4j_props(evidence.model_dump(mode="json")),
             },
         )
 
@@ -101,12 +102,41 @@ class SupplyChainGraphWriter:
                 },
             },
         )
+
     def _run(self, cypher: str, params: dict[str, Any]) -> None:
         if hasattr(self._client, "run"):
-            self._client.run(cypher, params)
+            self._client.run(cypher, _neo4j_params(params))
             return
         with self._client.session() as session:
-            session.run(cypher, **params)
+            session.run(cypher, **_neo4j_params(params))
+
+
+Primitive = str | int | float | bool | None
+
+
+def _neo4j_params(params: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: _neo4j_props(value) if isinstance(value, dict) else _neo4j_value(value)
+        for key, value in params.items()
+    }
+
+
+def _neo4j_props(props: dict[str, Any]) -> dict[str, Any]:
+    return {key: _neo4j_value(value) for key, value in props.items()}
+
+
+def _neo4j_value(value: Any) -> Primitive | list[Primitive]:
+    if value is None or isinstance(value, str | int | float | bool):
+        return value
+    if isinstance(value, list | tuple):
+        values = list(value)
+        if all(
+            item is None or isinstance(item, str | int | float | bool)
+            for item in values
+        ):
+            return values
+        return json.dumps(values, sort_keys=True)
+    return json.dumps(value, sort_keys=True)
 
 
 __all__ = ["SupplyChainGraphWriter"]

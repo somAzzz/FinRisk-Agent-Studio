@@ -23,6 +23,8 @@ const DEFAULT_REQUEST: AgentRunRequest = {
   subject: { ticker: "AAPL", company_name: "Apple Inc." },
 };
 
+const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
+
 type ParsedToolSummary = {
   data?: Record<string, unknown>;
   raw: string;
@@ -153,7 +155,18 @@ export function LLMAgentRunPanel() {
     try {
       const nextSummary = await api.startAgentRun(request);
       setSummary(nextSummary);
-      await refresh(nextSummary.run_id);
+      for (let attempt = 0; attempt < 60; attempt += 1) {
+        const [nextTimeline, nextTrace] = await Promise.all([
+          api.getAgentRunTimeline(nextSummary.run_id),
+          api.getAgentRunTrace(nextSummary.run_id),
+        ]);
+        setTimeline(nextTimeline);
+        setTrace(nextTrace);
+        if (TERMINAL_STATUSES.has(nextTimeline.status)) {
+          break;
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {

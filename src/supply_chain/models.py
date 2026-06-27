@@ -402,6 +402,7 @@ class SupplyChainExploreState(BaseModel):
     expanded_from_node_id: str | None = None
     fallback_events: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    metrics: dict[str, int] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utcnow)
 
 

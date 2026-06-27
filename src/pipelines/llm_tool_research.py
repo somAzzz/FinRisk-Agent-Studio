@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from contextlib import suppress
 from pathlib import Path
 from typing import Any, Literal
@@ -31,6 +32,7 @@ def build_runtime(
     model: str | None = None,
     base_url: str | None = None,
     tool_loop_mode: str | None = None,
+    tool_choice: str | dict[str, Any] = "auto",
 ) -> LLMToolAgentRuntime:
     """Build a runtime for the requested OpenAI-compatible provider."""
     if provider == "deepseek":
@@ -40,6 +42,18 @@ def build_runtime(
     else:
         from src.llm.client import EdgarLLMClient
 
+        if provider == "sglang":
+            base_url = base_url or os.environ.get(
+                "SGLANG_BASE_URL", "http://localhost:30000/v1"
+            )
+            model = model or os.environ.get(
+                "SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"
+            )
+        elif provider == "vllm":
+            base_url = base_url or os.environ.get(
+                "VLLM_BASE_URL", "http://localhost:8000/v1"
+            )
+            model = model or os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
         llm_client = EdgarLLMClient(
             base_url=base_url,
             model=model,
@@ -50,6 +64,7 @@ def build_runtime(
         llm_client=llm_client,
         tool_catalog=build_project_tool_catalog(scope=tools_scope),
         max_tool_rounds=max_tool_rounds,
+        tool_choice=tool_choice,
     )
 
 

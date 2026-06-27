@@ -32,6 +32,7 @@ def test_supply_chain_writer_merges_nodes_edges_and_evidence() -> None:
         summary="NVIDIA supplies AI accelerators.",
         retrieved_at=utcnow(),
         confidence=0.8,
+        metadata={"query": {"term": "NVIDIA supplier"}, "ranks": [1, {"bad": 2}]},
     )
     nodes = [
         SupplyChainNode(
@@ -41,6 +42,7 @@ def test_supply_chain_writer_merges_nodes_edges_and_evidence() -> None:
             normalized_name="gpu",
             depth=1,
             confidence=0.8,
+            metadata={"nested": {"component": "gpu"}},
         ),
         SupplyChainNode(
             node_id="company:nvidia",
@@ -62,6 +64,7 @@ def test_supply_chain_writer_merges_nodes_edges_and_evidence() -> None:
             value=0.8,
             confidence=0.8,
             evidence_ids=["sc:web:1"],
+            metadata={"reason": {"kind": "reported supplier"}},
         )
     ]
     writer.write_graph(nodes=nodes, edges=edges, evidence=[evidence])
@@ -70,3 +73,13 @@ def test_supply_chain_writer_merges_nodes_edges_and_evidence() -> None:
     assert "MERGE (n:Company" in cypher
     assert "MERGE (e:Evidence" in cypher
     assert "SUPPLIED_BY" in cypher
+
+    evidence_props = client.calls[0][1]["props"]
+    component_props = client.calls[1][1]["props"]
+    edge_props = client.calls[3][1]["props"]
+    assert isinstance(evidence_props, dict)
+    assert evidence_props["metadata"] == (
+        '{"query": {"term": "NVIDIA supplier"}, "ranks": [1, {"bad": 2}]}'
+    )
+    assert component_props["metadata"] == '{"nested": {"component": "gpu"}}'
+    assert edge_props["metadata"] == '{"reason": {"kind": "reported supplier"}}'
