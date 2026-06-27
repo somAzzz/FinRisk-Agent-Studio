@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, status
@@ -93,7 +94,10 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
         status="queued",
     )
     await get_agent_run_store().update(state)
-    _schedule(_run_and_store_agent(request, state.run_id))
+    if _background_enabled():
+        _schedule(_run_and_store_agent(request, state.run_id))
+    else:
+        await _run_and_store_agent(request, state.run_id)
     return AgentRunSummary(
         run_id=state.run_id,
         status=state.status,
@@ -316,6 +320,10 @@ def _schedule(coro) -> None:
     task = asyncio.create_task(coro)
     _background_tasks.add(task)
     task.add_done_callback(_background_tasks.discard)
+
+
+def _background_enabled() -> bool:
+    return os.environ.get("FINRISK_SKIP_BACKGROUND") != "1"
 
 
 def _coerce_tool_scope(tool_scope: str) -> AgentRunToolScope:
