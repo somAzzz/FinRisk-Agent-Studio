@@ -15,11 +15,6 @@ The :mod:`src.supply_chain` package implements the v18 spec set:
 
 from __future__ import annotations
 
-from src.supply_chain.agent_workflow import (
-    SupplyChainAgentMode,
-    SupplyChainAgentWorkflowResult,
-    run_supply_chain_agent_workflow,
-)
 from src.supply_chain.models import (
     EdgeValueMeaning,
     NodeType,
@@ -44,8 +39,6 @@ __all__ = [
     "RelationType",
     "SankeyEvaluation",
     "SankeyPayload",
-    "SupplyChainAgentMode",
-    "SupplyChainAgentWorkflowResult",
     "SupplyChainEdge",
     "SupplyChainEvaluation",
     "SupplyChainExpandRequest",
@@ -54,5 +47,4 @@ __all__ = [
     "SupplyChainNode",
     "SupplyChainStatus",
     "SupplyChainTraceEvent",
-    "run_supply_chain_agent_workflow",
 ]

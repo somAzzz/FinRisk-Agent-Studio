@@ -14,6 +14,7 @@ top of the project schemas. It exposes:
 """
 
 from src.agents.base import Agent, AsyncAgent
+from src.agents.context import AgentContextBuilder
 from src.agents.critic import CriticAgent
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.llm_runtime import LLMToolAgentRuntime, LLMToolRunResult
@@ -39,6 +40,7 @@ from src.agents.tools import Tool, ToolRegistry, ToolResult
 __all__ = [
     "Agent",
     "AgentBudget",
+    "AgentContextBuilder",
     "AgentDecision",
     "AgentPlan",
     "AgentPlanner",

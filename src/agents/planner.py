@@ -10,10 +10,12 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.agents.state import (
     AgentDecision,
     AgentRunState,
+    AgentRunTrace,
     AgentState,
     AgentSubgoal,
     AgentWorkflowKind,
 )
+from src.memory.models import ContextPack
 
 PlanStepAction = Literal[
     "fetch_filing",
@@ -242,10 +244,27 @@ class AgentPlanner:
         *,
         user_goal: str,
         workflow_kind: AgentWorkflowKind = "generic_research",
+        context_pack: ContextPack | None = None,
     ) -> AgentRunState:
         """Create an initial run state and append the first plan decision."""
         state = AgentRunState(user_goal=user_goal, workflow_kind=workflow_kind)
         state.append_decision(self._deterministic_decision(state))
+        if context_pack is not None:
+            state.context_pack = context_pack.model_dump(mode="json")
+            state.trace.append(
+                AgentRunTrace(
+                    event_type="context_pack_selected",
+                    message=(
+                        f"selected {len(context_pack.selected_memory_ids)} "
+                        "memory item(s) for planner context"
+                    ),
+                    metadata={
+                        "context_pack_id": context_pack.context_pack_id,
+                        "selected_memory_ids": context_pack.selected_memory_ids,
+                        "rejected_memory_ids": context_pack.rejected_memory_ids,
+                    },
+                )
+            )
         return state
 
     def _parse_and_validate(self, raw: PlannerOutput) -> AgentDecision:

@@ -187,6 +187,7 @@ class AgentRunState(BaseModel):
     tool_traces: list[ToolLoopTrace] = Field(default_factory=list)
     evidence_candidates: list[dict[str, Any]] = Field(default_factory=list)
     accepted_evidence_ids: list[str] = Field(default_factory=list)
+    context_pack: dict[str, Any] | None = None
     fallback_events: list[str] = Field(default_factory=list)
     human_review_items: list[dict[str, Any]] = Field(default_factory=list)
     budget: AgentBudget = Field(default_factory=AgentBudget)

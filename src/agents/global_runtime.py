@@ -6,6 +6,7 @@ import time
 from collections.abc import Callable
 from typing import Protocol
 
+from src.agents.context import AgentContextBuilder
 from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.planner import AgentPlanner
 from src.agents.state import (
@@ -40,10 +41,12 @@ class GlobalAgentRuntime:
         planner: AgentPlanner | None = None,
         subgoal_runtime_factory: SubgoalRuntimeFactory,
         evidence_normalizer: EvidenceCandidateNormalizer | None = None,
+        context_builder: AgentContextBuilder | None = None,
     ) -> None:
         self.planner = planner or AgentPlanner()
         self.subgoal_runtime_factory = subgoal_runtime_factory
         self.evidence_normalizer = evidence_normalizer or EvidenceCandidateNormalizer()
+        self.context_builder = context_builder
 
     def run(
         self,
@@ -51,12 +54,35 @@ class GlobalAgentRuntime:
         *,
         workflow_kind: AgentWorkflowKind = "generic_research",
         budget: AgentBudget | None = None,
+        subject: dict | None = None,
     ) -> AgentRunState:
         """Run an agent task until stop, review, failure, or budget exhaustion."""
         state = self.planner.initialize(
             user_goal=user_goal,
             workflow_kind=workflow_kind,
         )
+        if self.context_builder is not None:
+            context_pack = self.context_builder.build(
+                run_id=state.run_id,
+                user_goal=user_goal,
+                workflow_kind=workflow_kind,
+                subject=subject,
+            )
+            state.context_pack = context_pack.model_dump(mode="json")
+            state.trace.append(
+                AgentRunTrace(
+                    event_type="context_pack_selected",
+                    message=(
+                        f"selected {len(context_pack.selected_memory_ids)} "
+                        "memory item(s) for agent context"
+                    ),
+                    metadata={
+                        "context_pack_id": context_pack.context_pack_id,
+                        "selected_memory_ids": context_pack.selected_memory_ids,
+                        "rejected_memory_ids": context_pack.rejected_memory_ids,
+                    },
+                )
+            )
         if budget is not None:
             state.budget = budget
         state.status = "running"
