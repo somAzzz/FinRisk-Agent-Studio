@@ -102,6 +102,24 @@ LLM emits JSON ToolChoice
 
 ## 实施阶段
 
+详细工程规格已拆分到：
+
+```text
+docs/specs/v20-llm-driven-tool-loop/
+```
+
+建议按以下 specs 顺序执行：
+
+1. `00-index.md`
+2. `01-tool-contract-and-catalog.md`
+3. `02-provider-neutral-tool-loop-runtime.md`
+4. `03-data-tools-sec-transcript-financials.md`
+5. `04-finrisk-workflow-migration.md`
+6. `05-supply-chain-workflow-migration.md`
+7. `06-graph-browser-and-write-boundaries.md`
+8. `07-observability-evaluation-local-fallback.md`
+9. `08-acceptance-roadmap.md`
+
 ### Phase 1：统一工具调用内核
 
 新增：
