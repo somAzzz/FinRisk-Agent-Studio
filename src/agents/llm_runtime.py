@@ -115,7 +115,7 @@ class LLMToolAgentRuntime:
             tool_events=list(getattr(self.llm_client, "last_tool_events", [])),
             llm_calls=llm_calls,
             budget_usage=getattr(self.llm_client, "last_tool_budget_usage", None),
-            mode="native",
+            mode=getattr(self.llm_client, "last_tool_loop_mode", "native"),
         )
 
 

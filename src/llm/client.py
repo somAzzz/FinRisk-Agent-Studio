@@ -38,7 +38,12 @@ from pydantic import ValidationError
 
 from src.agents.extraction_agent import chunk_text
 from src.llm.sglang_client import BrowserAction
-from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
+from src.llm.tool_loop import (
+    JSONToolChoiceToolLoop,
+    OpenAICompatibleToolLoop,
+    ToolFunction,
+    ToolLoopError,
+)
 from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
 from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 
@@ -81,6 +86,7 @@ class EdgarLLMClient:
         *,
         llm_call_sink: NoOpSink | None = None,
         provider: str = "vllm",
+        tool_loop_mode: str | None = None,
     ) -> None:
         self.client = OpenAI(
             base_url=base_url or DEFAULT_BASE_URL,
@@ -94,8 +100,14 @@ class EdgarLLMClient:
         self.max_tokens = max_tokens
         self._llm_call_sink: NoOpSink = llm_call_sink or _no_sink
         self.provider = provider
+        self.tool_loop_mode = (
+            tool_loop_mode
+            or os.environ.get("LOCAL_LLM_TOOL_LOOP_MODE")
+            or "native"
+        )
         self.last_tool_events: list[ToolExecutionEvent] = []
         self.last_tool_budget_usage: ToolBudgetUsage | None = None
+        self.last_tool_loop_mode = self.tool_loop_mode
 
     # -- core chat helper -------------------------------------------------
 
@@ -431,9 +443,8 @@ class EdgarLLMClient:
         :meth:`DeepSeekClient.complete_with_tools`. It assumes the configured
         local server supports OpenAI-compatible ``tools`` / ``tool_calls``.
         """
-        loop = self._tool_loop()
         try:
-            content = loop.complete(
+            content, loop = self._complete_with_selected_tool_loop(
                 prompt,
                 tools=tools,
                 tool_map=tool_map,
@@ -448,6 +459,7 @@ class EdgarLLMClient:
             )
             self.last_tool_events = loop.last_tool_events
             self.last_tool_budget_usage = loop.last_budget_usage
+            self.last_tool_loop_mode = loop.mode
             return content
         except ToolLoopError as exc:
             raise RiskExtractorError(str(exc)) from exc
@@ -467,9 +479,8 @@ class EdgarLLMClient:
         max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Return ``(final_text, audit_calls)`` after resolving tool calls."""
-        loop = self._tool_loop()
         try:
-            content, calls = loop.chat(
+            content, calls, loop = self._chat_with_selected_tool_loop(
                 messages,
                 tools=tools,
                 tool_map=tool_map,
@@ -483,9 +494,50 @@ class EdgarLLMClient:
             )
             self.last_tool_events = loop.last_tool_events
             self.last_tool_budget_usage = loop.last_budget_usage
+            self.last_tool_loop_mode = loop.mode
             return content, calls
         except ToolLoopError as exc:
             raise RiskExtractorError(str(exc)) from exc
+
+    def _complete_with_selected_tool_loop(
+        self,
+        prompt: str,
+        **kwargs: Any,
+    ) -> tuple[str, Any]:
+        mode = self.tool_loop_mode
+        if mode == "json_fallback":
+            loop = self._json_tool_loop()
+            return loop.complete(prompt, **kwargs), loop
+        native = self._tool_loop()
+        if mode != "auto":
+            return native.complete(prompt, **kwargs), native
+        try:
+            return native.complete(prompt, **kwargs), native
+        except Exception:
+            fallback = self._json_tool_loop()
+            return fallback.complete(prompt, **kwargs), fallback
+
+    def _chat_with_selected_tool_loop(
+        self,
+        messages: list[dict[str, Any]],
+        **kwargs: Any,
+    ) -> tuple[str, list[LLMCall], Any]:
+        mode = self.tool_loop_mode
+        if mode == "json_fallback":
+            loop = self._json_tool_loop()
+            content, calls = loop.chat(messages, **kwargs)
+            return content, calls, loop
+        native = self._tool_loop()
+        if mode != "auto":
+            content, calls = native.chat(messages, **kwargs)
+            return content, calls, native
+        try:
+            content, calls = native.chat(messages, **kwargs)
+            return content, calls, native
+        except Exception:
+            fallback = self._json_tool_loop()
+            content, calls = fallback.chat(messages, **kwargs)
+            return content, calls, fallback
 
     def _tool_loop(self) -> OpenAICompatibleToolLoop:
         return OpenAICompatibleToolLoop(
@@ -496,6 +548,17 @@ class EdgarLLMClient:
             max_tokens=self.max_tokens,
             llm_call_sink=self._llm_call_sink,
             step_name="local_tool_calling",
+        )
+
+    def _json_tool_loop(self) -> JSONToolChoiceToolLoop:
+        return JSONToolChoiceToolLoop(
+            client=self.client,
+            model=self.model,
+            provider=self.provider,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            llm_call_sink=self._llm_call_sink,
+            step_name="local_json_tool_calling",
         )
 
     def summarize(self, content: str) -> str:
