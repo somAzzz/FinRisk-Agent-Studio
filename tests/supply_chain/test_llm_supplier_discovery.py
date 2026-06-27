@@ -88,9 +88,12 @@ async def test_llm_supplier_discovery_shadow_records_candidates_without_edges() 
         ),
         steps=[
             SupplyChainProductResolverStep(),
-            SupplyChainRequirementDecomposerStep(),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
             SupplyChainSupplierDiscoveryStep(
                 search_router=EmptyRouter(),
+                llm_client_factory=lambda _config: None,
                 llm_runtime_factory=Runtime,
                 llm_shadow_mode=True,
             ),

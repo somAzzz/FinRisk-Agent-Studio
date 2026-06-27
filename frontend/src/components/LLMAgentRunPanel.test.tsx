@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LLMAgentRunPanel } from "./LLMAgentRunPanel";
 
@@ -104,6 +104,18 @@ const getTimelineMock = vi.fn().mockResolvedValue({
       source_quality_score: 0.95,
       grounding_score: 0.8,
     },
+    {
+      candidate_id: "evcand-review",
+      kind: "web",
+      status: "needs_review",
+      source_url: "https://example.com/source",
+      source_title: "Example Source",
+      source_event_id: "tool-3",
+      summary: "This evidence needs a human decision.",
+      source_quality_score: 0.6,
+      grounding_score: 0.1,
+      rejection_reason: "grounding below threshold (0.10)",
+    },
   ],
   human_review_items: [
     {
@@ -150,6 +162,10 @@ const reviewMock = vi.fn().mockResolvedValue({
   status: "approved",
   created_at: "2026-06-27T00:00:03.000Z",
 });
+const reviewCandidateMock = vi.fn().mockResolvedValue({
+  candidate_id: "evcand-review",
+  status: "accepted",
+});
 
 vi.mock("../api", () => ({
   api: {
@@ -157,6 +173,7 @@ vi.mock("../api", () => ({
     getAgentRunTimeline: (...args: unknown[]) => getTimelineMock(...args),
     getAgentRunTrace: (...args: unknown[]) => getTraceMock(...args),
     reviewAgentRunItem: (...args: unknown[]) => reviewMock(...args),
+    reviewAgentRunCandidate: (...args: unknown[]) => reviewCandidateMock(...args),
   },
 }));
 
@@ -166,6 +183,7 @@ describe("LLMAgentRunPanel", () => {
     getTimelineMock.mockClear();
     getTraceMock.mockClear();
     reviewMock.mockClear();
+    reviewCandidateMock.mockClear();
   });
 
   it("starts a V21 agent run and renders backend trace metadata", async () => {
@@ -196,9 +214,15 @@ describe("LLMAgentRunPanel", () => {
     expect(screen.getByTestId("tool-event-web_search")).toHaveTextContent(
       "quality 3.75",
     );
-    expect(screen.getByTestId("agent-evidence-candidate")).toHaveTextContent(
+    expect(screen.getByTestId("tool-event-web_search")).toHaveTextContent(
+      "Searched: Apple supply chain",
+    );
+    expect(screen.queryByText(/\"results\"/)).not.toBeInTheDocument();
+    expect(screen.getByTestId("agent-evidence-graph")).toBeInTheDocument();
+    expect(screen.getAllByTestId("agent-evidence-candidate")[0]).toHaveTextContent(
       "Apple discusses supplier concentration",
     );
+    expect(screen.getAllByText("Example Source").length).toBeGreaterThan(0);
   });
 
   it("approves pending review items", async () => {
@@ -206,12 +230,40 @@ describe("LLMAgentRunPanel", () => {
 
     fireEvent.click(screen.getByTestId("agent-run-button"));
     await screen.findByText("Source needs inspection");
-    fireEvent.click(screen.getByRole("button", { name: /approve/i }));
+    const reviewCard = screen.getByText("Source needs inspection").closest("article");
+    expect(reviewCard).not.toBeNull();
+    fireEvent.click(
+      within(reviewCard as HTMLElement).getByRole("button", { name: /approve/i }),
+    );
 
     await waitFor(() => {
       expect(reviewMock).toHaveBeenCalledWith("agent-abc", "hri-1", {
         action: "approve",
       });
+    });
+  });
+
+  it("approves needs-review evidence candidates directly", async () => {
+    render(<LLMAgentRunPanel />);
+
+    fireEvent.click(screen.getByTestId("agent-run-button"));
+    await screen.findByText("This evidence needs a human decision.");
+    const candidateCard = screen
+      .getByText("This evidence needs a human decision.")
+      .closest("article");
+    expect(candidateCard).not.toBeNull();
+    fireEvent.click(
+      within(candidateCard as HTMLElement).getByRole("button", {
+        name: /approve/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(reviewCandidateMock).toHaveBeenCalledWith(
+        "agent-abc",
+        "evcand-review",
+        { action: "approve" },
+      );
     });
   });
 });

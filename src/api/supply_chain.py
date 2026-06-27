@@ -192,6 +192,23 @@ async def supply_chain_health() -> dict:
 
 
 @router.get(
+    "",
+    response_model=list[SupplyChainExploreResponse],
+)
+async def list_supply_chain_runs(limit: int = 20) -> list[SupplyChainExploreResponse]:
+    """Return recent supply-chain runs."""
+    states = await get_supply_chain_store().list_recent(limit)
+    return [
+        SupplyChainExploreResponse(
+            run_id=state.run_id,
+            status=state.status,
+            sankey_url=f"/supply-chain/{state.run_id}/sankey",
+        )
+        for state in states
+    ]
+
+
+@router.get(
     "/{run_id}",
     response_model=SupplyChainStatusResponse,
 )
@@ -248,5 +265,6 @@ __all__ = [
     "SupplyChainSankeyResponse",
     "SupplyChainStatusResponse",
     "_run_and_store",
+    "list_supply_chain_runs",
     "router",
 ]

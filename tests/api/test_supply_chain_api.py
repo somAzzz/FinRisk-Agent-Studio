@@ -11,6 +11,7 @@ from src.api.supply_chain import (
     expand_supply_chain,
     get_supply_chain_sankey,
     get_supply_chain_status,
+    list_supply_chain_runs,
     start_supply_chain_explore,
 )
 from src.supply_chain.models import SupplyChainExploreRequest
@@ -91,6 +92,29 @@ async def test_get_status_returns_node_and_link_counts() -> None:
     assert status.link_count > 0
     assert status.evidence_count > 0
     assert isinstance(status.metrics, dict)
+
+
+async def test_list_supply_chain_runs_returns_recent_runs() -> None:
+    first = await start_supply_chain_explore(
+        SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+            demo_mode=True,
+        )
+    )
+    second = await start_supply_chain_explore(
+        SupplyChainExploreRequest(
+            company_name="NVIDIA",
+            product_name="GPU",
+            demo_mode=True,
+        )
+    )
+
+    recent = await list_supply_chain_runs(limit=1)
+
+    assert len(recent) == 1
+    assert recent[0].run_id == second.run_id
+    assert recent[0].run_id != first.run_id
 
 
 async def test_get_sankey_returns_payload() -> None:

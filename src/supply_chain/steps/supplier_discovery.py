@@ -1,10 +1,4 @@
-"""v18 Step 3: supplier discovery.
-
-Demo/cached mode keeps using the fixture edges produced by the
-requirement decomposer. Real mode calls the existing
-``SearchRouter`` and converts high-quality snippets into
-evidence-backed supplier nodes and edges.
-"""
+"""v18 Step 3: supplier discovery."""
 
 from __future__ import annotations
 
@@ -14,6 +8,10 @@ from typing import Any
 
 from src.schemas.tool_trace import ToolLoopTrace
 from src.supply_chain.evidence import build_evidence_from_search
+from src.supply_chain.llm import (
+    build_supply_chain_llm_client,
+    complete_json_with_trace,
+)
 from src.supply_chain.models import (
     NormalizedSupplyChainEvidence,
     ProviderCall,
@@ -85,12 +83,14 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         self,
         *,
         search_router: Any | None = None,
+        llm_client_factory: Any | None = None,
         llm_runtime_factory: Any | None = None,
         llm_shadow_mode: bool = False,
         max_results: int = 3,
     ) -> None:
         super().__init__()
         self._search_router = search_router
+        self._llm_client_factory = llm_client_factory
         self._llm_runtime_factory = llm_runtime_factory
         self._llm_shadow_mode = llm_shadow_mode
         self._max_results = max_results
@@ -100,6 +100,12 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
     ) -> SupplyChainExploreState:
         if state.request.demo_mode or state.request.cached_mode:
             return state
+        requirement_nodes = [
+            node for node in state.nodes
+            if node.node_type in {"component", "service", "energy", "infrastructure"}
+        ]
+        _increment_metric(state, "requirement_count", len(requirement_nodes))
+        self._add_llm_supplier_candidates(state, requirement_nodes)
         router = self._search_router
         if router is None:
             try:
@@ -111,11 +117,6 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                     f"supplier_discovery:search router unavailable: {exc}"
                 )
                 return state
-        requirement_nodes = [
-            node for node in state.nodes
-            if node.node_type in {"component", "service", "energy", "infrastructure"}
-        ]
-        _increment_metric(state, "requirement_count", len(requirement_nodes))
         for requirement in requirement_nodes[: state.request.max_suppliers_per_node * 2]:
             intent = _intent_for_requirement(requirement.label)
             query = (
@@ -173,6 +174,122 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         if self._llm_shadow_mode:
             self._run_llm_shadow(state, requirement_nodes)
         return state
+
+    def _add_llm_supplier_candidates(
+        self,
+        state: SupplyChainExploreState,
+        requirement_nodes: list[SupplyChainNode],
+    ) -> None:
+        if not requirement_nodes:
+            return
+        provider = state.request.llm_config.provider
+        client = self._build_llm_client(state)
+        if client is None:
+            self._record_provider_call(
+                state,
+                ProviderCall(
+                    provider=provider,
+                    operation="propose_suppliers",
+                    status="failed",
+                    latency_ms=0,
+                    error="LLM client unavailable",
+                ),
+            )
+            state.fallback_events.append(
+                "supplier_discovery:llm unavailable; used search-only discovery"
+            )
+            return
+        payload, call = complete_json_with_trace(
+            client=client,
+            provider=provider,
+            operation="propose_suppliers",
+            system=(
+                "You are a supply-chain analyst. Return compact JSON only. "
+                "Treat suppliers as hypotheses unless source-backed evidence exists."
+            ),
+            prompt=_supplier_prompt(state, requirement_nodes),
+            max_tokens=1600,
+            temperature=0.1,
+        )
+        self._record_provider_call(state, call)
+        rows = _coerce_supplier_rows(payload)
+        if not rows:
+            state.fallback_events.append(
+                "supplier_discovery:llm returned no supplier candidates"
+            )
+            return
+        requirement_by_label = {
+            node.label.strip().lower(): node for node in requirement_nodes
+        }
+        requirement_by_id = {node.node_id: node for node in requirement_nodes}
+        existing_nodes = {node.node_id for node in state.nodes}
+        existing_edges = {edge.edge_id for edge in state.links}
+        added_edges = 0
+        for row in rows[: state.request.max_suppliers_per_node * len(requirement_nodes)]:
+            requirement = (
+                requirement_by_id.get(row["requirement_node_id"])
+                or requirement_by_label.get(row["requirement_label"].lower())
+            )
+            if requirement is None:
+                continue
+            supplier_name = row["supplier_name"]
+            supplier_id = f"company:{_slug(supplier_name)}"
+            if supplier_id not in existing_nodes:
+                state.nodes.append(
+                    SupplyChainNode(
+                        node_id=supplier_id,
+                        node_type="company",
+                        label=supplier_name,
+                        normalized_name=_slug(supplier_name),
+                        ticker=row["ticker"],
+                        depth=requirement.depth + 1,
+                        parent_node_id=requirement.node_id,
+                        confidence=row["confidence"],
+                        evidence_ids=[],
+                        metadata={
+                            "method": "llm_supplier_discovery",
+                            "provider": provider,
+                        },
+                    )
+                )
+                existing_nodes.add(supplier_id)
+            candidate = SupplierCandidate(
+                supplier_name=supplier_name,
+                ticker=row["ticker"],
+                relation_type="hypothesized",
+                product_or_service=row["product_or_service"] or requirement.label,
+                evidence_ids=[],
+                confidence=row["confidence"],
+                uncertainty=row["uncertainty"]
+                or "LLM hypothesis pending evidence confirmation",
+                source_requirement_node_id=requirement.node_id,
+            )
+            _append_unique_candidates(state, [candidate])
+            edge_id = f"sc-edge:{requirement.node_id}:{supplier_id}:supplied_by"
+            if edge_id in existing_edges:
+                continue
+            state.links.append(
+                SupplyChainEdge(
+                    edge_id=edge_id,
+                    source_node_id=requirement.node_id,
+                    target_node_id=supplier_id,
+                    relation_type="hypothesized",
+                    value=0.45,
+                    confidence=row["confidence"],
+                    evidence_ids=[],
+                    metadata={
+                        "method": "llm_supplier_discovery",
+                        "provider": provider,
+                        "reason": row["uncertainty"]
+                        or "LLM-proposed supplier candidate pending evidence",
+                    },
+                )
+            )
+            existing_edges.add(edge_id)
+            added_edges += 1
+            _increment_metric(state, "llm_supplier_edge_count")
+        if added_edges:
+            _increment_metric(state, "llm_supplier_candidate_count", added_edges)
 
     def _run_llm_shadow(
         self,
@@ -310,6 +427,11 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         except Exception:
             return None
 
+    def _build_llm_client(self, state: SupplyChainExploreState) -> Any | None:
+        if self._llm_client_factory is not None:
+            return self._llm_client_factory(state.request.llm_config)
+        return build_supply_chain_llm_client(state.request.llm_config)
+
 
 def _llm_supplier_goal(
     state: SupplyChainExploreState,
@@ -322,6 +444,73 @@ def _llm_supplier_goal(
         f"Company: {company}. Product: {state.request.product_name}. "
         f"Requirement: {requirement.label}."
     )
+
+
+def _supplier_prompt(
+    state: SupplyChainExploreState,
+    requirement_nodes: list[SupplyChainNode],
+) -> str:
+    company = state.request.company_name or state.request.ticker or "the company"
+    requirements = [
+        {"node_id": node.node_id, "label": node.label}
+        for node in requirement_nodes[: state.request.max_suppliers_per_node * 2]
+    ]
+    return (
+        "Propose likely upstream suppliers, infrastructure providers, or critical "
+        "dependency companies for each requirement. Prefer named public companies "
+        "when known, but include private companies if material.\n"
+        f"Company: {company}\n"
+        f"Product: {state.request.product_name}\n"
+        f"Requirements: {json.dumps(requirements, ensure_ascii=False)}\n"
+        "Return JSON with this exact shape:\n"
+        '{"suppliers":[{"requirement_node_id":"component:gpu-accelerator",'
+        '"requirement_label":"GPU accelerator","supplier_name":"NVIDIA",'
+        '"ticker":"NVDA","product_or_service":"AI GPUs","confidence":0.7,'
+        '"uncertainty":"why this is still a hypothesis"}]}\n'
+        "Return at most three suppliers per requirement."
+    )
+
+
+def _coerce_supplier_rows(payload: Any) -> list[dict[str, Any]]:
+    rows = payload.get("suppliers") if isinstance(payload, dict) else payload
+    if not isinstance(rows, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        supplier_name = str(row.get("supplier_name") or "").strip()
+        if not supplier_name:
+            continue
+        out.append(
+            {
+                "requirement_node_id": str(row.get("requirement_node_id") or "").strip(),
+                "requirement_label": str(row.get("requirement_label") or "").strip(),
+                "supplier_name": supplier_name[:120],
+                "ticker": _clean_ticker(row.get("ticker")),
+                "product_or_service": str(row.get("product_or_service") or "").strip()[:160],
+                "confidence": _clamp_float(row.get("confidence"), default=0.55),
+                "uncertainty": str(row.get("uncertainty") or "").strip()[:240],
+            }
+        )
+    return out
+
+
+def _clean_ticker(value: Any) -> str | None:
+    if value is None:
+        return None
+    ticker = str(value).strip().upper()
+    if not ticker or ticker in {"N/A", "NA", "NONE", "NULL"}:
+        return None
+    return ticker[:16]
+
+
+def _clamp_float(value: Any, *, default: float) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return default
+    return min(1.0, max(0.0, parsed))
 
 
 def _supplier_candidates_from_tool_events(

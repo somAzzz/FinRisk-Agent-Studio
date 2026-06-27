@@ -232,6 +232,31 @@ async def health() -> dict:
     return {"status": "ok", "runs": await _run_store.size()}
 
 
+@router.get("", response_model=list[WorkflowRunSummary])
+async def list_workflow_runs(limit: int = 20) -> list[WorkflowRunSummary]:
+    """Return recent FinRisk workflow runs."""
+    states = await _run_store.list_recent(limit)
+    return [
+        WorkflowRunSummary(
+            run_id=state.run_id,
+            status=state.status,
+            current_step=_current_step(state),
+            started_at=(
+                state.trace[0].started_at.isoformat()
+                if state.trace
+                else utcnow().isoformat()
+            ),
+            completed_at=(
+                state.trace[-1].completed_at.isoformat()
+                if state.trace and state.trace[-1].completed_at
+                else None
+            ),
+            report_url=f"/workflows/{state.run_id}/report",
+        )
+        for state in states
+    ]
+
+
 @router.get("/{run_id}", response_model=WorkflowStatusResponse)
 async def get_workflow_status(run_id: str) -> WorkflowStatusResponse:
     state = await _run_store.get(run_id)

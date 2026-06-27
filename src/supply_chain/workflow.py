@@ -221,14 +221,13 @@ async def expand_supply_chain_workflow(
     """Run a recursive expansion off an existing run.
 
     Validates the request through :class:`SupplyChainExpandRequest`
-    so the v18 spec's max_depth=4 cap is enforced.
+    so the explicit max-depth ceiling is enforced.
     """
     from src.supply_chain.models import SupplyChainExpandRequest
 
-    # Validate the request envelope so the spec's max_depth=4 cap
-    # is enforced before we touch the store. The value itself is
-    # unused: the rest of the function uses the function's own
-    # parameters to build the child state.
+    # Validate the request envelope before we touch the store. The
+    # value itself is unused: the rest of the function uses the
+    # function's own parameters to build the child state.
     _ = SupplyChainExpandRequest(
         parent_run_id=parent_run_id,
         node_id=node_id,
@@ -318,9 +317,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--company", required=True, help="company name (e.g. OpenAI)")
     parser.add_argument("--ticker", default=None, help="optional ticker")
     parser.add_argument("--product", required=True, help="product name (e.g. ChatGPT)")
-    parser.add_argument(
-        "--max-depth", type=int, default=3, choices=[1, 2, 3, 4, 5]
-    )
+    parser.add_argument("--max-depth", type=int, default=3, choices=range(1, 11))
     parser.add_argument(
         "--max-suppliers-per-node", type=int, default=5, choices=range(1, 11)
     )

@@ -35,13 +35,24 @@ def test_request_requires_company_or_ticker() -> None:
         )
 
 
+def test_request_max_depth_accepts_deeper_exploration() -> None:
+    req = SupplyChainExploreRequest.model_validate(
+        {
+            "company_name": "OpenAI",
+            "product_name": "ChatGPT",
+            "max_depth": 10,
+        }
+    )
+    assert req.max_depth == 10
+
+
 def test_request_max_depth_out_of_range() -> None:
     with pytest.raises(ValidationError):
         SupplyChainExploreRequest.model_validate(
             {
                 "company_name": "OpenAI",
                 "product_name": "ChatGPT",
-                "max_depth": 6,
+                "max_depth": 11,
             }
         )
 
@@ -67,13 +78,24 @@ def test_expand_request_requires_node_id() -> None:
         )
 
 
-def test_expand_request_rejects_depth_above_4() -> None:
+def test_expand_request_accepts_deeper_exploration() -> None:
+    req = SupplyChainExpandRequest.model_validate(
+        {
+            "parent_run_id": "r1",
+            "node_id": "component:cpu",
+            "max_depth": 10,
+        }
+    )
+    assert req.max_depth == 10
+
+
+def test_expand_request_rejects_depth_above_10() -> None:
     with pytest.raises(ValidationError):
         SupplyChainExpandRequest.model_validate(
             {
                 "parent_run_id": "r1",
                 "node_id": "component:cpu",
-                "max_depth": 5,
+                "max_depth": 11,
             }
         )
 

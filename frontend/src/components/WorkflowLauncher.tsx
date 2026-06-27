@@ -26,10 +26,27 @@ interface Props {
 }
 
 const SOURCES = ["filing", "web", "transcript", "graph"] as const;
+const HORIZON_MIN_MONTHS = 1;
+const HORIZON_MAX_MONTHS = 36;
+
+function parseTimeHorizon(value: string | null | undefined): [number, number] {
+  const matches = value?.match(/\d+/g)?.map(Number) ?? [];
+  const start = matches[0] ?? 6;
+  const end = matches[1] ?? 12;
+  return [
+    Math.min(Math.max(start, HORIZON_MIN_MONTHS), HORIZON_MAX_MONTHS),
+    Math.min(Math.max(end, HORIZON_MIN_MONTHS), HORIZON_MAX_MONTHS),
+  ];
+}
+
+function formatTimeHorizon(start: number, end: number): string {
+  return start === end ? `${start} months` : `${start}-${end} months`;
+}
 
 export function WorkflowLauncher({ onStarted, busy }: Props) {
   const [request, setRequest] = useState<FinRiskRequest>(DEFAULT_REQUEST);
   const [error, setError] = useState<string | null>(null);
+  const [horizonStart, horizonEnd] = parseTimeHorizon(request.time_horizon);
 
   const update = <K extends keyof FinRiskRequest>(
     key: K,
@@ -44,6 +61,13 @@ export function WorkflowLauncher({ onStarted, busy }: Props) {
       ? current.filter((s) => s !== src)
       : [...current, src];
     update("sources", next);
+  };
+
+  const updateHorizon = (edge: "start" | "end", rawValue: string) => {
+    const nextValue = Number(rawValue);
+    const nextStart = edge === "start" ? Math.min(nextValue, horizonEnd) : horizonStart;
+    const nextEnd = edge === "end" ? Math.max(nextValue, horizonStart) : horizonEnd;
+    update("time_horizon", formatTimeHorizon(nextStart, nextEnd));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,12 +117,38 @@ export function WorkflowLauncher({ onStarted, busy }: Props) {
         />
       </div>
       <div className="row">
-        <label htmlFor="horizon">Time horizon</label>
-        <input
-          id="horizon"
-          value={request.time_horizon ?? ""}
-          onChange={(e) => update("time_horizon", e.target.value)}
-        />
+        <label id="horizon-label">Time horizon</label>
+        <div
+          className="range-pair"
+          role="group"
+          aria-labelledby="horizon-label"
+        >
+          <div className="range-value" data-testid="horizon-value">
+            {request.time_horizon}
+          </div>
+          <input
+            type="range"
+            min={HORIZON_MIN_MONTHS}
+            max={HORIZON_MAX_MONTHS}
+            value={horizonStart}
+            onChange={(e) => updateHorizon("start", e.target.value)}
+            aria-label="Time horizon start month"
+            data-testid="horizon-start"
+          />
+          <input
+            type="range"
+            min={HORIZON_MIN_MONTHS}
+            max={HORIZON_MAX_MONTHS}
+            value={horizonEnd}
+            onChange={(e) => updateHorizon("end", e.target.value)}
+            aria-label="Time horizon end month"
+            data-testid="horizon-end"
+          />
+          <div className="range-scale" aria-hidden="true">
+            <span>{HORIZON_MIN_MONTHS}m</span>
+            <span>{HORIZON_MAX_MONTHS}m</span>
+          </div>
+        </div>
       </div>
       <div className="row">
         <label>Sources</label>

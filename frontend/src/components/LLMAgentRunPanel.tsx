@@ -1,5 +1,5 @@
 import { Check, Download, PlayCircle, RotateCw, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import type {
   AgentEvidenceCandidateWire,
@@ -30,18 +30,45 @@ type ParsedToolSummary = {
   raw: string;
 };
 
+interface ToolDisplaySummary {
+  action: string;
+  outcome: string;
+  detail: string;
+  sources: Array<{ title: string; url?: string | null }>;
+}
+
+interface Props {
+  onProgress?: (timeline: AgentRunTimelineResponse | null) => void;
+  selectedRunId?: string | null;
+}
+
+function tryParseJson(value: string): unknown {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return null;
+  }
+}
+
 function parseToolSummary(summary: string): ParsedToolSummary {
   if (!summary.trim()) return { raw: "" };
-  try {
-    const parsed = JSON.parse(summary) as unknown;
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return {
-        data: parsed as Record<string, unknown>,
-        raw: summary,
-      };
+  const parsed = tryParseJson(summary);
+  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+    const data = parsed as Record<string, unknown>;
+    const truncatedText = data.truncated_text;
+    if (typeof truncatedText === "string") {
+      const nested = tryParseJson(truncatedText);
+      if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+        return {
+          data: nested as Record<string, unknown>,
+          raw: summary,
+        };
+      }
     }
-  } catch {
-    // Keep the raw text below.
+    return {
+      data,
+      raw: summary,
+    };
   }
   return { raw: summary };
 }
@@ -101,6 +128,110 @@ function toolBadges(event: ToolExecutionEventWire): string[] {
   return badges;
 }
 
+function arrayValue(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function toolDisplaySummary(event: ToolExecutionEventWire): ToolDisplaySummary {
+  const parsed = parseToolSummary(event.result_summary);
+  const data = parsed.data ?? {};
+  const payload = nestedValue(data, ["data"]) ?? data;
+  const payloadObj =
+    payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)
+      : {};
+  const results = arrayValue(payloadObj.results);
+  const paths = arrayValue(payloadObj.paths);
+  const url = stringValue(payloadObj.url) ?? stringValue(event.arguments.url);
+  const title =
+    stringValue(payloadObj.title) ??
+    stringValue(payloadObj.source_title) ??
+    stringValue(event.arguments.query) ??
+    event.tool_name;
+  const error =
+    event.error ??
+    stringValue(payloadObj.error) ??
+    stringValue((data as Record<string, unknown>).error);
+
+  const sources = results.slice(0, 3).flatMap((row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return [];
+    const item = row as Record<string, unknown>;
+    const sourceTitle = stringValue(item.title) ?? stringValue(item.url);
+    if (!sourceTitle) return [];
+    return [{ title: sourceTitle, url: stringValue(item.url) }];
+  });
+  if (!sources.length && url) {
+    sources.push({ title, url });
+  }
+
+  if (event.status === "failed") {
+    return {
+      action: humanToolAction(event),
+      outcome: "Tool did not run to completion.",
+      detail: error ?? "No error detail was returned.",
+      sources,
+    };
+  }
+  if (results.length) {
+    return {
+      action: humanToolAction(event),
+      outcome: `Found ${results.length} search result${results.length === 1 ? "" : "s"}.`,
+      detail:
+        sources[0]?.title ??
+        stringValue(event.arguments.query) ??
+        "Search completed with source-backed results.",
+      sources,
+    };
+  }
+  if (paths.length || event.tool_name.includes("graph")) {
+    return {
+      action: humanToolAction(event),
+      outcome: paths.length
+        ? `Found ${paths.length} graph path${paths.length === 1 ? "" : "s"}.`
+        : "Graph checked; no paths returned.",
+      detail: error ?? stringValue(payloadObj.graph_source) ?? "Graph query completed.",
+      sources,
+    };
+  }
+  if (url) {
+    return {
+      action: humanToolAction(event),
+      outcome: "Fetched source content.",
+      detail: title,
+      sources,
+    };
+  }
+  const compactRaw = shortText(
+    parsed.raw.replace(/[{}"\\[\\]]/g, " ").replace(/\s+/g, " ").trim(),
+    180,
+  );
+  return {
+    action: humanToolAction(event),
+    outcome: event.truncated ? "Result was truncated for budget control." : "Tool completed.",
+    detail: error ?? (compactRaw || "No displayable result detail."),
+    sources,
+  };
+}
+
+function humanToolAction(event: ToolExecutionEventWire): string {
+  const query = stringValue(event.arguments.query);
+  const url = stringValue(event.arguments.url);
+  if (event.tool_name.includes("search") && query) return `Searched: ${query}`;
+  if (event.tool_name.includes("fetch") && url) return `Fetched: ${url}`;
+  if (event.tool_name.includes("graph")) {
+    const entity =
+      stringValue(event.arguments.entity) ??
+      stringValue(event.arguments.source_entity) ??
+      "target entity";
+    return `Queried graph around ${entity}`;
+  }
+  return event.tool_name.split("_").join(" ");
+}
+
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
@@ -115,13 +246,23 @@ function evidenceId(candidate: AgentEvidenceCandidateWire): string {
   return candidate.evidence_id ?? candidate.candidate_id ?? "candidate";
 }
 
-export function LLMAgentRunPanel() {
+function hostFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
   const [request, setRequest] = useState<AgentRunRequest>(DEFAULT_REQUEST);
   const [summary, setSummary] = useState<AgentRunSummary | null>(null);
   const [timeline, setTimeline] = useState<AgentRunTimelineResponse | null>(null);
   const [trace, setTrace] = useState<AgentRunTraceResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollRef = useRef<number | null>(null);
 
   const budgetUsage = trace?.tool_traces?.find((item) => item.budget_usage)
     ?.budget_usage;
@@ -137,39 +278,79 @@ export function LLMAgentRunPanel() {
     return summary.trace_url;
   }, [summary]);
 
-  const refresh = async (runId = summary?.run_id) => {
-    if (!runId) return;
+  const stopPolling = () => {
+    if (pollRef.current !== null) {
+      window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, []);
+
+  const refresh = async (
+    runId = summary?.run_id,
+  ): Promise<AgentRunTimelineResponse | null> => {
+    if (!runId) return null;
     const [nextTimeline, nextTrace] = await Promise.all([
       api.getAgentRunTimeline(runId),
       api.getAgentRunTrace(runId),
     ]);
     setTimeline(nextTimeline);
     setTrace(nextTrace);
+    onProgress?.(nextTimeline);
+    if (TERMINAL_STATUSES.has(nextTimeline.status)) {
+      stopPolling();
+      setBusy(false);
+    }
+    return nextTimeline;
   };
+
+  const startPolling = (runId: string) => {
+    stopPolling();
+    void refresh(runId).catch((err) => {
+      setError((err as Error).message);
+      setBusy(false);
+      stopPolling();
+    });
+    pollRef.current = window.setInterval(() => {
+      void refresh(runId).catch((err) => {
+        setError((err as Error).message);
+        setBusy(false);
+        stopPolling();
+      });
+    }, 1500);
+  };
+
+  useEffect(() => {
+    if (!selectedRunId || selectedRunId === summary?.run_id) return;
+    stopPolling();
+    setBusy(true);
+    setError(null);
+    setSummary({
+      run_id: selectedRunId,
+      status: "running",
+      timeline_url: `/agent-runs/${selectedRunId}/timeline`,
+      trace_url: `/agent-runs/${selectedRunId}/trace.json`,
+    });
+    void refresh(selectedRunId)
+      .catch((err) => setError((err as Error).message))
+      .finally(() => setBusy(false));
+  }, [selectedRunId]);
 
   const run = async () => {
     setBusy(true);
     setError(null);
     setTimeline(null);
     setTrace(null);
+    onProgress?.(null);
     try {
       const nextSummary = await api.startAgentRun(request);
       setSummary(nextSummary);
-      for (let attempt = 0; attempt < 60; attempt += 1) {
-        const [nextTimeline, nextTrace] = await Promise.all([
-          api.getAgentRunTimeline(nextSummary.run_id),
-          api.getAgentRunTrace(nextSummary.run_id),
-        ]);
-        setTimeline(nextTimeline);
-        setTrace(nextTrace);
-        if (TERMINAL_STATUSES.has(nextTimeline.status)) {
-          break;
-        }
-        await new Promise((resolve) => window.setTimeout(resolve, 1000));
-      }
+      startPolling(nextSummary.run_id);
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setBusy(false);
     }
   };
@@ -183,6 +364,25 @@ export function LLMAgentRunPanel() {
     setError(null);
     try {
       await api.reviewAgentRunItem(summary.run_id, item.item_id, { action });
+      await refresh(summary.run_id);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reviewCandidate = async (
+    candidate: AgentEvidenceCandidateWire,
+    action: "approve" | "reject",
+  ) => {
+    if (!summary) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.reviewAgentRunCandidate(summary.run_id, evidenceId(candidate), {
+        action,
+      });
       await refresh(summary.run_id);
     } catch (err) {
       setError((err as Error).message);
@@ -427,6 +627,8 @@ export function LLMAgentRunPanel() {
               </div>
             </section>
 
+            <AgentEvidenceGraph timeline={timeline} />
+
             <section className="section">
               <h2>Evidence Candidates</h2>
               <div className="candidate-grid">
@@ -435,6 +637,8 @@ export function LLMAgentRunPanel() {
                     <EvidenceCandidateCard
                       candidate={candidate}
                       key={evidenceId(candidate)}
+                      busy={busy}
+                      onReview={reviewCandidate}
                     />
                   ))
                 ) : (
@@ -492,7 +696,7 @@ export function LLMAgentRunPanel() {
 
 function ToolEventCard({ event }: { event: ToolExecutionEventWire }) {
   const badges = toolBadges(event);
-  const parsed = parseToolSummary(event.result_summary);
+  const summary = toolDisplaySummary(event);
   return (
     <article
       className={`tool-event ${event.status}`}
@@ -508,6 +712,7 @@ function ToolEventCard({ event }: { event: ToolExecutionEventWire }) {
       <div className="tool-meta">
         <span>{formatMs(event.latency_ms)}</span>
         <span>{event.result_chars} chars</span>
+        <span>{event.round_id}</span>
         {event.error ? <span>{event.error}</span> : null}
       </div>
       {badges.length ? (
@@ -517,16 +722,47 @@ function ToolEventCard({ event }: { event: ToolExecutionEventWire }) {
           ))}
         </div>
       ) : null}
-      <pre>{shortText(parsed.raw)}</pre>
+      <div className="tool-readable">
+        <strong>{summary.action}</strong>
+        <span>{summary.outcome}</span>
+        <p>{summary.detail}</p>
+        {summary.sources.length ? (
+          <ul>
+            {summary.sources.map((source) => (
+              <li key={`${source.title}:${source.url ?? ""}`}>
+                {source.url ? (
+                  <a href={source.url} target="_blank" rel="noreferrer">
+                    {source.title}
+                  </a>
+                ) : (
+                  source.title
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </article>
   );
 }
 
 function EvidenceCandidateCard({
   candidate,
+  busy,
+  onReview,
 }: {
   candidate: AgentEvidenceCandidateWire;
+  busy: boolean;
+  onReview: (
+    candidate: AgentEvidenceCandidateWire,
+    action: "approve" | "reject",
+  ) => void;
 }) {
+  const needsReview = candidate.status === "needs_review";
+  const sourceName =
+    candidate.source_name ??
+    candidate.source_title ??
+    hostFromUrl(candidate.source_url);
   return (
     <article className="candidate-card" data-testid="agent-evidence-candidate">
       <header>
@@ -536,6 +772,12 @@ function EvidenceCandidateCard({
         </span>
       </header>
       <p>{candidate.summary ?? candidate.quote ?? "No summary"}</p>
+      {candidate.rejection_reason ? (
+        <div className="candidate-reason">
+          {candidate.status === "rejected" ? "Rejected" : "Review reason"}:{" "}
+          {candidate.rejection_reason}
+        </div>
+      ) : null}
       <div className="candidate-meta">
         {candidate.kind ? <span>{candidate.kind}</span> : null}
         {typeof candidate.source_quality_score === "number" ? (
@@ -547,9 +789,90 @@ function EvidenceCandidateCard({
       </div>
       {candidate.source_url ? (
         <a href={candidate.source_url} target="_blank" rel="noreferrer">
-          {candidate.source_name ?? candidate.source_url}
+          {sourceName ?? candidate.source_url}
         </a>
       ) : null}
+      {needsReview ? (
+        <div className="review-actions candidate-actions">
+          <button
+            type="button"
+            className="ghost icon-button"
+            disabled={busy}
+            onClick={() => onReview(candidate, "approve")}
+          >
+            <Check size={14} />
+            Approve
+          </button>
+          <button
+            type="button"
+            className="ghost icon-button"
+            disabled={busy}
+            onClick={() => onReview(candidate, "reject")}
+          >
+            <X size={14} />
+            Reject
+          </button>
+        </div>
+      ) : null}
     </article>
+  );
+}
+
+function AgentEvidenceGraph({
+  timeline,
+}: {
+  timeline: AgentRunTimelineResponse;
+}) {
+  const eventById = new Map(
+    timeline.tool_events.map((event) => [event.event_id, event]),
+  );
+  const visibleCandidates = timeline.evidence_candidates.slice(0, 8);
+  if (!timeline.subgoals.length && !timeline.tool_events.length && !visibleCandidates.length) {
+    return null;
+  }
+  return (
+    <section className="section agent-evidence-graph" data-testid="agent-evidence-graph">
+      <h2>Evidence Graph</h2>
+      <div className="agent-graph-columns">
+        <div>
+          <span className="agent-graph-label">Subgoals</span>
+          {timeline.subgoals.map((subgoal) => (
+            <div className={`agent-graph-node ${subgoal.status}`} key={subgoal.subgoal_id}>
+              <strong>{subgoal.objective}</strong>
+              <span>{subgoal.tool_scope}</span>
+            </div>
+          ))}
+        </div>
+        <div>
+          <span className="agent-graph-label">Tools</span>
+          {timeline.tool_events.slice(0, 10).map((event) => (
+            <div className={`agent-graph-node ${event.status}`} key={event.event_id}>
+              <strong>{event.tool_name}</strong>
+              <span>{humanToolAction(event)}</span>
+            </div>
+          ))}
+        </div>
+        <div>
+          <span className="agent-graph-label">Evidence</span>
+          {visibleCandidates.map((candidate) => {
+            const event = candidate.source_event_id
+              ? eventById.get(candidate.source_event_id)
+              : null;
+            return (
+              <div
+                className={`agent-graph-node ${candidate.status ?? "unknown"}`}
+                key={evidenceId(candidate)}
+              >
+                <strong>{candidate.source_title ?? evidenceId(candidate)}</strong>
+                <span>
+                  {candidate.kind ?? "evidence"}
+                  {event ? ` via ${event.tool_name}` : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }

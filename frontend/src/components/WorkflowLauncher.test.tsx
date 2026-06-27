@@ -54,6 +54,26 @@ describe("WorkflowLauncher", () => {
     );
   });
 
+  it("submits the selected time horizon range", async () => {
+    (api.startWorkflow as ReturnType<typeof vi.fn>).mockResolvedValue(SUMMARY);
+    render(<WorkflowLauncher onStarted={() => {}} busy={false} />);
+    fireEvent.change(screen.getByTestId("horizon-start"), {
+      target: { value: "3" },
+    });
+    fireEvent.change(screen.getByTestId("horizon-end"), {
+      target: { value: "18" },
+    });
+    expect(screen.getByTestId("horizon-value").textContent).toBe("3-18 months");
+    fireEvent.click(screen.getByTestId("run-button"));
+    await waitFor(() => {
+      expect(api.startWorkflow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          time_horizon: "3-18 months",
+        }),
+      );
+    });
+  });
+
   it("submits the selected LLM provider", async () => {
     (api.startWorkflow as ReturnType<typeof vi.fn>).mockResolvedValue(SUMMARY);
     render(<WorkflowLauncher onStarted={() => {}} busy={false} />);

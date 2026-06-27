@@ -450,6 +450,8 @@ export interface AgentRunSummary {
   trace_url: string;
 }
 
+export type RunHistoryKind = "finrisk" | "agent-runs" | "supply-chain";
+
 export interface AgentSubgoalWire {
   subgoal_id: string;
   parent_subgoal_id?: string | null;
@@ -494,13 +496,17 @@ export interface AgentEvidenceCandidateWire {
   candidate_id?: string;
   kind?: string;
   status?: string;
+  source_tool?: string;
+  source_event_id?: string;
   source_url?: string | null;
   source_name?: string | null;
+  source_title?: string | null;
   summary?: string;
   quote?: string | null;
   source_quality_score?: number;
   grounding_score?: number;
   confidence?: number;
+  rejection_reason?: string | null;
   metadata?: Record<string, unknown>;
 }
 

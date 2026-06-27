@@ -8,6 +8,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.api.store_factory import get_agent_run_store
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
 from src.security.redaction import redact_obj
@@ -19,7 +20,6 @@ AgentRunProvider = Literal["deepseek", "vllm", "sglang"]
 AgentRunToolLoopMode = Literal["native", "json_fallback", "auto"]
 AgentRunToolScope = Literal["company_research", "finrisk_market", "supply_chain"]
 
-_agent_runs: dict[str, AgentRunState] = {}
 _agent_runtime: GlobalAgentRuntime | None = None
 _background_tasks: set[asyncio.Task] = set()
 
@@ -79,8 +79,8 @@ def set_agent_runtime_for_tests(runtime: GlobalAgentRuntime | None) -> None:
 
 
 def reset_agent_run_store_for_tests() -> None:
-    """Clear in-memory V21 agent runs. Test-only helper."""
-    _agent_runs.clear()
+    """Clear cached V21 agent-run store. Test-only helper."""
+    get_agent_run_store.cache_clear()
     set_agent_runtime_for_tests(None)
 
 
@@ -92,7 +92,7 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
         workflow_kind=request.workflow_kind,
         status="queued",
     )
-    _agent_runs[state.run_id] = state
+    await get_agent_run_store().update(state)
     _schedule(_run_and_store_agent(request, state.run_id))
     return AgentRunSummary(
         run_id=state.run_id,
@@ -102,16 +102,31 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
     )
 
 
+@router.get("", response_model=list[AgentRunSummary])
+async def list_agent_runs(limit: int = 20) -> list[AgentRunSummary]:
+    """Return recent local V21 agent runs."""
+    states = await get_agent_run_store().list_recent(limit)
+    return [
+        AgentRunSummary(
+            run_id=state.run_id,
+            status=state.status,
+            timeline_url=f"/agent-runs/{state.run_id}/timeline",
+            trace_url=f"/agent-runs/{state.run_id}/trace.json",
+        )
+        for state in states[:limit]
+    ]
+
+
 @router.get("/{run_id}", response_model=AgentRunState)
 async def get_agent_run(run_id: str) -> AgentRunState:
     """Return the current agent run state."""
-    return _require_run(run_id)
+    return await _require_run(run_id)
 
 
 @router.get("/{run_id}/timeline", response_model=AgentRunTimeline)
 async def get_agent_run_timeline(run_id: str) -> AgentRunTimeline:
     """Return a compact UI timeline projection."""
-    state = _require_run(run_id)
+    state = await _require_run(run_id)
     return AgentRunTimeline(
         run_id=state.run_id,
         status=state.status,
@@ -132,7 +147,7 @@ async def get_agent_run_timeline(run_id: str) -> AgentRunTimeline:
 @router.get("/{run_id}/trace.json", response_model=dict)
 async def get_agent_run_trace(run_id: str) -> dict:
     """Return the full redacted, downloadable agent trace."""
-    state = _require_run(run_id)
+    state = await _require_run(run_id)
     return redact_obj(state.model_dump(mode="json"))
 
 
@@ -146,7 +161,7 @@ async def review_agent_run_item(
     request: HumanReviewActionRequest,
 ) -> HumanReviewItem:
     """Approve, reject, or comment on one review item."""
-    state = _require_run(run_id)
+    state = await _require_run(run_id)
     item = _find_review_item(state, item_id)
     item.status = {
         "approve": "approved",
@@ -164,12 +179,50 @@ async def review_agent_run_item(
         review.status != "pending" for review in state.human_review_items
     ):
         state.status = "completed"
-    _agent_runs[state.run_id] = state
+    await get_agent_run_store().update(state)
     return item
 
 
-def _require_run(run_id: str) -> AgentRunState:
-    state = _agent_runs.get(run_id)
+@router.post(
+    "/{run_id}/evidence-candidates/{candidate_id}",
+    response_model=dict,
+)
+async def review_agent_evidence_candidate(
+    run_id: str,
+    candidate_id: str,
+    request: HumanReviewActionRequest,
+) -> dict[str, Any]:
+    """Approve, reject, or comment on one evidence candidate directly."""
+    state = await _require_run(run_id)
+    candidate = _find_evidence_candidate(state, candidate_id)
+    resolved_id = str(candidate.get("candidate_id") or candidate.get("evidence_id"))
+    if request.action == "approve":
+        candidate["status"] = "accepted"
+        candidate["rejection_reason"] = None
+        if resolved_id not in state.accepted_evidence_ids:
+            state.accepted_evidence_ids.append(resolved_id)
+    elif request.action == "reject":
+        candidate["status"] = "rejected"
+        candidate["rejection_reason"] = (
+            request.reviewer_comment or "Rejected by reviewer."
+        )
+        if resolved_id in state.accepted_evidence_ids:
+            state.accepted_evidence_ids.remove(resolved_id)
+    else:
+        candidate["reviewer_comment"] = request.reviewer_comment
+
+    if not any(c.get("status") == "needs_review" for c in state.evidence_candidates):
+        if not state.human_review_items or all(
+            review.status != "pending" for review in state.human_review_items
+        ):
+            state.status = "completed"
+    state.updated_at = _now()
+    await get_agent_run_store().update(state)
+    return candidate
+
+
+async def _require_run(run_id: str) -> AgentRunState:
+    state = await get_agent_run_store().get(run_id)
     if state is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -185,6 +238,21 @@ def _find_review_item(state: AgentRunState, item_id: str) -> HumanReviewItem:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail="unknown review item",
+    )
+
+
+def _find_evidence_candidate(
+    state: AgentRunState,
+    candidate_id: str,
+) -> dict[str, Any]:
+    for candidate in state.evidence_candidates:
+        if candidate.get("candidate_id") == candidate_id:
+            return candidate
+        if candidate.get("evidence_id") == candidate_id:
+            return candidate
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="unknown evidence candidate",
     )
 
 
@@ -211,8 +279,14 @@ def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
 
 async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
     """Run the synchronous agent runtime off the FastAPI event loop."""
+    store = get_agent_run_store()
     try:
-        _agent_runs[run_id].status = "running"
+        state = await store.get(run_id)
+        if state is None:
+            return
+        state.status = "running"
+        state.updated_at = _now()
+        await store.update(state)
         runtime = _agent_runtime or build_agent_runtime(request)
         state = await asyncio.to_thread(
             runtime.run,
@@ -221,11 +295,19 @@ async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
             subject=request.subject,
             run_id=run_id,
         )
+        state.run_id = run_id
     except Exception as exc:
-        state = _agent_runs[run_id]
+        state = await store.get(run_id)
+        if state is None:
+            state = AgentRunState(
+                run_id=run_id,
+                user_goal=request.goal,
+                workflow_kind=request.workflow_kind,
+            )
         state.status = "failed"
         state.fallback_events.append(f"agent_run failed: {type(exc).__name__}: {exc}")
-    _agent_runs[run_id] = state
+    state.updated_at = _now()
+    await store.update(state)
 
 
 def _schedule(coro) -> None:
@@ -258,7 +340,9 @@ __all__ = [
     "get_agent_run",
     "get_agent_run_timeline",
     "get_agent_run_trace",
+    "list_agent_runs",
     "reset_agent_run_store_for_tests",
+    "review_agent_evidence_candidate",
     "review_agent_run_item",
     "router",
     "set_agent_runtime_for_tests",

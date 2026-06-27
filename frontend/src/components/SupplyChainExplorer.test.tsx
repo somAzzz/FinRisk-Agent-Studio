@@ -65,6 +65,15 @@ vi.mock("../api", () => ({
     getSupplyChainSankey: (...args: unknown[]) => sankeyMock(...args),
     expandSupplyChain: (...args: unknown[]) => expandMock(...args),
   },
+  FinRiskApiError: class extends Error {
+    status: number;
+    body: unknown;
+    constructor(message: string, status: number, body: unknown) {
+      super(message);
+      this.status = status;
+      this.body = body;
+    }
+  },
 }));
 
 describe("SupplyChainExplorer", () => {
@@ -79,8 +88,8 @@ describe("SupplyChainExplorer", () => {
     render(<SupplyChainExplorer />);
     expect(screen.getByTestId("sc-company-input")).toHaveValue("OpenAI");
     expect(screen.getByTestId("sc-product-input")).toHaveValue("ChatGPT");
-    expect(screen.getByTestId("sc-demo-mode")).toBeChecked();
-    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
+    expect(screen.getByTestId("sc-demo-mode")).not.toBeChecked();
+    expect(screen.getByTestId("llm-provider-select")).toHaveValue("deepseek");
   });
 
   it("clicking Run calls the API and renders the Sankey", async () => {
@@ -92,10 +101,28 @@ describe("SupplyChainExplorer", () => {
     expect(startMock).toHaveBeenCalled();
     expect(startMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        llm_config: expect.objectContaining({ provider: "sglang" }),
+        demo_mode: false,
+        cached_mode: false,
+        llm_config: expect.objectContaining({ provider: "deepseek" }),
       }),
     );
     expect(sankeyMock).toHaveBeenCalledWith("sc-run-1");
+  });
+
+  it("submits a deeper max depth selection", async () => {
+    render(<SupplyChainExplorer />);
+    fireEvent.change(screen.getByTestId("sc-depth-input"), {
+      target: { value: "8" },
+    });
+    expect(screen.getByTestId("sc-depth-value").textContent).toBe("8");
+    fireEvent.click(screen.getByTestId("sc-run-button"));
+    await waitFor(() => {
+      expect(startMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          max_depth: 8,
+        }),
+      );
+    });
   });
 
   it("submits selected LLM provider", async () => {

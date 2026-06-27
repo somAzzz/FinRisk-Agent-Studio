@@ -104,7 +104,7 @@ class SupplyChainExploreRequest(BaseModel):
     company_name: str | None = None
     ticker: str | None = None
     product_name: str = Field(min_length=1)
-    max_depth: int = Field(default=3, ge=1, le=5)
+    max_depth: int = Field(default=3, ge=1, le=10)
     max_suppliers_per_node: int = Field(default=5, ge=1, le=10)
     focus_regions: list[str] = Field(default_factory=list)
     include_private_companies: bool = True
@@ -128,8 +128,8 @@ class SupplyChainExpandRequest(BaseModel):
 
     The child workflow uses ``node_id`` as the new seed product;
     ``seed_companies`` narrows the supplier search. ``max_depth`` is
-    bounded tighter (1-4) because expansions are always one level
-    deeper than the parent.
+    bounded to the same explicit ceiling as top-level exploration so
+    recursive runs remain finite while allowing deeper investigations.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -138,7 +138,7 @@ class SupplyChainExpandRequest(BaseModel):
     node_id: str
     product_name: str | None = None
     seed_companies: list[str] = Field(default_factory=list)
-    max_depth: int = Field(default=2, ge=1, le=4)
+    max_depth: int = Field(default=2, ge=1, le=10)
     max_suppliers_per_node: int = Field(default=5, ge=1, le=10)
     demo_mode: bool = False
     cached_mode: bool = False

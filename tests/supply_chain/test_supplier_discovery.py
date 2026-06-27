@@ -122,8 +122,13 @@ async def test_real_supplier_discovery_creates_confirmed_edge() -> None:
         ),
         steps=[
             SupplyChainProductResolverStep(),
-            SupplyChainRequirementDecomposerStep(),
-            SupplyChainSupplierDiscoveryStep(search_router=router),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=router,
+                llm_client_factory=lambda _config: None,
+            ),
         ],
     )
     assert router.queries
@@ -163,8 +168,13 @@ async def test_real_supplier_discovery_records_zero_result_metrics() -> None:
         ),
         steps=[
             SupplyChainProductResolverStep(),
-            SupplyChainRequirementDecomposerStep(),
-            SupplyChainSupplierDiscoveryStep(search_router=router),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=router,
+                llm_client_factory=lambda _config: None,
+            ),
         ],
     )
 
@@ -198,8 +208,13 @@ async def test_real_supplier_discovery_records_fallback_on_search_error() -> Non
         ),
         steps=[
             SupplyChainProductResolverStep(),
-            SupplyChainRequirementDecomposerStep(),
-            SupplyChainSupplierDiscoveryStep(search_router=FailingRouter()),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=FailingRouter(),
+                llm_client_factory=lambda _config: None,
+            ),
         ],
     )
     assert any("search failed" in event for event in state.fallback_events)

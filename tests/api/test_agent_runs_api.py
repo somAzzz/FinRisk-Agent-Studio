@@ -9,13 +9,17 @@ import pytest
 
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.llm_runtime import LLMToolRunResult
+from src.agents.state import AgentRunState
+from src.api.store_factory import get_agent_run_store
 from src.api.agent_runs import (
     AgentRunRequest,
     HumanReviewActionRequest,
     build_agent_runtime,
     get_agent_run,
     get_agent_run_timeline,
+    list_agent_runs,
     reset_agent_run_store_for_tests,
+    review_agent_evidence_candidate,
     review_agent_run_item,
     set_agent_runtime_for_tests,
     start_agent_run,
@@ -149,6 +153,86 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
     assert reviewed.status == "approved"
     assert reviewed.object_id in state.accepted_evidence_ids
     assert state.status == "completed"
+
+
+async def test_review_evidence_candidate_directly() -> None:
+    class Runtime:
+        def run(self, goal: str) -> LLMToolRunResult:
+            return LLMToolRunResult(
+                goal=goal,
+                final_answer="needs review",
+                tool_events=[_review_event()],
+            )
+
+    set_agent_runtime_for_tests(
+        GlobalAgentRuntime(subgoal_runtime_factory=lambda _scope, _subgoal: Runtime())
+    )
+
+    summary = await start_agent_run(
+        AgentRunRequest(
+            goal="Assess Apple supply chain risk",
+            workflow_kind="finrisk",
+        )
+    )
+    await _wait_for_terminal(summary.run_id)
+    timeline = await get_agent_run_timeline(summary.run_id)
+    candidate_id = timeline.evidence_candidates[0]["candidate_id"]
+
+    reviewed = await review_agent_evidence_candidate(
+        summary.run_id,
+        candidate_id,
+        HumanReviewActionRequest(action="approve"),
+    )
+    state = await get_agent_run(summary.run_id)
+
+    assert reviewed["status"] == "accepted"
+    assert candidate_id in state.accepted_evidence_ids
+
+
+async def test_list_agent_runs_returns_recent_runs() -> None:
+    class Runtime:
+        def run(self, goal: str) -> LLMToolRunResult:
+            return LLMToolRunResult(
+                goal=goal,
+                final_answer="done",
+                tool_events=[_accepted_event()],
+            )
+
+    set_agent_runtime_for_tests(
+        GlobalAgentRuntime(subgoal_runtime_factory=lambda _scope, _subgoal: Runtime())
+    )
+
+    first = await start_agent_run(AgentRunRequest(goal="first"))
+    second = await start_agent_run(AgentRunRequest(goal="second"))
+    await _wait_for_terminal(first.run_id)
+    await _wait_for_terminal(second.run_id)
+
+    recent = await list_agent_runs(limit=1)
+
+    assert len(recent) == 1
+    assert recent[0].run_id == second.run_id
+
+
+async def test_agent_runs_can_persist_with_sqlite(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("RUN_STORE_BACKEND", "sqlite")
+    monkeypatch.setenv("RUN_STORE_DB", str(tmp_path / "runs.sqlite3"))
+    reset_agent_run_store_for_tests()
+
+    state = AgentRunState(
+        run_id="agent-persisted",
+        user_goal="Persist this agent run",
+        workflow_kind="finrisk",
+        status="completed",
+    )
+    await get_agent_run_store().update(state)
+
+    assert (await list_agent_runs(limit=10))[0].run_id == "agent-persisted"
+
+    get_agent_run_store.cache_clear()
+    persisted = await list_agent_runs(limit=10)
+
+    assert persisted[0].run_id == "agent-persisted"
+    assert persisted[0].status == "completed"
 
 
 async def test_start_agent_run_uses_default_runtime_factory(monkeypatch) -> None:

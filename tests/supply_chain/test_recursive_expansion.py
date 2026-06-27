@@ -95,14 +95,14 @@ async def test_expansion_unknown_parent_raises() -> None:
         )
 
 
-async def test_expansion_max_depth_clamped_to_4() -> None:
+async def test_expansion_rejects_depth_above_10() -> None:
     parent = await run_supply_chain_workflow(_request())
     store: dict = {parent.run_id: parent}
     with pytest.raises(ValidationError):
         await expand_supply_chain_workflow(
             parent.run_id,
             "component:cpu",
-            max_depth=5,  # > 4 not allowed for expansion
+            max_depth=11,
             demo_mode=True,
             cached_mode=True,
             store=store,
