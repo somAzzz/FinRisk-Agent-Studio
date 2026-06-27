@@ -16,6 +16,7 @@ from src.api.workflows import (
     get_run_store,
     get_workflow_report,
     get_workflow_status,
+    list_workflow_runs,
     set_fixture_path,
     start_workflow,
 )
@@ -160,6 +161,29 @@ async def test_run_count_increments_after_run() -> None:
     )
     after = await store.size()
     assert after == before + 1
+
+
+async def test_list_workflow_runs_returns_recent_runs() -> None:
+    first = await _start_and_drive(
+        {
+            "ticker": "AAPL",
+            "analysis_goal": "First run.",
+            "demo_mode": True,
+        }
+    )
+    second = await _start_and_drive(
+        {
+            "ticker": "MSFT",
+            "analysis_goal": "Second run.",
+            "demo_mode": True,
+        }
+    )
+
+    recent = await list_workflow_runs(limit=1)
+
+    assert len(recent) == 1
+    assert recent[0].run_id == second
+    assert recent[0].run_id != first
 
 
 async def test_in_flight_state_status_is_not_yet_completed() -> None:

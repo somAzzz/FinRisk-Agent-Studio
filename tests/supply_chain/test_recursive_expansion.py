@@ -62,6 +62,13 @@ async def test_expansion_merges_into_parent_sankey() -> None:
     node_ids = {n.node_id for n in store[parent.run_id].sankey.nodes}
     assert "company:amd" in node_ids
     assert "company:intel" in node_ids
+    cpu_product = next(
+        node
+        for node in store[parent.run_id].sankey.nodes
+        if node.node_id == "product:cpu"
+    )
+    assert cpu_product.parent_node_id == "component:cpu"
+    assert cpu_product.depth == 3
 
 
 async def test_expansion_does_not_pollute_parent_state() -> None:
@@ -95,15 +102,48 @@ async def test_expansion_unknown_parent_raises() -> None:
         )
 
 
-async def test_expansion_max_depth_clamped_to_4() -> None:
+async def test_expansion_rejects_depth_above_10() -> None:
     parent = await run_supply_chain_workflow(_request())
     store: dict = {parent.run_id: parent}
     with pytest.raises(ValidationError):
         await expand_supply_chain_workflow(
             parent.run_id,
             "component:cpu",
-            max_depth=5,  # > 4 not allowed for expansion
+            max_depth=11,
             demo_mode=True,
             cached_mode=True,
             store=store,
         )
+
+
+async def test_unknown_demo_parent_expansion_switches_to_real_mode(monkeypatch) -> None:
+    from src.supply_chain import workflow
+    from src.supply_chain.steps.evaluator import SupplyChainEvaluatorStep
+    from src.supply_chain.steps.sankey_builder import SupplyChainSankeyBuilderStep
+
+    parent = await run_supply_chain_workflow(
+        SupplyChainExploreRequest(
+            company_name="Apple",
+            product_name="Iphone",
+            max_depth=3,
+            demo_mode=True,
+            cached_mode=True,
+        )
+    )
+    store: dict = {parent.run_id: parent}
+    monkeypatch.setattr(
+        workflow,
+        "_default_steps",
+        lambda: [SupplyChainSankeyBuilderStep(), SupplyChainEvaluatorStep()],
+    )
+    child = await expand_supply_chain_workflow(
+        parent.run_id,
+        "product:iphone",
+        product_name="iphone",
+        max_depth=2,
+        demo_mode=True,
+        cached_mode=True,
+        store=store,
+    )
+    assert child.request.demo_mode is False
+    assert child.request.cached_mode is False

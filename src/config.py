@@ -60,7 +60,7 @@ class Settings:
         default_factory=lambda: _env("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
     )
     deepseek_model: str = field(
-        default_factory=lambda: _env("DEEPSEEK_MODEL", "deepseek-chat")
+        default_factory=lambda: _env("DEEPSEEK_MODEL", "deepseek-v4-flash")
     )
     deepseek_api_key: str | None = field(
         default_factory=lambda: os.environ.get("DEEPSEEK_API_KEY")

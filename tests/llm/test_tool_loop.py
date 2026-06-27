@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.llm.tool_loop import OpenAICompatibleToolLoop
+from src.llm.tool_loop import JSONToolChoiceToolLoop, OpenAICompatibleToolLoop
 
 
 def _tool_call(name: str, arguments: dict | str = "{}") -> SimpleNamespace:
@@ -70,6 +70,36 @@ def test_tool_loop_executes_registered_tool_and_finishes() -> None:
     assert second_kwargs["tool_choice"] == "auto"
     assert second_kwargs["messages"][-1]["role"] == "tool"
     assert '"gross_margin": 0.46' in second_kwargs["messages"][-1]["content"]
+
+
+def test_json_tool_loop_merges_existing_system_message() -> None:
+    sdk = MagicMock()
+    sdk.chat.completions.create.return_value = _response(
+        '{"final_answer":"done"}',
+        None,
+    )
+    loop = JSONToolChoiceToolLoop(
+        client=sdk,
+        model="local-model",
+        provider="local",
+        temperature=0.1,
+        max_tokens=256,
+    )
+
+    text, _audit = loop.chat(
+        [
+            {"role": "system", "content": "Original system prompt."},
+            {"role": "user", "content": "Research AAPL."},
+        ],
+        tools=[{"type": "function", "function": {"name": "safe_tool"}}],
+        tool_map={"safe_tool": lambda: "ok"},
+    )
+
+    assert text == "done"
+    messages = sdk.chat.completions.create.call_args.kwargs["messages"]
+    assert [message["role"] for message in messages] == ["system", "user"]
+    assert "JSON tool-choice fallback mode" in messages[0]["content"]
+    assert "Original system prompt." in messages[0]["content"]
 
 
 def test_tool_loop_unknown_tool_is_returned_to_model_without_execution() -> None:

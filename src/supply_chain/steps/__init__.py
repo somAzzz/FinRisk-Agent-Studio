@@ -22,6 +22,8 @@ from src.supply_chain.steps.evidence_normalizer import (
     SupplyChainEvidenceNormalizerStep,
 )
 from src.supply_chain.steps.graph_builder import SupplyChainGraphBuilderStep
+from src.supply_chain.steps.graph_projection import SupplyChainGraphProjectionStep
+from src.supply_chain.steps.node_profile import SupplyChainNodeProfileStep
 from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
 from src.supply_chain.steps.requirement_decomposer import (
     SupplyChainRequirementDecomposerStep,
@@ -35,6 +37,8 @@ __all__ = [
     "SupplyChainEvaluatorStep",
     "SupplyChainEvidenceNormalizerStep",
     "SupplyChainGraphBuilderStep",
+    "SupplyChainGraphProjectionStep",
+    "SupplyChainNodeProfileStep",
     "SupplyChainProductResolverStep",
     "SupplyChainRequirementDecomposerStep",
     "SupplyChainSankeyBuilderStep",

@@ -32,6 +32,8 @@ from src.supply_chain.steps import (
     SupplyChainEvaluatorStep,
     SupplyChainEvidenceNormalizerStep,
     SupplyChainGraphBuilderStep,
+    SupplyChainGraphProjectionStep,
+    SupplyChainNodeProfileStep,
     SupplyChainProductResolverStep,
     SupplyChainRequirementDecomposerStep,
     SupplyChainSankeyBuilderStep,
@@ -39,6 +41,16 @@ from src.supply_chain.steps import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _has_demo_fixture(product_name: str) -> bool:
+    from src.supply_chain.fixtures import build_default_fixture
+
+    fixture = build_default_fixture()
+    return (
+        product_name.strip().lower()
+        == fixture["request"]["product_name"].strip().lower()
+    )
 
 
 # Legacy module-level dict. Retained as a *default* for callers that
@@ -98,8 +110,10 @@ def _default_steps() -> list:
         SupplyChainSupplierDiscoveryStep(),
         SupplyChainEvidenceNormalizerStep(),
         SupplyChainGraphBuilderStep(),
+        SupplyChainNodeProfileStep(),
         SupplyChainSankeyBuilderStep(),
         SupplyChainEvaluatorStep(),
+        SupplyChainGraphProjectionStep(),
     ]
 
 
@@ -113,6 +127,7 @@ def _seed_state_for_expansion(
     demo_mode: bool,
     cached_mode: bool,
     llm_config: LLMRunConfig,
+    run_id: str | None = None,
 ) -> SupplyChainExploreState:
     """Create a child state that re-uses the parent's nodes / links.
 
@@ -131,7 +146,7 @@ def _seed_state_for_expansion(
         llm_config=llm_config,
     )
     child = SupplyChainExploreState(
-        run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
+        run_id=run_id or f"sc-run-{uuid.uuid4().hex[:12]}",
         request=new_request,
         parent_run_id=parent.run_id,
         expanded_from_node_id=node_id,
@@ -147,6 +162,8 @@ def _seed_state_for_expansion(
 def _merge_expansion_subgraph(
     parent_sankey: SankeyPayload,
     child_sankey: SankeyPayload,
+    *,
+    expanded_from_node_id: str | None = None,
 ) -> SankeyPayload:
     """Merge the child's Sankey into the parent's without losing evidence.
 
@@ -156,7 +173,44 @@ def _merge_expansion_subgraph(
     - warnings are concatenated (child warnings first).
     """
     seen_nodes = {n.node_id: n for n in parent_sankey.nodes}
-    for node in child_sankey.nodes:
+    anchor = seen_nodes.get(expanded_from_node_id or "")
+    for original_node in child_sankey.nodes:
+        is_new_expansion_root = (
+            original_node.node_id not in seen_nodes
+            and (
+                original_node.parent_node_id in {None, ""}
+                or original_node.node_type == "product"
+            )
+        )
+        if anchor is not None and is_new_expansion_root:
+            node = original_node.model_copy(
+                update={
+                    "parent_node_id": anchor.node_id,
+                    "depth": min(anchor.depth + 1, 10),
+                    "metadata": {
+                        **original_node.metadata,
+                        "expanded_from_node_id": anchor.node_id,
+                    },
+                }
+            )
+        elif anchor is not None and original_node.node_id not in seen_nodes:
+            node = original_node.model_copy(
+                update={
+                    "depth": min(
+                        max(
+                            original_node.depth,
+                            anchor.depth + original_node.depth + 1,
+                        ),
+                        10,
+                    ),
+                    "metadata": {
+                        **original_node.metadata,
+                        "expanded_from_node_id": anchor.node_id,
+                    },
+                }
+            )
+        else:
+            node = original_node
         if node.node_id not in seen_nodes:
             seen_nodes[node.node_id] = node
     seen_edges = {e.edge_id: e for e in parent_sankey.links}
@@ -213,22 +267,22 @@ async def expand_supply_chain_workflow(
     seed_companies: list[str] | None = None,
     max_depth: int = 2,
     max_suppliers_per_node: int = 5,
-    demo_mode: bool = True,
-    cached_mode: bool = True,
+    demo_mode: bool = False,
+    cached_mode: bool = False,
     llm_config: LLMRunConfig | None = None,
     store: dict[str, SupplyChainExploreState] | None = None,
+    run_id: str | None = None,
 ) -> SupplyChainExploreState:
     """Run a recursive expansion off an existing run.
 
     Validates the request through :class:`SupplyChainExpandRequest`
-    so the v18 spec's max_depth=4 cap is enforced.
+    so the explicit max-depth ceiling is enforced.
     """
     from src.supply_chain.models import SupplyChainExpandRequest
 
-    # Validate the request envelope so the spec's max_depth=4 cap
-    # is enforced before we touch the store. The value itself is
-    # unused: the rest of the function uses the function's own
-    # parameters to build the child state.
+    # Validate the request envelope before we touch the store. The
+    # value itself is unused: the rest of the function uses the
+    # function's own parameters to build the child state.
     _ = SupplyChainExpandRequest(
         parent_run_id=parent_run_id,
         node_id=node_id,
@@ -249,6 +303,19 @@ async def expand_supply_chain_workflow(
             f"parent run {parent_run_id} has no sankey payload yet"
         )
     resolved_llm_config = llm_config or parent.request.llm_config
+    resolved_product_name = (
+        product_name
+        or node_id.split(":", 1)[-1].replace("-", " ").title()
+    )
+    resolved_demo_mode = demo_mode
+    resolved_cached_mode = cached_mode
+    if (
+        (resolved_demo_mode or resolved_cached_mode)
+        and not _has_demo_fixture(parent.request.product_name)
+        and not _has_demo_fixture(resolved_product_name)
+    ):
+        resolved_demo_mode = False
+        resolved_cached_mode = False
     # v18: the expansion re-runs the workflow against a child
     # request that is seeded with the chosen node id. Demo mode
     # pulls the same fixture; the new state carries the parent
@@ -256,25 +323,23 @@ async def expand_supply_chain_workflow(
     child_request = SupplyChainExploreRequest(
         company_name=parent.request.company_name,
         ticker=parent.request.ticker,
-        product_name=(
-            product_name
-            or node_id.split(":", 1)[-1].replace("-", " ").title()
-        ),
+        product_name=resolved_product_name,
         max_depth=max_depth,
         max_suppliers_per_node=max_suppliers_per_node,
-        demo_mode=demo_mode,
-        cached_mode=cached_mode,
+        demo_mode=resolved_demo_mode,
+        cached_mode=resolved_cached_mode,
         llm_config=resolved_llm_config,
     )
     child = _seed_state_for_expansion(
         parent,
         node_id,
-        product_name=product_name,
+        product_name=resolved_product_name,
         max_depth=max_depth,
         max_suppliers_per_node=max_suppliers_per_node,
-        demo_mode=demo_mode,
-        cached_mode=cached_mode,
+        demo_mode=resolved_demo_mode,
+        cached_mode=resolved_cached_mode,
         llm_config=resolved_llm_config,
+        run_id=run_id,
     )
     # The child inherits the parent's request above; reset it to
     # the child-specific request so the trace records the
@@ -287,7 +352,11 @@ async def expand_supply_chain_workflow(
         child = await step(child)
     # Merge the child's Sankey into the parent's so the front-end
     # can show the union without two separate requests.
-    merged = _merge_expansion_subgraph(parent.sankey, child.sankey)
+    merged = _merge_expansion_subgraph(
+        parent.sankey,
+        child.sankey,
+        expanded_from_node_id=node_id,
+    )
     parent.sankey = merged
     base_evaluation = (
         parent.evaluation.model_dump() if parent.evaluation else {"final_status": "pass"}
@@ -318,9 +387,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--company", required=True, help="company name (e.g. OpenAI)")
     parser.add_argument("--ticker", default=None, help="optional ticker")
     parser.add_argument("--product", required=True, help="product name (e.g. ChatGPT)")
-    parser.add_argument(
-        "--max-depth", type=int, default=3, choices=[1, 2, 3, 4, 5]
-    )
+    parser.add_argument("--max-depth", type=int, default=3, choices=range(1, 11))
     parser.add_argument(
         "--max-suppliers-per-node", type=int, default=5, choices=range(1, 11)
     )

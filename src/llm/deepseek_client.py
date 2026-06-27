@@ -6,7 +6,7 @@ https://api-docs.deepseek.com — so the same ``openai`` SDK we use for
 
 - Base URL: ``https://api.deepseek.com``
 - Auth: a real Bearer token (``DEEPSEEK_API_KEY``)
-- Default model: ``deepseek-chat`` (non-reasoning) or
+- Default model: ``deepseek-v4-flash`` (non-reasoning) or
   ``deepseek-reasoner`` (chain-of-thought)
 
 The client exposes two surfaces:
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 # Defaults match the values published at https://api-docs.deepseek.com.
 DEFAULT_BASE_URL = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_MODEL = "deepseek-v4-flash"
 DEFAULT_TEMPERATURE = 0.1
 DEFAULT_MAX_TOKENS = 2000
 DEFAULT_TIMEOUT_S = 60.0

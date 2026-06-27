@@ -23,7 +23,8 @@ BEARER_SECRET = "Bearer abcdefghijklmnopqrstuvwxyz1234567890"
 
 
 @pytest.fixture(autouse=True)
-def _reset_agent_runs() -> None:
+def _reset_agent_runs(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("FINRISK_SKIP_BACKGROUND", "1")
     reset_agent_run_store_for_tests()
     yield
     reset_agent_run_store_for_tests()

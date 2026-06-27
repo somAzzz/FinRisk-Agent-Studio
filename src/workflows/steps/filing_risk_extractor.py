@@ -375,7 +375,7 @@ class FilingRiskExtractorStep(WorkflowStep):
                 year=0,
                 source_id=f"sec:{target.accession_number}",
                 chunk_size=self._chunk_size,
-                chunk_overlap=self._chunk_overlap,
+                overlap=self._chunk_overlap,
                 step_name=self.name,
             )
         # Legacy path: single-shot dict response.

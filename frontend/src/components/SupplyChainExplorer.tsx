@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   SupplyChainExploreRequestWire,
   SupplyChainSankeyPayloadWire,
+  SupplyChainStatusResponseWire,
 } from "../supply-chain-types";
-import { api } from "../api";
+import { api, FinRiskApiError } from "../api";
 import { LLMProviderSelector } from "./LLMProviderSelector";
 import { SupplyChainSankey } from "./SupplyChainSankey";
 import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
@@ -11,6 +12,8 @@ import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
 interface Props {
   initialCompany?: string;
   initialProduct?: string;
+  onProgress?: (status: SupplyChainStatusResponseWire | null) => void;
+  selectedRunId?: string | null;
 }
 
 const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
@@ -18,31 +21,42 @@ const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   product_name: "ChatGPT",
   max_depth: 3,
   max_suppliers_per_node: 5,
-  demo_mode: true,
-  cached_mode: true,
   llm_config: {
-    provider: "sglang",
-    base_url: "http://localhost:30000/v1",
-    model: "Qwen/Qwen3.5-35B-A3B",
+    provider: "deepseek",
+    base_url: "https://api.deepseek.com",
+    model: "deepseek-v4-flash",
   },
 };
 
+const MIN_SUPPLY_CHAIN_DEPTH = 1;
+const MAX_SUPPLY_CHAIN_DEPTH = 10;
 const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
 
-async function waitForSupplyChainRun(runId: string) {
-  for (let i = 0; i < 40; i += 1) {
-    const status = await api.getSupplyChainStatus(runId);
-    if (TERMINAL_STATUSES.has(status.status)) {
-      return status;
+function formatApiError(err: unknown): string {
+  if (err instanceof FinRiskApiError) {
+    const detail = (err.body as { detail?: unknown } | null)?.detail;
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((item) => {
+          if (!item || typeof item !== "object") return String(item);
+          const issue = item as Record<string, unknown>;
+          const loc = Array.isArray(issue.loc) ? issue.loc.join(".") : "request";
+          return `${loc}: ${String(issue.msg ?? "invalid value")}`;
+        })
+        .join("; ");
+      return `API ${err.status}: ${messages}`;
     }
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    if (detail) return `API ${err.status}: ${String(detail)}`;
+    return `API ${err.status}: ${err.message}`;
   }
-  throw new Error("Supply chain run timed out");
+  return (err as Error).message;
 }
 
 export function SupplyChainExplorer({
   initialCompany = "OpenAI",
   initialProduct = "ChatGPT",
+  onProgress,
+  selectedRunId,
 }: Props) {
   const [request, setRequest] = useState<SupplyChainExploreRequestWire>({
     ...DEFAULT_REQUEST,
@@ -54,23 +68,102 @@ export function SupplyChainExplorer({
   const [error, setError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [latestStatus, setLatestStatus] =
+    useState<SupplyChainStatusResponseWire | null>(null);
   const requestRef = useRef(request);
+  const pollRef = useRef<number | null>(null);
   requestRef.current = request;
 
-  const run = async (req: SupplyChainExploreRequestWire) => {
+  const stopPolling = () => {
+    if (pollRef.current !== null) {
+      window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, []);
+
+  const refreshRun = async (
+    targetRunId: string,
+    sankeyRunId = targetRunId,
+  ): Promise<SupplyChainStatusResponseWire | null> => {
+    const status = await api.getSupplyChainStatus(targetRunId);
+    setLatestStatus(status);
+    onProgress?.(status);
+    setRequest((current) => ({ ...current, ...status.request }));
+    if (TERMINAL_STATUSES.has(status.status)) {
+      stopPolling();
+      const sankeyResp = await api.getSupplyChainSankey(sankeyRunId);
+      const finalStatus = await api.getSupplyChainStatus(targetRunId);
+      setLatestStatus(finalStatus);
+      onProgress?.(finalStatus);
+      setSankey(sankeyResp.sankey);
+      setBusy(false);
+      return finalStatus;
+    }
+    return status;
+  };
+
+  const startPolling = (targetRunId: string, sankeyRunId = targetRunId) => {
+    stopPolling();
+    void refreshRun(targetRunId, sankeyRunId).catch((err) => {
+      setError(formatApiError(err));
+      setBusy(false);
+      stopPolling();
+    });
+    pollRef.current = window.setInterval(() => {
+      void refreshRun(targetRunId, sankeyRunId).catch((err) => {
+        setError(formatApiError(err));
+        setBusy(false);
+        stopPolling();
+      });
+    }, 1500);
+  };
+
+  useEffect(() => {
+    if (!selectedRunId || selectedRunId === runId) return;
+    stopPolling();
     setBusy(true);
     setError(null);
+    setRunId(selectedRunId);
+    void refreshRun(selectedRunId)
+      .catch((err) => setError(formatApiError(err)))
+      .finally(() => setBusy(false));
+  }, [selectedRunId]);
+
+  const run = async (req: SupplyChainExploreRequestWire) => {
+    const liveRequest = {
+      ...req,
+      demo_mode: false,
+      cached_mode: false,
+    };
+    setBusy(true);
+    setError(null);
+    setLatestStatus(null);
+    onProgress?.(null);
     try {
-      const resp = await api.startSupplyChain(req);
-      if (!TERMINAL_STATUSES.has(resp.status)) {
-        await waitForSupplyChainRun(resp.run_id);
-      }
-      const sankeyResp = await api.getSupplyChainSankey(resp.run_id);
-      setSankey(sankeyResp.sankey);
+      const resp = await api.startSupplyChain(liveRequest);
       setRunId(resp.run_id);
+      const queuedStatus: SupplyChainStatusResponseWire = {
+        run_id: resp.run_id,
+        status: resp.status,
+        request: liveRequest,
+        current_step: null,
+        node_count: 0,
+        link_count: 0,
+        evidence_count: 0,
+        evaluation: null,
+        trace: [],
+        warnings: [],
+        fallback_events: [],
+      };
+      setLatestStatus(queuedStatus);
+      onProgress?.(queuedStatus);
+      startPolling(resp.run_id);
     } catch (err) {
-      setError((err as Error).message);
-    } finally {
+      setError(formatApiError(err));
       setBusy(false);
     }
   };
@@ -81,24 +174,37 @@ export function SupplyChainExplorer({
     setError(null);
     const currentRequest = requestRef.current;
     try {
-      await api.expandSupplyChain({
+      const resp = await api.expandSupplyChain({
         parent_run_id: runId,
         node_id: nodeId,
         product_name: nodeId.split(":").slice(-1)[0],
         max_depth: 2,
-        demo_mode: currentRequest.demo_mode ?? false,
-        cached_mode: currentRequest.cached_mode ?? false,
+        demo_mode: false,
+        cached_mode: false,
         llm_config: currentRequest.llm_config,
-      }).then(async (resp) => {
-        if (!TERMINAL_STATUSES.has(resp.status)) {
-          await waitForSupplyChainRun(resp.run_id);
-        }
       });
-      const sankeyResp = await api.getSupplyChainSankey(runId);
-      setSankey(sankeyResp.sankey);
+      const queuedStatus: SupplyChainStatusResponseWire = {
+        run_id: resp.run_id,
+        status: resp.status,
+        request: {
+          ...currentRequest,
+          demo_mode: false,
+          cached_mode: false,
+        },
+        current_step: null,
+        node_count: sankey?.nodes.length ?? 0,
+        link_count: sankey?.links.length ?? 0,
+        evidence_count: sankey?.evidence.length ?? 0,
+        evaluation: null,
+        trace: [],
+        warnings: [],
+        fallback_events: [],
+      };
+      setLatestStatus(queuedStatus);
+      onProgress?.(queuedStatus);
+      startPolling(resp.run_id, runId);
     } catch (err) {
-      setError((err as Error).message);
-    } finally {
+      setError(formatApiError(err));
       setBusy(false);
     }
   };
@@ -123,6 +229,7 @@ export function SupplyChainExplorer({
             id="sc-company"
             data-testid="sc-company-input"
             value={request.company_name ?? ""}
+            required
             onChange={(e) =>
               setRequest((r) => ({ ...r, company_name: e.target.value }))
             }
@@ -134,6 +241,7 @@ export function SupplyChainExplorer({
             id="sc-product"
             data-testid="sc-product-input"
             value={request.product_name}
+            required
             onChange={(e) =>
               setRequest((r) => ({ ...r, product_name: e.target.value }))
             }
@@ -141,35 +249,30 @@ export function SupplyChainExplorer({
         </div>
         <div className="row">
           <label htmlFor="sc-depth">Max depth</label>
-          <input
-            id="sc-depth"
-            type="number"
-            min={1}
-            max={5}
-            value={request.max_depth ?? 3}
-            onChange={(e) =>
-              setRequest((r) => ({
-                ...r,
-                max_depth: Number(e.target.value) || 3,
-              }))
-            }
-          />
-        </div>
-        <div className="row-checkbox">
-          <input
-            id="sc-demo"
-            type="checkbox"
-            data-testid="sc-demo-mode"
-          checked={request.demo_mode ?? true}
-          onChange={(e) =>
-              setRequest((r) => ({
-                ...r,
-                demo_mode: e.target.checked,
-                cached_mode: e.target.checked,
-              }))
-          }
-        />
-          <label htmlFor="sc-demo">Demo mode (offline fixture)</label>
+          <div className="range-pair compact">
+            <div className="range-value" data-testid="sc-depth-value">
+              {request.max_depth ?? 3}
+            </div>
+            <input
+              id="sc-depth"
+              type="range"
+              min={MIN_SUPPLY_CHAIN_DEPTH}
+              max={MAX_SUPPLY_CHAIN_DEPTH}
+              step={1}
+              value={request.max_depth ?? 3}
+              onChange={(e) =>
+                setRequest((r) => ({
+                  ...r,
+                  max_depth: Number(e.target.value) || 3,
+                }))
+              }
+              data-testid="sc-depth-input"
+            />
+            <div className="range-scale" aria-hidden="true">
+              <span>{MIN_SUPPLY_CHAIN_DEPTH}</span>
+              <span>{MAX_SUPPLY_CHAIN_DEPTH}</span>
+            </div>
+          </div>
         </div>
         <LLMProviderSelector
           value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
@@ -190,6 +293,7 @@ export function SupplyChainExplorer({
             {error}
           </div>
         ) : null}
+        <SupplyChainReviewSummary status={latestStatus} />
       </form>
 
       <div className="sc-body">
@@ -211,11 +315,54 @@ export function SupplyChainExplorer({
         )}
         <SupplyChainNodeDrawer
           node={selectedNode}
+          payload={sankey}
           onClose={() => setSelectedNodeId(null)}
           onExpand={expand}
           canExpand={Boolean(runId)}
         />
       </div>
+    </div>
+  );
+}
+
+function SupplyChainReviewSummary({
+  status,
+}: {
+  status: SupplyChainStatusResponseWire | null;
+}) {
+  if (!status || status.status !== "needs_review") return null;
+  const evaluation = status.evaluation;
+  const reasons: string[] = [];
+  for (const warning of status.warnings) reasons.push(warning);
+  for (const fallback of status.fallback_events) reasons.push(fallback);
+  for (const edge of evaluation?.unsupported_edges ?? []) {
+    reasons.push(`unsupported confirmed edge: ${edge}`);
+  }
+  for (const edge of evaluation?.low_confidence_edges ?? []) {
+    reasons.push(`low confidence edge: ${edge}`);
+  }
+  if ((evaluation?.source_diversity_score ?? 1) < 0.34) {
+    reasons.push("source diversity is below review threshold");
+  }
+  if (status.link_count === 0) {
+    reasons.push("graph contains no supply-chain links");
+  }
+  return (
+    <div className="sc-review-summary" data-testid="sc-review-summary">
+      <strong>Needs review</strong>
+      <p>
+        Inspect the flagged evidence and expand weak nodes before treating this
+        graph as production-grade.
+      </p>
+      {reasons.length ? (
+        <ul>
+          {reasons.slice(0, 5).map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">Hypothesized or low-support links are present.</p>
+      )}
     </div>
   );
 }

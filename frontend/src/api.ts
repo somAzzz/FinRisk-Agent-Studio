@@ -112,7 +112,15 @@ export const api = {
   health(): Promise<{ status: string; runs: number }> {
     return sendRequest<{ status: string; runs: number }>("/workflows/health");
   },
+  listWorkflows(limit = 20): Promise<WorkflowRunSummary[]> {
+    return sendRequest<WorkflowRunSummary[]>(`/workflows?limit=${limit}`);
+  },
   // v18 supply chain
+  listSupplyChains(
+    limit = 20,
+  ): Promise<import("./supply-chain-types").SupplyChainExploreResponseWire[]> {
+    return sendRequest(`/supply-chain?limit=${limit}`);
+  },
   startSupplyChain(
     req: import("./supply-chain-types").SupplyChainExploreRequestWire,
   ): Promise<import("./supply-chain-types").SupplyChainExploreResponseWire> {
@@ -144,6 +152,9 @@ export const api = {
     });
   },
   // v21 LLM-driven agent runs
+  listAgentRuns(limit = 20): Promise<AgentRunSummary[]> {
+    return sendRequest<AgentRunSummary[]>(`/agent-runs?limit=${limit}`);
+  },
   startAgentRun(req: AgentRunRequest): Promise<AgentRunSummary> {
     return sendRequest<AgentRunSummary>("/agent-runs", {
       method: "POST",
@@ -173,6 +184,19 @@ export const api = {
       },
     );
   },
+  reviewAgentRunCandidate(
+    runId: string,
+    candidateId: string,
+    req: AgentReviewActionRequest,
+  ): Promise<import("./types").AgentEvidenceCandidateWire> {
+    return sendRequest<import("./types").AgentEvidenceCandidateWire>(
+      `/agent-runs/${runId}/evidence-candidates/${candidateId}`,
+      {
+        method: "POST",
+        body: JSON.stringify(req),
+      },
+    );
+  },
 };
 
 export const apiPaths = {
@@ -184,6 +208,9 @@ export const apiPaths = {
   evaluation: (runId: string) => `/workflows/${runId}/evaluation`,
   artifacts: (runId: string) => `/workflows/${runId}/artifacts`,
   health: "/workflows/health",
+  workflowHistory: "/workflows",
+  agentRunHistory: "/agent-runs",
+  supplyChainHistory: "/supply-chain",
   startSupplyChain: "/supply-chain/explore",
   expandSupplyChain: "/supply-chain/expand",
   supplyChainStatus: (runId: string) => `/supply-chain/${runId}`,
@@ -193,4 +220,6 @@ export const apiPaths = {
   agentRunTrace: (runId: string) => `/agent-runs/${runId}/trace.json`,
   agentRunReviewItem: (runId: string, itemId: string) =>
     `/agent-runs/${runId}/review-items/${itemId}`,
+  agentRunReviewCandidate: (runId: string, candidateId: string) =>
+    `/agent-runs/${runId}/evidence-candidates/${candidateId}`,
 };

@@ -12,6 +12,8 @@ There are two typed factories:
 - :func:`get_supply_chain_store` returns a backend specialised
   for :class:`SupplyChainExploreState` (used by the v18 supply-
   chain routes).
+- :func:`get_agent_run_store` returns a backend specialised for
+  :class:`AgentRunState` (used by the v21 local agent-run routes).
 
 For the FinRisk workflow store, see :mod:`src.api.run_store`.
 """
@@ -21,6 +23,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 
+from src.agents.state import AgentRunState
 from src.api.run_store import (
     FinRiskInMemoryRunStore,
     FinRiskSQLiteRunStore,
@@ -61,6 +64,23 @@ def _build_supply_chain_backend() -> RunStoreBackend[SupplyChainExploreState]:
     )
 
 
+def _build_agent_run_backend() -> RunStoreBackend[AgentRunState]:
+    """Build the local agent-run backend using the same env knob."""
+    backend = os.environ.get("RUN_STORE_BACKEND", "memory").lower()
+    if backend == "memory":
+        return InMemoryRunStore[AgentRunState]()
+    if backend == "sqlite":
+        db_path = os.environ.get("RUN_STORE_DB", ".cache/fintext_llm/runs.sqlite3")
+        return TypedSQLiteRunStore(
+            db_path,
+            model=AgentRunState,
+            table="agent_runs",
+        )
+    raise ValueError(
+        f"Unknown RUN_STORE_BACKEND={backend!r}. Expected 'memory' or 'sqlite'."
+    )
+
+
 @lru_cache(maxsize=1)
 def get_run_store() -> RunStoreBackend:
     """Return the process-wide FinRisk run-store backend."""
@@ -73,14 +93,22 @@ def get_supply_chain_store() -> RunStoreBackend[SupplyChainExploreState]:
     return _build_supply_chain_backend()
 
 
+@lru_cache(maxsize=1)
+def get_agent_run_store() -> RunStoreBackend[AgentRunState]:
+    """Return the process-wide local agent-run store backend."""
+    return _build_agent_run_backend()
+
+
 def reset_run_store_for_tests() -> None:
-    """Drop both cached backends. Test-only helper."""
+    """Drop cached backends. Test-only helper."""
     get_run_store.cache_clear()
     get_supply_chain_store.cache_clear()
+    get_agent_run_store.cache_clear()
 
 
 __all__ = [
     "SQLiteRunStore",
+    "get_agent_run_store",
     "get_run_store",
     "get_supply_chain_store",
     "reset_run_store_for_tests",

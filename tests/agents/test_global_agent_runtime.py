@@ -100,7 +100,7 @@ def test_global_agent_runtime_failed_subgoal_records_fallback() -> None:
 
     state = runtime.run("Research Apple", workflow_kind="generic_research")
 
-    assert state.status == "completed"
+    assert state.status == "failed"
     assert state.fallback_events
     assert state.decisions[-1].stop_reason == "tool_failures"
 
@@ -127,6 +127,20 @@ def test_global_agent_runtime_needs_review_when_no_evidence_accepted() -> None:
     assert state.status == "needs_review"
     assert state.decisions[-1].stop_reason == "human_review_required"
     assert state.evidence_candidates[0]["status"] == "rejected"
+
+
+def test_global_agent_runtime_needs_review_when_no_tools_run() -> None:
+    runtime = GlobalAgentRuntime(
+        subgoal_runtime_factory=lambda _scope, _subgoal: FakeRuntime([])
+    )
+
+    state = runtime.run("Research Apple", workflow_kind="generic_research")
+
+    assert state.status == "needs_review"
+    assert state.decisions[-1].stop_reason == "human_review_required"
+    assert state.human_review_items
+    assert state.human_review_items[0].object_type == "report_claim"
+    assert any("produced no tool evidence" in event for event in state.fallback_events)
 
 
 def test_global_agent_runtime_factory_receives_scope_and_subgoal() -> None:

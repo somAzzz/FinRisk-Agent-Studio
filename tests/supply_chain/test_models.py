@@ -12,8 +12,10 @@ from src.supply_chain.models import (
     SupplyChainEdge,
     SupplyChainExpandRequest,
     SupplyChainExploreRequest,
+    SupplyChainExploreState,
     SupplyChainNode,
 )
+from src.supply_chain.sankey import build_sankey_payload
 from src.workflows.state import utcnow
 
 # ---------------------------------------------------------------------------
@@ -35,13 +37,24 @@ def test_request_requires_company_or_ticker() -> None:
         )
 
 
+def test_request_max_depth_accepts_deeper_exploration() -> None:
+    req = SupplyChainExploreRequest.model_validate(
+        {
+            "company_name": "OpenAI",
+            "product_name": "ChatGPT",
+            "max_depth": 10,
+        }
+    )
+    assert req.max_depth == 10
+
+
 def test_request_max_depth_out_of_range() -> None:
     with pytest.raises(ValidationError):
         SupplyChainExploreRequest.model_validate(
             {
                 "company_name": "OpenAI",
                 "product_name": "ChatGPT",
-                "max_depth": 6,
+                "max_depth": 11,
             }
         )
 
@@ -67,13 +80,24 @@ def test_expand_request_requires_node_id() -> None:
         )
 
 
-def test_expand_request_rejects_depth_above_4() -> None:
+def test_expand_request_accepts_deeper_exploration() -> None:
+    req = SupplyChainExpandRequest.model_validate(
+        {
+            "parent_run_id": "r1",
+            "node_id": "component:cpu",
+            "max_depth": 10,
+        }
+    )
+    assert req.max_depth == 10
+
+
+def test_expand_request_rejects_depth_above_10() -> None:
     with pytest.raises(ValidationError):
         SupplyChainExpandRequest.model_validate(
             {
                 "parent_run_id": "r1",
                 "node_id": "component:cpu",
-                "max_depth": 5,
+                "max_depth": 11,
             }
         )
 
@@ -291,6 +315,191 @@ def test_sankey_payload_rejects_confirmed_cycle() -> None:
                 "warnings": [],
             }
         )
+
+
+def test_sankey_builder_merges_canonical_duplicate_nodes() -> None:
+    state = SupplyChainExploreState(
+        run_id="sc-run-test",
+        request=SupplyChainExploreRequest(
+            company_name="Tesla",
+            product_name="EV motor",
+        ),
+        nodes=[
+            SupplyChainNode(
+                node_id="product:ev-motor",
+                node_type="product",
+                label="EV motor",
+                normalized_name="ev motor",
+                depth=0,
+                confidence=0.9,
+            ),
+            SupplyChainNode(
+                node_id="commodity:rare-earth-element",
+                node_type="commodity",
+                label="Rare earth element",
+                normalized_name="rare earth element",
+                depth=1,
+                parent_node_id="product:ev-motor",
+                confidence=0.65,
+            ),
+            SupplyChainNode(
+                node_id="commodity:rare-earth-elements",
+                node_type="commodity",
+                label="Rare earth elements",
+                normalized_name="rare earth elements",
+                depth=1,
+                parent_node_id="product:ev-motor",
+                confidence=0.8,
+            ),
+            SupplyChainNode(
+                node_id="commodity:neodymium",
+                node_type="commodity",
+                label="Neodymium",
+                normalized_name="neodymium",
+                depth=2,
+                parent_node_id="commodity:rare-earth-elements",
+                confidence=0.7,
+            ),
+        ],
+        links=[
+            SupplyChainEdge(
+                edge_id="e-re-1",
+                source_node_id="product:ev-motor",
+                target_node_id="commodity:rare-earth-element",
+                relation_type="hypothesized",
+                value=0.8,
+                confidence=0.65,
+                metadata={"reason": "LLM candidate"},
+            ),
+            SupplyChainEdge(
+                edge_id="e-re-2",
+                source_node_id="product:ev-motor",
+                target_node_id="commodity:rare-earth-elements",
+                relation_type="hypothesized",
+                value=0.9,
+                confidence=0.8,
+                metadata={"reason": "LLM candidate"},
+            ),
+            SupplyChainEdge(
+                edge_id="e-nd",
+                source_node_id="commodity:rare-earth-elements",
+                target_node_id="commodity:neodymium",
+                relation_type="hypothesized",
+                value=0.5,
+                confidence=0.7,
+                metadata={"reason": "specific material"},
+            ),
+        ],
+    )
+
+    sankey = build_sankey_payload(state)
+
+    labels = {node.label for node in sankey.nodes}
+    assert "Rare earth elements" in labels
+    assert "Rare earth element" not in labels
+    assert "Neodymium" in labels
+    rare_nodes = [
+        node for node in sankey.nodes
+        if node.node_id == "commodity:rare-earth-element"
+    ]
+    assert len(rare_nodes) == 1
+    assert rare_nodes[0].confidence == 0.8
+    neodymium = next(node for node in sankey.nodes if node.node_id == "commodity:neodymium")
+    assert neodymium.parent_node_id == "commodity:rare-earth-element"
+    assert all(
+        edge.source_node_id != "commodity:rare-earth-elements"
+        and edge.target_node_id != "commodity:rare-earth-elements"
+        for edge in sankey.links
+    )
+
+
+def test_sankey_builder_repairs_canonical_parent_id_strings() -> None:
+    state = SupplyChainExploreState(
+        run_id="sc-run-test",
+        request=SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+        ),
+        nodes=[
+            SupplyChainNode(
+                node_id="component:high-bandwidth-memory-hbm3",
+                node_type="component",
+                label="High-bandwidth memory (HBM3)",
+                normalized_name="high bandwidth memory hbm3",
+                depth=1,
+                confidence=0.85,
+            ),
+            SupplyChainNode(
+                node_id="company:sk-hynix",
+                node_type="company",
+                label="SK Hynix",
+                normalized_name="sk hynix",
+                depth=2,
+                parent_node_id="component:high-bandwidth-memory-(hbm3)",
+                confidence=0.85,
+            ),
+        ],
+        links=[],
+    )
+
+    sankey = build_sankey_payload(state)
+
+    sk_hynix = next(node for node in sankey.nodes if node.node_id == "company:sk-hynix")
+    assert sk_hynix.parent_node_id == "component:high-bandwidth-memory-hbm3"
+
+
+def test_sankey_builder_repairs_legacy_expansion_product_roots() -> None:
+    state = SupplyChainExploreState(
+        run_id="sc-run-test",
+        request=SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+        ),
+        nodes=[
+            SupplyChainNode(
+                node_id="company:openai",
+                node_type="company",
+                label="OpenAI",
+                normalized_name="openai",
+                depth=0,
+                confidence=0.9,
+            ),
+            SupplyChainNode(
+                node_id="product:chatgpt",
+                node_type="product",
+                label="ChatGPT",
+                normalized_name="chatgpt",
+                depth=0,
+                parent_node_id="company:openai",
+                confidence=0.9,
+            ),
+            SupplyChainNode(
+                node_id="company:nvidia",
+                node_type="company",
+                label="NVIDIA",
+                normalized_name="nvidia",
+                depth=2,
+                parent_node_id="component:gpu",
+                confidence=0.8,
+            ),
+            SupplyChainNode(
+                node_id="product:nvidia",
+                node_type="product",
+                label="nvidia",
+                normalized_name="nvidia",
+                depth=0,
+                parent_node_id="company:openai",
+                confidence=0.8,
+            ),
+        ],
+        links=[],
+    )
+
+    sankey = build_sankey_payload(state)
+
+    nvidia_product = next(node for node in sankey.nodes if node.node_id == "product:nvidia")
+    assert nvidia_product.parent_node_id == "company:nvidia"
+    assert nvidia_product.depth == 3
 
 
 # ---------------------------------------------------------------------------

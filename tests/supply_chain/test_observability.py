@@ -40,8 +40,13 @@ async def test_real_mode_records_trace_and_provider_calls() -> None:
         ),
         steps=[
             SupplyChainProductResolverStep(),
-            SupplyChainRequirementDecomposerStep(),
-            SupplyChainSupplierDiscoveryStep(search_router=StubRouter()),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=StubRouter(),
+                llm_client_factory=lambda _config: None,
+            ),
         ],
     )
     assert state.trace
@@ -52,5 +57,8 @@ async def test_real_mode_records_trace_and_provider_calls() -> None:
     assert supplier_event.input_summary["node_count"] > 0
     assert supplier_event.output_summary["evidence_count"] > 0
     assert supplier_event.provider_calls
-    assert supplier_event.provider_calls[0].provider == "stub"
-    assert supplier_event.provider_calls[0].status == "success"
+    search_call = next(
+        call for call in supplier_event.provider_calls if call.operation == "search"
+    )
+    assert search_call.provider == "stub"
+    assert search_call.status == "success"

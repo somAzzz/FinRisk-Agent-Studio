@@ -56,12 +56,15 @@ class GlobalAgentRuntime:
         workflow_kind: AgentWorkflowKind = "generic_research",
         budget: AgentBudget | None = None,
         subject: dict | None = None,
+        run_id: str | None = None,
     ) -> AgentRunState:
         """Run an agent task until stop, review, failure, or budget exhaustion."""
         state = self.planner.initialize(
             user_goal=user_goal,
             workflow_kind=workflow_kind,
         )
+        if run_id is not None:
+            state.run_id = run_id
         if self.context_builder is not None:
             context_pack = self.context_builder.build(
                 run_id=state.run_id,
@@ -128,6 +131,7 @@ class GlobalAgentRuntime:
                     )
                 )
                 self._stop(state, "tool_failures", "Subgoal runtime failed.")
+                state.status = "failed"
                 break
             executed_subgoals += 1
             tool_calls += len(result.tool_events)
@@ -138,6 +142,42 @@ class GlobalAgentRuntime:
                     budget_usage=result.budget_usage,
                 )
             )
+            if not result.tool_events:
+                subgoal.status = "needs_review"
+                state.fallback_events.append(
+                    f"global_agent_runtime:subgoal {subgoal.subgoal_id} "
+                    "produced no tool evidence"
+                )
+                state.trace.append(
+                    AgentRunTrace(
+                        event_type="subgoal_no_tool_evidence",
+                        message=(
+                            "Subgoal runtime returned without executing any tools."
+                        ),
+                        subgoal_id=subgoal.subgoal_id,
+                        metadata={
+                            "mode": result.mode,
+                            "final_answer_chars": len(result.final_answer),
+                        },
+                    )
+                )
+                state.human_review_items.append(
+                    HumanReviewItem(
+                        run_id=state.run_id,
+                        subgoal_id=subgoal.subgoal_id,
+                        object_type="report_claim",
+                        object_id=subgoal.subgoal_id,
+                        reason="Subgoal completed without tool-backed evidence.",
+                        suggested_action="inspect_source",
+                    )
+                )
+                self._stop(
+                    state,
+                    "human_review_required",
+                    "Subgoal produced no tool-backed evidence.",
+                )
+                state.status = "needs_review"
+                break
             candidates = self.evidence_normalizer.normalize_events(
                 result.tool_events,
                 related_subgoal_id=subgoal.subgoal_id,
