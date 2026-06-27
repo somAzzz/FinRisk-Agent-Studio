@@ -56,11 +56,25 @@ to Redis.
 
 ## Single-process SQLite write concurrency (R2)
 
-`SQLiteRunStore` serializes writes through `asyncio.Lock`. Multi-
-process deployments (multiple uvicorn workers) will not see each
-other's writes in real time because each worker holds its own
-SQLite connection. WAL mode allows concurrent reads, but writes
-must wait for the writer's lock.
+`SQLiteRunStore` serializes writes through `asyncio.Lock` and now
+covers both FinRisk workflow runs and supply-chain runs when
+`RUN_STORE_BACKEND=sqlite`. Multi-process deployments (multiple
+uvicorn workers) will not see each other's writes in real time
+because each worker holds its own SQLite connection. WAL mode
+allows concurrent reads, but writes must wait for the writer's lock.
 
 **Future fix**: Postgres / Redis for multi-process deployments.
 Out of scope for the audit pass.
+
+## LLM audit log redaction
+
+`LLMCall` rows redact high-confidence patterns such as API keys,
+tokens, email addresses, phone numbers, SSNs, and credit-card-like
+numbers before they are persisted on workflow state. This is a
+best-effort safety net, not a compliance-grade data-loss prevention
+system: proprietary source text, uncommon secrets, or company-
+specific confidential phrases can still appear in prompts and
+responses.
+
+**Future fix**: add tenant-specific redaction rules, log retention
+policies, and an option to store only hashes / excerpts of prompts.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import threading
 from collections.abc import Callable, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ from src.tools.providers.base import (
     SearchIntent,
     SearchProvider,
     SearchResponse,
+    SearchResult,
     TimeRange,
     empty_response,
 )
@@ -26,6 +28,32 @@ DEFAULT_BLACKLIST: tuple[str, ...] = (
     "consent.yahoo.com",
     "google.com/sorry",
     "investor.apple.com",
+)
+
+LOW_QUALITY_SEARCH_DOMAINS: tuple[str, ...] = (
+    "facebook.com",
+    "instagram.com",
+    "pinterest.",
+    "tiktok.com",
+    "threads.net",
+    "linkedin.com/posts",
+    "youtube.com/shorts",
+)
+
+PREFERRED_SEARCH_DOMAINS: tuple[str, ...] = (
+    "sec.gov",
+    "reuters.com",
+    "bloomberg.com",
+    "wsj.com",
+    "ft.com",
+    "cnbc.com",
+    "marketwatch.com",
+    "federalregister.gov",
+    "commerce.gov",
+    "treasury.gov",
+    "investor.",
+    "/investor",
+    "/ir/",
 )
 
 DEFAULT_TTL_SECONDS = 3600
@@ -129,13 +157,93 @@ def to_evidence(
 
 
 def _call_fetcher(fetcher: WebFetcher, url: str) -> Any:
-    """Invoke ``fetcher(url)`` and return its result unchanged.
-
-    Async fetchers are *not* awaited here; the router's ``fetch_search_results``
-    runs them via :func:`asyncio.run` because the router operates in
-    synchronous agent loops.
-    """
+    """Invoke ``fetcher(url)`` and resolve awaitables from sync code."""
     return fetcher(url)
+
+
+def _run_awaitable_sync(awaitable: Any) -> Any:
+    """Resolve an awaitable from sync code, even inside an active event loop."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(awaitable)
+
+    outcome: dict[str, Any] = {}
+
+    def runner() -> None:
+        try:
+            outcome["value"] = asyncio.run(awaitable)
+        except BaseException as exc:
+            outcome["error"] = exc
+
+    thread = threading.Thread(target=runner, name="fintext-search-fetcher")
+    thread.start()
+    thread.join()
+    if "error" in outcome:
+        raise outcome["error"]
+    return outcome.get("value")
+
+
+def _rank_search_response(
+    response: SearchResponse,
+    *,
+    max_results: int,
+) -> SearchResponse:
+    scored: list[tuple[float, int, SearchResult]] = []
+    for index, result in enumerate(response.results):
+        score, reason, excluded = _source_quality(result)
+        if excluded:
+            continue
+        metadata = {
+            **result.metadata,
+            "source_quality_score": score,
+            "source_quality_reason": reason,
+        }
+        scored.append(
+            (
+                score,
+                result.rank if result.rank is not None else index + 1,
+                result.model_copy(update={"metadata": metadata}),
+            )
+        )
+
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    ranked_results = [
+        result.model_copy(update={"rank": rank})
+        for rank, (_score, _old_rank, result) in enumerate(
+            scored[:max_results],
+            start=1,
+        )
+    ]
+    return response.model_copy(update={"results": ranked_results})
+
+
+def _source_quality(result: SearchResult) -> tuple[float, str, bool]:
+    url = (result.url or "").strip()
+    try:
+        parsed = urlparse(url)
+        haystack = f"{parsed.netloc}{parsed.path}".lower()
+    except Exception:
+        haystack = url.lower()
+
+    if any(domain in haystack for domain in LOW_QUALITY_SEARCH_DOMAINS):
+        return -100.0, "excluded_low_quality_domain", True
+
+    score = 0.0
+    reasons: list[str] = []
+    if any(domain in haystack for domain in PREFERRED_SEARCH_DOMAINS):
+        score += 3.0
+        reasons.append("preferred_domain")
+    if result.snippet.strip():
+        score += 0.5
+        reasons.append("has_snippet")
+    else:
+        score -= 0.5
+        reasons.append("missing_snippet")
+    if result.title.strip():
+        score += 0.25
+        reasons.append("has_title")
+    return score, ",".join(reasons) or "neutral", False
 
 
 class SearchRouter:
@@ -222,7 +330,7 @@ class SearchRouter:
                 provider, effective_query, max_results, time_range, intent
             )
             if cached is not None:
-                return cached
+                return _rank_search_response(cached, max_results=max_results)
 
         last_response: SearchResponse | None = None
         for provider in self.providers:
@@ -244,8 +352,11 @@ class SearchRouter:
 
             last_response = response
             if response.results:
-                self._cache_store(response, ttl, max_results, time_range, intent)
-                return response
+                ranked = _rank_search_response(response, max_results=max_results)
+                if not ranked.results:
+                    continue
+                self._cache_store(ranked, ttl, max_results, time_range, intent)
+                return ranked
 
         # All providers failed or returned empty; cache the last seen empty
         # response only when it's empty to avoid amplifying failures.
@@ -254,6 +365,10 @@ class SearchRouter:
                 _fallback_provider_name(self.providers), effective_query
             )
         if last_response.results:
+            last_response = _rank_search_response(
+                last_response,
+                max_results=max_results,
+            )
             self._cache_store(last_response, ttl, max_results, time_range, intent)
         return last_response
 
@@ -340,9 +455,7 @@ class SearchRouter:
             try:
                 fetch_result = _call_fetcher(fetcher_callable, url)
                 if inspect.isawaitable(fetch_result):
-                    # Async fetchers must be awaited by the caller; surface
-                    # this as an error rather than blocking here.
-                    fetch_result = asyncio.run(fetch_result)
+                    fetch_result = _run_awaitable_sync(fetch_result)
             except Exception as exc:
                 summaries.append(
                     WebFetchResultSummary(

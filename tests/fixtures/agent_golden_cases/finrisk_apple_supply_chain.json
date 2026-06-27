@@ -1,0 +1,46 @@
+{
+  "case_id": "finrisk_apple_supply_chain",
+  "goal": "Assess Apple supply chain risk using filing, web, and graph evidence.",
+  "workflow_kind": "finrisk",
+  "expected_tool_families": ["sec", "web", "graph"],
+  "expected_min_accepted_candidates": 3,
+  "expected_min_rejected_candidates": 0,
+  "expected_review_required": false,
+  "tool_events": [
+    {
+      "tool_name": "sec_fetch_filing",
+      "data": {
+        "source_url": "https://www.sec.gov/Archives/apple-10k.htm",
+        "form_type": "10-K",
+        "text": "Apple filing describes supply chain risk, component sourcing, and supplier concentration."
+      }
+    },
+    {
+      "tool_name": "web_search",
+      "arguments": {"query": "Apple supply chain risk suppliers"},
+      "data": {
+        "query": "Apple supply chain risk suppliers",
+        "results": [
+          {
+            "title": "Apple supplier risk",
+            "url": "https://example.com/apple-supplier-risk",
+            "snippet": "Apple supply chain risk includes supplier concentration and component sourcing.",
+            "rank": 1
+          }
+        ]
+      }
+    },
+    {
+      "tool_name": "graph_path_search",
+      "arguments": {"source_entity": "AAPL", "target_entity": "TSMC"},
+      "data": {
+        "paths": [
+          {
+            "path_text": "Apple supply chain risk connects to TSMC supplier concentration through component sourcing.",
+            "evidence_ids": ["ev-sec-1", "ev-web-1"]
+          }
+        ]
+      }
+    }
+  ]
+}

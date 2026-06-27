@@ -1,6 +1,8 @@
-import pytest
 from datetime import datetime
-from src.browser.explorer import Finding, ExplorationState, MarketExplorer
+
+import pytest
+
+from src.browser.explorer import ExplorationState, Finding, MarketExplorer
 from src.browser.wrapper import BrowserWrapper
 
 
@@ -37,3 +39,20 @@ async def test_market_explorer_init():
     assert explorer.llm_client is not None
     assert explorer.wrapper is not None
     wrapper.close()
+
+
+def test_market_explorer_default_wrapper_uses_factory(monkeypatch):
+    class FakeWrapper:
+        def close(self):
+            pass
+
+    fake_wrapper = FakeWrapper()
+    monkeypatch.setattr(
+        "src.browser.explorer.build_browser_wrapper",
+        lambda *, browser_config: fake_wrapper,
+    )
+    from src.llm.client import EdgarLLMClient
+
+    explorer = MarketExplorer(llm_client=EdgarLLMClient())
+
+    assert explorer.wrapper is fake_wrapper

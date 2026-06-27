@@ -2,15 +2,16 @@ import asyncio
 import hashlib
 import random
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable
+from typing import Any, ClassVar
 
 import numpy as np
 
-from src.llm.sglang_client import SGLangClient
-from src.browser.wrapper import BrowserWrapper
 from src.browser.config import BrowserConfig, ExplorationConfig
+from src.browser.factory import build_browser_wrapper
+from src.llm.sglang_client import SGLangClient
 
 
 @dataclass
@@ -79,7 +80,7 @@ class PageType:
 
 class MarketExplorer:
     # Default financial news sources
-    DEFAULT_SOURCES = [
+    DEFAULT_SOURCES: ClassVar[list[str]] = [
         "https://finance.yahoo.com",
         "https://www.reuters.com",
         "https://www.cnbc.com",
@@ -88,13 +89,13 @@ class MarketExplorer:
     def __init__(
         self,
         llm_client: SGLangClient | None = None,
-        wrapper: BrowserWrapper | None = None,
+        wrapper: Any | None = None,
         browser_config: BrowserConfig | None = None,
         exploration_config: ExplorationConfig | None = None,
     ):
         self.llm_client = llm_client or SGLangClient()
-        self.wrapper = wrapper or BrowserWrapper()
         self.browser_config = browser_config or BrowserConfig()
+        self.wrapper = wrapper or build_browser_wrapper(browser_config=self.browser_config)
         self.exploration_config = exploration_config or ExplorationConfig()
         self._recent_embeddings: list[list[float]] = []
 
@@ -202,7 +203,7 @@ class MarketExplorer:
 
         return False
 
-    async def _process_page(self, state: ExplorationState) -> bool:
+    async def _process_page(self, state: ExplorationState) -> bool:  # noqa: PLR0911
         """Process current page and extract findings. Returns True if new finding."""
         snapshot_result = self.wrapper.get_snapshot()
         if not snapshot_result["success"]:
@@ -296,15 +297,12 @@ class MarketExplorer:
     def _is_blocked_url(self, url: str) -> bool:
         """Check if URL is in the blocked list."""
         url_lower = url.lower()
-        blocked_domains = [
+        blocked_domains = (
             "consent.yahoo.com",
             "google.com/sorry",
             "investor.apple.com",
-        ]
-        for domain in blocked_domains:
-            if domain in url_lower:
-                return True
-        return False
+        )
+        return any(domain in url_lower for domain in blocked_domains)
 
     def _build_search_url(self, query: str) -> str:
         """Build a search URL from a query."""
@@ -312,7 +310,7 @@ class MarketExplorer:
         encoded_query = query.replace(" ", "+")
         return f"https://www.cnbc.com/search/?query={encoded_query}"
 
-    async def _execute_action(self, action: dict) -> bool:
+    async def _execute_action(self, action: dict) -> bool:  # noqa: PLR0911
         """Execute an action. Returns True if successful."""
         action_type = action.get("action", "")
 
@@ -396,9 +394,8 @@ class MarketExplorer:
             await self._handle_consent_page()
             await asyncio.sleep(0.5)
 
-            if action.get("action") in ["navigate", "click", "scroll"]:
-                if await self._process_page(state):
-                    state.last_discovery = datetime.now()
+            if action.get("action") in ["navigate", "click", "scroll"] and await self._process_page(state):
+                state.last_discovery = datetime.now()
 
             if total_ops >= 5 and error_count / total_ops > self.exploration_config.error_rate_threshold:
                 break
@@ -407,8 +404,11 @@ class MarketExplorer:
             if steps_since_discovery >= self.exploration_config.no_new_findings_limit:
                 break
 
-            if checkpoint_callback and state.current_step % self.browser_config.checkpoint_interval == 0:
-                if not checkpoint_callback(state):
-                    break
+            if (
+                checkpoint_callback
+                and state.current_step % self.browser_config.checkpoint_interval == 0
+                and not checkpoint_callback(state)
+            ):
+                break
 
         return state

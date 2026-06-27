@@ -161,4 +161,87 @@ describe("api client", () => {
       expect.any(Object),
     );
   });
+
+  it("posts V21 agent run requests to /agent-runs", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        run_id: "agent-abc",
+        status: "completed",
+        timeline_url: "/agent-runs/agent-abc/timeline",
+        trace_url: "/agent-runs/agent-abc/trace.json",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.startAgentRun({
+      goal: "Find Apple supply chain evidence",
+      workflow_kind: "finrisk",
+      provider: "deepseek",
+      tool_loop_mode: "auto",
+      tool_scope: "finrisk_market",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/agent-runs",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("fetches V21 agent run timeline and trace", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        run_id: "agent-abc",
+        status: "completed",
+        decisions: [],
+        subgoals: [],
+        tool_events: [],
+        evidence_candidates: [],
+        human_review_items: [],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.getAgentRunTimeline("agent-abc");
+    await api.getAgentRunTrace("agent-abc");
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/agent-runs/agent-abc/timeline",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/agent-runs/agent-abc/trace.json",
+      expect.any(Object),
+    );
+  });
+
+  it("posts V21 human review actions", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        item_id: "hri-1",
+        run_id: "agent-abc",
+        object_type: "evidence_candidate",
+        object_id: "ev-1",
+        reason: "needs source inspection",
+        suggested_action: "inspect_source",
+        status: "approved",
+        created_at: "2026-06-27T00:00:00.000Z",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.reviewAgentRunItem("agent-abc", "hri-1", { action: "approve" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/agent-runs/agent-abc/review-items/hri-1",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ action: "approve" }),
+      }),
+    );
+  });
 });

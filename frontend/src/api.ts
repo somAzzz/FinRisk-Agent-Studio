@@ -4,6 +4,12 @@
 // paths can be served behind a reverse proxy.
 
 import type {
+  AgentHumanReviewItemWire,
+  AgentReviewActionRequest,
+  AgentRunRequest,
+  AgentRunSummary,
+  AgentRunTimelineResponse,
+  AgentRunTraceResponse,
   FinRiskRequest,
   WorkflowArtifactsResponse,
   WorkflowChunksResponse,
@@ -137,6 +143,36 @@ export const api = {
       body: JSON.stringify(req),
     });
   },
+  // v21 LLM-driven agent runs
+  startAgentRun(req: AgentRunRequest): Promise<AgentRunSummary> {
+    return sendRequest<AgentRunSummary>("/agent-runs", {
+      method: "POST",
+      body: JSON.stringify(req),
+    });
+  },
+  getAgentRunTimeline(runId: string): Promise<AgentRunTimelineResponse> {
+    return sendRequest<AgentRunTimelineResponse>(
+      `/agent-runs/${runId}/timeline`,
+    );
+  },
+  getAgentRunTrace(runId: string): Promise<AgentRunTraceResponse> {
+    return sendRequest<AgentRunTraceResponse>(
+      `/agent-runs/${runId}/trace.json`,
+    );
+  },
+  reviewAgentRunItem(
+    runId: string,
+    itemId: string,
+    req: AgentReviewActionRequest,
+  ): Promise<AgentHumanReviewItemWire> {
+    return sendRequest<AgentHumanReviewItemWire>(
+      `/agent-runs/${runId}/review-items/${itemId}`,
+      {
+        method: "POST",
+        body: JSON.stringify(req),
+      },
+    );
+  },
 };
 
 export const apiPaths = {
@@ -152,4 +188,9 @@ export const apiPaths = {
   expandSupplyChain: "/supply-chain/expand",
   supplyChainStatus: (runId: string) => `/supply-chain/${runId}`,
   supplyChainSankey: (runId: string) => `/supply-chain/${runId}/sankey`,
+  startAgentRun: "/agent-runs",
+  agentRunTimeline: (runId: string) => `/agent-runs/${runId}/timeline`,
+  agentRunTrace: (runId: string) => `/agent-runs/${runId}/trace.json`,
+  agentRunReviewItem: (runId: string, itemId: string) =>
+    `/agent-runs/${runId}/review-items/${itemId}`,
 };

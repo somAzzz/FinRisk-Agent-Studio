@@ -18,9 +18,11 @@ from src.api.run_store import (
 )
 from src.api.store_factory import (
     get_run_store,
+    get_supply_chain_store,
     reset_run_store_for_tests,
 )
 from src.schemas.finrisk import FinRiskRequest
+from src.supply_chain.models import SupplyChainExploreRequest, SupplyChainExploreState
 
 
 @pytest.fixture(autouse=True)
@@ -41,6 +43,27 @@ def test_factory_supports_sqlite(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("RUN_STORE_DB", ":memory:")
     store = get_run_store()
     assert isinstance(store, FinRiskSQLiteRunStore)
+
+
+def test_supply_chain_factory_supports_sqlite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("RUN_STORE_BACKEND", "sqlite")
+    monkeypatch.setenv("RUN_STORE_DB", ":memory:")
+    store = get_supply_chain_store()
+    state = SupplyChainExploreState(
+        run_id="sc-run-test",
+        request=SupplyChainExploreRequest(
+            company_name="OpenAI",
+            product_name="ChatGPT",
+            demo_mode=True,
+        ),
+    )
+    asyncio_run(store.update(state))
+    loaded = asyncio_run(store.get("sc-run-test"))
+    assert loaded is not None
+    assert loaded.run_id == "sc-run-test"
+    assert loaded.request.product_name == "ChatGPT"
 
 
 def test_factory_rejects_unknown_backend(monkeypatch: pytest.MonkeyPatch) -> None:

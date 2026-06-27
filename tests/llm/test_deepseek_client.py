@@ -23,7 +23,6 @@ from src.llm import (
     build_client_from_settings,
 )
 
-
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -120,6 +119,119 @@ def test_complete_prepends_system_message(
     kwargs = sdk.chat.completions.create.call_args.kwargs
     assert kwargs["messages"][0] == {"role": "system", "content": "be terse"}
     assert kwargs["messages"][1] == {"role": "user", "content": "ping"}
+
+
+# ---------------------------------------------------------------------------
+# tool calling
+# ---------------------------------------------------------------------------
+
+
+def test_complete_with_tools_executes_requested_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-real")
+    tool_call = MagicMock()
+    tool_call.id = "call-1"
+    tool_call.type = "function"
+    tool_call.function.name = "lookup_metric"
+    tool_call.function.arguments = json.dumps({"ticker": "AAPL"})
+
+    first = MagicMock()
+    first.choices = [
+        MagicMock(message=MagicMock(content="", tool_calls=[tool_call]))
+    ]
+    second = MagicMock()
+    second.choices = [
+        MagicMock(message=MagicMock(content="Apple gross margin was found.", tool_calls=None))
+    ]
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "lookup_metric",
+                "description": "Lookup a financial metric.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"ticker": {"type": "string"}},
+                    "required": ["ticker"],
+                },
+            },
+        }
+    ]
+
+    calls: list[dict] = []
+
+    def lookup_metric(ticker: str) -> dict:
+        calls.append({"ticker": ticker})
+        return {"ticker": ticker, "gross_margin": 0.46}
+
+    with patch("src.llm.deepseek_client.OpenAI") as OpenAIMock:
+        sdk = OpenAIMock.return_value
+        sdk.chat.completions.create.side_effect = [first, second]
+        client = DeepSeekClient()
+        text = client.complete_with_tools(
+            "Find Apple's margin.",
+            tools=tools,
+            tool_map={"lookup_metric": lookup_metric},
+            system="Use tools when needed.",
+            tool_choice={"type": "function", "function": {"name": "lookup_metric"}},
+        )
+
+    assert text == "Apple gross margin was found."
+    assert calls == [{"ticker": "AAPL"}]
+    assert sdk.chat.completions.create.call_count == 2
+    first_kwargs = sdk.chat.completions.create.call_args_list[0].kwargs
+    assert first_kwargs["tools"] == tools
+    assert first_kwargs["tool_choice"] == {
+        "type": "function",
+        "function": {"name": "lookup_metric"},
+    }
+    second_kwargs = sdk.chat.completions.create.call_args_list[1].kwargs
+    assert second_kwargs["tool_choice"] == "auto"
+    second_messages = second_kwargs["messages"]
+    assert second_messages[-1]["role"] == "tool"
+    assert second_messages[-1]["tool_call_id"] == "call-1"
+    assert '"gross_margin": 0.46' in second_messages[-1]["content"]
+
+
+def test_complete_with_tools_does_not_execute_unknown_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-real")
+    tool_call = MagicMock()
+    tool_call.id = "call-unknown"
+    tool_call.type = "function"
+    tool_call.function.name = "delete_everything"
+    tool_call.function.arguments = "{}"
+
+    first = MagicMock()
+    first.choices = [
+        MagicMock(message=MagicMock(content="", tool_calls=[tool_call]))
+    ]
+    second = MagicMock()
+    second.choices = [
+        MagicMock(message=MagicMock(content="I could not run that tool.", tool_calls=None))
+    ]
+    with patch("src.llm.deepseek_client.OpenAI") as OpenAIMock:
+        sdk = OpenAIMock.return_value
+        sdk.chat.completions.create.side_effect = [first, second]
+        client = DeepSeekClient()
+        text = client.complete_with_tools(
+            "Try an unknown tool.",
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "lookup_metric",
+                        "parameters": {"type": "object", "properties": {}},
+                    },
+                }
+            ],
+            tool_map={"lookup_metric": lambda: "ok"},
+        )
+    assert text == "I could not run that tool."
+    second_messages = sdk.chat.completions.create.call_args_list[1].kwargs["messages"]
+    assert "unknown tool: delete_everything" in second_messages[-1]["content"]
 
 
 # ---------------------------------------------------------------------------

@@ -163,6 +163,19 @@ html, body, #root {
   resize: vertical;
 }
 
+.row.stacked {
+  display: block;
+}
+
+.row.stacked > label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.row.stacked > textarea {
+  width: 100%;
+}
+
 .row-checkbox {
   display: flex;
   gap: 8px;
@@ -199,6 +212,19 @@ button.primary {
 button.primary:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+}
+
+button.icon-button,
+a.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+button.full-width {
+  width: 100%;
+  margin-top: 8px;
 }
 
 button.ghost {
@@ -433,6 +459,207 @@ button.ghost {
 .muted { color: var(--muted); }
 .mono { font-family: ui-monospace, monospace; }
 
+/* v21 LLM agent run */
+.agent-runs-view {
+  padding: 0;
+}
+
+.agent-run-view {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.agent-run-controls,
+.agent-run-main {
+  min-width: 0;
+}
+
+.agent-run-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.agent-run-kpis > div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.kpi-label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.agent-run-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.agent-run-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #047857;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.budget-strip,
+.tool-badges,
+.candidate-meta,
+.tool-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.budget-strip {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.agent-fallbacks {
+  margin: 10px 0 0 0;
+  padding-left: 18px;
+  color: #92400e;
+  font-size: 12px;
+}
+
+.agent-subgoal-list,
+.tool-event-list,
+.review-list,
+.candidate-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.candidate-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.agent-subgoal,
+.tool-event,
+.candidate-card,
+.review-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 11px 12px;
+  font-size: 13px;
+}
+
+.agent-subgoal header,
+.tool-event header,
+.candidate-card header,
+.review-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.tool-event.failed {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.tool-meta {
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.tool-badges span,
+.candidate-meta span,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tool-badges span,
+.candidate-meta span {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.status-pill {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.status-pill.completed,
+.status-pill.success,
+.status-pill.accepted,
+.status-pill.approved {
+  background: var(--accent-soft);
+  color: #065f46;
+}
+
+.status-pill.running,
+.status-pill.pending,
+.status-pill.needs_review,
+.status-pill.commented {
+  background: var(--warn-soft);
+  color: #92400e;
+}
+
+.status-pill.failed,
+.status-pill.rejected {
+  background: var(--danger-soft);
+  color: #991b1b;
+}
+
+.tool-event pre {
+  max-height: 140px;
+  overflow: auto;
+  margin: 8px 0 0 0;
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.candidate-card p,
+.review-item p {
+  margin: 0 0 8px 0;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.candidate-card a {
+  color: #047857;
+  font-size: 12px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* v16 Evaluation tab */
 .evaluation-severity {
   display: inline-block;
@@ -544,6 +771,12 @@ button.ghost {
   .app-side {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+  .agent-run-view {
+    grid-template-columns: 1fr;
+  }
+  .agent-run-kpis {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }
 

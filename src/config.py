@@ -118,9 +118,7 @@ class Settings:
         lowered = key.strip().lower()
         if not lowered or lowered in {"empty", "dummy", "replace_me"}:
             return False
-        if lowered.startswith("replace-me"):
-            return False
-        return True
+        return not lowered.startswith("replace-me")
 
     def api_keys_configured(self) -> bool:
         """Return ``True`` when at least one non-placeholder API key is set."""

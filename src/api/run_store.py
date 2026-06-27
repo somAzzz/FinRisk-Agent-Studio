@@ -251,6 +251,20 @@ class FinRiskSQLiteRunStore(SQLiteRunStore[FinRiskWorkflowState]):
         return await self._list_recent_typed(limit, FinRiskWorkflowState)
 
 
+class TypedSQLiteRunStore(SQLiteRunStore[T]):
+    """SQLite backend for state types that do not need a ``create`` helper."""
+
+    def __init__(self, db_path: str | Path, *, model: type[T], table: str) -> None:
+        super().__init__(db_path, table=table)
+        self._model = model
+
+    async def get(self, run_id: str) -> T | None:
+        return await super().get(run_id, self._model)
+
+    async def list_recent(self, limit: int = 20) -> list[T]:
+        return await self._list_recent_typed(limit, self._model)
+
+
 def _now() -> float:
     import time
 
@@ -268,4 +282,5 @@ __all__ = [
     "InMemoryRunStore",
     "RunStoreBackend",
     "SQLiteRunStore",
+    "TypedSQLiteRunStore",
 ]

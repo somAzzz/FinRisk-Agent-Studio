@@ -15,6 +15,7 @@ import logging
 
 from fastapi import Depends, FastAPI
 
+from src.api.agent_runs import router as agent_runs_router
 from src.api.auth import require_api_key
 from src.api.rate_limit import RateLimitMiddleware, build_default_limiter
 from src.api.supply_chain import router as supply_chain_router
@@ -74,6 +75,10 @@ app.include_router(
     supply_chain_router,
     dependencies=[Depends(require_api_key)],
 )
+app.include_router(
+    agent_runs_router,
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @app.get("/")
@@ -91,6 +96,10 @@ async def root() -> dict:
             "/supply-chain/expand",
             "/supply-chain/{run_id}",
             "/supply-chain/{run_id}/sankey",
+            "/agent-runs",
+            "/agent-runs/{run_id}",
+            "/agent-runs/{run_id}/timeline",
+            "/agent-runs/{run_id}/trace.json",
         ],
     }
 

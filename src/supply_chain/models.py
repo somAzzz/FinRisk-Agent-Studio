@@ -16,6 +16,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.schemas.llm_config import LLMRunConfig
+from src.schemas.tool_trace import ToolLoopTrace
 from src.workflows.state import utcnow
 
 NodeType = Literal[
@@ -62,6 +63,13 @@ SupplyChainStatus = Literal[
 EvaluationVerdict = Literal["pass", "needs_review", "fail"]
 
 ProviderCallStatus = Literal["success", "failed", "timeout", "cached"]
+
+SupplierCandidateRelation = Literal[
+    "supplied_by",
+    "customer_of",
+    "partner",
+    "hypothesized",
+]
 
 
 SourceType = Literal[
@@ -223,6 +231,21 @@ class NormalizedSupplyChainEvidence(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class SupplierCandidate(BaseModel):
+    """LLM-proposed supplier/customer relation before graph write validation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    supplier_name: str
+    ticker: str | None = None
+    relation_type: SupplierCandidateRelation
+    product_or_service: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    confidence: float = Field(ge=0.0, le=1.0)
+    uncertainty: str | None = None
+    source_requirement_node_id: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # Sankey payload
 # ---------------------------------------------------------------------------
@@ -373,6 +396,8 @@ class SupplyChainExploreState(BaseModel):
     sankey: SankeyPayload | None = None
     evaluation: SupplyChainEvaluation | None = None
     trace: list[SupplyChainTraceEvent] = Field(default_factory=list)
+    llm_tool_traces: list[ToolLoopTrace] = Field(default_factory=list)
+    llm_supplier_candidates: list[SupplierCandidate] = Field(default_factory=list)
     parent_run_id: str | None = None
     expanded_from_node_id: str | None = None
     fallback_events: list[str] = Field(default_factory=list)
@@ -391,6 +416,8 @@ __all__ = [
     "SankeyEvaluation",
     "SankeyPayload",
     "SourceType",
+    "SupplierCandidate",
+    "SupplierCandidateRelation",
     "SupplyChainEdge",
     "SupplyChainEvaluation",
     "SupplyChainExpandRequest",

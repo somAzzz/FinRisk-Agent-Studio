@@ -31,13 +31,15 @@ import logging
 import os
 import re
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from typing import Any
 
 from openai import OpenAI
 
+from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
 from src.schemas.finrisk import LLMCall
+from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,7 @@ class DeepSeekError(Exception):
     """Base exception for DeepSeek client errors."""
 
 
-class DeepSeekNotConfigured(DeepSeekError):
+class DeepSeekNotConfigured(DeepSeekError):  # noqa: N818
     """Raised when ``DEEPSEEK_API_KEY`` is missing or a placeholder."""
 
 
@@ -118,6 +120,8 @@ class DeepSeekClient:
             llm_call_sink or (lambda _c: None)
         )
         self.provider = "deepseek"
+        self.last_tool_events: list[ToolExecutionEvent] = []
+        self.last_tool_budget_usage: ToolBudgetUsage | None = None
 
     # -- audit helpers ----------------------------------------------------
 
@@ -226,6 +230,101 @@ class DeepSeekClient:
         except Exception:
             return ""
         return content
+
+    def complete_with_tools(
+        self,
+        prompt: str,
+        *,
+        tools: list[dict[str, Any]],
+        tool_map: Mapping[str, ToolFunction],
+        system: str | None = None,
+        max_tool_rounds: int = 4,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        tool_choice: str | dict[str, Any] = "auto",
+        extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
+    ) -> str:
+        """Run an OpenAI-compatible tool-calling loop.
+
+        DeepSeek returns requested tool calls but never executes local
+        functions itself. This method implements the application-side loop:
+        send ``tools``, execute only functions present in ``tool_map``, append
+        ``role="tool"`` messages, then ask the model for the final answer.
+        """
+        self._ensure_configured()
+        loop = self._tool_loop()
+        try:
+            content = loop.complete(
+                prompt,
+                tools=tools,
+                tool_map=tool_map,
+                system=system,
+                max_tool_rounds=max_tool_rounds,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                tool_choice=tool_choice,
+                extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
+            )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content
+        except ToolLoopError as exc:
+            raise DeepSeekError(str(exc)) from exc
+
+    def chat_with_tools(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        tools: list[dict[str, Any]],
+        tool_map: Mapping[str, ToolFunction],
+        max_tool_rounds: int = 4,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        tool_choice: str | dict[str, Any] = "auto",
+        extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
+    ) -> tuple[str, list[LLMCall]]:
+        """Return ``(final_text, audit_calls)`` after resolving tool calls.
+
+        Unknown tools and invalid JSON arguments are returned to the model as
+        tool error messages; they are never executed.
+        """
+        self._ensure_configured()
+        loop = self._tool_loop()
+        try:
+            content, calls = loop.chat(
+                messages,
+                tools=tools,
+                tool_map=tool_map,
+                max_tool_rounds=max_tool_rounds,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                tool_choice=tool_choice,
+                extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
+            )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content, calls
+        except ToolLoopError as exc:
+            raise DeepSeekError(str(exc)) from exc
+
+    def _tool_loop(self) -> OpenAICompatibleToolLoop:
+        return OpenAICompatibleToolLoop(
+            client=self.client,
+            model=self.model,
+            provider=self.provider,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            llm_call_sink=self._llm_call_sink,
+            step_name="deepseek_tool_calling",
+        )
 
     # ------------------------------------------------------------------
     # High-level: structured risk extraction
@@ -401,5 +500,6 @@ __all__ = [
     "DeepSeekClient",
     "DeepSeekError",
     "DeepSeekNotConfigured",
+    "ToolFunction",
     "build_client_from_settings",
 ]

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Literal
@@ -65,10 +66,10 @@ def _is_blacklisted_domain(url: str) -> bool:
     except Exception:
         return False
 
-    for blacklisted in _KNOWN_DYNAMIC_DOMAINS:
-        if domain == blacklisted or domain.endswith("." + blacklisted):
-            return True
-    return False
+    return any(
+        domain == blacklisted or domain.endswith("." + blacklisted)
+        for blacklisted in _KNOWN_DYNAMIC_DOMAINS
+    )
 
 
 @dataclass
@@ -155,7 +156,7 @@ def _check_http_status(status_code: int, url: str) -> WebFetchResult | None:
     return None
 
 
-async def web_fetch(url: str) -> WebFetchResult:
+async def web_fetch(url: str) -> WebFetchResult:  # noqa: PLR0911
     """Fetch URL content and return metadata + Markdown (async)."""
     # 1. Check blacklist
     if _is_blacklisted_domain(url):
@@ -278,7 +279,26 @@ async def web_fetch(url: str) -> WebFetchResult:
 
 def web_fetch_sync(url: str) -> WebFetchResult:
     """Synchronous wrapper for non-async contexts."""
-    return asyncio.run(web_fetch(url))
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(web_fetch(url))
+
+    result_box: dict[str, WebFetchResult] = {}
+    error_box: dict[str, BaseException] = {}
+
+    def _worker() -> None:
+        try:
+            result_box["result"] = asyncio.run(web_fetch(url))
+        except BaseException as exc:  # pragma: no cover - defensive thread bridge
+            error_box["error"] = exc
+
+    thread = threading.Thread(target=_worker, name="fintext-web-fetch-sync")
+    thread.start()
+    thread.join()
+    if "error" in error_box:
+        raise error_box["error"]
+    return result_box["result"]
 
 
 WEB_FETCH_TOOL = {

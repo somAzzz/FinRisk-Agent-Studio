@@ -29,6 +29,9 @@
 15. `15-finrisk-agent-studio-workflow-roadmap.md`
 16. `16-quality-layer-and-graph-reasoning-roadmap.md`
 17. `17-code-audit-remediation-plan.md`
+18. `18-product-supply-chain-sankey-roadmap.md`
+19. `19-evidence-first-context-guardrail-layer.md`
+20. `20-llm-driven-tool-calling-agent-loop.md`
 
 ## 当前代码基础
 

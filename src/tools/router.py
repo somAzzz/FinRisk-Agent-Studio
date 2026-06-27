@@ -18,13 +18,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from src.browser import MarketExplorer
 from src.llm.sglang_client import SGLangClient
+from src.tools.searxng import searxng_search
+from src.tools.tavily import tavily_search
+from src.tools.tier_detection import detect_search_tier, is_direct_url
 from src.tools.web_fetch import serialize_result, web_fetch
 from src.tools.web_search import web_search
-from src.tools.tier_detection import detect_search_tier, is_direct_url
-from src.tools.tavily import tavily_search
-from src.tools.searxng import searxng_search
-from src.browser import BrowserWrapper, MarketExplorer
 
 _VALID_TIME_RANGES: set[Literal["d", "w", "m", "y", None]] = {"d", "w", "m", "y", None}
 
@@ -55,13 +55,21 @@ class ToolChoice(BaseModel):
     """LLM response for tool selection."""
     thought: str = Field(description="Reasoning about what to do")
     tool: Literal["ddgs", "tavily", "web_fetch", "browser", "finish"] = Field(
-        description="Choose: 'ddgs' for simple queries, 'tavily' for deep search, 'web_fetch' for URL content, 'browser' for complex interaction, 'finish' if done"
+        description=(
+            "Choose: 'ddgs' for simple queries, 'tavily' for deep search, "
+            "'web_fetch' for URL content, 'browser' for complex interaction, "
+            "'finish' if done"
+        )
     )
     query: str | None = Field(default=None, description="Search query if using ddgs or tavily")
     url: str | None = Field(default=None, description="URL to fetch if using web_fetch")
     time_range: Literal["d", "w", "m", "y", None] = Field(
         default=None,
-        description="Time filter for search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. Only set if query implies recency. MUST be null (not empty string) when no time filter is needed."
+        description=(
+            "Time filter for search. 'd'=day, 'w'=week, 'm'=month, 'y'=year. "
+            "Only set if query implies recency. MUST be null (not empty string) "
+            "when no time filter is needed."
+        ),
     )
     reason: str | None = Field(default=None, description="Why you chose this tool")
     answer: str | None = Field(default=None, description="Final answer if using finish")
@@ -135,10 +143,14 @@ You are a tool-selecting assistant. Choose the best tool for the job:
 
 Current date: 2026-03-19 (use this to evaluate result freshness)
 
-⚠️ Time Anchor Requirement: The LLM must receive current time as an absolute reference to correctly interpret relative time expressions like "last week". The System Prompt (agent role) MUST include "Current system time is: 2026-03-22T14:30:00Z (UTC)".
+⚠️ Time Anchor Requirement: The LLM must receive current time as an absolute reference to
+correctly interpret relative time expressions like "last week". The System Prompt (agent role)
+MUST include "Current system time is: 2026-03-22T14:30:00Z (UTC)".
 
 Respond with ONLY valid JSON:
-{{"thought": "why you chose this tool", "tool": "ddgs|tavily|web_fetch|browser|finish", "query": "search term if ddgs or tavily", "url": "url to fetch if web_fetch", "reason": "why this tool"}}"""
+{{"thought": "why you chose this tool", "tool": "ddgs|tavily|web_fetch|browser|finish",
+  "query": "search term if ddgs or tavily", "url": "url to fetch if web_fetch",
+  "reason": "why this tool"}}"""
 
     def select_tool(self, goal: str) -> ToolChoice | None:
         """Select appropriate tool using tier detection or LLM."""
@@ -244,17 +256,22 @@ Respond with ONLY valid JSON:
 
     async def execute_browser(self, goal: str) -> str:
         """Execute browser exploration."""
-        wrapper = BrowserWrapper()
-        explorer = MarketExplorer(llm_client=self.llm_client, wrapper=wrapper)
-
-        result = await explorer.explore(goal)
-        wrapper.close()
+        explorer = MarketExplorer(llm_client=self.llm_client)
+        try:
+            result = await explorer.explore(goal)
+        finally:
+            explorer.wrapper.close()
 
         findings_str = "\n".join([
             f"- [{f.source_type}] {f.summary}" for f in result.findings
         ])
 
-        browser_result = f"Browser exploration complete:\n- Steps: {result.current_step}\n- Findings: {len(result.findings)}\n\n{findings_str}"
+        browser_result = (
+            "Browser exploration complete:\n"
+            f"- Steps: {result.current_step}\n"
+            f"- Findings: {len(result.findings)}\n\n"
+            f"{findings_str}"
+        )
 
         self.search_history.append({
             "tool": "browser",

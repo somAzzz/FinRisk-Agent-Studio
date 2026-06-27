@@ -76,6 +76,29 @@ def test_search_router_with_fake_provider_returns_results(tmp_path):
     assert provider.last_query == "test query"
 
 
+def test_search_router_filters_and_ranks_source_quality(tmp_path):
+    results = [
+        _make_result("https://facebook.com/noisy-post", title="social"),
+        _make_result("https://random-blog.example.com/aapl", title="blog"),
+        _make_result("https://www.sec.gov/ixviewer/doc/action", title="10-K"),
+        _make_result("https://www.reuters.com/technology/apple-supply-chain", title="Reuters"),
+    ]
+    provider = FakeProvider("fake", results=results)
+    router = SearchRouter(providers=[provider], cache=SearchCache(cache_dir=tmp_path))
+
+    response = router.search("apple supply chain risk", max_results=5, ttl_seconds=60)
+
+    urls = [result.url for result in response.results]
+    assert "https://facebook.com/noisy-post" not in urls
+    assert urls[:2] == [
+        "https://www.sec.gov/ixviewer/doc/action",
+        "https://www.reuters.com/technology/apple-supply-chain",
+    ]
+    assert response.results[0].rank == 1
+    assert response.results[0].metadata["source_quality_score"] > 0
+    assert "preferred_domain" in response.results[0].metadata["source_quality_reason"]
+
+
 def test_search_router_cache_hit_does_not_call_provider(tmp_path):
     """A cache hit returns cached response and skips the provider."""
     results = [_make_result("https://cached.com")]
@@ -310,6 +333,34 @@ def test_fetch_search_results_continues_on_fetcher_exception(tmp_path, monkeypat
     assert by_url["https://bad.example.com"].error is not None
     assert "FETCH_ERROR" in by_url["https://bad.example.com"].error
     assert by_url["https://good.example.com"].error is None
+
+
+@pytest.mark.asyncio
+async def test_fetch_search_results_resolves_async_fetcher_inside_event_loop(tmp_path):
+    """Async fetchers are resolved even when the caller already has an event loop."""
+    response = SearchResponse(
+        provider="fake",
+        query="q",
+        retrieved_at=datetime(2026, 6, 20, 12, 0, 0),
+        results=[_make_result("https://good.example.com")],
+        raw=None,
+    )
+
+    async def async_fetcher(url: str):
+        return SimpleNamespace(
+            url=url,
+            content="async body",
+            status="success",
+            error_code=None,
+            error_message=None,
+        )
+
+    router = SearchRouter(providers=[], cache=SearchCache(cache_dir=tmp_path))
+    summaries = router.fetch_search_results(response, fetcher=async_fetcher)
+
+    assert len(summaries) == 1
+    assert summaries[0].url == "https://good.example.com"
+    assert summaries[0].content == "async body"
 
 
 def test_search_result_to_evidence_conversion(tmp_path):
