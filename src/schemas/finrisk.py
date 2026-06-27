@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.schemas.llm_config import LLMRunConfig
+from src.security.redaction import redact_obj, redact_text
 
 if TYPE_CHECKING:
     # The v16 Pydantic models live in :mod:`src.schemas.finrisk_v16`,
@@ -454,6 +455,23 @@ class LLMCall(BaseModel):
     error: str | None = None
     started_at: datetime
     completed_at: datetime
+
+    @field_validator("messages", mode="before")
+    @classmethod
+    def _redact_messages(cls, value: Any) -> Any:
+        return redact_obj(value)
+
+    @field_validator("prompt_text", "response_text", "error", mode="before")
+    @classmethod
+    def _redact_text_fields(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return redact_text(value)
+        return value
+
+    @field_validator("response_structured", mode="before")
+    @classmethod
+    def _redact_structured_response(cls, value: Any) -> Any:
+        return redact_obj(value)
 
 
 class RiskLifecycleAnnotation(BaseModel):
