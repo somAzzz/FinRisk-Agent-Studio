@@ -17,6 +17,7 @@ from src.agents.state import (
     AgentStopReason,
     AgentSubgoal,
     AgentWorkflowKind,
+    HumanReviewItem,
 )
 from src.evidence import EvidenceCandidateNormalizer
 from src.schemas.tool_trace import ToolLoopTrace
@@ -169,6 +170,28 @@ class GlobalAgentRuntime:
                 self._stop(state, "budget_exhausted", "Tool-call budget exhausted.")
                 break
             if subgoal.status == "needs_review":
+                reviewed_candidate = next(
+                    (
+                        candidate
+                        for candidate in candidates
+                        if candidate.status == "needs_review"
+                    ),
+                    candidates[0] if candidates else None,
+                )
+                if reviewed_candidate is not None:
+                    state.human_review_items.append(
+                        HumanReviewItem(
+                            run_id=state.run_id,
+                            subgoal_id=subgoal.subgoal_id,
+                            object_type="evidence_candidate",
+                            object_id=reviewed_candidate.candidate_id,
+                            reason=(
+                                reviewed_candidate.rejection_reason
+                                or "Subgoal produced evidence requiring review."
+                            ),
+                            suggested_action="inspect_source",
+                        )
+                    )
                 self._stop(
                     state,
                     "human_review_required",

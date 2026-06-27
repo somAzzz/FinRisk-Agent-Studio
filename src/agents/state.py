@@ -56,6 +56,27 @@ AgentStopReason = Literal[
     "user_cancelled",
 ]
 
+HumanReviewObjectType = Literal[
+    "evidence_candidate",
+    "supplier_candidate",
+    "graph_path",
+    "report_claim",
+]
+
+HumanReviewSuggestedAction = Literal[
+    "approve",
+    "reject",
+    "comment",
+    "inspect_source",
+]
+
+HumanReviewStatus = Literal[
+    "pending",
+    "approved",
+    "rejected",
+    "commented",
+]
+
 
 def _now() -> datetime:
     return datetime.now(tz=UTC)
@@ -173,6 +194,24 @@ class AgentRunTrace(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class HumanReviewItem(BaseModel):
+    """One V21 item that requires human review before acceptance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    item_id: str = Field(default_factory=lambda: f"hri-{uuid.uuid4().hex[:8]}")
+    run_id: str
+    subgoal_id: str | None = None
+    object_type: HumanReviewObjectType
+    object_id: str
+    reason: str
+    suggested_action: HumanReviewSuggestedAction = "inspect_source"
+    status: HumanReviewStatus = "pending"
+    reviewer_comment: str | None = None
+    created_at: datetime = Field(default_factory=_now)
+    reviewed_at: datetime | None = None
+
+
 class AgentRunState(BaseModel):
     """Global V21 agent state across planner decisions and subgoals."""
 
@@ -189,7 +228,7 @@ class AgentRunState(BaseModel):
     accepted_evidence_ids: list[str] = Field(default_factory=list)
     context_pack: dict[str, Any] | None = None
     fallback_events: list[str] = Field(default_factory=list)
-    human_review_items: list[dict[str, Any]] = Field(default_factory=list)
+    human_review_items: list[HumanReviewItem] = Field(default_factory=list)
     budget: AgentBudget = Field(default_factory=AgentBudget)
     trace: list[AgentRunTrace] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=_now)
@@ -233,5 +272,9 @@ __all__ = [
     "AgentSubgoal",
     "AgentSubgoalStatus",
     "AgentWorkflowKind",
+    "HumanReviewItem",
+    "HumanReviewObjectType",
+    "HumanReviewStatus",
+    "HumanReviewSuggestedAction",
     "ToolCall",
 ]

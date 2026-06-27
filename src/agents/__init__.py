@@ -33,6 +33,7 @@ from src.agents.state import (
     AgentRunTrace,
     AgentState,
     AgentSubgoal,
+    HumanReviewItem,
     ToolCall,
 )
 from src.agents.tools import Tool, ToolRegistry, ToolResult
@@ -52,6 +53,7 @@ __all__ = [
     "AsyncAgent",
     "CriticAgent",
     "GlobalAgentRuntime",
+    "HumanReviewItem",
     "LLMToolAgentRuntime",
     "LLMToolRunResult",
     "PlanStep",
