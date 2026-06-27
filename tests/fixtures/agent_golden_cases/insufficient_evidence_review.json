@@ -1,0 +1,25 @@
+{
+  "case_id": "insufficient_evidence_review",
+  "goal": "Assess Apple supply chain risk and require review when evidence is insufficient.",
+  "workflow_kind": "finrisk",
+  "expected_tool_families": ["web"],
+  "expected_min_accepted_candidates": 0,
+  "expected_min_rejected_candidates": 1,
+  "expected_review_required": false,
+  "tool_events": [
+    {
+      "tool_name": "web_search",
+      "arguments": {"query": "Apple supply chain risk"},
+      "data": {
+        "query": "Apple supply chain risk",
+        "results": [
+          {
+            "title": "Missing URL source",
+            "snippet": "Apple supply chain risk without a source URL should be rejected.",
+            "rank": 1
+          }
+        ]
+      }
+    }
+  ]
+}
