@@ -40,6 +40,7 @@ from src.agents.extraction_agent import chunk_text
 from src.llm.sglang_client import BrowserAction
 from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
 from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
+from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 
 DEFAULT_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 DEFAULT_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
@@ -93,6 +94,8 @@ class EdgarLLMClient:
         self.max_tokens = max_tokens
         self._llm_call_sink: NoOpSink = llm_call_sink or _no_sink
         self.provider = provider
+        self.last_tool_events: list[ToolExecutionEvent] = []
+        self.last_tool_budget_usage: ToolBudgetUsage | None = None
 
     # -- core chat helper -------------------------------------------------
 
@@ -419,6 +422,8 @@ class EdgarLLMClient:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> str:
         """General-purpose OpenAI-compatible tool-calling completion.
 
@@ -426,8 +431,9 @@ class EdgarLLMClient:
         :meth:`DeepSeekClient.complete_with_tools`. It assumes the configured
         local server supports OpenAI-compatible ``tools`` / ``tool_calls``.
         """
+        loop = self._tool_loop()
         try:
-            return self._tool_loop().complete(
+            content = loop.complete(
                 prompt,
                 tools=tools,
                 tool_map=tool_map,
@@ -437,7 +443,12 @@ class EdgarLLMClient:
                 temperature=temperature,
                 tool_choice=tool_choice,
                 extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
             )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content
         except ToolLoopError as exc:
             raise RiskExtractorError(str(exc)) from exc
 
@@ -452,10 +463,13 @@ class EdgarLLMClient:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Return ``(final_text, audit_calls)`` after resolving tool calls."""
+        loop = self._tool_loop()
         try:
-            return self._tool_loop().chat(
+            content, calls = loop.chat(
                 messages,
                 tools=tools,
                 tool_map=tool_map,
@@ -464,7 +478,12 @@ class EdgarLLMClient:
                 temperature=temperature,
                 tool_choice=tool_choice,
                 extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
             )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content, calls
         except ToolLoopError as exc:
             raise RiskExtractorError(str(exc)) from exc
 

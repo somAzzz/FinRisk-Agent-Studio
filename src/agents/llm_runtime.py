@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.llm.tool_loop import ToolFunction
 from src.schemas.finrisk import LLMCall
+from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent, ToolLoopMode
 from src.tools.catalog import ToolCatalog, build_project_tool_catalog
 
 DEFAULT_SYSTEM_PROMPT = """You are a financial research agent.
@@ -31,6 +32,8 @@ class ToolCallingClient(Protocol):
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Run an OpenAI-compatible tool loop."""
 
@@ -53,7 +56,10 @@ class LLMToolRunResult(BaseModel):
     goal: str
     final_answer: str
     tool_calls: list[LLMToolCallRecord] = Field(default_factory=list)
+    tool_events: list[ToolExecutionEvent] = Field(default_factory=list)
     llm_calls: list[LLMCall] = Field(default_factory=list)
+    budget_usage: ToolBudgetUsage | None = None
+    mode: ToolLoopMode = "native"
 
 
 class LLMToolAgentRuntime:
@@ -70,6 +76,8 @@ class LLMToolAgentRuntime:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> None:
         self.llm_client = llm_client
         self.tool_catalog = tool_catalog or build_project_tool_catalog()
@@ -79,6 +87,8 @@ class LLMToolAgentRuntime:
         self.temperature = temperature
         self.tool_choice = tool_choice
         self.extra_body = extra_body
+        self.max_tool_result_chars = max_tool_result_chars
+        self.max_total_tool_result_chars = max_total_tool_result_chars
 
     def run(self, goal: str) -> LLMToolRunResult:
         """Execute ``goal`` with LLM-selected tools."""
@@ -95,12 +105,17 @@ class LLMToolAgentRuntime:
             temperature=self.temperature,
             tool_choice=self.tool_choice,
             extra_body=self.extra_body,
+            max_tool_result_chars=self.max_tool_result_chars,
+            max_total_tool_result_chars=self.max_total_tool_result_chars,
         )
         return LLMToolRunResult(
             goal=goal,
             final_answer=final_answer,
             tool_calls=_extract_tool_call_records(llm_calls),
+            tool_events=list(getattr(self.llm_client, "last_tool_events", [])),
             llm_calls=llm_calls,
+            budget_usage=getattr(self.llm_client, "last_tool_budget_usage", None),
+            mode="native",
         )
 
 

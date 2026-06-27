@@ -10,9 +10,12 @@ from datetime import UTC, datetime
 from typing import Any
 
 from src.schemas.finrisk import LLMCall
+from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent, ToolLoopMode
 
 ToolFunction = Callable[..., Any]
 NoOpSink = Callable[[LLMCall], None]
+DEFAULT_MAX_TOOL_RESULT_CHARS = 12000
+DEFAULT_MAX_TOTAL_TOOL_RESULT_CHARS = 40000
 
 
 class ToolLoopError(Exception):
@@ -37,6 +40,9 @@ class OpenAICompatibleToolLoop:
         max_tokens: int,
         llm_call_sink: NoOpSink | None = None,
         step_name: str = "llm_tool_calling",
+        mode: ToolLoopMode = "native",
+        max_tool_result_chars: int = DEFAULT_MAX_TOOL_RESULT_CHARS,
+        max_total_tool_result_chars: int = DEFAULT_MAX_TOTAL_TOOL_RESULT_CHARS,
     ) -> None:
         self.client = client
         self.model = model
@@ -45,6 +51,14 @@ class OpenAICompatibleToolLoop:
         self.max_tokens = max_tokens
         self._llm_call_sink: NoOpSink = llm_call_sink or (lambda _call: None)
         self.step_name = step_name
+        self.mode: ToolLoopMode = mode
+        self.max_tool_result_chars = max_tool_result_chars
+        self.max_total_tool_result_chars = max_total_tool_result_chars
+        self.last_tool_events: list[ToolExecutionEvent] = []
+        self.last_budget_usage = ToolBudgetUsage(
+            max_tool_result_chars=max_tool_result_chars,
+            max_total_tool_result_chars=max_total_tool_result_chars,
+        )
 
     def complete(
         self,
@@ -58,6 +72,8 @@ class OpenAICompatibleToolLoop:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> str:
         """Run a prompt through the tool loop and return the final text."""
         messages: list[dict[str, Any]] = []
@@ -73,6 +89,8 @@ class OpenAICompatibleToolLoop:
             temperature=temperature,
             tool_choice=tool_choice,
             extra_body=extra_body,
+            max_tool_result_chars=max_tool_result_chars,
+            max_total_tool_result_chars=max_total_tool_result_chars,
         )
         return content
 
@@ -87,6 +105,8 @@ class OpenAICompatibleToolLoop:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Return ``(final_text, audit_calls)`` after resolving tool calls."""
         if not tools:
@@ -96,6 +116,19 @@ class OpenAICompatibleToolLoop:
 
         transcript = [dict(message) for message in messages]
         audit_calls: list[LLMCall] = []
+        self.last_tool_events = []
+        per_tool_limit = (
+            self.max_tool_result_chars
+            if max_tool_result_chars is None else max_tool_result_chars
+        )
+        total_limit = (
+            self.max_total_tool_result_chars
+            if max_total_tool_result_chars is None else max_total_tool_result_chars
+        )
+        self.last_budget_usage = ToolBudgetUsage(
+            max_tool_result_chars=max(0, per_tool_limit),
+            max_total_tool_result_chars=max(0, total_limit),
+        )
         for round_index in range(max_tool_rounds + 1):
             request_tool_choice = tool_choice if round_index == 0 else "auto"
             started = datetime.now(tz=UTC)
@@ -129,7 +162,26 @@ class OpenAICompatibleToolLoop:
                 return content, audit_calls
 
             for tool_call in tool_calls:
-                transcript.append(execute_tool_call(tool_call, tool_map))
+                remaining_budget = max(
+                    0,
+                    self.last_budget_usage.max_total_tool_result_chars
+                    - self.last_budget_usage.used_tool_result_chars,
+                )
+                tool_message_row, event = execute_tool_call_with_event(
+                    tool_call,
+                    tool_map,
+                    round_id=f"round-{round_index}",
+                    max_result_chars=min(
+                        self.last_budget_usage.max_tool_result_chars,
+                        remaining_budget,
+                    ),
+                )
+                self.last_tool_events.append(event)
+                used_chars = len(tool_message_row.get("content", ""))
+                self.last_budget_usage.used_tool_result_chars += used_chars
+                if event.truncated:
+                    self.last_budget_usage.truncated_events += 1
+                transcript.append(tool_message_row)
 
         raise ToolLoopError(
             f"tool-calling loop exceeded max_tool_rounds={max_tool_rounds}"
@@ -198,42 +250,166 @@ def execute_tool_call(
     tool_map: Mapping[str, ToolFunction],
 ) -> dict[str, Any]:
     """Execute one model-requested tool call and return a ``role=tool`` row."""
+    message, _event = execute_tool_call_with_event(
+        tool_call,
+        tool_map,
+        round_id="round-unknown",
+        max_result_chars=DEFAULT_MAX_TOOL_RESULT_CHARS,
+    )
+    return message
+
+
+def execute_tool_call_with_event(
+    tool_call: Any,
+    tool_map: Mapping[str, ToolFunction],
+    *,
+    round_id: str,
+    max_result_chars: int = DEFAULT_MAX_TOOL_RESULT_CHARS,
+) -> tuple[dict[str, Any], ToolExecutionEvent]:
+    """Execute a tool call and return both model message and backend event."""
+    started = datetime.now(tz=UTC)
     function = _field(tool_call, "function", {})
     name = _field(function, "name", "")
     raw_args = _field(function, "arguments", "{}") or "{}"
+    tool_call_id = _field(tool_call, "id", "")
     try:
         args = json.loads(raw_args)
     except json.JSONDecodeError as exc:
-        return tool_message(
-            tool_call,
-            {"error": f"invalid JSON arguments: {exc.msg}"},
+        result = {"error": f"invalid JSON arguments: {exc.msg}"}
+        message = tool_message(tool_call, result, max_result_chars=max_result_chars)
+        return message, _tool_event(
+            started=started,
+            round_id=round_id,
+            tool_call_id=tool_call_id,
+            tool_name=name,
+            arguments={},
+            status="failed",
+            content=message["content"],
+            error=result["error"],
         )
     if not isinstance(args, dict):
-        return tool_message(tool_call, {"error": "tool arguments must be an object"})
+        result = {"error": "tool arguments must be an object"}
+        message = tool_message(tool_call, result, max_result_chars=max_result_chars)
+        return message, _tool_event(
+            started=started,
+            round_id=round_id,
+            tool_call_id=tool_call_id,
+            tool_name=name,
+            arguments={},
+            status="failed",
+            content=message["content"],
+            error=result["error"],
+        )
     tool = tool_map.get(name)
     if tool is None:
-        return tool_message(tool_call, {"error": f"unknown tool: {name}"})
+        result = {"error": f"unknown tool: {name}"}
+        message = tool_message(tool_call, result, max_result_chars=max_result_chars)
+        return message, _tool_event(
+            started=started,
+            round_id=round_id,
+            tool_call_id=tool_call_id,
+            tool_name=name,
+            arguments=args,
+            status="failed",
+            content=message["content"],
+            error=result["error"],
+        )
     try:
         result = tool(**args)
     except Exception as exc:
-        return tool_message(
-            tool_call,
-            {"error": f"{type(exc).__name__}: {exc}"},
+        result = {"error": f"{type(exc).__name__}: {exc}"}
+        message = tool_message(tool_call, result, max_result_chars=max_result_chars)
+        return message, _tool_event(
+            started=started,
+            round_id=round_id,
+            tool_call_id=tool_call_id,
+            tool_name=name,
+            arguments=args,
+            status="failed",
+            content=message["content"],
+            error=result["error"],
         )
-    return tool_message(tool_call, result)
+    message = tool_message(tool_call, result, max_result_chars=max_result_chars)
+    return message, _tool_event(
+        started=started,
+        round_id=round_id,
+        tool_call_id=tool_call_id,
+        tool_name=name,
+        arguments=args,
+        status="success",
+        content=message["content"],
+        error=None,
+    )
 
 
-def tool_message(tool_call: Any, result: Any) -> dict[str, Any]:
+def tool_message(
+    tool_call: Any,
+    result: Any,
+    *,
+    max_result_chars: int = DEFAULT_MAX_TOOL_RESULT_CHARS,
+) -> dict[str, Any]:
     """Serialize a local tool result for the next model round."""
     if isinstance(result, str):
         content = result
     else:
         content = json.dumps(result, ensure_ascii=False, default=str)
+    content = _truncate_content(content, max_result_chars)
     return {
         "role": "tool",
         "tool_call_id": _field(tool_call, "id", ""),
         "content": content,
     }
+
+
+def _tool_event(
+    *,
+    started: datetime,
+    round_id: str,
+    tool_call_id: str,
+    tool_name: str,
+    arguments: dict[str, Any],
+    status: str,
+    content: str,
+    error: str | None,
+) -> ToolExecutionEvent:
+    completed = datetime.now(tz=UTC)
+    latency_ms = int((completed - started).total_seconds() * 1000)
+    return ToolExecutionEvent(
+        event_id=f"tool-event-{uuid.uuid4().hex[:12]}",
+        round_id=round_id,
+        tool_call_id=tool_call_id,
+        tool_name=tool_name,
+        arguments=arguments,
+        status=status,  # type: ignore[arg-type]
+        result_summary=content[:500],
+        latency_ms=latency_ms,
+        error=error,
+        result_chars=len(content),
+        truncated='"truncated": true' in content or '"truncated_text"' in content,
+        created_at=completed,
+    )
+
+
+def _truncate_content(content: str, max_chars: int) -> str:
+    if max_chars <= 0:
+        return json.dumps(
+            {
+                "truncated": True,
+                "truncated_text": "",
+                "original_chars": len(content),
+            },
+            ensure_ascii=False,
+        )
+    if len(content) <= max_chars:
+        return content
+    return json.dumps(
+        {
+            "truncated": True,
+            "truncated_text": content[:max_chars],
+            "original_chars": len(content),
+        },
+        ensure_ascii=False,
+    )
 
 
 def _field(obj: Any, name: str, default: Any = None) -> Any:
@@ -243,12 +419,15 @@ def _field(obj: Any, name: str, default: Any = None) -> Any:
 
 
 __all__ = [
+    "DEFAULT_MAX_TOOL_RESULT_CHARS",
+    "DEFAULT_MAX_TOTAL_TOOL_RESULT_CHARS",
     "NoOpSink",
     "OpenAICompatibleToolLoop",
     "ToolFunction",
     "ToolLoopError",
     "assistant_message_to_dict",
     "execute_tool_call",
+    "execute_tool_call_with_event",
     "tool_call_to_dict",
     "tool_message",
 ]

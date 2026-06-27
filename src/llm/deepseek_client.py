@@ -39,6 +39,7 @@ from openai import OpenAI
 
 from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
 from src.schemas.finrisk import LLMCall
+from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,8 @@ class DeepSeekClient:
             llm_call_sink or (lambda _c: None)
         )
         self.provider = "deepseek"
+        self.last_tool_events: list[ToolExecutionEvent] = []
+        self.last_tool_budget_usage: ToolBudgetUsage | None = None
 
     # -- audit helpers ----------------------------------------------------
 
@@ -240,6 +243,8 @@ class DeepSeekClient:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> str:
         """Run an OpenAI-compatible tool-calling loop.
 
@@ -249,8 +254,9 @@ class DeepSeekClient:
         ``role="tool"`` messages, then ask the model for the final answer.
         """
         self._ensure_configured()
+        loop = self._tool_loop()
         try:
-            return self._tool_loop().complete(
+            content = loop.complete(
                 prompt,
                 tools=tools,
                 tool_map=tool_map,
@@ -260,7 +266,12 @@ class DeepSeekClient:
                 temperature=temperature,
                 tool_choice=tool_choice,
                 extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
             )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content
         except ToolLoopError as exc:
             raise DeepSeekError(str(exc)) from exc
 
@@ -275,6 +286,8 @@ class DeepSeekClient:
         temperature: float | None = None,
         tool_choice: str | dict[str, Any] = "auto",
         extra_body: dict[str, Any] | None = None,
+        max_tool_result_chars: int | None = None,
+        max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Return ``(final_text, audit_calls)`` after resolving tool calls.
 
@@ -282,8 +295,9 @@ class DeepSeekClient:
         tool error messages; they are never executed.
         """
         self._ensure_configured()
+        loop = self._tool_loop()
         try:
-            return self._tool_loop().chat(
+            content, calls = loop.chat(
                 messages,
                 tools=tools,
                 tool_map=tool_map,
@@ -292,7 +306,12 @@ class DeepSeekClient:
                 temperature=temperature,
                 tool_choice=tool_choice,
                 extra_body=extra_body,
+                max_tool_result_chars=max_tool_result_chars,
+                max_total_tool_result_chars=max_total_tool_result_chars,
             )
+            self.last_tool_events = loop.last_tool_events
+            self.last_tool_budget_usage = loop.last_budget_usage
+            return content, calls
         except ToolLoopError as exc:
             raise DeepSeekError(str(exc)) from exc
 
