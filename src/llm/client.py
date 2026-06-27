@@ -29,7 +29,7 @@ import json
 import os
 import re
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from typing import Any
 
@@ -38,6 +38,7 @@ from pydantic import ValidationError
 
 from src.agents.extraction_agent import chunk_text
 from src.llm.sglang_client import BrowserAction
+from src.llm.tool_loop import OpenAICompatibleToolLoop, ToolFunction, ToolLoopError
 from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
 
 DEFAULT_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
@@ -343,14 +344,13 @@ class EdgarLLMClient:
         if not section_1a or not section_1a.strip():
             raise ValueError("section_1a cannot be empty or None")
 
-        started = datetime.now(tz=UTC)
         prompt = self._build_risk_prompt(section_1a[:DEFAULT_CHUNK_SIZE], company_name, year)
         messages = [
             {"role": "system", "content": _RISK_SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
         try:
-            content, call = self._chat(
+            content, _call = self._chat(
                 messages,
                 step_name="analyze_company_mvp",
                 chunk_id=None,
@@ -406,6 +406,78 @@ class EdgarLLMClient:
         except Exception:
             return ""
         return content
+
+    def complete_with_tools(
+        self,
+        prompt: str,
+        *,
+        tools: list[dict[str, Any]],
+        tool_map: Mapping[str, ToolFunction],
+        system: str | None = None,
+        max_tool_rounds: int = 4,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        tool_choice: str | dict[str, Any] = "auto",
+        extra_body: dict[str, Any] | None = None,
+    ) -> str:
+        """General-purpose OpenAI-compatible tool-calling completion.
+
+        This is the local/vLLM/SGLang counterpart to
+        :meth:`DeepSeekClient.complete_with_tools`. It assumes the configured
+        local server supports OpenAI-compatible ``tools`` / ``tool_calls``.
+        """
+        try:
+            return self._tool_loop().complete(
+                prompt,
+                tools=tools,
+                tool_map=tool_map,
+                system=system,
+                max_tool_rounds=max_tool_rounds,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                tool_choice=tool_choice,
+                extra_body=extra_body,
+            )
+        except ToolLoopError as exc:
+            raise RiskExtractorError(str(exc)) from exc
+
+    def chat_with_tools(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        tools: list[dict[str, Any]],
+        tool_map: Mapping[str, ToolFunction],
+        max_tool_rounds: int = 4,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+        tool_choice: str | dict[str, Any] = "auto",
+        extra_body: dict[str, Any] | None = None,
+    ) -> tuple[str, list[LLMCall]]:
+        """Return ``(final_text, audit_calls)`` after resolving tool calls."""
+        try:
+            return self._tool_loop().chat(
+                messages,
+                tools=tools,
+                tool_map=tool_map,
+                max_tool_rounds=max_tool_rounds,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                tool_choice=tool_choice,
+                extra_body=extra_body,
+            )
+        except ToolLoopError as exc:
+            raise RiskExtractorError(str(exc)) from exc
+
+    def _tool_loop(self) -> OpenAICompatibleToolLoop:
+        return OpenAICompatibleToolLoop(
+            client=self.client,
+            model=self.model,
+            provider=self.provider,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            llm_call_sink=self._llm_call_sink,
+            step_name="local_tool_calling",
+        )
 
     def summarize(self, content: str) -> str:
         """Summarize browser page content for market exploration."""
@@ -512,18 +584,20 @@ Allowed actions: search, navigate, click, scroll, stop."""
         errors: list[str] = []
         for index, raw in enumerate(raw_risks):
             if isinstance(raw, str):
-                raw = {"risk_factor": raw, "severity": 3, "quote": ""}
-            if not isinstance(raw, dict):
+                item = {"risk_factor": raw, "severity": 3, "quote": ""}
+            else:
+                item = raw
+            if not isinstance(item, dict):
                 errors.append(f"item {index}: not a dict or string")
                 continue
             risk_factor = (
-                raw.get("risk_factor")
-                or raw.get("description")
-                or raw.get("risk")
+                item.get("risk_factor")
+                or item.get("description")
+                or item.get("risk")
                 or ""
             )
-            quote = raw.get("quote") or raw.get("text") or ""
-            severity_raw = raw.get("severity", raw.get("risk_level", 3))
+            quote = item.get("quote") or item.get("text") or ""
+            severity_raw = item.get("severity", item.get("risk_level", 3))
             try:
                 severity = int(severity_raw)
             except (TypeError, ValueError):

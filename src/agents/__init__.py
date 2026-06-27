@@ -10,10 +10,12 @@ top of the project schemas. It exposes:
 - ``Tool`` protocol and ``ToolRegistry`` (uniform tool dispatch with error
   capture)
 - ``AgentRuntime`` (the orchestrator that runs plans end-to-end)
+- ``LLMToolAgentRuntime`` (OpenAI-compatible LLM-selected tool loop)
 """
 
 from src.agents.base import Agent, AsyncAgent
 from src.agents.critic import CriticAgent
+from src.agents.llm_runtime import LLMToolAgentRuntime, LLMToolRunResult
 from src.agents.planner import AgentPlan, PlannerAgent, PlanStep, PlanStepAction
 from src.agents.runtime import AgentRuntime
 from src.agents.state import AgentState, ToolCall
@@ -26,6 +28,8 @@ __all__ = [
     "AgentState",
     "AsyncAgent",
     "CriticAgent",
+    "LLMToolAgentRuntime",
+    "LLMToolRunResult",
     "PlanStep",
     "PlanStepAction",
     "PlannerAgent",

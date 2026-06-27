@@ -286,6 +286,15 @@ DeepSeek's public API is OpenAI-compatible
    DEEPSEEK_API_KEY=sk-...
    ```
 
+   The Python code reads environment variables from the process. If you
+   run commands from a shell, export the file first:
+
+   ```bash
+   set -a
+   source .env
+   set +a
+   ```
+
 3. Use the client in code:
 
    ```python
@@ -304,6 +313,70 @@ DeepSeek's public API is OpenAI-compatible
    client = DeepSeekClient()
    result = client.extract_risks(
        section_1a, company_name="Apple", year=2024
+   )
+   ```
+
+5. For OpenAI-compatible tool calling, use the explicit application-side
+   loop. DeepSeek can request tool calls, but it will not execute local
+   Python functions by itself. The same loop is also available on
+   `EdgarLLMClient` for local vLLM/SGLang/OpenAI-compatible servers:
+
+   ```python
+   from src.llm.deepseek_client import DeepSeekClient
+
+   def lookup_metric(ticker: str) -> dict:
+       return {"ticker": ticker, "gross_margin": 0.46}
+
+   tools = [{
+       "type": "function",
+       "function": {
+           "name": "lookup_metric",
+           "description": "Lookup one financial metric.",
+           "parameters": {
+               "type": "object",
+               "properties": {"ticker": {"type": "string"}},
+               "required": ["ticker"],
+           },
+       },
+   }]
+
+   client = DeepSeekClient()
+   answer = client.complete_with_tools(
+       "Find Apple's margin.",
+       tools=tools,
+       tool_map={"lookup_metric": lookup_metric},
+   )
+   ```
+
+   For project tools such as web search and web fetch, use the shared
+   catalog plus the LLM-driven runtime:
+
+   ```python
+   from src.agents import LLMToolAgentRuntime
+   from src.llm import build_client_from_settings
+   from src.tools.catalog import build_project_tool_catalog
+
+   client = build_client_from_settings()
+   catalog = build_project_tool_catalog()
+   runtime = LLMToolAgentRuntime(llm_client=client, tool_catalog=catalog)
+
+   result = runtime.run("Find recent evidence about AAPL supply chain risk.")
+   print(result.final_answer)
+   print([call.tool_name for call in result.tool_calls])
+   ```
+
+   The first implementation plan for this mode is documented in
+   `docs/implementation-plan/20-llm-driven-tool-calling-agent-loop.md`.
+   For local vLLM/SGLang, replace the client line with:
+
+   ```python
+   from src.llm import EdgarLLMClient
+
+   client = EdgarLLMClient(
+       base_url="http://localhost:8000/v1",
+       api_key="dummy",
+       model="Qwen/Qwen3.5-35B-A3B",
+       provider="vllm",
    )
    ```
 
