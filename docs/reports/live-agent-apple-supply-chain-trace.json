@@ -1,0 +1,590 @@
+{
+  "provider": "deepseek",
+  "tools_scope": "company_research",
+  "mode": "native",
+  "query": "真实案例测试：评估 Apple Inc. (AAPL) 当前供应链风险。请由你决定是否调用工具；优先使用 SEC filings 和 web_search/search_and_fetch 获取证据。不要使用 Neo4j 或任何图数据库写入。回答时区分 evidence、inference、uncertainty。",
+  "final_answer": "# Apple Inc. (AAPL) 供应链风险评估\n\n## 一、证据（Evidence）\n\n### 1. 中国制造集中度 — 来自 SEC 10-K\n2025 年 10 月 31 日提交的 10-K（截至 2025 年 9 月 27 日）第 1A 项风险因素明确声明：\n\n> **\"A significant majority of the Company's manufacturing is performed in whole or in part by outsourcing partners located primarily in China mainland, India, Japan, South Korea, Taiwan and Vietnam.\"**\n\n而 Foxconn（富士康）是苹果最主要的制造合作伙伴。\n\n### 2. 2025 年关税冲击 — 来自 SEC 10-K\n同一份文件记载：\n\n> **\"Beginning in the second quarter of 2025, new tariffs were announced on imports to the U.S. ('U.S. Tariffs'), including additional tariffs on imports from China, India, Japan, South Korea, Taiwan, Vietnam and the European Union.\"**\n\n文件还指出美国商务部已启动 **Section 232 调查**，涵盖半导体、半导体制造设备及含半导体的下游产品，意味着更广泛的限制可能即将到来。\n\n### 3. 单源/有限源关键组件依赖 — 来自 SEC 10-K\n\n> **\"Because the Company relies on single or limited sources for the supply and manufacture of many critical components, a business interruption affecting such sources would exacerbate any negative consequences to the Company.\"**\n\n这是苹果自身在监管文件中承认的、明确且重大的结构性脆弱点。台积电 (TSMC) 是苹果 A 系列和 M 系列芯片的唯一代工商（位于台湾）。\n\n### 4. 海外收入占比 — 来自 SEC 10-K\n\n> **\"Sales outside the U.S. represent a majority of the Company's total net sales.\"**\n\n海外销售占多数而制造高度集中于亚洲，意味着多重跨境依存风险。\n\n### 5. 供应链多元化努力 — 来自多来源 Web 证据\n- 苹果正积极将面向美国的 iPhone 生产转移至印度（估计占比 15–20%），但**印度组装线所需的组件仍大量来自中国供应商**\n- 越南现在生产 iPad、AirPods 等产品\n- \"在越南制造的产品现在包括 iPad、AirPods 等\"（Tocco Earth 文章）\n- 一篇行业分析指出：\"中国历经 40 年构建的制造生态系统无法轻易或快速被取代\"（ITI Manufacturing）\n\n### 6. 近期价格调整 — 来自 News 证据\n2026 年 6 月，苹果上调了 MacBook、iPad、Apple TV 和 HomePod 的价格，原因是 **AI 数据中心需求驱动的存储/内存芯片成本飙升**。苹果声明：\"我们知道这不是受欢迎的消息，我们正不懈努力寻找解决方案\"。\n\n### 7. 财务指标 — 来自财务数据\n| 指标 | 数值 |\n|------|------|\n| TTM P/E | 34.33 |\n| 市销率 | 9.23 |\n| 市净率 | 39.14 |\n| ROE | 30.39% |\n| ROIC | 15.91% |\n| 负债/权益比 | 0.80 |\n| PEG (基于 EPS) | 1.56 |\n\n高利润率和高 ROE 表明苹果在供应链上过去拥有强大的议价能力，但当前的中断成本正在被转嫁给消费者。\n\n---\n\n## 二、推论（Inference）\n\n基于以上证据，可以合理推断：\n\n1. **首要风险：地缘政治/关税风险 → 实质且正在升级**  \n   10-K 将 2025 年关税视为**已发生事件**（而非假设性情景），这将其从\"潜在风险\"升格为\"当前成本压力\"。由于苹果逾 80–90% 的制造仍在中国大陆+台湾（尽管正在多元化），而 2025 年关税明确涵盖这些地区，苹果直接承受关税成本。Section 232 对半导体的调查暗示芯片采购可能面临新壁垒——这对苹果而言尤为严重，因为它依赖**单一供应商**（台积电，位于台湾）生产其所有定制处理器。\n\n2. **第二大风险：单源或有限源供应商 → 关键且结构性**  \n   苹果在监管文件中明确承认了这一点，这不仅仅是一种通用陈述——它反映了真实的技术经济现实：苹果的定制芯片、特定显示屏和精密机械组件没有现成的二级供应商。台积电的 3nm/2nm 制程是苹果竞争护城河的一部分，但也构成了一个**单一故障点**。台湾的地缘政治紧张局势意味着这一脆弱性是**不对称的**。\n\n3. **中国粘性风险 → 高且持久**  \n   尽管各类新闻头条强调\"离开中国\"，证据表明印度和越南的组装扩张是一个**多年进程**，而组件级供应链（PCB、电池、被动元件、外壳精密加工）仍然深深嵌入中国生态系统。组件仍在中国的工业集群中制造，然后运往印度进行最终组装——这引入了**双重暴露**（对中国的组件依赖",
+  "tool_calls": [
+    {
+      "round_id": "round-0",
+      "tool_name": "sec_list_filings",
+      "arguments": "{\"ticker\": \"AAPL\", \"form_types\": [\"10-K\", \"10-Q\"], \"limit\": 5}"
+    },
+    {
+      "round_id": "round-0",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supply chain risk 2025 China Taiwan semiconductor\", \"intent\": \"supply_chain\", \"time_range\": \"m\", \"max_results\": 8}"
+    },
+    {
+      "round_id": "round-0",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supplier diversification India Vietnam 2025\", \"intent\": \"supply_chain\", \"time_range\": \"m\", \"max_results\": 8}"
+    },
+    {
+      "round_id": "round-0",
+      "tool_name": "financial_metrics_lookup",
+      "arguments": "{\"ticker\": \"AAPL\"}"
+    },
+    {
+      "round_id": "round-1",
+      "tool_name": "sec_fetch_filing",
+      "arguments": "{\"ticker\": \"AAPL\", \"accession_number\": \"[PHONE]-25-000079\", \"section\": \"1A\"}"
+    },
+    {
+      "round_id": "round-1",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supply chain tariffs Trump China trade war 2025 2026\", \"intent\": \"supply_chain\", \"time_range\": \"m\", \"max_results\": 8}"
+    },
+    {
+      "round_id": "round-1",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple Foxconn India iPhone production 2025 2026 supply chain disruption\", \"intent\": \"supply_chain\", \"time_range\": \"m\", \"max_results\": 8}"
+    },
+    {
+      "round_id": "round-1",
+      "tool_name": "transcript_lookup",
+      "arguments": "{\"ticker\": \"AAPL\", \"year\": 2025, \"quarter\": 4, \"section\": \"all\"}"
+    },
+    {
+      "round_id": "round-2",
+      "tool_name": "sec_fetch_filing",
+      "arguments": "{\"ticker\": \"AAPL\", \"accession_number\": \"[PHONE]-25-000079\", \"section\": \"full_text\"}"
+    },
+    {
+      "round_id": "round-2",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supply chain risk China concentration semiconductor chip dependency 2025\", \"intent\": \"semiconductor_supply_chain\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-2",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supplier list 2025 TSMC chip manufacturing Foxconn assembly\", \"intent\": \"supply_chain\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-2",
+      "tool_name": "transcript_lookup",
+      "arguments": "{\"ticker\": \"AAPL\", \"year\": 2025, \"quarter\": 3}"
+    },
+    {
+      "round_id": "round-3",
+      "tool_name": "web_fetch",
+      "arguments": "{\"url\": \"https://itimanufacturing.com/apple-uses-china-manufacturing\"}"
+    },
+    {
+      "round_id": "round-3",
+      "tool_name": "search_and_fetch",
+      "arguments": "{\"query\": \"Apple 10-K 2025 supply chain risk factors China tariff geopolitical\", \"intent\": \"sec\", \"max_results\": 5, \"max_pages\": 2}"
+    },
+    {
+      "round_id": "round-3",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple Inc supply chain risk assessment 2025 2026 critical components single source\", \"intent\": \"supply_chain\", \"max_results\": 8}"
+    },
+    {
+      "round_id": "round-3",
+      "tool_name": "xbrl_fact_lookup",
+      "arguments": "{\"ticker\": \"AAPL\", \"concepts\": [\"Revenues\", \"GrossProfit\", \"NetIncomeLoss\", \"CapitalExpenditures\", \"InventoryNet\"], \"limit\": 5}"
+    },
+    {
+      "round_id": "round-4",
+      "tool_name": "web_fetch",
+      "arguments": "{\"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm\"}"
+    },
+    {
+      "round_id": "round-4",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"site:sec.gov Apple 10-K 2025 supply chain risk factors Item 1A\", \"intent\": \"sec\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-4",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"\\\"Apple\\\" \\\"supply chain\\\" \\\"single source\\\" OR \\\"limited source\\\" critical components 2025\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-5",
+      "tool_name": "sec_fetch_filing",
+      "arguments": "{\"ticker\": \"AAPL\", \"accession_number\": \"[PHONE]-25-000079\", \"section\": \"section_7\"}"
+    },
+    {
+      "round_id": "round-5",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple earnings call Q4 2025 supply chain commentary Tim Cook\", \"intent\": \"transcript\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-5",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple 2025 supplier list China concentration percentage iPhone production India shift\", \"intent\": \"supply_chain\", \"max_results\": 5}"
+    },
+    {
+      "round_id": "round-6",
+      "tool_name": "browser_explore",
+      "arguments": "{\"goal\": \"Find Apple Inc.'s latest 10-K risk factors related to supply chain. Look at the SEC filing on sec.gov for Apple's 2025 10-K, Item 1A Risk Factors, specifically the sections about supply chain concentration, geopolitical risks, single-source components, and tariff exposure.\", \"initial_urls\": [\"https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm\"], \"max_steps\": 8}"
+    },
+    {
+      "round_id": "round-6",
+      "tool_name": "web_search",
+      "arguments": "{\"query\": \"Apple supply chain risk report 2025 TSMC Taiwan semiconductor geopolitical risk\", \"intent\": \"geopolitical\", \"max_results\": 5}"
+    }
+  ],
+  "tool_events": [
+    {
+      "event_id": "tool-event-4ac3db87fb3c",
+      "round_id": "round-0",
+      "tool_call_id": "call_00_DygcHi4I6fDnPiUhWaK27265",
+      "tool_name": "sec_list_filings",
+      "arguments": {
+        "ticker": "AAPL",
+        "form_types": [
+          "10-K",
+          "10-Q"
+        ],
+        "limit": 5
+      },
+      "status": "success",
+      "result_summary": "{\"tool\": \"sec_list_filings\", \"status\": \"success\", \"data\": {\"ticker\": \"AAPL\", \"cik\": \"0000320193\", \"company_name\": \"Apple Inc.\", \"filings\": [{\"cik\": \"0000320193\", \"accession_number\": \"0000320193-26-000013\", \"form_type\": \"10-Q\", \"filing_date\": \"2026-05-01\", \"report_date\": \"2026-03-28\", \"primary_document\": \"aapl-20260328.htm\", \"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm\"}, {\"cik\": \"0000320193\", \"accession_number\": \"0000320193-26-000006\", \"form_type\": \"10-Q\", \"filing_date\": \"2026-01-30\", \"report_date\": \"2025-12-27\", \"primary_document\": \"aapl-20251227.htm\", \"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019326000006/aapl-20251227.htm\"}, {\"cik\": \"0000320193\", \"accession_number\": \"0000320193-25-000079\", \"form_type\": \"10-K\", \"filing_date\": \"2025-10-31\", \"report_date\": \"2025-09-27\", \"primary_document\": \"aapl-20250927.htm\", \"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm\"}, {\"cik\": \"0000320193\", \"accession_number\": \"0000320193-25-000073\", \"form_type\": \"10-Q\", \"filing_date\": \"2025-08-01\", \"report_date\": \"2025-06-28\", \"primary_document\": \"aapl-20250628.htm\", \"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019325000073/aapl-20250628.htm\"}, {\"cik\": \"0000320193\", \"accession_number\": \"0000320193-25-000057\", \"form_type\": \"10-Q\", \"filing_date\": \"2025-05-02\", \"report_date\": \"2025-03-29\", \"primary_document\": \"aapl-20250329.htm\", \"url\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019325000057/aapl-20250329.htm\"}]}, \"evidence_kind\": \"filing\", \"warnings\": [], \"truncated\": false}",
+      "latency_ms": 739,
+      "error": null,
+      "result_chars": 1609,
+      "truncated": false,
+      "created_at": "2026-06-27T13:42:25.111185Z"
+    },
+    {
+      "event_id": "tool-event-261318057385",
+      "round_id": "round-0",
+      "tool_call_id": "call_01_DQxIC9M34cdvbSlIJdjK4289",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supply chain risk 2025 China Taiwan semiconductor",
+        "intent": "supply_chain",
+        "time_range": "m",
+        "max_results": 8
+      },
+      "status": "success",
+      "result_summary": "{\"tool\": \"web_search\", \"status\": \"success\", \"data\": {\"provider\": \"tavily\", \"query\": \"Apple supply chain risk 2025 China Taiwan semiconductor suppliers contract manufacturing outsourcing\", \"retrieved_at\": \"2026-06-27T13:42:26.716490Z\", \"results\": [{\"title\": \"Q3 outlook brightens for Taiwanese suppliers on Apple AI push\", \"url\": \"https://www.taiwannews.com.tw/news/6382390\", \"snippet\": \"TAIPEI (Taiwan News) — Taiwanese suppliers in Apple's supply chain are expected to see renewed momentum in the third quarter as Apple's latest AI-focused\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 1, \"metadata\": {\"score\": 0.29930022, \"provider\": \"tavily\"}}], \"raw\": {\"query\": \"Apple supply chain risk 2025 China Taiwan semiconductor suppliers contract manufacturing outsourcing\", \"follow_up_questions\": null, \"answer\": null, \"images\": [], \"results\": [{\"url\": \"https://www.taiwannews.com.tw/news/6382390\", \"title\": \"Q3 outlook brightens for Taiwanese suppliers on Apple AI push\", \"content\": \"TAIPEI (Taiwan News) — Taiwanese suppliers in Apple's supply chain are expected to see renewed momentum in the third quarter as Apple's latest AI-focused\", \"score\": 0.29930022, \"raw_content\": null}], \"response_time\": 0.94, \"request_id\": \"ac6d6a94-9ee8-467d-8cab-c606fc133218\"}}, \"evidence_kind\": \"web\", \"warnings\": [], \"truncated\": false}",
+      "latency_ms": 1611,
+      "error": null,
+      "result_chars": 1325,
+      "truncated": false,
+      "created_at": "2026-06-27T13:42:26.722347Z"
+    },
+    {
+      "event_id": "tool-event-81a8781024b9",
+      "round_id": "round-0",
+      "tool_call_id": "call_02_2mLOGWnKfQ6ixsGWGs0z7033",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supplier diversification India Vietnam 2025",
+        "intent": "supply_chain",
+        "time_range": "m",
+        "max_results": 8
+      },
+      "status": "success",
+      "result_summary": "{\"tool\": \"web_search\", \"status\": \"success\", \"data\": {\"provider\": \"tavily\", \"query\": \"Apple supplier diversification India Vietnam 2025 suppliers contract manufacturing outsourcing\", \"retrieved_at\": \"2026-06-27T13:42:28.368363Z\", \"results\": [{\"title\": \"Amid rising tensions between China and the United States, Apple is ...\", \"url\": \"https://www.facebook.com/fakiruddin.khan.184/posts/amid-rising-tensions-between-china-and-the-united-states-apple-is-reportedly-exp/2099801804747608\", \"snippet\": \"Recent U.S.-China trade tensions and tariffs, including a 54% levy in 2025, push Apple to diversify to India and Vietnam, where 15–20% of iPhones may be made by\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 1, \"metadata\": {\"score\": 0.60805947, \"provider\": \"tavily\"}}, {\"title\": \"Forvis Mazars in Vietnam - Facebook\", \"url\": \"https://www.facebook.com/ForvisMazarsVN/posts/growingglobal-successful-international-expansion-depends-on-supply-chains-that-c/1423577023121955\", \"snippet\": \"Supplier Diversification Identifying alternative suppliers across regions can prevent disruptions. Apple, for instance, shifted\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 2, \"metadata\": {\"score\": 0.4116553, \"provider\": \"tavily\"}}, {\"title\": \"How to decide whether to move out of or remain in China regarding sourcing\", \"url\": \"https://firstratemold.com/how-to-decide-whether-to-move-out-of-or-remain-in-china-regarding-sourcing\", \"snippet\": \"Apple's sourcing shift illustrates the point well. Even as Apple has actively diversified production to Vietnam and India, JPMorgan analysis projected\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 3, \"metadata\": {\"score\": 0.33287454, \"provider\": \"tavily\"}}, {\"title\": \"Vietnam vs China Supply Chain Stability in 2026 - LinkedIn\", \"url\": \"https://www.linkedin.com/posts/alexhandicraft_vietnam-vs-china-which-supply-chain-activity-7467954411722612737-Deii\", \"snippet\": \"How is your company approaching supply chain diversification in 2025? Are you increasing sourcing in Vietnam, staying focused on China, or building a multi-\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 4, \"metadata\": {\"score\": 0.28711322, \"provider\": \"tavily\"}}, {\"title\": \"Vietnam's Economic Boom Explained, and what it means for Investors\", \"url\": \"https://tocco.earth/article/vietnam-booming-economy\", \"snippet\": \"Apple's supply chain presence in Vietnam is a different but equally significant form of industrial embedding. Vietnam-manufactured products now include iPads,\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 5, \"metadata\": {\"score\": 0.24998283, \"provider\": \"tavily\"}}, {\"title\": \"Why does Apple Manufacture in China?\", \"url\": \"https://itimanufacturing.com/apple-uses-china-manufacturing\", \"snippet\": \"Apple manufactures in China for a reason—and it’s not just low labor costs. Here’s what U.S. companies can learn from Apple’s global production strategy. The answer is not as simple as “cost savings” — and in 2026, it has become even more complicated. Apple is actively working to shift U.S.-bound iPhone production to India. And yet China still manufactures the vast majority of Apple’s global output, and the components feeding Apple’s Indian assembly lines still largely come from Chinese suppliers. The lesson for U.S. companies is not that China is invincible. It’s that the manufacturing ecosystem built there over 40 years is not easily or quickly replaced. This article explores why Apple chose China, what advantages the country continues to provide, how the current shift is unfolding, and what smaller U.S. companies can apply to their own sourcing decisions. Apple manufactures in China because China has the supplier base, workforce, infrastructure, and production flexibility needed to make complex products at very high volume.\", \"published_at\": null, \"source\": \"tavily\", \"rank\": 6, \"metadata\": {\"score\": 0.21675707, \"provider\": \"tavily\"}}, {\"title\": \"Instagram\", \"url\": \"https://www.instagram.com/reel/DZUz32TESMe\", \"snippet\": \"May be an image of",
+      "latency_ms": 1652,
+      "error": null,
+      "result_chars": 10871,
+      "truncated": false,
+      "created_at": "2026-06-27T13:42:28.374739Z"
+    },
+    {
+      "event_id": "tool-event-50c1d0fa2255",
+      "round_id": "round-0",
+      "tool_call_id": "call_03_ISizuruJn8f1ASbtsuxu2461",
+      "tool_name": "financial_metrics_lookup",
+      "arguments": {
+        "ticker": "AAPL"
+      },
+      "status": "success",
+      "result_summary": "{\"tool\": \"financial_metrics_lookup\", \"status\": \"success\", \"data\": {\"ticker\": \"AAPL\", \"source\": \"fetch_financial_metrics_defeatbeta\", \"metrics\": {\"ttm_pe\": 34.33, \"ps_ratio\": 9.23, \"pb_ratio\": 39.14, \"peg_ratio_by_eps\": 1.56, \"roe\": 0.3039, \"roic\": 0.1591, \"debt_to_equity\": 0.8}}, \"evidence_kind\": \"financial_metric\", \"warnings\": [], \"truncated\": false}",
+      "latency_ms": 4494,
+      "error": null,
+      "result_chars": 353,
+      "truncated": false,
+      "created_at": "2026-06-27T13:42:32.869526Z"
+    },
+    {
+      "event_id": "tool-event-714dd0d118d1",
+      "round_id": "round-1",
+      "tool_call_id": "call_00_OWaO4axFFwQzMmjb8WNJ6848",
+      "tool_name": "sec_fetch_filing",
+      "arguments": {
+        "ticker": "AAPL",
+        "accession_number": "0000320193-25-000079",
+        "section": "1A"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"{\\\"tool\\\": \\\"sec_fetch_filing\\\", \\\"status\\\": \\\"success\\\", \\\"data\\\": {\\\"truncated_text\\\": \\\"{\\\\\\\"ticker\\\\\\\": \\\\\\\"AAPL\\\\\\\", \\\\\\\"cik\\\\\\\": \\\\\\\"0000320193\\\\\\\", \\\\\\\"accession_number\\\\\\\": \\\\\\\"0000320193-25-000079\\\\\\\", \\\\\\\"form_type\\\\\\\": \\\\\\\"10-K\\\\\\\", \\\\\\\"filing_date\\\\\\\": \\\\\\\"2025-10-31\\\\\\\", \\\\\\\"section\\\\\\\": \\\\\\\"section_1a\\\\\\\", \\\\\\\"text\\\\\\\": \\\\\\\"The following summarizes factors that could have a material adverse effect on the Company’s business, reputation, results of operations, financial condition and stock price. The Company may not be able to accurately predict, control or mitigate these risks. Statements in this section are based on the Company’s beliefs and opinions regarding matters that could materially adversely affect the Company in the future and are not representations as to whether such matters have or have not occurred previously. The risks and uncertainties described below are not exhaustive and should not be considered a complete statement of all potential risks or uncertainties that the Company faces or may face in the future.\\\\\\\\nThis section should be read in conjunction with Part II, Item 7, “Management’s Discussion and Analysis of Financial Condition and Results of Operations” and the consolidated financial statements and accompanying notes in Part II, Item 8, “Financial Statements and Supplementary Data” of this Form 10-K.\\\\\\\\nMacroeconomic and Industry Risks\\\\\\\\nThe Company’s operations and performance depend significantly on global and regional economic conditions and adverse economic conditions can materially adversely affect the Company’s business, results of operations, financial condition and stock price.\\\\\\\\nThe Company has international operations with sales outside the U.S. representing a majority of the Company’s total net sales. In addition, the Company’s global supply chain is large and complex and a majority of the Company’s supplier facilities, including manufacturing and assembly sites, are located outside the U.S. As a result, the Company’s operations and performance depend significantly on global and regional economic conditions.\\\\\\\\nAdverse macroeconomic conditions, including slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations, can adversely impact consumer confidence and spending and materially adversely affect demand for the Company’s products and services. In addition, consumer confidence and spending can be materially adversely affected in response to changes in fiscal and monetary policy, financial market volatility, declines in income or asset values, and other economic factors.\\\\\\\\nUncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers. Potential outcomes include financial instability; inability to obtain credit to finance business operations; and insolvency.\\\\\\\\nAdverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments. These and other impacts can materially adversely affect the Company’s business, results of operations, financial condition and stock price.\\\\\\\\nApple Inc. | 2025 Form 10-K | 5\\\\\\\\nThe Company’s business can be impacted by political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions.\\\\\\\\nPolitical events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accident",
+      "latency_ms": 781,
+      "error": null,
+      "result_chars": 12173,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:38.307963Z"
+    },
+    {
+      "event_id": "tool-event-cc311c725031",
+      "round_id": "round-1",
+      "tool_call_id": "call_01_LQLQxsjZT6RgNbcNTOS26345",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supply chain tariffs Trump China trade war 2025 2026",
+        "intent": "supply_chain",
+        "time_range": "m",
+        "max_results": 8
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"{\\\"tool\\\": \\\"web_search\\\", \\\"status\\\": \\\"success\\\", \\\"data\\\": {\\\"truncated_text\\\": \\\"{\\\\\\\"provider\\\\\\\": \\\\\\\"tavily\\\\\\\", \\\\\\\"query\\\\\\\": \\\\\\\"Apple supply chain tariffs Trump China trade war 2025 2026 suppliers contract manufacturing outsourcing\\\\\\\", \\\\\\\"retrieved_at\\\\\\\": \\\\\\\"2026-06-27T13:42:39.822779Z\\\\\\\", \\\\\\\"results\\\\\\\": [{\\\\\\\"title\\\\\\\": \\\\\\\"TheCable - Facebook\\\\\\\", \\\\\\\"url\\\\\\\": \\\\\\\"https://www.facebook.com/thecableng/posts/top-stories-on-thecable-this-morning-27062026were-under-attack-but-we-shall-win-/1339791081670528\\\\\\\", \\\\\\\"snippet\\\\\\\": \\\\\\\"## TheCable's Post. ### **TheCable**. TOP STORIES ON THECABLE THIS MORNING | 27/06/2026. ‘We’re under attack, but we shall win’ — Seriake Dickson reacts to court ruling voiding NDC registration. https://www.thecable.ng/were-under-attack-but-we-shall.../. Tinubu signs NIMC Act 2026 into law as FG moves to strengthen cybersecurity. https://www.thecable.ng/tinubu-signs-nimc-act-2026-into.../. NDC: All our candidates will be on the ballot in 2027 — they have nothing to fear. https://www.thecable.ng/ndc-all-our-candidates-will-be.../. This is the worst possible time to implement state police, says Hakeem Baba-Ahmed. https://www.thecable.ng/this-is-the-worst-possible-time.../. https://www.thecable.ng/world-cup-senegal-score-five-to.../. US strikes Iran after attack on cargo ship in Strait of Hormuz. https://www.thecable.ng/us-strikes-iran-after-attack-on.../. SPOTTED: Council Gbaja claims doesn’t exist was allocated N1.3bn in 2026 budget. https://www.thecable.ng/spotted-council-gbaja-claims.../. ‘Setback for democracy’ — Obi faults court ruling voiding NDC registration. https://www.thecable.ng/setback-for-democracy-obi-faults.../. ‘Foolish violation of ceasefire’ — Trump accuses Iran of cargo ship attack in Strait of Hormuz. https://www.thecable.ng/foolish-violation-of-ceasefire.../. https://www.thecable.ng/tinubu-establishes-health.../. NDC rejects court order voiding its registration, heads to appeal court. https://www.thecable.ng/ndc-rejects-court-order-voiding.../. https://www.thecable.ng/just-in-mtn-group-chair-condemns.../. https://www.thecable.ng/us-hospital-treats-sickle-cell.../. https://www.thecable.ng/breaking-court-sets-aside.../. https://www.thecable.ng/nigeria-draws-1-5bn-as-first.../. https://www.thecable.ng/photos-obasanjo-kwankwaso-hold.../. https://www.thecable.ng/its-been-very-bad-tokunbo-wahab.../. https://www.thecable.ng/you-dont-need-much-to-start.../. https://www.thecable.ng/taiwo-oyedele-nigeria-still-not.../.\\\\\\\", \\\\\\\"published_at\\\\\\\": null, \\\\\\\"source\\\\\\\": \\\\\\\"tavily\\\\\\\", \\\\\\\"rank\\\\\\\": 1, \\\\\\\"metadata\\\\\\\": {\\\\\\\"score\\\\\\\": 0.097056314, \\\\\\\"provider\\\\\\\": \\\\\\\"tavily\\\\\\\"}}, {\\\\\\\"title\\\\\\\": \\\\\\\"June 27: Apple has increased the prices of several products ...\\\\\\\", \\\\\\\"url\\\\\\\": \\\\\\\"https://www.facebook.com/filmyfigures/posts/june-27-apple-has-increased-the-prices-of-several-products-including-macbooks-ip/122250801740133055\\\\\\\", \\\\\\\"snippet\\\\\\\": \\\\\\\"### **FilmyFigures**. June 27: Apple has increased the prices of several products, including MacBooks, iPads, Apple TV and HomePod models, with some variants seeing hikes of up to ₹1 lakh in India and other global markets. In a statement, the California-based technology giant said the decision was driven by a sharp rise in memory and storage chip costs caused by growing demand from AI data centres. \\\\\\\\\\\\\\\"We know this isn't welcome news, and we're working tirelessly to find solutions,\\\\\\\\\\\\\\\" Apple said, adding that it had \\\\\\\\\\\\\\\"shielded customers from these increases so far\\\\\\\\\\\\\\\" but had now reached a point where price increases were unavoidable. Apple said the surge in demand for memory and storage components has led to unprecedented cost increases across the consumer electronics industry. #Apple #MacBook #iPad #Technology #AI #FilmyFigures. May be an image of phone and text that says ''We Know This Is Not Welcome News': Apple After Raising Product Prices by Up to ₹1 Lakh Apple has r",
+      "latency_ms": 1517,
+      "error": null,
+      "result_chars": 12621,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:39.825381Z"
+    },
+    {
+      "event_id": "tool-event-fc871384dd84",
+      "round_id": "round-1",
+      "tool_call_id": "call_02_DVmdVjeqShyQjopREkhD9021",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple Foxconn India iPhone production 2025 2026 supply chain disruption",
+        "intent": "supply_chain",
+        "time_range": "m",
+        "max_results": 8
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"{\\\"tool\\\": \\\"web_search\\\", \\\"status\\\": \\\"success\\\", \\\"data\\\": {\\\"provider\\\": \\\"tavily\\\", \\\"query\\\": \\\"Apple Foxconn India iPhone production 2025 2026 supply chain disruption suppliers contract manufacturing outsourcing\\\", \\\"retrieved_at\\\": \\\"2026-06-27T13:42:41.499236Z\\\", \\\"results\\\": [{\\\"title\\\": \\\"苹果在中国：全球最伟大公司的俘获 - SoBrief\\\", \\\"url\\\": \\\"https://sobrief.com/zh/books/apple-in-china\\\", \\\"snippet\\\": \\\"How did Foxconn become Apple's dominant manufacturing partner according to Patrick McGee? What is the “Red Supply Chain” and how does it impact Apple, as\\\", \\\"published_at\\\": null, \\\"source\\\": \\\"tavily\\\", \\\"rank\\\": 1, \\\"metadata\\\": {\\\"score\\\": 0.15637554, \\\"provider\\\": \\\"tavily\\\"}}], \\\"raw\\\": {\\\"query\\\": \\\"Apple Foxconn India iPhone production 2025 2026 supply chain disruption suppliers contract manufacturing outsourcing\\\", \\\"follow_up_questions\\\": null, \\\"answer\\\": null, \\\"images\\\": [], \\\"results\\\": [{\\\"url\\\": \\\"https://sobrief.com/zh/books/apple-in-china\\\", \\\"title\\\": \\\"苹果在中国：全球最伟大公司的俘获 - SoBrief\\\", \\\"content\\\": \\\"How did Foxconn become Apple's dominant manufacturing partner according to Patrick McGee? What is\", \"original_chars\": 1289}",
+      "latency_ms": 1676,
+      "error": null,
+      "result_chars": 1190,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:41.502342Z"
+    },
+    {
+      "event_id": "tool-event-2d5f93f92170",
+      "round_id": "round-1",
+      "tool_call_id": "call_03_bjGWQq357hObDgzu4RAU1358",
+      "tool_name": "transcript_lookup",
+      "arguments": {
+        "ticker": "AAPL",
+        "year": 2025,
+        "quarter": 4,
+        "section": "all"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 20252}",
+      "latency_ms": 567,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:42.069969Z"
+    },
+    {
+      "event_id": "tool-event-dae64160afaa",
+      "round_id": "round-2",
+      "tool_call_id": "call_00_e6pdeAkABlxmdaAF9mYI7417",
+      "tool_name": "sec_fetch_filing",
+      "arguments": {
+        "ticker": "AAPL",
+        "accession_number": "0000320193-25-000079",
+        "section": "full_text"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 25140}",
+      "latency_ms": 688,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:47.281343Z"
+    },
+    {
+      "event_id": "tool-event-40e0d1a00bf8",
+      "round_id": "round-2",
+      "tool_call_id": "call_01_3uhcszzz7z4R5KpVCdoc3893",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supply chain risk China concentration semiconductor chip dependency 2025",
+        "intent": "semiconductor_supply_chain",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12343}",
+      "latency_ms": 2107,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:49.389178Z"
+    },
+    {
+      "event_id": "tool-event-3343cf6f4723",
+      "round_id": "round-2",
+      "tool_call_id": "call_02_g4vBrmsOPiK66BZxq4nj7280",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supplier list 2025 TSMC chip manufacturing Foxconn assembly",
+        "intent": "supply_chain",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12349}",
+      "latency_ms": 1586,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:50.975698Z"
+    },
+    {
+      "event_id": "tool-event-851f1db69c39",
+      "round_id": "round-2",
+      "tool_call_id": "call_03_Eg2TrkZg0Q1KZeOkYfLq1511",
+      "tool_name": "transcript_lookup",
+      "arguments": {
+        "ticker": "AAPL",
+        "year": 2025,
+        "quarter": 3
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 20252}",
+      "latency_ms": 63,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:51.039244Z"
+    },
+    {
+      "event_id": "tool-event-9a010e5a2f7d",
+      "round_id": "round-3",
+      "tool_call_id": "call_00_g7wC3scvuTWE56iJTTHP9589",
+      "tool_name": "web_fetch",
+      "arguments": {
+        "url": "https://itimanufacturing.com/apple-uses-china-manufacturing"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 354}",
+      "latency_ms": 1542,
+      "error": null,
+      "result_chars": 64,
+      "truncated": true,
+      "created_at": "2026-06-27T13:42:56.428716Z"
+    },
+    {
+      "event_id": "tool-event-a61c80e7a11a",
+      "round_id": "round-3",
+      "tool_call_id": "call_01_tTrDOQNeLdnONLna32cv8578",
+      "tool_name": "search_and_fetch",
+      "arguments": {
+        "query": "Apple 10-K 2025 supply chain risk factors China tariff geopolitical",
+        "intent": "sec",
+        "max_results": 5,
+        "max_pages": 2
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 18410}",
+      "latency_ms": 3845,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:00.274193Z"
+    },
+    {
+      "event_id": "tool-event-cdf703489cf7",
+      "round_id": "round-3",
+      "tool_call_id": "call_02_dwafOn62Tw2fU88Ujfn71866",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple Inc supply chain risk assessment 2025 2026 critical components single source",
+        "intent": "supply_chain",
+        "max_results": 8
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12352}",
+      "latency_ms": 1796,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:02.070531Z"
+    },
+    {
+      "event_id": "tool-event-f678650bfc29",
+      "round_id": "round-3",
+      "tool_call_id": "call_03_PrOmAHJibUpUIDsHjT9p6662",
+      "tool_name": "xbrl_fact_lookup",
+      "arguments": {
+        "ticker": "AAPL",
+        "concepts": [
+          "Revenues",
+          "GrossProfit",
+          "NetIncomeLoss",
+          "CapitalExpenditures",
+          "InventoryNet"
+        ],
+        "limit": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 3386}",
+      "latency_ms": 2444,
+      "error": null,
+      "result_chars": 65,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:04.514879Z"
+    },
+    {
+      "event_id": "tool-event-37ed777761b4",
+      "round_id": "round-4",
+      "tool_call_id": "call_00_MQqXPUkVOnc1IoGwb7V69754",
+      "tool_name": "web_fetch",
+      "arguments": {
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12172}",
+      "latency_ms": 809,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:08.933311Z"
+    },
+    {
+      "event_id": "tool-event-f3cde697b7c4",
+      "round_id": "round-4",
+      "tool_call_id": "call_01_UNWnI22vthEwFJrje9Q58273",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "site:sec.gov Apple 10-K 2025 supply chain risk factors Item 1A",
+        "intent": "sec",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12865}",
+      "latency_ms": 1535,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:10.469283Z"
+    },
+    {
+      "event_id": "tool-event-8be168b9eb51",
+      "round_id": "round-4",
+      "tool_call_id": "call_02_l0JNOBQyMC9EO1nk6qEx7620",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "\"Apple\" \"supply chain\" \"single source\" OR \"limited source\" critical components 2025",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12402}",
+      "latency_ms": 1407,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:11.877158Z"
+    },
+    {
+      "event_id": "tool-event-81fd9d1644a9",
+      "round_id": "round-5",
+      "tool_call_id": "call_00_X7hOqJkKgURppeivVMUr7942",
+      "tool_name": "sec_fetch_filing",
+      "arguments": {
+        "ticker": "AAPL",
+        "accession_number": "0000320193-25-000079",
+        "section": "section_7"
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 18772}",
+      "latency_ms": 698,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:16.479830Z"
+    },
+    {
+      "event_id": "tool-event-2cca6cc5357e",
+      "round_id": "round-5",
+      "tool_call_id": "call_01_ogrbjSBqAO2MO2ln3DNd7807",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple earnings call Q4 2025 supply chain commentary Tim Cook",
+        "intent": "transcript",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12450}",
+      "latency_ms": 826,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:17.306670Z"
+    },
+    {
+      "event_id": "tool-event-7494abfaef48",
+      "round_id": "round-5",
+      "tool_call_id": "call_02_moY4YGdwO6teFOSSylTH7619",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple 2025 supplier list China concentration percentage iPhone production India shift",
+        "intent": "supply_chain",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12354}",
+      "latency_ms": 1763,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:43:19.070137Z"
+    },
+    {
+      "event_id": "tool-event-28f19f20bba4",
+      "round_id": "round-6",
+      "tool_call_id": "call_00_ZIHTJYncHzPHZGvK62MX5544",
+      "tool_name": "browser_explore",
+      "arguments": {
+        "goal": "Find Apple Inc.'s latest 10-K risk factors related to supply chain. Look at the SEC filing on sec.gov for Apple's 2025 10-K, Item 1A Risk Factors, specifically the sections about supply chain concentration, geopolitical risks, single-source components, and tariff exposure.",
+        "initial_urls": [
+          "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+        ],
+        "max_steps": 8
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 1018}",
+      "latency_ms": 103948,
+      "error": null,
+      "result_chars": 65,
+      "truncated": true,
+      "created_at": "2026-06-27T13:45:06.791864Z"
+    },
+    {
+      "event_id": "tool-event-fa873f88ea9f",
+      "round_id": "round-6",
+      "tool_call_id": "call_01_jPZVvZXtni8Giyikbrv10582",
+      "tool_name": "web_search",
+      "arguments": {
+        "query": "Apple supply chain risk report 2025 TSMC Taiwan semiconductor geopolitical risk",
+        "intent": "geopolitical",
+        "max_results": 5
+      },
+      "status": "success",
+      "result_summary": "{\"truncated\": true, \"truncated_text\": \"\", \"original_chars\": 12338}",
+      "latency_ms": 1724,
+      "error": null,
+      "result_chars": 66,
+      "truncated": true,
+      "created_at": "2026-06-27T13:45:08.516565Z"
+    }
+  ],
+  "source_urls": [
+    "https://itimanufacturing.com/apple-uses-china-manufacturing",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019325000057/aapl-20250329.htm",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019325000073/aapl-20250628.htm",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019326000006/aapl-20251227.htm",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm",
+    "https://www.taiwannews.com.tw/news/6382390"
+  ],
+  "uncertainty": null,
+  "budget_usage": {
+    "max_tool_result_chars": 12000,
+    "max_total_tool_result_chars": 40000,
+    "used_tool_result_chars": 41260,
+    "truncated_events": 20
+  },
+  "trace_path": "docs/reports/live-agent-apple-supply-chain-trace.json"
+}
