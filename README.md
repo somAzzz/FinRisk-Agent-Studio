@@ -1,16 +1,31 @@
 # FinRisk Agent Studio
 
-Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, and runtime quality guardrails.
+Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, product supply-chain exploration, runtime quality guardrails, and human review.
 
-## One-line Summary
+FinRisk Agent Studio is an open-source reference implementation for financial research workflows. It is not a generic "chat with filings" demo. The project focuses on auditable agent execution: structured inputs, tool traces, evidence candidates, deterministic scoring, graph paths, quality gates, and reviewable outputs.
 
-FinRisk Agent Studio is an open-source reference implementation for evidence-first agent workflows in financial risk research.
+## Live Demo
 
-It combines SEC filings, market evidence collection, structured LLM outputs, deterministic risk scoring, graph reasoning, claim grounding, runtime guardrails, and human review gates.
+```text
+https://somazzz.github.io/FinRisk-Agent-Studio/
+```
 
-## Why This Project Exists
+The hosted GitHub Pages version is a static dashboard backed by offline fixtures. It shows the FinRisk workflow timeline, risk report, evidence graph, score breakdown, and evaluation guardrails without requiring API keys, a backend, GPU, Neo4j, or live network access.
 
-The project goal is not a generic "chat with filings" demo. It is a workflow system for financial research:
+## What Works Today
+
+- **FinRisk workflow API**: queued/background FastAPI runs for SEC filing risk extraction, market evidence, normalization, scoring, graph reasoning, report generation, and evaluation.
+- **Runtime quality layer**: schema checks, claim/evidence grounding, source quality, financial-safety checks, graph-path validation, fallback tracking, and human-review status.
+- **Graph reasoning subsystem**: context building, candidate path retrieval, path scoring, evidence binding, safe path interpretation, and graph insight validation.
+- **React workflow console**: launcher, run history, process monitor, timeline, risk report, score breakdown, evidence graph, evaluation panel, claim/evidence matrix, supply-chain explorer, and agent-run trace UI.
+- **Product supply-chain explorer**: evidence-backed product dependency discovery, recursive expansion, Sankey visualization, graph writer path, observability metrics, and quality verdicts.
+- **LLM-driven agent runs**: `/agent-runs` API with provider/tool-loop settings, tool traces, evidence candidates, redacted trace download, and human review actions.
+- **Provider-neutral tool loop**: OpenAI-compatible structured outputs, native tool calling where supported, JSON fallback, budget controls, and no-tool finalization.
+- **Evidence and data tools**: SEC EDGAR, filing sections, transcripts, XBRL/financial metrics, web search/fetch, browser exploration, search routing, caching, and provider fallbacks.
+- **Memory/context guardrails**: evidence-memory adapters, graph-edge memory, active/candidate lifecycle rules, and write guardrails for hypothesis or untrusted evidence.
+- **Deployment path**: GitHub Pages static dashboard published from `gh-pages`; local full-stack mode runs FastAPI + Vite.
+
+## Current Workflow Shape
 
 ```text
 Company Resolver
@@ -23,13 +38,7 @@ Company Resolver
 → Quality Layer / Human Review Gate
 ```
 
-The current roadmap frames the project around two core ideas:
-
-1. **Quality Layer across every step**
-   Evaluation and guardrails run before, during, and after workflow steps. The target checks include schema validity, evidence coverage, claim grounding, source quality, financial safety, graph path validation, and fallback tracking.
-
-2. **Graph Reasoning as a controlled subsystem**
-   Graph reasoning should not mean giving an entire graph to an LLM. The intended design is:
+Graph reasoning is handled as a controlled subsystem:
 
 ```text
 Graph Context Builder
@@ -38,498 +47,239 @@ Graph Context Builder
 → Evidence Binder
 → LLM / Template Path Interpreter
 → Graph Insight Validator
-→ Evidence Graph Visualization
+→ Evidence Graph Payload
 ```
 
-LLMs explain verified paths and generate research hypotheses. They do not invent graph paths, create unsupported facts, or issue buy/sell recommendations.
+LLMs explain verified paths and generate research hypotheses. They do not create unsupported graph facts or issue buy/sell recommendations.
 
-## What Works Today
+## Quick Start
 
-The repository already contains foundational modules for:
-
-- EDGAR data loading
-- SEC filing access and section parsing
-- Hugging Face EDGAR corpus loading
-- SGLang / OpenAI-compatible structured LLM client
-- Browser exploration
-- Search routing and caching
-- Risk, sentiment, opportunity, and report agents
-- Neo4j graph writer/query components
-- Offline demo fixtures and tests
-- Roadmap and implementation specs
-
-## Demo Quick Start
-
-Live static dashboard:
-
-```text
-https://somazzz.github.io/FinRisk-Agent-Studio/
-```
-
-The hosted page is a GitHub Pages static demo backed by offline fixtures. It shows the workflow timeline, risk report, evidence graph, risk scoring, and evaluation guardrails without requiring API keys or a backend.
-
-Install dependencies:
+Install Python dependencies:
 
 ```bash
 uv sync
 ```
 
-Run tests:
+Install frontend dependencies:
 
 ```bash
-uv run pytest -q
+cd frontend
+npm install
 ```
 
-Run the existing offline company analysis demo:
+Run backend locally:
 
 ```bash
-uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+AUTH_DISABLED=1 RATE_LIMIT_DISABLED=1 \
+uv run uvicorn src.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-The planned FinRisk workflow CLI target is:
+Run frontend locally in a second terminal:
 
 ```bash
-uv run python -m src.workflows.finrisk_workflow \
-  --ticker AAPL \
-  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
-  --demo-mode
+cd frontend
+npm run dev
 ```
 
-Demo mode should not require GPU, API keys, Neo4j, browser automation, or live network access.
+Open:
+
+```text
+http://127.0.0.1:5173/
+```
+
+The Vite dev server proxies `/workflows`, `/supply-chain`, and `/agent-runs` to the FastAPI backend.
+
+## Static Dashboard Build
+
+Build the GitHub Pages static demo locally:
+
+```bash
+cd frontend
+GITHUB_PAGES=true VITE_STATIC_DEMO=1 npm run build
+```
+
+Preview it:
+
+```bash
+npm run preview -- --host 127.0.0.1 --port 4173
+```
+
+## API Surface
+
+FastAPI entry point:
+
+```bash
+uv run uvicorn src.api.main:app --reload
+```
+
+Core routes:
+
+```text
+GET  /
+GET  /workflows/health
+GET  /workflows
+POST /workflows/finrisk/run
+GET  /workflows/{run_id}
+GET  /workflows/{run_id}/report
+GET  /workflows/{run_id}/trace
+GET  /workflows/{run_id}/graph
+GET  /workflows/{run_id}/evaluation
+GET  /workflows/{run_id}/artifacts
+GET  /workflows/{run_id}/llm_log
+GET  /workflows/{run_id}/chunks
+GET  /workflows/{run_id}/sections
+GET  /workflows/{run_id}/lifecycles
+
+GET  /supply-chain
+POST /supply-chain/explore
+POST /supply-chain/expand
+GET  /supply-chain/{run_id}
+GET  /supply-chain/{run_id}/sankey
+
+GET  /agent-runs
+POST /agent-runs
+GET  /agent-runs/{run_id}
+GET  /agent-runs/{run_id}/timeline
+GET  /agent-runs/{run_id}/trace.json
+POST /agent-runs/{run_id}/review-items/{item_id}
+POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
+```
+
+By default, API routes require `X-API-Key` via `FINRISK_API_KEYS`. For local development only, set `AUTH_DISABLED=1`.
 
 ## Architecture
 
 ```text
 src/
-├── agents/
-├── api/
-├── browser/
-├── data/
-├── evaluation/
-│   ├── engine.py
-│   ├── models.py
-│   ├── validators/
-│   └── metrics/
-├── graph/
-├── graph_reasoning/
-├── llm/
-├── reports/
-├── schemas/
-├── tools/
-└── workflows/
-    ├── finrisk_workflow.py
-    ├── state.py
-    └── steps/
+├── agents/            # planner, global runtime, tool-driven agent state
+├── api/               # FastAPI routes, auth, rate limit, run stores
+├── browser/           # Playwright and agent-browser exploration backends
+├── data/              # SEC, EDGAR, transcripts, XBRL, ticker resolution
+├── evaluation/        # quality layer, validators, grounding, safety checks
+├── evidence/          # evidence candidate normalization
+├── graph/             # Neo4j-compatible graph clients, queries, writers
+├── graph_reasoning/   # path retrieval, scoring, binding, validation
+├── llm/               # OpenAI-compatible clients and tool-loop runtime
+├── memory/            # evidence/graph memory and context guardrails
+├── reports/           # report models and markdown renderer
+├── supply_chain/      # product supply-chain workflow and Sankey payloads
+├── tools/             # web/search/data/graph tool catalog
+└── workflows/         # FinRisk workflow state, steps, v16 runner
 
 frontend/
-eval/
+├── src/App.tsx
+├── src/staticDemo.ts
+└── src/components/
+
 docs/
 tests/
 ```
 
-## Quality Layer
+## Local LLM and Providers
 
-The V16 plan introduces a runtime quality layer:
+The LLM layer is OpenAI-compatible across local and hosted providers. In practice, most code paths vary only by `base_url`, API key, model, and tool-calling support.
 
-```text
-Layer 1: Schema & Contract Guardrails
-Layer 2: Evidence & Grounding Guardrails
-Layer 3: Domain & Financial Safety Guardrails
-Layer 4: Workflow Quality & Regression Evaluation
-```
+| Provider | `LLM_PROVIDER` | Base URL | Auth env var | Example model |
+|---|---|---|---|---|
+| SGLang | `sglang` | `http://localhost:30000/v1` | `SGLANG_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
+| vLLM | `vllm` | `http://localhost:8000/v1` | `VLLM_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
+| OpenAI | `openai` | `https://api.openai.com/v1` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| DeepSeek | `deepseek` | `https://api.deepseek.com` | `DEEPSEEK_API_KEY` | `deepseek-v4-flash` |
 
-Examples of checks:
-
-- Pydantic schema validity
-- required fields present
-- risk/evidence/claim ID references valid
-- each top risk has evidence
-- each claim has supporting evidence IDs
-- source quality and source diversity
-- no direct buy/sell advice
-- graph path exists in graph
-- graph edge has evidence or is marked as hypothesis
-- fallback events are recorded
-
-## Graph Reasoning
-
-The intended graph flow:
-
-```text
-Company + Risks + Evidence
-→ Graph Query Context
-→ Candidate Graph Paths
-→ Path Score Breakdown
-→ Evidence Binding
-→ Path Interpretation
-→ Graph Insight Validation
-→ Evidence Graph Payload
-```
-
-Example graph path:
-
-```text
-Apple
-→ depends_on
-TSMC
-→ located_in
-Taiwan
-→ exposed_to
-Geopolitical Risk
-```
-
-Insights are allowed to become **research themes** or **hypotheses**, not financial advice.
-
-## Example Output
-
-Example user request:
-
-```text
-Company: Apple
-Ticker: AAPL
-Analysis Goal: Identify macro, policy and supply-chain risks that changed recently.
-Time Horizon: next 6-12 months
-```
-
-Expected output for the planned FinRisk workflow:
-
-- Top risks with severity and score breakdown
-- Filing evidence and recent market evidence
-- Claim-evidence matrix
-- Source quality warnings
-- Supply-chain or policy graph paths
-- Second-order risk insights
-- Structured risk intelligence report
-- Guardrail findings and human review status
-- Evidence graph visualization
-
-## Optional Local LLM Setup
-
-The project can use SGLang for local LLM inference:
+Local stack:
 
 ```bash
 docker compose up -d
 ```
 
-The planned provider configuration:
+For public APIs, copy `.env.example` to `.env` and fill only the providers you intend to use. Demo and CI paths are designed not to require real API keys.
+
+## Evidence Acquisition
+
+Preferred order:
 
 ```text
-LLM_PROVIDER=sglang
-LLM_PROVIDER=openai
-LLM_PROVIDER=deepseek
-LLM_PROVIDER=gemini
-LLM_PROVIDER=claude
-LLM_BASE_URL=http://localhost:30000/v1
-LLM_MODEL=Qwen/Qwen3.5-35B-A3B
-```
-
-Demo mode should not require GPU, API keys, Neo4j, browser automation, or live network access.
-
-## LLM Providers
-
-The LLM layer is OpenAI-compatible across all providers — the only
-thing that changes per provider is the `base_url` and the API key.
-
-| Provider   | `LLM_PROVIDER` | `*_BASE_URL`              | Auth env var        | Default model        |
-|------------|----------------|---------------------------|---------------------|----------------------|
-| SGLang     | `sglang`       | `http://localhost:30000/v1` | `SGLANG_API_KEY`    | `Qwen/Qwen3.5-35B-A3B` |
-| vLLM       | `vllm`         | `http://localhost:8000/v1`   | `VLLM_API_KEY`      | `Qwen/Qwen3.5-35B-A3B` |
-| OpenAI     | `openai`       | `https://api.openai.com/v1`  | `OPENAI_API_KEY`    | `gpt-4o-mini`        |
-| DeepSeek   | `deepseek`     | `https://api.deepseek.com`   | `DEEPSEEK_API_KEY`  | `deepseek-chat`      |
-| Gemini     | `gemini`       | (OpenAI-compat shim)         | `GEMINI_API_KEY`    | `gemini-1.5-flash`   |
-| Claude     | `claude`       | (Anthropic SDK)              | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet`  |
-
-### DeepSeek quickstart
-
-DeepSeek's public API is OpenAI-compatible
-([docs](https://api-docs.deepseek.com)), so the standard
-`openai` Python SDK is used directly.
-
-1. Apply for a key at <https://platform.deepseek.com>.
-2. Copy `.env.example` to `.env` and fill in `DEEPSEEK_API_KEY`:
-
-   ```text
-   LLM_PROVIDER=deepseek
-   DEEPSEEK_BASE_URL=https://api.deepseek.com
-   DEEPSEEK_MODEL=deepseek-chat
-   DEEPSEEK_API_KEY=sk-...
-   ```
-
-   The Python code reads environment variables from the process. If you
-   run commands from a shell, export the file first:
-
-   ```bash
-   set -a
-   source .env
-   set +a
-   ```
-
-3. Use the client in code:
-
-   ```python
-   from src.llm import build_client_from_settings
-
-   client = build_client_from_settings()
-   if client.configured:
-       text = client.complete("Summarise today's Apple 10-K risk factors.")
-   ```
-
-4. Or call the structured risk extractor:
-
-   ```python
-   from src.llm.deepseek_client import DeepSeekClient
-
-   client = DeepSeekClient()
-   result = client.extract_risks(
-       section_1a, company_name="Apple", year=2024
-   )
-   ```
-
-5. For OpenAI-compatible tool calling, use the explicit application-side
-   loop. DeepSeek can request tool calls, but it will not execute local
-   Python functions by itself. The same loop is also available on
-   `EdgarLLMClient` for local vLLM/SGLang/OpenAI-compatible servers:
-
-   ```python
-   from src.llm.deepseek_client import DeepSeekClient
-
-   def lookup_metric(ticker: str) -> dict:
-       return {"ticker": ticker, "gross_margin": 0.46}
-
-   tools = [{
-       "type": "function",
-       "function": {
-           "name": "lookup_metric",
-           "description": "Lookup one financial metric.",
-           "parameters": {
-               "type": "object",
-               "properties": {"ticker": {"type": "string"}},
-               "required": ["ticker"],
-           },
-       },
-   }]
-
-   client = DeepSeekClient()
-   answer = client.complete_with_tools(
-       "Find Apple's margin.",
-       tools=tools,
-       tool_map={"lookup_metric": lookup_metric},
-   )
-   ```
-
-   For project tools such as web search and web fetch, use the shared
-   catalog plus the LLM-driven runtime:
-
-   ```python
-   from src.agents import LLMToolAgentRuntime
-   from src.llm import build_client_from_settings
-   from src.tools.catalog import build_project_tool_catalog
-
-   client = build_client_from_settings()
-   catalog = build_project_tool_catalog()
-   runtime = LLMToolAgentRuntime(llm_client=client, tool_catalog=catalog)
-
-   result = runtime.run("Find recent evidence about AAPL supply chain risk.")
-   print(result.final_answer)
-   print([call.tool_name for call in result.tool_calls])
-   ```
-
-   The default catalog keeps the general loop web-focused. Use scoped
-   catalogs to expose richer read-only data tools:
-
-   ```python
-   catalog = build_project_tool_catalog(scope="company_research")
-   print(catalog.names)
-   # web_search, web_fetch, search_and_fetch, sec_list_filings,
-   # sec_fetch_filing, transcript_lookup, financial_metrics_lookup,
-   # xbrl_fact_lookup
-   ```
-
-   The first implementation plan for this mode is documented in
-   `docs/implementation-plan/20-llm-driven-tool-calling-agent-loop.md`.
-   For local vLLM/SGLang, replace the client line with:
-
-   ```python
-   from src.llm import EdgarLLMClient
-
-   client = EdgarLLMClient(
-       base_url="http://localhost:8000/v1",
-       api_key="dummy",
-       model="Qwen/Qwen3.5-35B-A3B",
-       provider="vllm",
-   )
-   ```
-
-The client raises `DeepSeekNotConfigured` when `DEEPSEEK_API_KEY` is
-missing or still a placeholder, so demo / CI runs never accidentally
-call the real API. `deepseek-reasoner` is the chain-of-thought model;
-swap it in via `DEEPSEEK_MODEL=deepseek-reasoner` (note: both
-`deepseek-chat` and `deepseek-reasoner` are scheduled to be
-deprecated on 2026-07-24; the long-term models are `deepseek-v4-flash`
-and `deepseek-v4-pro`).
-
-## Browser Exploration
-
-Browser exploration is supported as an optional evidence acquisition path. It should not be the only demo path.
-
-Preferred evidence acquisition order:
-
-```text
-1. Cached evidence
+1. Offline fixture / cached evidence
 2. SearchRouter / structured search
 3. Browser exploration
 ```
 
-`SearchRouter` supports configurable provider priority. Tavily can be
-used as the first live web-search provider for the FinRisk workflow,
-market exploration, and product supply-chain discovery:
-
-```bash
-export TAVILY_API_KEY=tvly-...
-export SEARCH_PROVIDER_ORDER=tavily,duckduckgo
-```
-
-For Brave Search API, either key variable is accepted:
-
-```bash
-export BRAVE_API_KEY=...
-# or
-export BRAVE_SEARCH_API_KEY=...
-export SEARCH_PROVIDER_ORDER=brave,duckduckgo
-```
-
-Supported provider names include:
+Supported search providers include:
 
 ```text
 duckduckgo
 brave
 tavily
-searxng   # transparent fallback — used only when earlier providers fail
+searxng
 ```
 
-If `TAVILY_API_KEY` is missing, Tavily is skipped automatically and the
-router falls back to the next configured provider. SearXNG can be
-configured via `SEARXNG_BASE_URL` (e.g. `http://localhost:8080`) and is
-invisible to the LLM — it activates only after the higher-priority
-providers have exhausted their retry budget.
+`TAVILY_API_KEY`, `BRAVE_API_KEY`, and `BRAVE_SEARCH_API_KEY` are optional. Missing providers are skipped or downgraded through the router.
 
-Optional setup:
+## Recent Progress
+
+Latest implementation work moved the project beyond the original v15/v16 plan:
+
+- **V17 audit remediation completed**: quality layer became a runtime gate; graph payloads, report models, scoring, and safety checks were pinned by tests.
+- **V18 supply-chain explorer completed and hardened**: Sankey model, recursive expansion, real SearchRouter path, graph writer, observability, and frontend integration.
+- **V19 context guardrail layer started**: memory adapters, ingestion, graph-edge memory, and memory write guardrails are in place.
+- **V20 tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
+- **V21 agent system in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
+- **Local E2E validated**: recorded runs show real FinRisk, supply-chain, and agent-run flows through local SGLang, FastAPI, Vite, and Neo4j-compatible paths.
+- **GitHub Pages published**: static dashboard is live at the project URL above.
+
+Recorded validation reports:
+
+```text
+docs/specs/v17-code-audit-remediation/07-completion-summary.md
+docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md
+docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md
+docs/reports/local-llm-e2e-api-frontend-2026-06-27.md
+docs/reports/agent-system-gap-report-2026-06-27.md
+```
+
+## Testing
+
+Backend:
 
 ```bash
-cargo install agent-browser
-agent-browser install
+uv run pytest -q
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm test
+npm run build
+```
+
+Focused checks used during recent development include:
+
+```bash
+uv run pytest tests/api tests/workflows tests/evaluation tests/graph_reasoning -q
+uv run pytest tests/supply_chain tests/graph tests/tools tests/agents -q
+uv run ruff check src/workflows src/evaluation src/graph_reasoning src/reports src/api src/supply_chain src/graph
 ```
 
 ## Roadmap
 
-### Roadmap Documents
+Current priorities are production hardening rather than proving the workflow concept:
 
-Start here:
-
-```text
-docs/implementation-plan/00-overview.md
-```
-
-Most important current plans:
-
-```text
-docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
-```
-
-Step 15 combined spec:
-
-```text
-docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
-```
-
-Step 16 detailed specs:
-
-```text
-docs/specs/v16-quality-graph/00-index.md
-docs/specs/v16-quality-graph/01-quality-layer-runtime.md
-docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
-docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
-docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
-docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
-docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
-```
-
-### Planned API
-
-Minimum API:
-
-```text
-POST /workflows/finrisk/run
-GET  /workflows/{run_id}
-GET  /workflows/{run_id}/report
-```
-
-V16 API extensions:
-
-```text
-GET /workflows/{run_id}/trace
-GET /workflows/{run_id}/graph
-GET /workflows/{run_id}/evaluation
-GET /workflows/{run_id}/artifacts
-```
-
-Planned server command:
-
-```bash
-uvicorn src.api.main:app --reload
-```
-
-### Frontend Dashboard
-
-The repository includes a Vite / React workflow product UI, not a chat interface. It can run locally against the FastAPI backend or as a static GitHub Pages demo backed by offline fixtures.
-
-Tabs:
-
-```text
-Launcher
-Timeline
-Risk Report
-Evidence Graph
-Evaluation
-```
-
-The Evaluation tab should expose:
-
-- Evaluation overview
-- Step quality timeline
-- Claim-evidence matrix
-- Risk score breakdown
-- Guardrail findings drawer
-- Source quality warnings
-- Graph path validation status
-
-### Development Priorities
-
-Recommended next order:
-
-1. Stabilize current code and push committed docs.
-2. Implement workflow schemas and state.
-3. Implement cached MVP workflow.
-4. Add runtime Quality Layer.
-5. Add claim grounding and source quality.
-6. Add graph reasoning subsystem with fixture graph.
-7. Generate structured report model and markdown renderer.
-8. Expose API endpoints.
-9. Build dashboard tabs.
-10. Replace fixtures with real SEC, web, transcript, and Neo4j integrations.
+1. Add persistent run storage for workflows, supply-chain runs, and agent runs beyond the current in-memory/default local store paths.
+2. Complete real Neo4j integration smoke tests for graph write/read, upstream path query, and recursive supply-chain expansion.
+3. Replace rule-based supply-chain decomposition and supplier relation extraction with structured LLM/NLI extractors guarded by evidence checks.
+4. Tighten provider budget controls: max provider calls, timeout policies, retry budgets, cache TTLs, and cost estimates.
+5. Continue hardening browser exploration with stricter timeout, backend-health, and trace metadata.
+6. Expand golden-case evaluation for agent runs, evidence candidate quality, and human-review outcomes.
+7. Keep the GitHub Pages demo aligned with the local dashboard as frontend features evolve.
 
 ## Non-Goals
 
-The first demo should not try to solve everything:
-
-- No direct investment advice
-- No buy/sell recommendations
-- No requirement for live browser success
-- No requirement for GPU
-- No requirement for API keys
-- No requirement for live Neo4j
-- No generic chatbot UI
+- No direct investment advice.
+- No buy/sell recommendations.
+- No LLM-only confirmed graph edges.
+- No requirement for GPU, API keys, live browser success, or live Neo4j in demo mode.
+- No generic chatbot UI as the primary interface.
 
 ## License
 

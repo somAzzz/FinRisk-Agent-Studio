@@ -1,439 +1,240 @@
 # FinRisk Agent Studio
 
-> **本中文版为英文 `README.md` 的结构对位文档。** 章节顺序、代码块、配置项与英文版一致;终端命令、代码、配置 key、模型名、API 路径保持英文不译,术语附首次出现时的中文括注。**当英文版与本中文版不一致时,以英文版为准。**
+Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, product supply-chain exploration, runtime quality guardrails, and human review.
 
-Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, and runtime quality guardrails.
+FinRisk Agent Studio 是一个面向金融研究的 evidence-first agent workflow 开源参考实现。它不是通用的 "chat with filings" 演示,而是强调可审计执行:结构化输入、工具 trace、证据候选、确定性打分、图路径、质量门禁与人工复核。
 
-## One-line Summary(一句话总结)
+> 英文 `README.md` 是主文档。本中文版同步核心结构、运行方式与最新进展;终端命令、API 路径、环境变量和模型名保持英文。
 
-FinRisk Agent Studio 是一个 evidence-first 金融风险 agent workflow 的开源参考实现。
-
-它融合 SEC filings、市场证据收集、结构化 LLM 输出、确定性风险打分、图推理、claim grounding、运行时 guardrails 与 human review gates。
-
-## Why This Project Exists(项目为什么存在)
-
-项目目标不是"和 filings 聊聊天"的演示,而是一套金融研究的工作流:
-
-```text
-Company Resolver(公司解析)
-→ Filing Risk Extraction(财报风险提取)
-→ Market Evidence Collection(市场证据收集)
-→ Evidence Normalization(证据归一化)
-→ Risk Scoring(风险打分)
-→ Graph Reasoning(图推理)
-→ Structured Report Generation(结构化报告生成)
-→ Quality Layer / Human Review Gate(质量层 / 人工复核关)
-```
-
-当前 roadmap 把项目聚焦在两个核心理念上:
-
-1. **Quality Layer 贯穿每一步**
-   评估与 guardrail 在 workflow step 前、中、后运行。目标检查包括 schema 有效性、证据覆盖、claim grounding、来源质量、金融安全、图路径校验与 fallback 跟踪。
-
-2. **Graph Reasoning 作为受控子系统**
-   图推理不是"把整张图丢给 LLM"。目标设计是:
-
-```text
-Graph Context Builder(图上下文构建)
-→ Candidate Path Retriever(候选路径检索)
-→ Path Scorer(路径打分)
-→ Evidence Binder(证据绑定)
-→ LLM / Template Path Interpreter(LLM/模板路径解读)
-→ Graph Insight Validator(图洞察校验)
-→ Evidence Graph Visualization(证据图可视化)
-```
-
-LLM 解释"已校验的路径"并生成研究假设,不发明图路径、不捏造事实、不给买卖建议。
-
-## What Works Today(当前可用基础)
-
-仓库已经包含以下基础模块:
-
-- EDGAR 数据加载
-- SEC filings 访问与章节解析
-- Hugging Face EDGAR corpus 加载
-- SGLang / OpenAI-兼容的结构化 LLM 客户端
-- 浏览器探索
-- 搜索路由与缓存
-- 风险、情绪、机会与报告 agent
-- Neo4j 图写入 / 查询组件
-- 离线 demo fixtures 与测试
-- Roadmap 与实施 spec
-
-## Demo Quick Start(演示快速开始)
-
-在线静态 dashboard:
+## Live Demo
 
 ```text
 https://somazzz.github.io/FinRisk-Agent-Studio/
 ```
 
-该托管页面是基于 GitHub Pages 的静态 demo,使用离线 fixtures 展示 workflow timeline、risk report、evidence graph、risk scoring 与 evaluation guardrails,不要求 API key 或后端服务。
+GitHub Pages 托管版是基于离线 fixtures 的静态 dashboard。它展示 FinRisk workflow timeline、risk report、evidence graph、score breakdown 与 evaluation guardrails,不要求 API key、后端服务、GPU、Neo4j 或实时网络。
 
-安装依赖:
+## What Works Today(当前已实现)
+
+- **FinRisk workflow API**: FastAPI queued/background run,覆盖 SEC filing risk extraction、market evidence、normalization、scoring、graph reasoning、report generation 与 evaluation。
+- **Runtime quality layer**: schema checks、claim/evidence grounding、source quality、financial-safety checks、graph-path validation、fallback tracking 与 human-review status。
+- **Graph reasoning subsystem**: context building、candidate path retrieval、path scoring、evidence binding、safe path interpretation 与 graph insight validation。
+- **React workflow console**: launcher、run history、process monitor、timeline、risk report、score breakdown、evidence graph、evaluation panel、claim/evidence matrix、supply-chain explorer 与 agent-run trace UI。
+- **Product supply-chain explorer**: evidence-backed product dependency discovery、recursive expansion、Sankey visualization、graph writer path、observability metrics 与 quality verdicts。
+- **LLM-driven agent runs**: `/agent-runs` API,支持 provider/tool-loop 设置、tool traces、evidence candidates、redacted trace download 与 human review actions。
+- **Provider-neutral tool loop**: OpenAI-compatible structured outputs、native tool calling、JSON fallback、budget controls 与 no-tool finalization。
+- **Evidence and data tools**: SEC EDGAR、filing sections、transcripts、XBRL/financial metrics、web search/fetch、browser exploration、search routing、caching 与 provider fallback。
+- **Memory/context guardrails**: evidence-memory adapters、graph-edge memory、active/candidate lifecycle rules 与 memory write guardrails。
+- **Deployment path**: GitHub Pages 静态 dashboard 已发布;本地 full-stack 模式运行 FastAPI + Vite。
+
+## Current Workflow Shape(工作流形态)
+
+```text
+Company Resolver
+→ Filing Risk Extraction
+→ Market Evidence Collection
+→ Evidence Normalization
+→ Risk Scoring
+→ Graph Reasoning
+→ Structured Report Generation
+→ Quality Layer / Human Review Gate
+```
+
+图推理作为受控子系统执行:
+
+```text
+Graph Context Builder
+→ Candidate Path Retriever
+→ Path Scorer
+→ Evidence Binder
+→ LLM / Template Path Interpreter
+→ Graph Insight Validator
+→ Evidence Graph Payload
+```
+
+LLM 只解释已验证路径并生成研究假设,不创建无证据图事实,也不输出买卖建议。
+
+## Quick Start(快速开始)
+
+安装 Python 依赖:
 
 ```bash
 uv sync
 ```
 
-跑测试:
+安装前端依赖:
 
 ```bash
-uv run pytest -q
+cd frontend
+npm install
 ```
 
-跑现有的离线公司分析 demo:
+启动后端:
 
 ```bash
-uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+AUTH_DISABLED=1 RATE_LIMIT_DISABLED=1 \
+uv run uvicorn src.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-规划的 FinRisk workflow CLI 入口:
+另开终端启动前端:
 
 ```bash
-uv run python -m src.workflows.finrisk_workflow \
-  --ticker AAPL \
-  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
-  --demo-mode
+cd frontend
+npm run dev
 ```
 
-Demo 模式不应要求 GPU、API key、Neo4j、浏览器自动化或实时网络。
+打开:
+
+```text
+http://127.0.0.1:5173/
+```
+
+Vite dev server 会把 `/workflows`、`/supply-chain`、`/agent-runs` 代理到 FastAPI 后端。
+
+## Static Dashboard Build(静态页面构建)
+
+```bash
+cd frontend
+GITHUB_PAGES=true VITE_STATIC_DEMO=1 npm run build
+npm run preview -- --host 127.0.0.1 --port 4173
+```
+
+## API Surface(API)
+
+FastAPI 入口:
+
+```bash
+uv run uvicorn src.api.main:app --reload
+```
+
+核心 routes:
+
+```text
+GET  /
+GET  /workflows/health
+GET  /workflows
+POST /workflows/finrisk/run
+GET  /workflows/{run_id}
+GET  /workflows/{run_id}/report
+GET  /workflows/{run_id}/trace
+GET  /workflows/{run_id}/graph
+GET  /workflows/{run_id}/evaluation
+GET  /workflows/{run_id}/artifacts
+GET  /workflows/{run_id}/llm_log
+GET  /workflows/{run_id}/chunks
+GET  /workflows/{run_id}/sections
+GET  /workflows/{run_id}/lifecycles
+
+GET  /supply-chain
+POST /supply-chain/explore
+POST /supply-chain/expand
+GET  /supply-chain/{run_id}
+GET  /supply-chain/{run_id}/sankey
+
+GET  /agent-runs
+POST /agent-runs
+GET  /agent-runs/{run_id}
+GET  /agent-runs/{run_id}/timeline
+GET  /agent-runs/{run_id}/trace.json
+POST /agent-runs/{run_id}/review-items/{item_id}
+POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
+```
+
+默认 API 通过 `FINRISK_API_KEYS` + `X-API-Key` 鉴权。本地开发可临时设置 `AUTH_DISABLED=1`。
 
 ## Architecture(架构)
 
 ```text
 src/
-├── agents/
-├── api/
-├── browser/
-├── data/
-├── evaluation/
-│   ├── engine.py
-│   ├── models.py
-│   ├── validators/
-│   └── metrics/
-├── graph/
-├── graph_reasoning/
-├── llm/
-├── reports/
-├── schemas/
-├── tools/
-└── workflows/
-    ├── finrisk_workflow.py
-    ├── state.py
-    └── steps/
+├── agents/            # planner, global runtime, tool-driven agent state
+├── api/               # FastAPI routes, auth, rate limit, run stores
+├── browser/           # Playwright and agent-browser exploration backends
+├── data/              # SEC, EDGAR, transcripts, XBRL, ticker resolution
+├── evaluation/        # quality layer, validators, grounding, safety checks
+├── evidence/          # evidence candidate normalization
+├── graph/             # Neo4j-compatible graph clients, queries, writers
+├── graph_reasoning/   # path retrieval, scoring, binding, validation
+├── llm/               # OpenAI-compatible clients and tool-loop runtime
+├── memory/            # evidence/graph memory and context guardrails
+├── reports/           # report models and markdown renderer
+├── supply_chain/      # product supply-chain workflow and Sankey payloads
+├── tools/             # web/search/data/graph tool catalog
+└── workflows/         # FinRisk workflow state, steps, v16 runner
 
 frontend/
-eval/
 docs/
 tests/
 ```
 
-## Quality Layer(质量层)
+## LLM Providers(LLM Provider)
 
-V16 plan 引入运行时质量层:
+| Provider | `LLM_PROVIDER` | Base URL | Auth env var | Example model |
+|---|---|---|---|---|
+| SGLang | `sglang` | `http://localhost:30000/v1` | `SGLANG_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
+| vLLM | `vllm` | `http://localhost:8000/v1` | `VLLM_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
+| OpenAI | `openai` | `https://api.openai.com/v1` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| DeepSeek | `deepseek` | `https://api.deepseek.com` | `DEEPSEEK_API_KEY` | `deepseek-v4-flash` |
 
-```text
-Layer 1: Schema & Contract Guardrails(schema 与契约)
-Layer 2: Evidence & Grounding Guardrails(证据与溯源)
-Layer 3: Domain & Financial Safety Guardrails(领域与金融安全)
-Layer 4: Workflow Quality & Regression Evaluation(工作流质量与回归评估)
-```
-
-检查项示例:
-
-- Pydantic schema 合法
-- 必填字段存在
-- risk / evidence / claim 的 ID 引用合法
-- 每条 top risk 都有证据
-- 每条 claim 都有支撑的 evidence ID
-- 来源质量与来源多样性
-- 不出现直接的买卖建议
-- 图路径在图中存在
-- 图边要么有证据要么标记为 hypothesis
-- fallback 事件被记录
-
-## Graph Reasoning(图推理)
-
-目标图流:
-
-```text
-Company + Risks + Evidence
-→ Graph Query Context
-→ Candidate Graph Paths
-→ Path Score Breakdown
-→ Evidence Binding
-→ Path Interpretation
-→ Graph Insight Validation
-→ Evidence Graph Payload
-```
-
-图路径示例:
-
-```text
-Apple
-→ depends_on
-TSMC
-→ located_in
-Taiwan
-→ exposed_to
-Geopolitical Risk
-```
-
-洞察可以成为 **research theme** 或 **hypothesis**,但不是金融建议。
-
-## Example Output(示例输出)
-
-示例用户请求:
-
-```text
-Company: Apple
-Ticker: AAPL
-Analysis Goal: 识别近期变化的宏观、政策与供应链风险。
-Time Horizon: 未来 6-12 个月
-```
-
-规划中的 FinRisk workflow 预期输出:
-
-- Top risks 及其严重度、打分拆解
-- Filing 证据与近期市场证据
-- Claim ↔ evidence 矩阵
-- 来源质量警告
-- 供应链 / 政策图路径
-- 二阶风险洞察
-- 结构化风险情报报告
-- Guardrail 发现与人工复核状态
-- 证据图可视化
-
-## Optional Local LLM Setup(可选本地 LLM 配置)
-
-项目可用 SGLang 跑本地 LLM:
+本地 stack:
 
 ```bash
 docker compose up -d
 ```
 
-规划的 provider 配置:
+Demo 和 CI 路径设计为不需要真实 API keys。
+
+## Recent Progress(最新进展)
+
+- **V17 audit remediation completed**: Quality Layer 已成为 runtime gate;graph payload、report model、scoring 与 safety checks 由测试固定。
+- **V18 supply-chain explorer completed and hardened**: Sankey model、recursive expansion、real SearchRouter path、graph writer、observability 与 frontend integration 已落地。
+- **V19 context guardrail layer started**: memory adapters、ingestion、graph-edge memory 与 memory write guardrails 已有最小工程切片。
+- **V20 tool loop implemented**: provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
+- **V21 agent system in progress**: `/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
+- **Local E2E validated**: 记录过真实 FinRisk、supply-chain 与 agent-run flows,覆盖 local SGLang、FastAPI、Vite 与 Neo4j-compatible paths。
+- **GitHub Pages published**: 静态 dashboard 已上线。
+
+相关记录:
 
 ```text
-LLM_PROVIDER=sglang
-LLM_PROVIDER=openai
-LLM_PROVIDER=deepseek
-LLM_PROVIDER=gemini
-LLM_PROVIDER=claude
-LLM_BASE_URL=http://localhost:30000/v1
-LLM_MODEL=Qwen/Qwen3.5-35B-A3B
+docs/specs/v17-code-audit-remediation/07-completion-summary.md
+docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md
+docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md
+docs/reports/local-llm-e2e-api-frontend-2026-06-27.md
+docs/reports/agent-system-gap-report-2026-06-27.md
 ```
 
-Demo 模式不应要求 GPU、API key、Neo4j、浏览器自动化或实时网络。
-
-## LLM Providers(LLM provider)
-
-LLM 层对所有 provider 保持 OpenAI-兼容 —— 每个 provider 变的只有 `base_url` 与 API key。
-
-| Provider   | `LLM_PROVIDER` | `*_BASE_URL`              | Auth env var        | Default model        |
-|------------|----------------|---------------------------|---------------------|----------------------|
-| SGLang     | `sglang`       | `http://localhost:30000/v1` | `SGLANG_API_KEY`    | `Qwen/Qwen3.5-35B-A3B` |
-| vLLM       | `vllm`         | `http://localhost:8000/v1`   | `VLLM_API_KEY`      | `Qwen/Qwen3.5-35B-A3B` |
-| OpenAI     | `openai`       | `https://api.openai.com/v1`  | `OPENAI_API_KEY`    | `gpt-4o-mini`        |
-| DeepSeek   | `deepseek`     | `https://api.deepseek.com`   | `DEEPSEEK_API_KEY`  | `deepseek-chat`      |
-| Gemini     | `gemini`       | (OpenAI-compat shim)         | `GEMINI_API_KEY`    | `gemini-1.5-flash`   |
-| Claude     | `claude`       | (Anthropic SDK)              | `ANTHROPIC_API_KEY` | `claude-3-5-sonnet`  |
-
-### DeepSeek quickstart(DeepSeek 快速上手)
-
-DeepSeek 公开 API 兼容 OpenAI([文档](https://api-docs.deepseek.com)),所以直接用标准 `openai` Python SDK。
-
-1. 到 <https://platform.deepseek.com> 申请 key。
-2. 复制 `.env.example` 为 `.env`,填入 `DEEPSEEK_API_KEY`:
-
-   ```text
-   LLM_PROVIDER=deepseek
-   DEEPSEEK_BASE_URL=https://api.deepseek.com
-   DEEPSEEK_MODEL=deepseek-chat
-   DEEPSEEK_API_KEY=sk-...
-   ```
-
-3. 在代码里使用 client:
-
-   ```python
-   from src.llm import build_client_from_settings
-
-   client = build_client_from_settings()
-   if client.configured:
-       text = client.complete("Summarise today's Apple 10-K risk factors.")
-   ```
-
-4. 或者调用结构化风险提取器:
-
-   ```python
-   from src.llm.deepseek_client import DeepSeekClient
-
-   client = DeepSeekClient()
-   result = client.extract_risks(
-       section_1a, company_name="Apple", year=2024
-   )
-   ```
-
-当 `DEEPSEEK_API_KEY` 缺失或仍是占位符时,client 抛 `DeepSeekNotConfigured`,demo / CI 跑不会误调真实 API。`deepseek-reasoner` 是 chain-of-thought 模型;通过 `DEEPSEEK_MODEL=deepseek-reasoner` 切换(注意 `deepseek-chat` 与 `deepseek-reasoner` 都计划在 2026-07-24 弃用,长期模型是 `deepseek-v4-flash` 与 `deepseek-v4-pro`)。
-
-## Browser Exploration(浏览器探索)
-
-浏览器探索作为**可选**证据获取路径,**不应**是唯一 demo 路径。
-
-证据获取优先级:
-
-```text
-1. Cached evidence(缓存证据)
-2. SearchRouter / structured search(结构化搜索)
-3. Browser exploration(浏览器探索)
-```
-
-`SearchRouter` 支持可配置的 provider 优先级。Tavily 可作为 FinRisk workflow、市场探索、产品供应链发现的首个实时 web 搜索 provider:
+## Testing(测试)
 
 ```bash
-export TAVILY_API_KEY=tvly-...
-export SEARCH_PROVIDER_ORDER=tavily,duckduckgo
+uv run pytest -q
 ```
-
-Brave Search API 接受任一 key 变量名:
 
 ```bash
-export BRAVE_API_KEY=...
-# or
-export BRAVE_SEARCH_API_KEY=...
-export SEARCH_PROVIDER_ORDER=brave,duckduckgo
-```
-
-支持的 provider 名称:
-
-```text
-duckduckgo
-brave
-tavily
-searxng   # 透明 fallback —— 只在前面的 provider 都失败后启用
-```
-
-`TAVILY_API_KEY` 缺失时 Tavily 自动跳过,router 退到下一个配置的 provider。SearXNG 通过 `SEARXNG_BASE_URL`(如 `http://localhost:8080`)配置,对 LLM 不可见 —— 只在更高优先级 provider 用尽 retry 预算后激活。
-
-可选安装:
-
-```bash
-cargo install agent-browser
-agent-browser install
+cd frontend
+npm test
+npm run build
 ```
 
 ## Roadmap(路线图)
 
-### Roadmap Documents(路线图文档)
+当前重点是 production hardening,而不是证明 workflow 概念:
 
-从下面开始读:
-
-```text
-docs/implementation-plan/00-overview.md
-```
-
-最重要的当前规划:
-
-```text
-docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
-```
-
-Step 15 合并 spec:
-
-```text
-docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
-```
-
-Step 16 详细 spec:
-
-```text
-docs/specs/v16-quality-graph/00-index.md
-docs/specs/v16-quality-graph/01-quality-layer-runtime.md
-docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
-docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
-docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
-docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
-docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
-```
-
-### Planned API(规划中的 API)
-
-最小 API:
-
-```text
-POST /workflows/finrisk/run
-GET  /workflows/{run_id}
-GET  /workflows/{run_id}/report
-```
-
-V16 API 扩展:
-
-```text
-GET /workflows/{run_id}/trace
-GET /workflows/{run_id}/graph
-GET /workflows/{run_id}/evaluation
-GET /workflows/{run_id}/artifacts
-```
-
-规划的服务启动命令:
-
-```bash
-uvicorn src.api.main:app --reload
-```
-
-### Frontend Dashboard(前端 Dashboard)
-
-仓库包含一个 Vite / React workflow 产品 UI,不是 chat 界面。它既可以在本地连接 FastAPI 后端运行,也可以作为基于离线 fixtures 的 GitHub Pages 静态 demo 发布。
-
-Tab:
-
-```text
-Launcher
-Timeline
-Risk Report
-Evidence Graph
-Evaluation
-```
-
-Evaluation tab 应展示:
-
-- 评估概览
-- 步骤质量时间线
-- Claim ↔ evidence 矩阵
-- 风险打分拆解
-- Guardrail 发现抽屉
-- 来源质量警告
-- 图路径校验状态
-
-### Development Priorities(开发优先级)
-
-建议顺序:
-
-1. 稳定现有代码,提交已有文档
-2. 实现 workflow schemas 与 state
-3. 实现缓存版 MVP workflow
-4. 加入运行时 Quality Layer
-5. 加入 claim grounding 与 source quality
-6. 加入图推理子系统与 fixture 图
-7. 生成结构化报告模型与 markdown 渲染
-8. 暴露 API endpoints
-9. 构建 dashboard tabs
-10. 用真实的 SEC / web / transcript / Neo4j 集成替换 fixture
+1. 为 workflows、supply-chain runs、agent runs 增加持久化 run store。
+2. 完成真实 Neo4j integration smoke tests。
+3. 用带 evidence guardrails 的 structured LLM/NLI extractor 替换部分 rule-based supply-chain decomposition / supplier relation extraction。
+4. 强化 provider budget controls: max calls、timeout、retry、cache TTL、cost estimate。
+5. 继续收紧 browser exploration timeout、backend health 与 trace metadata。
+6. 扩展 agent golden cases、evidence candidate quality 与 human-review outcome 评估。
+7. 保持 GitHub Pages demo 与本地 dashboard 能力同步。
 
 ## Non-Goals(非目标)
 
-首个 demo 不试图解决所有问题:
-
-- 不提供直接投资建议
-- 不给买卖推荐
-- 不强制要求浏览器成功
-- 不要求 GPU
-- 不要求 API key
-- 不要求 live Neo4j
-- 不做通用 chatbot UI
+- 不提供直接投资建议。
+- 不给买卖推荐。
+- 不允许 LLM-only confirmed graph edges。
+- Demo mode 不要求 GPU、API keys、live browser success 或 live Neo4j。
+- 不把通用 chatbot UI 作为主要入口。
 
 ## License(许可)
 
-本项目包含 Yahoo Finance 的数据,按 ODC-BY 授权。
+本项目包含 Yahoo Finance 数据,按 ODC-BY 授权。
