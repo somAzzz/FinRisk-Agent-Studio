@@ -25,6 +25,22 @@ uv run uvicorn src.api.main:app --reload
 Open <http://127.0.0.1:5173>, leave defaults (AAPL + demo mode), and
 press **Run Risk Workflow**.
 
+## GitHub Pages
+
+The public static demo is published at:
+
+```text
+https://somazzz.github.io/FinRisk-Agent-Studio/
+```
+
+The Pages build uses offline fixtures, so it renders the workflow
+timeline, report, evidence graph, score breakdown, and guardrail
+evaluation without a backend:
+
+```bash
+GITHUB_PAGES=true VITE_STATIC_DEMO=1 npm run build
+```
+
 ## Test
 
 ```bash

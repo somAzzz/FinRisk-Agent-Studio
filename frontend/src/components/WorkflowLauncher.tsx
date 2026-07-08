@@ -23,6 +23,8 @@ const DEFAULT_REQUEST: FinRiskRequest = {
 interface Props {
   onStarted: (summary: WorkflowRunSummary, request: FinRiskRequest) => void;
   busy: boolean;
+  staticMode?: boolean;
+  onLoadStaticDemo?: () => void;
 }
 
 const SOURCES = ["filing", "web", "transcript", "graph"] as const;
@@ -43,7 +45,12 @@ function formatTimeHorizon(start: number, end: number): string {
   return start === end ? `${start} months` : `${start}-${end} months`;
 }
 
-export function WorkflowLauncher({ onStarted, busy }: Props) {
+export function WorkflowLauncher({
+  onStarted,
+  busy,
+  staticMode = false,
+  onLoadStaticDemo,
+}: Props) {
   const [request, setRequest] = useState<FinRiskRequest>(DEFAULT_REQUEST);
   const [error, setError] = useState<string | null>(null);
   const [horizonStart, horizonEnd] = parseTimeHorizon(request.time_horizon);
@@ -73,6 +80,10 @@ export function WorkflowLauncher({ onStarted, busy }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (staticMode) {
+      onLoadStaticDemo?.();
+      return;
+    }
     try {
       const summary = await api.startWorkflow(request);
       onStarted(summary, request);
@@ -203,7 +214,7 @@ export function WorkflowLauncher({ onStarted, busy }: Props) {
         disabled={busy}
         data-testid="run-button"
       >
-        {busy ? "Working..." : "Run Risk Workflow"}
+        {busy ? "Working..." : staticMode ? "View Static Demo" : "Run Risk Workflow"}
       </button>
     </form>
   );

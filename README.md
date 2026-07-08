@@ -1,8 +1,16 @@
-# FinText-LLM
+# FinRisk Agent Studio
 
-FinText-LLM is evolving into **FinRisk Agent Studio**: an AI-native financial risk intelligence workflow that combines SEC filings, web evidence, local or API-based LLMs, structured outputs, graph reasoning, and runtime quality guardrails.
+Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, and runtime quality guardrails.
 
-The project goal is not a generic “chat with filings” demo. It is a workflow system for financial research:
+## One-line Summary
+
+FinRisk Agent Studio is an open-source reference implementation for evidence-first agent workflows in financial risk research.
+
+It combines SEC filings, market evidence collection, structured LLM outputs, deterministic risk scoring, graph reasoning, claim grounding, runtime guardrails, and human review gates.
+
+## Why This Project Exists
+
+The project goal is not a generic "chat with filings" demo. It is a workflow system for financial research:
 
 ```text
 Company Resolver
@@ -15,14 +23,12 @@ Company Resolver
 → Quality Layer / Human Review Gate
 ```
 
-## Current Direction
-
-The latest roadmap reframes the project around two core ideas:
+The current roadmap frames the project around two core ideas:
 
 1. **Quality Layer across every step**
-   Evaluation and guardrails should not only run after the report is generated. Every workflow step should have pre-step and post-step validation, including schema checks, evidence coverage, claim grounding, source quality, financial safety, graph path validation, and fallback tracking.
+   Evaluation and guardrails run before, during, and after workflow steps. The target checks include schema validity, evidence coverage, claim grounding, source quality, financial safety, graph path validation, and fallback tracking.
 
-2. **Graph Reasoning as a subsystem**
+2. **Graph Reasoning as a controlled subsystem**
    Graph reasoning should not mean giving an entire graph to an LLM. The intended design is:
 
 ```text
@@ -37,44 +43,7 @@ Graph Context Builder
 
 LLMs explain verified paths and generate research hypotheses. They do not invent graph paths, create unsupported facts, or issue buy/sell recommendations.
 
-## What This Project Demonstrates
-
-- Pydantic-first agent workflow design
-- Local LLM and OpenAI-compatible API provider support
-- SEC EDGAR filing analysis
-- Targeted market evidence collection
-- Evidence-backed risk extraction
-- Deterministic risk scoring
-- Claim-to-evidence grounding
-- Graph path retrieval and ranking
-- Runtime guardrails and human review gates
-- Cached demo mode for reliable presentations
-- FastAPI and dashboard-oriented productization
-
-## Planned Demo: FinRisk Agent Studio
-
-Example user request:
-
-```text
-Company: Apple
-Ticker: AAPL
-Analysis Goal: Identify macro, policy and supply-chain risks that changed recently.
-Time Horizon: next 6-12 months
-```
-
-Expected output:
-
-- Top risks with severity and score breakdown
-- Filing evidence and recent market evidence
-- Claim-evidence matrix
-- Source quality warnings
-- Supply-chain or policy graph paths
-- Second-order risk insights
-- Structured risk intelligence report
-- Guardrail findings and human review status
-- Evidence graph visualization
-
-## Existing Foundation
+## What Works Today
 
 The repository already contains foundational modules for:
 
@@ -89,40 +58,46 @@ The repository already contains foundational modules for:
 - Offline demo fixtures and tests
 - Roadmap and implementation specs
 
-## Roadmap Documents
+## Demo Quick Start
 
-Start here:
-
-```text
-docs/implementation-plan/00-overview.md
-```
-
-Most important current plans:
+Live static dashboard:
 
 ```text
-docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+https://somazzz.github.io/FinRisk-Agent-Studio/
 ```
 
-Step 15 combined spec:
+The hosted page is a GitHub Pages static demo backed by offline fixtures. It shows the workflow timeline, risk report, evidence graph, risk scoring, and evaluation guardrails without requiring API keys or a backend.
 
-```text
-docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
+Install dependencies:
+
+```bash
+uv sync
 ```
 
-Step 16 detailed specs:
+Run tests:
 
-```text
-docs/specs/v16-quality-graph/00-index.md
-docs/specs/v16-quality-graph/01-quality-layer-runtime.md
-docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
-docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
-docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
-docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
-docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
+```bash
+uv run pytest -q
 ```
 
-## Target Architecture
+Run the existing offline company analysis demo:
+
+```bash
+uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+```
+
+The planned FinRisk workflow CLI target is:
+
+```bash
+uv run python -m src.workflows.finrisk_workflow \
+  --ticker AAPL \
+  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
+  --demo-mode
+```
+
+Demo mode should not require GPU, API keys, Neo4j, browser automation, or live network access.
+
+## Architecture
 
 ```text
 src/
@@ -152,7 +127,7 @@ docs/
 tests/
 ```
 
-## Workflow Quality Layer
+## Quality Layer
 
 The V16 plan introduces a runtime quality layer:
 
@@ -205,34 +180,28 @@ Geopolitical Risk
 
 Insights are allowed to become **research themes** or **hypotheses**, not financial advice.
 
-## Quick Start
+## Example Output
 
-Install dependencies:
+Example user request:
 
-```bash
-uv sync
+```text
+Company: Apple
+Ticker: AAPL
+Analysis Goal: Identify macro, policy and supply-chain risks that changed recently.
+Time Horizon: next 6-12 months
 ```
 
-Run tests:
+Expected output for the planned FinRisk workflow:
 
-```bash
-uv run pytest -q
-```
-
-Run the existing offline company analysis demo:
-
-```bash
-uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
-```
-
-The planned FinRisk workflow CLI target is:
-
-```bash
-uv run python -m src.workflows.finrisk_workflow \
-  --ticker AAPL \
-  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
-  --demo-mode
-```
+- Top risks with severity and score breakdown
+- Filing evidence and recent market evidence
+- Claim-evidence matrix
+- Source quality warnings
+- Supply-chain or policy graph paths
+- Second-order risk insights
+- Structured risk intelligence report
+- Guardrail findings and human review status
+- Evidence graph visualization
 
 ## Optional Local LLM Setup
 
@@ -451,7 +420,42 @@ cargo install agent-browser
 agent-browser install
 ```
 
-## Planned API
+## Roadmap
+
+### Roadmap Documents
+
+Start here:
+
+```text
+docs/implementation-plan/00-overview.md
+```
+
+Most important current plans:
+
+```text
+docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
+docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+```
+
+Step 15 combined spec:
+
+```text
+docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
+```
+
+Step 16 detailed specs:
+
+```text
+docs/specs/v16-quality-graph/00-index.md
+docs/specs/v16-quality-graph/01-quality-layer-runtime.md
+docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
+docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
+docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
+docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
+docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
+```
+
+### Planned API
 
 Minimum API:
 
@@ -476,9 +480,9 @@ Planned server command:
 uvicorn src.api.main:app --reload
 ```
 
-## Planned Dashboard
+### Frontend Dashboard
 
-The dashboard should be a workflow product UI, not a chat interface.
+The repository includes a Vite / React workflow product UI, not a chat interface. It can run locally against the FastAPI backend or as a static GitHub Pages demo backed by offline fixtures.
 
 Tabs:
 
@@ -500,7 +504,7 @@ The Evaluation tab should expose:
 - Source quality warnings
 - Graph path validation status
 
-## Development Priorities
+### Development Priorities
 
 Recommended next order:
 

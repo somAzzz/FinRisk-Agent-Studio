@@ -1,7 +1,7 @@
 [project]
 name = "FinText-LLM"
 version = "0.1.0"
-description = "Add your description here"
+description = "Evidence-first financial risk agent studio combining SEC filings, market evidence collection, structured LLM outputs, deterministic risk scoring, graph reasoning, claim grounding, runtime guardrails, and human review gates."
 readme = "README.md"
 requires-python = ">=3.12.0, <3.13"
 dependencies = [

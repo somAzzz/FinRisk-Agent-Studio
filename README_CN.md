@@ -1,8 +1,16 @@
-# FinText-LLM
+# FinRisk Agent Studio
 
 > **本中文版为英文 `README.md` 的结构对位文档。** 章节顺序、代码块、配置项与英文版一致;终端命令、代码、配置 key、模型名、API 路径保持英文不译,术语附首次出现时的中文括注。**当英文版与本中文版不一致时,以英文版为准。**
 
-FinText-LLM 正在演进为 **FinRisk Agent Studio** —— 一个 AI-native 的金融风险情报工作流系统,融合 SEC filings、网络证据、本地或 API LLM、结构化输出、图推理和运行时质量 guardrails。
+Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, and runtime quality guardrails.
+
+## One-line Summary(一句话总结)
+
+FinRisk Agent Studio 是一个 evidence-first 金融风险 agent workflow 的开源参考实现。
+
+它融合 SEC filings、市场证据收集、结构化 LLM 输出、确定性风险打分、图推理、claim grounding、运行时 guardrails 与 human review gates。
+
+## Why This Project Exists(项目为什么存在)
 
 项目目标不是"和 filings 聊聊天"的演示,而是一套金融研究的工作流:
 
@@ -17,14 +25,12 @@ Company Resolver(公司解析)
 → Quality Layer / Human Review Gate(质量层 / 人工复核关)
 ```
 
-## Current Direction(当前方向)
-
-最新 roadmap 把项目聚焦在两个核心理念上:
+当前 roadmap 把项目聚焦在两个核心理念上:
 
 1. **Quality Layer 贯穿每一步**
-   评估与 guardrail 不只在报告生成后才跑。每个工作流步骤都应有 pre-step 与 post-step 校验,包括:schema 检查、证据覆盖、claim 溯源、来源质量、金融安全、图路径校验、fallback 跟踪。
+   评估与 guardrail 在 workflow step 前、中、后运行。目标检查包括 schema 有效性、证据覆盖、claim grounding、来源质量、金融安全、图路径校验与 fallback 跟踪。
 
-2. **Graph Reasoning 作为子系统**
+2. **Graph Reasoning 作为受控子系统**
    图推理不是"把整张图丢给 LLM"。目标设计是:
 
 ```text
@@ -39,44 +45,7 @@ Graph Context Builder(图上下文构建)
 
 LLM 解释"已校验的路径"并生成研究假设,不发明图路径、不捏造事实、不给买卖建议。
 
-## What This Project Demonstrates(本项目展示什么)
-
-- Pydantic 优先的 agent workflow 设计
-- 本地 LLM 与 OpenAI-兼容 API provider 支持
-- SEC EDGAR filings 分析
-- 定向市场证据收集
-- 证据支撑的风险提取
-- 确定性风险打分
-- Claim ↔ evidence 溯源
-- 图路径检索与排序
-- 运行时 guardrail 与人工复核关
-- 用于稳定演示的缓存 demo 模式
-- FastAPI 与 dashboard 导向的产品化
-
-## Planned Demo: FinRisk Agent Studio(规划中的演示)
-
-示例用户请求:
-
-```text
-Company: Apple
-Ticker: AAPL
-Analysis Goal: 识别近期变化的宏观、政策与供应链风险。
-Time Horizon: 未来 6-12 个月
-```
-
-预期输出:
-
-- Top risks 及其严重度、打分拆解
-- Filing 证据与近期市场证据
-- Claim ↔ evidence 矩阵
-- 来源质量警告
-- 供应链 / 政策图路径
-- 二阶风险洞察
-- 结构化风险情报报告
-- Guardrail 发现与人工复核状态
-- 证据图可视化
-
-## Existing Foundation(已有基础)
+## What Works Today(当前可用基础)
 
 仓库已经包含以下基础模块:
 
@@ -91,40 +60,46 @@ Time Horizon: 未来 6-12 个月
 - 离线 demo fixtures 与测试
 - Roadmap 与实施 spec
 
-## Roadmap Documents(路线图文档)
+## Demo Quick Start(演示快速开始)
 
-从下面开始读:
-
-```text
-docs/implementation-plan/00-overview.md
-```
-
-最重要的当前规划:
+在线静态 dashboard:
 
 ```text
-docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+https://somazzz.github.io/FinRisk-Agent-Studio/
 ```
 
-Step 15 合并 spec:
+该托管页面是基于 GitHub Pages 的静态 demo,使用离线 fixtures 展示 workflow timeline、risk report、evidence graph、risk scoring 与 evaluation guardrails,不要求 API key 或后端服务。
 
-```text
-docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
+安装依赖:
+
+```bash
+uv sync
 ```
 
-Step 16 详细 spec:
+跑测试:
 
-```text
-docs/specs/v16-quality-graph/00-index.md
-docs/specs/v16-quality-graph/01-quality-layer-runtime.md
-docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
-docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
-docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
-docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
-docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
+```bash
+uv run pytest -q
 ```
 
-## Target Architecture(目标架构)
+跑现有的离线公司分析 demo:
+
+```bash
+uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
+```
+
+规划的 FinRisk workflow CLI 入口:
+
+```bash
+uv run python -m src.workflows.finrisk_workflow \
+  --ticker AAPL \
+  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
+  --demo-mode
+```
+
+Demo 模式不应要求 GPU、API key、Neo4j、浏览器自动化或实时网络。
+
+## Architecture(架构)
 
 ```text
 src/
@@ -154,7 +129,7 @@ docs/
 tests/
 ```
 
-## Workflow Quality Layer(工作流质量层)
+## Quality Layer(质量层)
 
 V16 plan 引入运行时质量层:
 
@@ -207,34 +182,28 @@ Geopolitical Risk
 
 洞察可以成为 **research theme** 或 **hypothesis**,但不是金融建议。
 
-## Quick Start(快速开始)
+## Example Output(示例输出)
 
-安装依赖:
+示例用户请求:
 
-```bash
-uv sync
+```text
+Company: Apple
+Ticker: AAPL
+Analysis Goal: 识别近期变化的宏观、政策与供应链风险。
+Time Horizon: 未来 6-12 个月
 ```
 
-跑测试:
+规划中的 FinRisk workflow 预期输出:
 
-```bash
-uv run pytest -q
-```
-
-跑现有的离线公司分析 demo:
-
-```bash
-uv run python -m src.pipelines.analyze_company --ticker DEMO --offline-fixtures
-```
-
-规划的 FinRisk workflow CLI 入口:
-
-```bash
-uv run python -m src.workflows.finrisk_workflow \
-  --ticker AAPL \
-  --analysis-goal "Identify macro, policy and supply-chain risks that changed recently." \
-  --demo-mode
-```
+- Top risks 及其严重度、打分拆解
+- Filing 证据与近期市场证据
+- Claim ↔ evidence 矩阵
+- 来源质量警告
+- 供应链 / 政策图路径
+- 二阶风险洞察
+- 结构化风险情报报告
+- Guardrail 发现与人工复核状态
+- 证据图可视化
 
 ## Optional Local LLM Setup(可选本地 LLM 配置)
 
@@ -354,7 +323,42 @@ cargo install agent-browser
 agent-browser install
 ```
 
-## Planned API(规划中的 API)
+## Roadmap(路线图)
+
+### Roadmap Documents(路线图文档)
+
+从下面开始读:
+
+```text
+docs/implementation-plan/00-overview.md
+```
+
+最重要的当前规划:
+
+```text
+docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
+docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+```
+
+Step 15 合并 spec:
+
+```text
+docs/specs/v15-finrisk-agent-studio/15-finrisk-agent-studio-combined-spec.md
+```
+
+Step 16 详细 spec:
+
+```text
+docs/specs/v16-quality-graph/00-index.md
+docs/specs/v16-quality-graph/01-quality-layer-runtime.md
+docs/specs/v16-quality-graph/02-claim-grounding-and-source-quality.md
+docs/specs/v16-quality-graph/03-graph-reasoning-subsystem.md
+docs/specs/v16-quality-graph/04-structured-report-and-risk-scoring.md
+docs/specs/v16-quality-graph/05-api-and-frontend-quality-graph.md
+docs/specs/v16-quality-graph/06-v16-demo-acceptance.md
+```
+
+### Planned API(规划中的 API)
 
 最小 API:
 
@@ -379,9 +383,9 @@ GET /workflows/{run_id}/artifacts
 uvicorn src.api.main:app --reload
 ```
 
-## Planned Dashboard(规划中的 Dashboard)
+### Frontend Dashboard(前端 Dashboard)
 
-Dashboard 应是 workflow 产品 UI,不是 chat 界面。
+仓库包含一个 Vite / React workflow 产品 UI,不是 chat 界面。它既可以在本地连接 FastAPI 后端运行,也可以作为基于离线 fixtures 的 GitHub Pages 静态 demo 发布。
 
 Tab:
 
@@ -403,7 +407,7 @@ Evaluation tab 应展示:
 - 来源质量警告
 - 图路径校验状态
 
-## Development Priorities(开发优先级)
+### Development Priorities(开发优先级)
 
 建议顺序:
 

@@ -20,6 +20,14 @@ import {
 import { SupplyChainExplorer } from "./components/SupplyChainExplorer";
 import { WorkflowLauncher } from "./components/WorkflowLauncher";
 import { api, FinRiskApiError } from "./api";
+import {
+  isStaticDemoMode,
+  staticDemoEvaluation,
+  staticDemoGraph,
+  staticDemoReport,
+  staticDemoStatus,
+  staticDemoSummary,
+} from "./staticDemo";
 import type {
   AgentRunTimelineResponse,
   FinRiskRequest,
@@ -33,6 +41,7 @@ import type {
 import type { SupplyChainStatusResponseWire } from "./supply-chain-types";
 
 const POLL_INTERVAL_MS = 1500;
+const STATIC_DEMO_MODE = isStaticDemoMode();
 
 type AppView = "finrisk" | "supply-chain" | "agent-runs";
 
@@ -206,19 +215,41 @@ function supplyChainSnapshot(
 
 export function App() {
   const [, setRequest] = useState<FinRiskRequest | null>(null);
-  const [summary, setSummary] = useState<WorkflowRunSummary | null>(null);
-  const [status, setStatus] = useState<WorkflowStatusResponse | null>(null);
-  const [report, setReport] = useState<WorkflowReportResponse | null>(null);
-  const [graph, setGraph] = useState<WorkflowGraphResponse | null>(null);
+  const [summary, setSummary] = useState<WorkflowRunSummary | null>(
+    STATIC_DEMO_MODE ? staticDemoSummary : null,
+  );
+  const [status, setStatus] = useState<WorkflowStatusResponse | null>(
+    STATIC_DEMO_MODE ? staticDemoStatus : null,
+  );
+  const [report, setReport] = useState<WorkflowReportResponse | null>(
+    STATIC_DEMO_MODE ? staticDemoReport : null,
+  );
+  const [graph, setGraph] = useState<WorkflowGraphResponse | null>(
+    STATIC_DEMO_MODE ? staticDemoGraph : null,
+  );
   const [evaluation, setEvaluation] = useState<WorkflowEvaluationResponse | null>(
-    null,
+    STATIC_DEMO_MODE ? staticDemoEvaluation : null,
   );
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
   const [processMonitors, setProcessMonitors] =
     useState<Record<AppView, ProcessMonitorSnapshot>>(initialProcessMonitors);
-  const [historyItems, setHistoryItems] = useState<RunHistoryItem[]>([]);
-  const [selectedHistoryRunId, setSelectedHistoryRunId] = useState<string | null>(null);
+  const [historyItems, setHistoryItems] = useState<RunHistoryItem[]>(
+    STATIC_DEMO_MODE
+      ? [
+          {
+            kind: "finrisk",
+            runId: staticDemoSummary.run_id,
+            status: staticDemoSummary.status,
+            title: "Risk Intelligence",
+            detail: "GitHub Pages static demo",
+          },
+        ]
+      : [],
+  );
+  const [selectedHistoryRunId, setSelectedHistoryRunId] = useState<string | null>(
+    STATIC_DEMO_MODE ? staticDemoSummary.run_id : null,
+  );
   const [selectedAgentRunId, setSelectedAgentRunId] = useState<string | null>(null);
   const [selectedSupplyChainRunId, setSelectedSupplyChainRunId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<AppView>("finrisk");
@@ -240,6 +271,7 @@ export function App() {
   };
 
   const refreshHistory = async () => {
+    if (STATIC_DEMO_MODE) return;
     const [workflows, agents, supplyChains] = await Promise.all([
       api.listWorkflows(10).catch(() => []),
       api.listAgentRuns(10).catch(() => []),
@@ -266,6 +298,18 @@ export function App() {
         detail: item.current_step,
       })),
     ].slice(0, 20));
+  };
+
+  const loadStaticDemo = () => {
+    stopPolling();
+    setError(null);
+    setSummary(staticDemoSummary);
+    setStatus(staticDemoStatus);
+    setReport(staticDemoReport);
+    setGraph(staticDemoGraph);
+    setEvaluation(staticDemoEvaluation);
+    setSelectedHistoryRunId(staticDemoSummary.run_id);
+    setViewMonitor("finrisk", finriskSnapshot(staticDemoStatus));
   };
 
   const fetchStatusAndReport = async (runId: string) => {
@@ -323,6 +367,10 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (STATIC_DEMO_MODE) {
+      setViewMonitor("finrisk", finriskSnapshot(staticDemoStatus));
+      return undefined;
+    }
     void refreshHistory();
     const id = window.setInterval(() => {
       void refreshHistory();
@@ -407,6 +455,10 @@ export function App() {
     setSelectedHistoryRunId(item.runId);
     if (item.kind === "finrisk") {
       setActiveView("finrisk");
+      if (STATIC_DEMO_MODE) {
+        loadStaticDemo();
+        return;
+      }
       void loadFinriskRun(item.runId);
       return;
     }
@@ -434,8 +486,8 @@ export function App() {
           </div>
         </div>
         <div className="ops-strip" aria-label="Runtime status">
-          <span>Graph online</span>
-          <span>LLM routed</span>
+          <span>{STATIC_DEMO_MODE ? "Static demo" : "Graph online"}</span>
+          <span>{STATIC_DEMO_MODE ? "Offline fixture" : "LLM routed"}</span>
           <span>Evidence gated</span>
         </div>
         {summary ? (
@@ -455,53 +507,61 @@ export function App() {
           <Radar size={15} />
           Risk Intelligence
         </button>
-        <button
-          type="button"
-          className={activeView === "supply-chain" ? "active" : ""}
-          onClick={() => setActiveView("supply-chain")}
-          data-testid="tab-supply-chain"
-        >
-          <GitBranch size={15} />
-          Product Supply Chain
-        </button>
-        <button
-          type="button"
-          className={activeView === "agent-runs" ? "active" : ""}
-          onClick={() => setActiveView("agent-runs")}
-          data-testid="tab-agent-runs"
-        >
-          <Boxes size={15} />
-          LLM Agent Runs
-        </button>
+        {!STATIC_DEMO_MODE ? (
+          <>
+            <button
+              type="button"
+              className={activeView === "supply-chain" ? "active" : ""}
+              onClick={() => setActiveView("supply-chain")}
+              data-testid="tab-supply-chain"
+            >
+              <GitBranch size={15} />
+              Product Supply Chain
+            </button>
+            <button
+              type="button"
+              className={activeView === "agent-runs" ? "active" : ""}
+              onClick={() => setActiveView("agent-runs")}
+              data-testid="tab-agent-runs"
+            >
+              <Boxes size={15} />
+              LLM Agent Runs
+            </button>
+          </>
+        ) : null}
       </nav>
-      <main
-        className={`app-main agent-runs-view view-panel ${
-          activeView === "agent-runs" ? "active" : ""
-        }`}
-        aria-hidden={activeView !== "agent-runs"}
-      >
-        <LLMAgentRunPanel
-          selectedRunId={selectedAgentRunId}
-          onProgress={(timeline) => {
-            if (timeline) setSelectedHistoryRunId(timeline.run_id);
-            setViewMonitor("agent-runs", agentRunSnapshot(timeline));
-          }}
-        />
-      </main>
-      <main
-        className={`app-main supply-chain-view view-panel ${
-          activeView === "supply-chain" ? "active" : ""
-        }`}
-        aria-hidden={activeView !== "supply-chain"}
-      >
-        <SupplyChainExplorer
-          selectedRunId={selectedSupplyChainRunId}
-          onProgress={(nextStatus) => {
-            if (nextStatus) setSelectedHistoryRunId(nextStatus.run_id);
-            setViewMonitor("supply-chain", supplyChainSnapshot(nextStatus));
-          }}
-        />
-      </main>
+      {!STATIC_DEMO_MODE ? (
+        <>
+          <main
+            className={`app-main agent-runs-view view-panel ${
+              activeView === "agent-runs" ? "active" : ""
+            }`}
+            aria-hidden={activeView !== "agent-runs"}
+          >
+            <LLMAgentRunPanel
+              selectedRunId={selectedAgentRunId}
+              onProgress={(timeline) => {
+                if (timeline) setSelectedHistoryRunId(timeline.run_id);
+                setViewMonitor("agent-runs", agentRunSnapshot(timeline));
+              }}
+            />
+          </main>
+          <main
+            className={`app-main supply-chain-view view-panel ${
+              activeView === "supply-chain" ? "active" : ""
+            }`}
+            aria-hidden={activeView !== "supply-chain"}
+          >
+            <SupplyChainExplorer
+              selectedRunId={selectedSupplyChainRunId}
+              onProgress={(nextStatus) => {
+                if (nextStatus) setSelectedHistoryRunId(nextStatus.run_id);
+                setViewMonitor("supply-chain", supplyChainSnapshot(nextStatus));
+              }}
+            />
+          </main>
+        </>
+      ) : null}
       <div
         className={`app-body view-panel ${
           activeView === "finrisk" ? "active" : ""
@@ -513,6 +573,8 @@ export function App() {
             <WorkflowLauncher
               onStarted={handleStarted}
               busy={polling}
+              staticMode={STATIC_DEMO_MODE}
+              onLoadStaticDemo={loadStaticDemo}
             />
           </div>
         </aside>
