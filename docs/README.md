@@ -6,8 +6,10 @@
 
 - [项目评估](current/assessments/project-assessment-2026-07-11.md)：从个人金融分析师视角评估当前能力、短板与方向。
 - [前端评估](current/assessments/frontend-assessment-2026-07-11.md)：研究工作台的交互、信息架构与可用性评估。
-- [分析师工作台路线图](current/analyst-workbench-roadmap.md)：当前优先级、完成状态与后续工作。
+- [个人研究闭环补齐方案](current/research-closure-plan.md)：下一阶段工作包、依赖关系与发布门槛。
+- [分析师工作台路线图](current/analyst-workbench-roadmap.md)：已完成能力与原始需求基线。
 - [SEC 财务快照验证](current/validation/sec-financial-snapshot-2026-07-11.md)：AAPL、NVDA、XOM 的公开数据验证记录。
+- [研究闭环真实数据矩阵](current/validation/research-closure-live-matrix-2026-07-11.md)：六类公司与 Watchlist 去重验证。
 
 详见 [current/README.md](current/README.md)。
 
@@ -16,6 +18,7 @@
 - [Agent 工作流](guides/agent-workflow.md)
 - [演示脚本](guides/demo-script.md)
 - [EDGAR 语料接入](guides/edgar-corpus.md)
+- [个人研究闭环使用指南](guides/research-cycle.md)
 
 ## 运维与安全
 
