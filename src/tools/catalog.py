@@ -211,6 +211,40 @@ def build_project_tool_catalog(
             "turns": turns,
         }
 
+    def management_snapshot_lookup(
+        ticker: str,
+        year: int,
+        quarter: int,
+        compare_year: int | None = None,
+        compare_quarter: int | None = None,
+    ) -> dict[str, Any]:
+        provider = transcript_provider or _default_transcript_provider()
+        from src.research import (
+            build_management_snapshot,
+            compare_management_snapshots,
+        )
+
+        current = build_management_snapshot(
+            provider.get_transcript(ticker.upper(), year, quarter)
+        )
+        previous = None
+        changes = []
+        if compare_year is not None and compare_quarter is not None:
+            previous = build_management_snapshot(
+                provider.get_transcript(
+                    ticker.upper(),
+                    compare_year,
+                    compare_quarter,
+                )
+            )
+            changes = compare_management_snapshots(previous, current)
+        return {
+            "ticker": ticker.upper(),
+            "current": jsonable(current),
+            "previous": jsonable(previous) if previous else None,
+            "changes": jsonable(changes),
+        }
+
     def financial_metrics_lookup(
         ticker: str,
         metrics: list[str] | None = None,
@@ -253,6 +287,39 @@ def build_project_tool_catalog(
             "unit": unit,
             "facts": out,
         }
+
+    def financial_snapshot_lookup(
+        ticker: str,
+        as_of: str | None = None,
+    ) -> dict[str, Any]:
+        """Return normalized SEC history rather than raw concept rows."""
+        resolver = ticker_resolver or _default_ticker_resolver()
+        facts_fetcher = company_facts_fetcher or _default_company_facts_fetcher()
+        ident = resolver.resolve(ticker)
+        if ident is None:
+            return {
+                "ticker": ticker.upper(),
+                "metrics": [],
+                "error": "ticker not resolved",
+            }
+        from src.research import FinancialSnapshotBuilder
+        from src.research.financial_snapshot import merge_company_facts
+
+        facts = merge_company_facts(
+            facts_fetcher(ident.cik),
+            *(
+                facts_fetcher(cik)
+                for cik in getattr(ident, "historical_ciks", [])
+            ),
+        )
+        snapshot = FinancialSnapshotBuilder().build(
+            ticker=ident.ticker,
+            cik=ident.cik,
+            company_name=getattr(ident, "company_name", None),
+            facts=facts,
+            as_of=_parse_date(as_of),
+        )
+        return jsonable(snapshot)
 
     def graph_query(
         entity: str,
@@ -412,6 +479,18 @@ def build_project_tool_catalog(
                 max_result_chars=20000,
             ),
             ProjectTool(
+                name="management_snapshot_lookup",
+                description=MANAGEMENT_SNAPSHOT_LOOKUP_DESCRIPTION,
+                parameters=MANAGEMENT_SNAPSHOT_LOOKUP_PARAMETERS,
+                callable=management_snapshot_lookup,
+                risk_level="read_only",
+                scopes=frozenset(
+                    {"company_research", "transcript_analysis", "finrisk_market"}
+                ),
+                evidence_kind="transcript",
+                max_result_chars=24000,
+            ),
+            ProjectTool(
                 name="financial_metrics_lookup",
                 description=FINANCIAL_METRICS_LOOKUP_DESCRIPTION,
                 parameters=FINANCIAL_METRICS_LOOKUP_PARAMETERS,
@@ -428,6 +507,16 @@ def build_project_tool_catalog(
                 risk_level="read_only",
                 scopes=frozenset({"company_research", "finrisk_filing"}),
                 evidence_kind="financial_metric",
+            ),
+            ProjectTool(
+                name="financial_snapshot_lookup",
+                description=FINANCIAL_SNAPSHOT_LOOKUP_DESCRIPTION,
+                parameters=FINANCIAL_SNAPSHOT_LOOKUP_PARAMETERS,
+                callable=financial_snapshot_lookup,
+                risk_level="read_only",
+                scopes=frozenset({"company_research", "finrisk_filing"}),
+                evidence_kind="financial_metric",
+                max_result_chars=24000,
             ),
             ProjectTool(
                 name="graph_query",
@@ -637,6 +726,29 @@ TRANSCRIPT_LOOKUP_PARAMETERS: dict[str, Any] = {
     "required": ["ticker", "year", "quarter"],
 }
 
+MANAGEMENT_SNAPSHOT_LOOKUP_DESCRIPTION = (
+    "Analyze management tone, guidance, uncertainty, defensiveness, and topic "
+    "signals for one earnings call. Optionally compare it with another quarter; "
+    "every change retains transcript evidence ids."
+)
+
+MANAGEMENT_SNAPSHOT_LOOKUP_PARAMETERS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "ticker": {"type": "string"},
+        "year": {"type": "integer"},
+        "quarter": {"type": "integer", "minimum": 1, "maximum": 4},
+        "compare_year": {"type": ["integer", "null"], "default": None},
+        "compare_quarter": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 4,
+            "default": None,
+        },
+    },
+    "required": ["ticker", "year", "quarter"],
+}
+
 FINANCIAL_METRICS_LOOKUP_DESCRIPTION = (
     "Lookup latest available financial ratios or metrics for a ticker. "
     "Use to cross-check textual claims against quantitative signals."
@@ -673,6 +785,25 @@ XBRL_FACT_LOOKUP_PARAMETERS: dict[str, Any] = {
         "limit": {"type": "integer", "minimum": 1, "maximum": 20, "default": 5},
     },
     "required": ["ticker", "concepts"],
+}
+
+FINANCIAL_SNAPSHOT_LOOKUP_DESCRIPTION = (
+    "Build a normalized SEC financial history for a ticker, including common "
+    "income-statement, cash-flow, balance-sheet metrics and derived free cash "
+    "flow. Every point retains filing and XBRL lineage."
+)
+
+FINANCIAL_SNAPSHOT_LOOKUP_PARAMETERS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "ticker": {"type": "string"},
+        "as_of": {
+            "type": ["string", "null"],
+            "description": "Optional YYYY-MM-DD knowledge cutoff.",
+            "default": None,
+        },
+    },
+    "required": ["ticker"],
 }
 
 GRAPH_QUERY_DESCRIPTION = (
@@ -815,12 +946,30 @@ TRANSCRIPT_LOOKUP_SCHEMA: ToolSchema = {
     },
 }
 
+MANAGEMENT_SNAPSHOT_LOOKUP_SCHEMA: ToolSchema = {
+    "type": "function",
+    "function": {
+        "name": "management_snapshot_lookup",
+        "description": MANAGEMENT_SNAPSHOT_LOOKUP_DESCRIPTION,
+        "parameters": MANAGEMENT_SNAPSHOT_LOOKUP_PARAMETERS,
+    },
+}
+
 FINANCIAL_METRICS_LOOKUP_SCHEMA: ToolSchema = {
     "type": "function",
     "function": {
         "name": "financial_metrics_lookup",
         "description": FINANCIAL_METRICS_LOOKUP_DESCRIPTION,
         "parameters": FINANCIAL_METRICS_LOOKUP_PARAMETERS,
+    },
+}
+
+FINANCIAL_SNAPSHOT_LOOKUP_SCHEMA: ToolSchema = {
+    "type": "function",
+    "function": {
+        "name": "financial_snapshot_lookup",
+        "description": FINANCIAL_SNAPSHOT_LOOKUP_DESCRIPTION,
+        "parameters": FINANCIAL_SNAPSHOT_LOOKUP_PARAMETERS,
     },
 }
 
@@ -1167,10 +1316,14 @@ __all__ = [
     "BROWSER_EXPLORE_SCHEMA",
     "FINANCIAL_METRICS_LOOKUP_PARAMETERS",
     "FINANCIAL_METRICS_LOOKUP_SCHEMA",
+    "FINANCIAL_SNAPSHOT_LOOKUP_PARAMETERS",
+    "FINANCIAL_SNAPSHOT_LOOKUP_SCHEMA",
     "GRAPH_PATH_SEARCH_PARAMETERS",
     "GRAPH_PATH_SEARCH_SCHEMA",
     "GRAPH_QUERY_PARAMETERS",
     "GRAPH_QUERY_SCHEMA",
+    "MANAGEMENT_SNAPSHOT_LOOKUP_PARAMETERS",
+    "MANAGEMENT_SNAPSHOT_LOOKUP_SCHEMA",
     "SEARCH_AND_FETCH_PARAMETERS",
     "SEARCH_AND_FETCH_SCHEMA",
     "SEC_FETCH_FILING_PARAMETERS",

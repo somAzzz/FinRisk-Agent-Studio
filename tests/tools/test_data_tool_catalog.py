@@ -143,8 +143,10 @@ def test_company_research_scope_includes_data_tools() -> None:
     assert "sec_list_filings" in catalog.names
     assert "sec_fetch_filing" in catalog.names
     assert "transcript_lookup" in catalog.names
+    assert "management_snapshot_lookup" in catalog.names
     assert "financial_metrics_lookup" in catalog.names
     assert "xbrl_fact_lookup" in catalog.names
+    assert "financial_snapshot_lookup" in catalog.names
 
 
 def test_sec_list_filings_tool_uses_resolver_and_fetcher() -> None:
@@ -204,6 +206,23 @@ def test_transcript_lookup_tool_filters_section() -> None:
     assert result["data"]["turns"][0]["section"] == "qa"
 
 
+def test_management_snapshot_lookup_compares_transcript_periods() -> None:
+    catalog = _company_catalog()
+
+    result = catalog.tool_map["management_snapshot_lookup"](
+        ticker="AAPL",
+        year=2025,
+        quarter=1,
+        compare_year=2024,
+        compare_quarter=1,
+    )
+
+    assert result["evidence_kind"] == "transcript"
+    assert result["data"]["current"]["transcript_id"] == "AAPL-2025Q1"
+    assert result["data"]["previous"]["transcript_id"] == "AAPL-2024Q1"
+    assert isinstance(result["data"]["changes"], list)
+
+
 def test_financial_metrics_lookup_tool_filters_metrics() -> None:
     catalog = _company_catalog()
 
@@ -226,6 +245,17 @@ def test_xbrl_fact_lookup_tool_extracts_concepts() -> None:
 
     assert result["data"]["facts"][0]["concept"] == "Revenues"
     assert result["data"]["facts"][0]["value"] == 391035000000.0
+
+
+def test_financial_snapshot_lookup_normalizes_company_facts() -> None:
+    catalog = _company_catalog()
+
+    result = catalog.tool_map["financial_snapshot_lookup"](ticker="AAPL")
+
+    assert result["evidence_kind"] == "financial_metric"
+    assert result["data"]["ticker"] == "AAPL"
+    assert result["data"]["metrics"][0]["metric"] == "revenue"
+    assert result["data"]["metrics"][0]["accession_number"]
 
 
 def test_sec_tools_return_explainable_error_when_ticker_missing() -> None:

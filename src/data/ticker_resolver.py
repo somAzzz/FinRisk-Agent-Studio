@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import requests
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.config import get_settings
 
@@ -38,7 +38,15 @@ _FALLBACK_TICKERS: dict[str, tuple[str, str]] = {
     "NVDA": ("0001045810", "NVIDIA Corporation"),
     "META": ("0001326801", "Meta Platforms, Inc."),
     "TSLA": ("0001318605", "Tesla, Inc."),
+    "XOM": ("0000034088", "Exxon Mobil Corporation"),
     "DEMO": ("9999999999", "Demo Company, Inc."),
+}
+
+# Issuers can reorganize into a new SEC registrant while historical facts stay
+# under a predecessor CIK. Keep this explicit and reviewed; never infer entity
+# continuity from similar company names alone.
+_HISTORICAL_CIKS: dict[str, tuple[str, ...]] = {
+    "XOM": ("0000034088",),
 }
 
 
@@ -52,6 +60,7 @@ class CompanyIdentifier(BaseModel):
     name: str | None = None
     source: Literal["cache", "sec", "fallback"] = "fallback"
     resolved_at: datetime | None = None
+    historical_ciks: list[str] = Field(default_factory=list)
 
 
 class TickerResolver:
@@ -122,7 +131,10 @@ class TickerResolver:
         return ident
 
     # -- cache helpers ---------------------------------------------------
-    def _load_from_disk(self, key: str) -> CompanyIdentifier | None:
+    def _load_from_disk(
+        self,
+        key: str,
+    ) -> CompanyIdentifier | None:
         if not self.cache_path.is_file():
             return None
         try:
@@ -141,9 +153,14 @@ class TickerResolver:
         if "resolved_at" not in raw:
             raw["resolved_at"] = datetime.now(tz=UTC).isoformat()
         try:
-            return CompanyIdentifier.model_validate(raw)
+            ident = CompanyIdentifier.model_validate(raw)
         except Exception:
             return None
+        if not ident.historical_ciks and key in _HISTORICAL_CIKS:
+            ident = ident.model_copy(
+                update={"historical_ciks": list(_HISTORICAL_CIKS[key])}
+            )
+        return ident
 
     def _persist_to_disk(self, ident: CompanyIdentifier) -> None:
         try:
@@ -169,7 +186,10 @@ class TickerResolver:
             return
 
     # -- SEC endpoint ----------------------------------------------------
-    def _fetch_from_sec(self, key: str) -> CompanyIdentifier | None:
+    def _fetch_from_sec(  # noqa: PLR0911
+        self,
+        key: str,
+    ) -> CompanyIdentifier | None:
         try:
             response = self._session.get(
                 _SEC_TICKERS_URL,
@@ -191,6 +211,7 @@ class TickerResolver:
             return None
         # SEC format: { "0": {"cik_str": 320193, "ticker": "AAPL",
         # "title": "Apple Inc."}, ... }
+        candidates: list[CompanyIdentifier] = []
         for entry in payload.values():
             if not isinstance(entry, dict):
                 continue
@@ -204,14 +225,25 @@ class TickerResolver:
                 cik_int = int(raw_cik)
             except (TypeError, ValueError):
                 continue
-            return CompanyIdentifier(
-                ticker=key,
-                cik=str(cik_int).zfill(10),
-                name=str(entry.get("title")) or None,
-                source="sec",
-                resolved_at=datetime.now(tz=UTC),
+            candidates.append(
+                CompanyIdentifier(
+                    ticker=key,
+                    cik=str(cik_int).zfill(10),
+                    name=str(entry.get("title")) or None,
+                    source="sec",
+                    resolved_at=datetime.now(tz=UTC),
+                    historical_ciks=list(_HISTORICAL_CIKS.get(key, ())),
+                )
             )
-        return None
+        if not candidates:
+            return None
+        anchored = _FALLBACK_TICKERS.get(key)
+        if anchored is not None:
+            anchored_cik = anchored[0]
+            for candidate in candidates:
+                if candidate.cik == anchored_cik:
+                    return candidate
+        return candidates[0]
 
     # -- fixture fallback -----------------------------------------------
     @staticmethod
@@ -226,6 +258,7 @@ class TickerResolver:
             name=name,
             source="fallback",
             resolved_at=datetime.now(tz=UTC),
+            historical_ciks=[],
         )
 
 

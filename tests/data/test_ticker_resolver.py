@@ -27,7 +27,7 @@ class FakeResponse:
 def _fake_session(payload: dict, status_code: int = 200):
     captured: dict = {}
 
-    def fake_get(url, timeout=None, headers=None):  # noqa: ARG001
+    def fake_get(url, timeout=None, headers=None):
         captured["url"] = url
         captured["headers"] = headers
         return FakeResponse(payload, status_code)
@@ -70,7 +70,7 @@ def test_resolve_persists_to_disk_cache(
     payload = {
         "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
     }
-    session, captured = _fake_session(payload)
+    session, _captured = _fake_session(payload)
     cache = tmp_path / "ticker_cache.json"
     resolver = TickerResolver(cache_path=cache, session=session)
     ident = resolver.resolve("AAPL")
@@ -181,3 +181,50 @@ def test_resolve_from_disk_cache_tags_source_as_cache(tmp_path: Path) -> None:
     ident = resolver.resolve("AAPL")
     assert ident is not None
     assert ident.source == "cache"
+
+
+def test_duplicate_sec_ticker_selects_reviewed_anchor_when_present(
+    tmp_path: Path,
+) -> None:
+    cache = tmp_path / "ticker_cache.json"
+    payload = {
+        "0": {
+            "cik_str": 2115436,
+            "ticker": "XOM",
+            "title": "ExxonMobil Holdings Corp",
+        },
+        "1": {
+            "cik_str": 34088,
+            "ticker": "XOM",
+            "title": "EXXON MOBIL CORP",
+        },
+    }
+    session, _ = _fake_session(payload)
+
+    ident = TickerResolver(cache_path=cache, session=session).resolve("XOM")
+
+    assert ident is not None
+    assert ident.cik == "0000034088"
+    assert ident.name == "EXXON MOBIL CORP"
+
+
+def test_xom_current_registrant_keeps_reviewed_historical_cik(
+    tmp_path: Path,
+) -> None:
+    payload = {
+        "0": {
+            "cik_str": 2115436,
+            "ticker": "XOM",
+            "title": "ExxonMobil Holdings Corp",
+        }
+    }
+    session, _ = _fake_session(payload)
+
+    ident = TickerResolver(
+        cache_path=tmp_path / "ticker_cache.json",
+        session=session,
+    ).resolve("XOM")
+
+    assert ident is not None
+    assert ident.cik == "0002115436"
+    assert ident.historical_ciks == ["0000034088"]

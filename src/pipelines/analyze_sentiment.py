@@ -116,6 +116,9 @@ def analyze_management_sentiment(
     agent = SentimentAgent()
     agent.run(state)
 
+    if agent.last_result is not None:
+        return agent.last_result
+
     sentiment_claims = [
         c for c in state.claims if c.claim_type == "sentiment"
     ]

@@ -138,6 +138,13 @@ GET  /agent-runs/{run_id}/timeline
 GET  /agent-runs/{run_id}/trace.json
 POST /agent-runs/{run_id}/review-items/{item_id}
 POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
+
+GET  /research/financials/{ticker}
+GET  /research/management/{ticker}
+POST /research/valuation/scenarios
+GET/POST /research/theses
+GET/PUT  /research/watchlist
+GET      /research/reminders
 ```
 
 默认 API 通过 `FINRISK_API_KEYS` + `X-API-Key` 鉴权。本地开发可临时设置 `AUTH_DISABLED=1`。

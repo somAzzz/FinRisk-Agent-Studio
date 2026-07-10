@@ -56,6 +56,27 @@
       "confidence": 0.85
     }
   ],
+  "financial_impacts": [
+    {
+      "risk_id": "risk-supply-asia",
+      "affected_segment": null,
+      "drivers": ["volume", "cost", "working_capital"],
+      "affected_metrics": ["revenue", "gross_margin", "free_cash_flow"],
+      "direction": "adverse",
+      "time_horizon": "6-12 months",
+      "evidence_ids": ["ne-risk-supply-asia"],
+      "evidence_quote": "The Company utilizes several outsourcing partners to manufacture subassemblies for the Company's products.",
+      "confidence": 0.75,
+      "quantification_status": "unquantified",
+      "probability": null,
+      "estimated_impact": null,
+      "assumptions": [
+        "No probability or financial magnitude has been inferred.",
+        "Quantification requires segment exposure and scenario inputs."
+      ],
+      "rationale": "Supply-chain risk mapped to common financial transmission channels; analyst validation required."
+    }
+  ],
   "limitations": [
     "Auto-generated brief; small set of SEC filings."
   ],

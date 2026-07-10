@@ -33,7 +33,11 @@ def compute_risk_score(risk, normalized_evidence) -> RiskScore:
     contradicting = [
         e for e in related if "contradicts" in e.summary.lower()
     ]
-    base_evidence_quality = 0.7 if related else 0.0
+    base_evidence_quality = (
+        sum(e.credibility_score for e in related) / len(related)
+        if related
+        else 0.0
+    )
     quality_adjustment = (
         0.2 if contradicting and not supporting else 0.0
     )
@@ -44,7 +48,10 @@ def compute_risk_score(risk, normalized_evidence) -> RiskScore:
     sources = {ev.source_type for ev in related}
     source_diversity = min(1.0, len(sources) / 3.0)
 
-    novelty = 0.5  # baseline; future step can compare with prior runs
+    # No prior-run comparison is available in this workflow yet. Keep the
+    # value at zero but mark it unavailable so v16 excludes its weight rather
+    # than treating an arbitrary neutral constant as observed novelty.
+    novelty = 0.0
 
     final_score = round(
         min(
@@ -75,6 +82,7 @@ def compute_risk_score(risk, normalized_evidence) -> RiskScore:
         evidence_quality=round(evidence_quality, 4),
         source_diversity=round(source_diversity, 4),
         novelty_score=novelty,
+        novelty_available=False,
         final_score=final_score,
         score_reasoning=reasoning,
     )

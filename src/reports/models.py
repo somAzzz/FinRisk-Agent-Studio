@@ -8,10 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.evaluation.claim_grounding import Claim
 from src.graph_reasoning.models import GraphInsightV16
+from src.research.risk_impact import RiskFinancialImpact
 
 
 class RiskScoreV16(BaseModel):
-    """Canonical v16 risk score on a 0-100 scale."""
+    """Canonical research-priority score on a 0-100 scale."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -21,10 +22,12 @@ class RiskScoreV16(BaseModel):
     evidence_quality: float = Field(ge=0.0, le=1.0)
     source_diversity: float = Field(ge=0.0, le=1.0)
     novelty_score: float = Field(ge=0.0, le=1.0)
+    novelty_available: bool = True
     graph_centrality: float = Field(default=0.0, ge=0.0, le=1.0)
     final_score: float = Field(ge=0.0, le=100.0)
     confidence: float = Field(default=0.75, ge=0.0, le=1.0)
     score_breakdown: dict[str, float] = Field(default_factory=dict)
+    component_availability: dict[str, bool] = Field(default_factory=dict)
     reasoning: str = ""
 
 
@@ -86,6 +89,7 @@ class RiskReportV16(BaseModel):
     evidence_table: list[EvidenceReference] = Field(default_factory=list)
     second_order_effects: list[GraphInsightV16] = Field(default_factory=list)
     evidence_vs_inference: list[Claim] = Field(default_factory=list)
+    financial_impacts: list[RiskFinancialImpact] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     recommended_next_questions: list[str] = Field(default_factory=list)
     disclaimer: str
@@ -130,16 +134,30 @@ def compute_risk_score_v16(score: Any) -> RiskScoreV16:
         "novelty_score": 0.10,
         "graph_centrality": 0.10,
     }
+    availability = dict.fromkeys(components, True)
+    availability["novelty_score"] = bool(
+        getattr(score, "novelty_available", True)
+    )
+    active_weight = sum(
+        weight for key, weight in weights.items() if availability[key]
+    )
     weighted = {
-        key: round(components[key] * weights[key] * 100.0, 4)
+        key: round(
+            components[key]
+            * (weights[key] / active_weight if availability[key] else 0.0)
+            * 100.0,
+            4,
+        )
         for key in components
     }
     final_score = round(sum(weighted.values()), 4)
     return RiskScoreV16(
         risk_id=str(getattr(score, "risk_id", "")),
         **components,
+        novelty_available=availability["novelty_score"],
         final_score=max(0.0, min(100.0, final_score)),
         score_breakdown=weighted,
+        component_availability=availability,
         reasoning=str(
             getattr(score, "score_reasoning", "")
             or "deterministic weighted v16 score"

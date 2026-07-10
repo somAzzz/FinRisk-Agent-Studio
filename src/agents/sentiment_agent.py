@@ -135,9 +135,7 @@ def _is_mda_evidence(ev: Evidence) -> bool:
     if not _is_management_evidence(ev):
         return False
     section = (ev.section or "").lower()
-    if "mda" in section or "md&a" in section or "7" in section:
-        return True
-    return False
+    return "mda" in section or "md&a" in section or "7" in section
 
 
 def _is_analyst_only(ev: Evidence) -> bool:
@@ -293,7 +291,7 @@ def _build_topic_sentiments(
     return sentiments
 
 
-def _compose_overall_tone(
+def _compose_overall_tone(  # noqa: PLR0911
     topic_sentiments: list[TopicSentiment],
     fallback: OverallTone,
 ) -> OverallTone:
@@ -329,6 +327,9 @@ class SentimentAgent:
 
     name: str = "sentiment"
 
+    def __init__(self) -> None:
+        self.last_result: ManagementSentimentResult | None = None
+
     def run(self, state: AgentState) -> AgentState:
         """Analyze ``state.evidence`` and append claims/notes to ``state``."""
         evidence_pool = [
@@ -356,6 +357,7 @@ class SentimentAgent:
                 topic_sentiment=[],
                 claims=[],
             )
+            self.last_result = empty
             return state
 
         prep_pos, prep_neg = _score_text(prepared_text)
@@ -364,7 +366,12 @@ class SentimentAgent:
         prep_label = _tone_from_score(prep_pos, prep_neg)
         qa_label = _tone_from_score(qa_pos, qa_neg)
 
-        if (prep_label == "positive" and qa_label in {"negative", "mixed"}) or (prep_label == "negative" and qa_label in {"positive", "mixed"}) or prep_label == "mixed" or qa_label == "mixed":
+        if (
+            (prep_label == "positive" and qa_label in {"negative", "mixed"})
+            or (prep_label == "negative" and qa_label in {"positive", "mixed"})
+            or prep_label == "mixed"
+            or qa_label == "mixed"
+        ):
             overall = "mixed"
         elif prep_label != "unclear":
             overall = _overall_tone(prep_label)
@@ -454,6 +461,7 @@ class SentimentAgent:
             topic_sentiment=topic_sentiments,
             claims=claims,
         )
+        self.last_result = result
 
         state.claims.extend(claims)
         state.notes.append(

@@ -33,8 +33,13 @@ class FactValue(BaseModel):
     value: float
     unit: str
     period_end: date | None = None
+    period_start: date | None = None
     form_type: str | None = None
     accession_number: str | None = None
+    filed_at: date | None = None
+    fiscal_year: int | None = None
+    fiscal_period: str | None = None
+    frame: str | None = None
 
 
 def _coerce_float(value: Any) -> float | None:
@@ -126,10 +131,23 @@ def extract_metric(
                 value=numeric,
                 unit=unit,
                 period_end=period_end,
+                period_start=_coerce_date(row.get("start")),
                 form_type=row.get("form") if isinstance(row.get("form"), str) else None,
                 accession_number=(
                     row.get("accn")
                     if isinstance(row.get("accn"), str)
+                    else None
+                ),
+                filed_at=_coerce_date(row.get("filed")),
+                fiscal_year=(
+                    row.get("fy") if isinstance(row.get("fy"), int) else None
+                ),
+                fiscal_period=(
+                    row.get("fp") if isinstance(row.get("fp"), str) else None
+                ),
+                frame=(
+                    row.get("frame")
+                    if isinstance(row.get("frame"), str)
                     else None
                 ),
             )

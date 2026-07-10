@@ -87,6 +87,19 @@ def render_risk_report_markdown(report: RiskReportV16) -> str:
         )
     lines.append("")
 
+    lines.extend(["## Financial Impact Channels", ""])
+    if not report.financial_impacts:
+        lines.extend(["No financial impact mapping available.", ""])
+    for impact in report.financial_impacts:
+        lines.extend(
+            [
+                f"- `{impact.risk_id}`: {', '.join(impact.drivers) or 'unknown'} "
+                f"may affect {', '.join(impact.affected_metrics) or 'unknown'}; "
+                f"status **{impact.quantification_status}**. {impact.rationale}",
+            ]
+        )
+    lines.append("")
+
     lines.extend(["## Confidence & Limitations", ""])
     if not report.limitations:
         lines.extend(["No limitations recorded.", ""])

@@ -95,6 +95,16 @@ def test_supply_chain_health_accepts_key(authed_client: TestClient) -> None:
     assert response.status_code == 200
 
 
+def test_financial_research_endpoint_is_gated(authed_client: TestClient) -> None:
+    response = authed_client.get("/research/financials/AAPL")
+    assert response.status_code == 401
+
+
+def test_valuation_endpoint_is_gated(authed_client: TestClient) -> None:
+    response = authed_client.post("/research/valuation/scenarios", json={})
+    assert response.status_code == 401
+
+
 def test_placeholder_keys_filtered_out(monkeypatch: pytest.MonkeyPatch) -> None:
     """``REPLACE_ME``/``EMPTY``/``dummy`` style tokens must not authenticate."""
     monkeypatch.setenv("FINRISK_SKIP_BACKGROUND", "1")

@@ -143,6 +143,13 @@ GET  /agent-runs/{run_id}/timeline
 GET  /agent-runs/{run_id}/trace.json
 POST /agent-runs/{run_id}/review-items/{item_id}
 POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
+
+GET  /research/financials/{ticker}
+GET  /research/management/{ticker}
+POST /research/valuation/scenarios
+GET/POST /research/theses
+GET/PUT  /research/watchlist
+GET      /research/reminders
 ```
 
 By default, API routes require `X-API-Key` via `FINRISK_API_KEYS`. For local development only, set `AUTH_DISABLED=1`.

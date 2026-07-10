@@ -1,51 +1,55 @@
-"""v16 graph reasoning subsystem.
-
-Re-exports the public surface so callers can do
-``from src.graph_reasoning import GraphReasoningSubsystem``.
-"""
+"""Cycle-safe public surface for the v16 graph reasoning subsystem."""
 
 from __future__ import annotations
 
-from src.graph_reasoning.context_builder import build_graph_context
-from src.graph_reasoning.evidence_binder import bind_evidence
-from src.graph_reasoning.fixture_graph import EDGES as FIXTURE_EDGES
-from src.graph_reasoning.fixture_graph import NODES as FIXTURE_NODES
-from src.graph_reasoning.insight_validator import validate_all, validate_insight
-from src.graph_reasoning.models import (
-    CandidateGraphPath,
-    EvidenceGraphPayload,
-    GraphEdge,
-    GraphEdgeMetadata,
-    GraphInsightV16,
-    GraphNode,
-    GraphQueryContext,
-)
-from src.graph_reasoning.path_interpreter import interpret_paths
-from src.graph_reasoning.path_retriever import (
-    MIN_EDGE_CONFIDENCE,
-    retrieve_candidate_paths,
-)
-from src.graph_reasoning.path_scorer import rank_paths, score_path
-from src.graph_reasoning.subsystem import GraphReasoningSubsystem
+from importlib import import_module
+from typing import Any
 
-__all__ = [
-    "FIXTURE_EDGES",
-    "FIXTURE_NODES",
-    "MIN_EDGE_CONFIDENCE",
-    "CandidateGraphPath",
-    "EvidenceGraphPayload",
-    "GraphEdge",
-    "GraphEdgeMetadata",
-    "GraphInsightV16",
-    "GraphNode",
-    "GraphQueryContext",
-    "GraphReasoningSubsystem",
-    "bind_evidence",
-    "build_graph_context",
-    "interpret_paths",
-    "rank_paths",
-    "retrieve_candidate_paths",
-    "score_path",
-    "validate_all",
-    "validate_insight",
-]
+_EXPORTS: dict[str, tuple[str, str]] = {
+    "FIXTURE_EDGES": ("src.graph_reasoning.fixture_graph", "EDGES"),
+    "FIXTURE_NODES": ("src.graph_reasoning.fixture_graph", "NODES"),
+    "MIN_EDGE_CONFIDENCE": (
+        "src.graph_reasoning.path_retriever",
+        "MIN_EDGE_CONFIDENCE",
+    ),
+    "CandidateGraphPath": ("src.graph_reasoning.models", "CandidateGraphPath"),
+    "EvidenceGraphPayload": ("src.graph_reasoning.models", "EvidenceGraphPayload"),
+    "GraphEdge": ("src.graph_reasoning.models", "GraphEdge"),
+    "GraphEdgeMetadata": ("src.graph_reasoning.models", "GraphEdgeMetadata"),
+    "GraphInsightV16": ("src.graph_reasoning.models", "GraphInsightV16"),
+    "GraphNode": ("src.graph_reasoning.models", "GraphNode"),
+    "GraphQueryContext": ("src.graph_reasoning.models", "GraphQueryContext"),
+    "GraphReasoningSubsystem": (
+        "src.graph_reasoning.subsystem",
+        "GraphReasoningSubsystem",
+    ),
+    "bind_evidence": ("src.graph_reasoning.evidence_binder", "bind_evidence"),
+    "build_graph_context": (
+        "src.graph_reasoning.context_builder",
+        "build_graph_context",
+    ),
+    "interpret_paths": ("src.graph_reasoning.path_interpreter", "interpret_paths"),
+    "rank_paths": ("src.graph_reasoning.path_scorer", "rank_paths"),
+    "retrieve_candidate_paths": (
+        "src.graph_reasoning.path_retriever",
+        "retrieve_candidate_paths",
+    ),
+    "score_path": ("src.graph_reasoning.path_scorer", "score_path"),
+    "validate_all": ("src.graph_reasoning.insight_validator", "validate_all"),
+    "validate_insight": (
+        "src.graph_reasoning.insight_validator",
+        "validate_insight",
+    ),
+}
+
+__all__ = list(_EXPORTS)
+
+
+def __getattr__(name: str) -> Any:
+    target = _EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(name)
+    module_name, attribute = target
+    value = getattr(import_module(module_name), attribute)
+    globals()[name] = value
+    return value

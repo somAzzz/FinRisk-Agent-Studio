@@ -276,7 +276,7 @@ class NormalizedEvidence(BaseModel):
 
 
 class RiskScore(BaseModel):
-    """Deterministic score for one risk."""
+    """Deterministic research-priority score, not a calibrated probability."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -286,6 +286,7 @@ class RiskScore(BaseModel):
     evidence_quality: float = Field(ge=0.0, le=1.0)
     source_diversity: float = Field(ge=0.0, le=1.0)
     novelty_score: float = Field(ge=0.0, le=1.0)
+    novelty_available: bool = True
     graph_centrality: float | None = Field(default=None, ge=0.0, le=1.0)
     final_score: float = Field(ge=0.0, le=1.0)
     score_reasoning: str

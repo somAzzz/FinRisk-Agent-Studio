@@ -251,6 +251,20 @@ class ReportGeneratorStep(WorkflowStep):
             )
             for ev in state.normalized_evidence
         ]
+        from src.research.risk_impact import map_risk_financial_impact
+
+        financial_impacts = [
+            map_risk_financial_impact(
+                risk,
+                evidence_ids=[
+                    ev.evidence_id
+                    for ev in state.normalized_evidence
+                    if risk.risk_id in (ev.related_risk_ids or [])
+                ],
+                time_horizon=state.request.time_horizon,
+            )
+            for risk in report.top_risks
+        ]
         report_v16 = RiskReportV16(
             title=f"{company_name} Risk Intelligence Brief",
             executive_summary=report.executive_summary,
@@ -259,6 +273,7 @@ class ReportGeneratorStep(WorkflowStep):
             evidence_table=evidence_refs,
             second_order_effects=state.graph_insights_v16 or [],
             evidence_vs_inference=claims,
+            financial_impacts=financial_impacts,
             limitations=[limitations],
             recommended_next_questions=list(
                 report.recommended_next_questions

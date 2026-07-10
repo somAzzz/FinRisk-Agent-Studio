@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.agents.sentiment_agent import SentimentAgent
 from src.agents.state import AgentState
@@ -26,7 +26,7 @@ def _evidence(
         source_id="src",
         quote=quote,
         section=section,
-        retrieved_at=datetime(2026, 6, 20, tzinfo=timezone.utc),
+        retrieved_at=datetime(2026, 6, 20, tzinfo=UTC),
         confidence=0.8,
         metadata={"role": role},
     )
@@ -157,6 +157,7 @@ def test_pipeline_returns_management_sentiment_result() -> None:
         "maintained",
         "unclear",
     }
+    assert result.topic_sentiment, "pipeline must preserve agent topic signals"
 
 
 def test_mixed_when_prepared_positive_and_qa_negative() -> None:

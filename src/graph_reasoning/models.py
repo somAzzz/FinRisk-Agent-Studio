@@ -10,12 +10,14 @@ in this file.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.workflows.state import utcnow
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 NodeType = Literal[
     "Company",
@@ -65,7 +67,7 @@ class GraphEdgeMetadata(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
     extraction_method: EdgeExtractionMethod = "rule"
-    created_at: datetime = Field(default_factory=utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
 
 
 class GraphEdge(BaseModel):
