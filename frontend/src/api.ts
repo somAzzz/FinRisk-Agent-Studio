@@ -10,13 +10,25 @@ import type {
   AgentRunSummary,
   AgentRunTimelineResponse,
   AgentRunTraceResponse,
+  CompanyResearchSnapshot,
+  CompanyComparisonResponse,
+  ExpectationPoint,
   FinRiskRequest,
   FinancialSnapshot,
   InvestmentThesis,
   ManagementComparisonResponse,
+  MonitorScanResponse,
+  PostEarningsReviewDraft,
+  ResearchAlert,
+  ResearchChange,
+  ResearchChangeSet,
+  ResearchRunResponse,
+  ResearchQueueResponse,
   ResearchReminder,
   ScenarioValuationRequest,
   ScenarioValuationResponse,
+  SensitivityMatrixRequest,
+  SensitivityMatrixResponse,
   ThesisReview,
   WatchlistItem,
   WorkflowArtifactsResponse,
@@ -187,6 +199,149 @@ export const api = {
       { method: "PUT", body: JSON.stringify(item) },
     );
   },
+  startResearchRun(input: {
+    ticker: string;
+    as_of?: string | null;
+    year?: number | null;
+    quarter?: number | null;
+    include_management?: boolean;
+    include_risks?: boolean;
+    workflow_run_id?: string | null;
+  }): Promise<ResearchRunResponse> {
+    return sendRequest<ResearchRunResponse>("/research/runs", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  listResearchSnapshots(ticker: string): Promise<CompanyResearchSnapshot[]> {
+    return sendRequest<CompanyResearchSnapshot[]>(
+      `/research/snapshots?ticker=${encodeURIComponent(ticker)}`,
+    );
+  },
+  getResearchChanges(
+    ticker: string,
+    fromSnapshotId?: string,
+    toSnapshotId?: string,
+  ): Promise<ResearchChangeSet> {
+    const params = new URLSearchParams();
+    if (fromSnapshotId && toSnapshotId) {
+      params.set("from_snapshot_id", fromSnapshotId);
+      params.set("to_snapshot_id", toSnapshotId);
+    }
+    const query = params.size ? `?${params.toString()}` : "";
+    return sendRequest<ResearchChangeSet>(
+      `/research/changes/${encodeURIComponent(ticker)}${query}`,
+    );
+  },
+  reviewResearchChange(
+    changeId: string,
+    status: "confirmed" | "ignored" | "needs_review",
+  ): Promise<ResearchChange> {
+    return sendRequest<ResearchChange>(
+      `/research/changes/${encodeURIComponent(changeId)}/review`,
+      { method: "POST", body: JSON.stringify({ status }) },
+    );
+  },
+  scanWatchlist(input: {
+    tickers?: string[] | null;
+    as_of?: string | null;
+    minimum_materiality?: "low" | "medium" | "high";
+    max_workers?: number;
+    dry_run?: boolean;
+    year?: number | null;
+    quarter?: number | null;
+  } = {}): Promise<MonitorScanResponse> {
+    return sendRequest<MonitorScanResponse>("/research/monitor/scan", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  listResearchAlerts(status?: "new" | "acknowledged" | "ignored"): Promise<ResearchAlert[]> {
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    return sendRequest<ResearchAlert[]>(`/research/alerts${query}`);
+  },
+  actOnResearchAlert(
+    alertId: string,
+    action: "acknowledge" | "ignore",
+  ): Promise<ResearchAlert> {
+    return sendRequest<ResearchAlert>(
+      `/research/alerts/${encodeURIComponent(alertId)}/action`,
+      { method: "POST", body: JSON.stringify({ action }) },
+    );
+  },
+  saveExpectation(point: ExpectationPoint): Promise<ExpectationPoint> {
+    return sendRequest<ExpectationPoint>("/research/expectations", {
+      method: "POST",
+      body: JSON.stringify(point),
+    });
+  },
+  listExpectations(ticker: string): Promise<ExpectationPoint[]> {
+    return sendRequest<ExpectationPoint[]>(
+      `/research/expectations?ticker=${encodeURIComponent(ticker)}`,
+    );
+  },
+  importExpectationsCsv(content: string): Promise<{
+    imported: number;
+    skipped: number;
+    expectation_ids: string[];
+  }> {
+    return sendRequest("/research/expectations/import-csv", {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  },
+  calculateSensitivity(
+    input: SensitivityMatrixRequest,
+  ): Promise<SensitivityMatrixResponse> {
+    return sendRequest<SensitivityMatrixResponse>(
+      "/research/valuation/sensitivity",
+      { method: "POST", body: JSON.stringify(input) },
+    );
+  },
+  listPostEarningsDrafts(ticker?: string): Promise<PostEarningsReviewDraft[]> {
+    const query = ticker ? `?ticker=${encodeURIComponent(ticker)}` : "";
+    return sendRequest<PostEarningsReviewDraft[]>(
+      `/research/post-earnings/drafts${query}`,
+    );
+  },
+  createPostEarningsDraft(input: {
+    thesis_id: string;
+    from_snapshot_id: string;
+    to_snapshot_id: string;
+    expectation_ids: string[];
+    locked_assumptions: Record<string, unknown>;
+  }): Promise<PostEarningsReviewDraft> {
+    return sendRequest<PostEarningsReviewDraft>(
+      "/research/post-earnings/drafts",
+      { method: "POST", body: JSON.stringify(input) },
+    );
+  },
+  confirmPostEarningsDraft(
+    draftId: string,
+    outcome: "supported" | "mixed" | "invalidated" | "unknown",
+    notes: string,
+  ): Promise<PostEarningsReviewDraft> {
+    return sendRequest<PostEarningsReviewDraft>(
+      `/research/post-earnings/drafts/${encodeURIComponent(draftId)}/confirm`,
+      { method: "POST", body: JSON.stringify({ outcome, notes }) },
+    );
+  },
+  compareCompanies(input: {
+    snapshot_ids: string[];
+    metrics: string[];
+    period_kind: "quarter" | "annual" | "ttm";
+  }): Promise<CompanyComparisonResponse> {
+    return sendRequest<CompanyComparisonResponse>("/research/comparison", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  buildResearchQueue(tickers: string[]): Promise<ResearchQueueResponse> {
+    return sendRequest<ResearchQueueResponse>("/research/research-queue", {
+      method: "POST",
+      body: JSON.stringify({ tickers }),
+    });
+  },
   // v18 supply chain
   listSupplyChains(
     limit = 20,
@@ -284,6 +439,9 @@ export const apiPaths = {
   financialSnapshot: (ticker: string) => `/research/financials/${ticker}`,
   theses: "/research/theses",
   watchlist: "/research/watchlist",
+  researchRuns: "/research/runs",
+  researchSnapshots: "/research/snapshots",
+  researchAlerts: "/research/alerts",
   agentRunHistory: "/agent-runs",
   supplyChainHistory: "/supply-chain",
   startSupplyChain: "/supply-chain/explore",

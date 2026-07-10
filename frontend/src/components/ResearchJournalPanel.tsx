@@ -6,6 +6,7 @@ import type {
   ThesisReview,
   WatchlistItem,
 } from "../types";
+import { ResearchCyclePanel } from "./ResearchCyclePanel";
 
 const now = () => new Date().toISOString();
 const id = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 12)}`;
@@ -127,6 +128,7 @@ export function ResearchJournalPanel() {
       </aside>
 
       <main className="journal-main">
+        <ResearchCyclePanel />
         {reminders.length ? (
           <section className="section reminder-ledger">
             <h2>Due research</h2>

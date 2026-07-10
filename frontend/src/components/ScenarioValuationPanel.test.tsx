@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { FinancialSnapshot } from "../types";
 import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
 
-vi.mock("../api", () => ({ api: { calculateValuation: vi.fn() } }));
+vi.mock("../api", () => ({ api: { calculateValuation: vi.fn(), calculateSensitivity: vi.fn() } }));
 
 const snapshot: FinancialSnapshot = {
   ticker: "ACME",
@@ -34,6 +34,26 @@ describe("ScenarioValuationPanel", () => {
       methodology: "explicit assumptions",
       disclaimer: "not a forecast, price target, or investment recommendation.",
     });
+    vi.mocked(api.calculateSensitivity).mockResolvedValue({
+      ticker: "ACME",
+      kind: "growth_margin",
+      row_label: "annual_revenue_growth",
+      column_label: "terminal_operating_margin",
+      row_values: [0, 0.05, 0.1],
+      column_values: [0.15, 0.2, 0.25],
+      cells: [
+        { row_value: 0, column_value: 0.15, implied_share_price: 14 },
+        { row_value: 0, column_value: 0.2, implied_share_price: 19 },
+        { row_value: 0, column_value: 0.25, implied_share_price: 24 },
+        { row_value: 0.05, column_value: 0.15, implied_share_price: 15.5 },
+        { row_value: 0.05, column_value: 0.2, implied_share_price: 21 },
+        { row_value: 0.05, column_value: 0.25, implied_share_price: 26.5 },
+        { row_value: 0.1, column_value: 0.15, implied_share_price: 17 },
+        { row_value: 0.1, column_value: 0.2, implied_share_price: 23 },
+        { row_value: 0.1, column_value: 0.25, implied_share_price: 29 },
+      ],
+      disclaimer: "analyst-entered assumptions",
+    });
   });
 
   it("prefills only SEC baselines and requires scenario assumptions", async () => {
@@ -58,5 +78,9 @@ describe("ScenarioValuationPanel", () => {
     await waitFor(() => expect(api.calculateValuation).toHaveBeenCalled());
     expect(await screen.findByText("$25.40")).toBeInTheDocument();
     expect(screen.getByText(/not a forecast/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Build sensitivity matrix" }));
+    await waitFor(() => expect(api.calculateSensitivity).toHaveBeenCalled());
+    expect(await screen.findByText("$21.00")).toBeInTheDocument();
   });
 });

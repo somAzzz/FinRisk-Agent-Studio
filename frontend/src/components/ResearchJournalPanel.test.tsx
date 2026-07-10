@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api";
 import { ResearchJournalPanel } from "./ResearchJournalPanel";
 
+vi.mock("./ResearchCyclePanel", () => ({
+  ResearchCyclePanel: () => <div data-testid="research-cycle-stub" />,
+}));
+
 vi.mock("../api", () => ({
   api: {
     listTheses: vi.fn(),

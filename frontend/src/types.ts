@@ -436,6 +436,210 @@ export interface ResearchReminder {
   catalyst_id?: string | null;
 }
 
+export type SnapshotComponentState = "complete" | "partial" | "unavailable" | "failed";
+
+export interface SnapshotComponentResult {
+  component: "financials" | "management" | "risks";
+  state: SnapshotComponentState;
+  reason?: string | null;
+  source_count: number;
+}
+
+export interface SourceManifestEntry {
+  source_id: string;
+  source_type: "sec_filing" | "transcript" | "risk_report" | "other";
+  provider: string;
+  as_of: string;
+  url?: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface CompanyResearchSnapshot {
+  snapshot_id: string;
+  ticker: string;
+  period: string;
+  as_of: string;
+  created_at: string;
+  source_fingerprint: string;
+  financials?: FinancialSnapshot | null;
+  management?: ManagementPeriodSnapshot | null;
+  risks: Array<{
+    risk_id: string;
+    title: string;
+    status: "new" | "persistent" | "strengthened" | "weakened" | "resolved" | "unknown";
+    severity?: string | null;
+    evidence_ids: string[];
+    attributes: Record<string, unknown>;
+  }>;
+  components: SnapshotComponentResult[];
+  sources: SourceManifestEntry[];
+  warnings: string[];
+}
+
+export interface ResearchRunManifest {
+  run_id: string;
+  ticker: string;
+  requested_as_of: string;
+  started_at: string;
+  completed_at: string;
+  state: "completed" | "partial" | "failed";
+  snapshot_id?: string | null;
+  components: SnapshotComponentResult[];
+  duration_ms: number;
+  warnings: string[];
+}
+
+export interface ResearchRunResponse {
+  manifest: ResearchRunManifest;
+  snapshot?: CompanyResearchSnapshot | null;
+}
+
+export interface ResearchChange {
+  change_id: string;
+  ticker: string;
+  category: "financial" | "risk" | "guidance" | "management" | "evidence";
+  key: string;
+  status: "new" | "persistent" | "strengthened" | "weakened" | "resolved";
+  materiality: "low" | "medium" | "high" | "unknown";
+  before?: unknown;
+  after?: unknown;
+  before_evidence_ids: string[];
+  after_evidence_ids: string[];
+  detection_method: string;
+  explanation: string;
+  confidence: number;
+  analyst_review_status: "unreviewed" | "confirmed" | "ignored" | "needs_review";
+}
+
+export interface ResearchChangeSet {
+  ticker: string;
+  from_snapshot_id: string;
+  to_snapshot_id: string;
+  generated_at: string;
+  changes: ResearchChange[];
+  warnings: string[];
+}
+
+export interface ResearchAlert {
+  alert_id: string;
+  change_id: string;
+  ticker: string;
+  materiality: "low" | "medium" | "high" | "unknown";
+  title: string;
+  explanation: string;
+  status: "new" | "acknowledged" | "ignored";
+  snapshot_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MonitorScanResponse {
+  started_at: string;
+  completed_at: string;
+  dry_run: boolean;
+  results: Array<{
+    ticker: string;
+    status: "completed" | "unchanged" | "partial" | "failed";
+    snapshot_id?: string | null;
+    new_alerts: ResearchAlert[];
+    change_count: number;
+    error?: string | null;
+  }>;
+}
+
+export interface ExpectationPoint {
+  expectation_id?: string | null;
+  ticker: string;
+  metric: string;
+  fiscal_period: string;
+  value: number;
+  unit: string;
+  source: string;
+  origin: "user" | "csv" | "provider";
+  observed_at: string;
+  as_of: string;
+  notes?: string | null;
+}
+
+export interface SensitivityMatrixRequest {
+  ticker: string;
+  kind: "growth_margin" | "margin_multiple";
+  base_revenue: number;
+  net_debt: number;
+  diluted_shares: number;
+  forecast_years: number;
+  fixed_growth: number;
+  fixed_margin: number;
+  fixed_multiple: number;
+  row_values: number[];
+  column_values: number[];
+  current_share_price?: number | null;
+}
+
+export interface SensitivityMatrixResponse {
+  ticker: string;
+  kind: "growth_margin" | "margin_multiple";
+  row_label: string;
+  column_label: string;
+  row_values: number[];
+  column_values: number[];
+  cells: Array<{
+    row_value: number;
+    column_value: number;
+    implied_share_price: number;
+    upside_downside?: number | null;
+  }>;
+  disclaimer: string;
+}
+
+export interface PostEarningsReviewDraft {
+  draft_id: string;
+  ticker: string;
+  thesis_id: string;
+  from_snapshot_id: string;
+  to_snapshot_id: string;
+  generated_at: string;
+  status: "draft" | "confirmed";
+  locked_thesis_statement: string;
+  locked_disconfirming_conditions: string[];
+  locked_assumptions: Record<string, unknown>;
+  changes: ResearchChange[];
+  expectation_comparisons: unknown[];
+  suggested_outcome: "supported" | "mixed" | "invalidated" | "unknown";
+  rationale: string;
+  evidence_ids: string[];
+  confirmed_review_id?: string | null;
+}
+
+export interface CompanyComparisonResponse {
+  as_of: string;
+  period_kind: FinancialPeriodKind;
+  tickers: string[];
+  values: Array<{
+    ticker: string;
+    metric: string;
+    value?: number | null;
+    unit?: string | null;
+    period_end?: string | null;
+    status: "reported" | "derived" | "not_available" | "not_comparable";
+    evidence_ids: string[];
+    reason?: string | null;
+  }>;
+  warnings: string[];
+  disclaimer: string;
+}
+
+export interface ResearchQueueResponse {
+  entries: Array<{
+    ticker: string;
+    priority: "high" | "medium" | "low";
+    reasons: string[];
+    change_ids: string[];
+    evidence_ids: string[];
+  }>;
+  disclaimer: string;
+}
+
 export interface ValuationScenarioInput {
   name: "bear" | "base" | "bull";
   annual_revenue_growth: number;
@@ -482,6 +686,7 @@ export interface ManagementPeriodSnapshot {
   transcript_id: string;
   provider: string;
   source_url?: string | null;
+  published_at?: string | null;
   overall_tone: "positive" | "neutral" | "negative" | "mixed";
   prepared_remarks_tone: "positive" | "neutral" | "negative" | "mixed" | "unclear";
   qa_tone: "positive" | "neutral" | "negative" | "mixed" | "unclear";

@@ -132,6 +132,28 @@ describe("api client", () => {
     expect(fetchMock).toHaveBeenCalledWith("/research/reminders", expect.any(Object));
   });
 
+  it("starts a point-in-time research run", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ manifest: {} }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const input = { ticker: "AAPL", year: 2026, quarter: 2 };
+    await api.startResearchRun(input);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/research/runs",
+      expect.objectContaining({ method: "POST", body: JSON.stringify(input) }),
+    );
+  });
+
+  it("runs the incremental Watchlist scanner", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const input = { minimum_materiality: "medium" as const, dry_run: true };
+    await api.scanWatchlist(input);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/research/monitor/scan",
+      expect.objectContaining({ method: "POST", body: JSON.stringify(input) }),
+    );
+  });
+
   it("raises FinRiskApiError on non-2xx responses", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
