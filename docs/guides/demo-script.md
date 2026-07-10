@@ -160,4 +160,4 @@ The five-minute demo proves:
    LLM critic.
 
 For a deeper look, see [`agent-workflow.md`](./agent-workflow.md) and
-the spec index at [`specs/00-finrisk-agent-studio-spec-index.md`](./specs/00-finrisk-agent-studio-spec-index.md).
+the [v15 spec index](../specs/v15-finrisk-agent-studio/00-finrisk-agent-studio-spec-index.md).

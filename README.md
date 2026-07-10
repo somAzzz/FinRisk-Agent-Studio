@@ -171,7 +171,7 @@ src/
 ├── reports/           # report models and markdown renderer
 ├── supply_chain/      # product supply-chain workflow and Sankey payloads
 ├── tools/             # web/search/data/graph tool catalog
-└── workflows/         # FinRisk workflow state, steps, v16 runner
+└── workflows/         # FinRisk workflow state, steps, quality-gated runner
 
 frontend/
 ├── src/App.tsx
@@ -222,27 +222,27 @@ searxng
 
 `TAVILY_API_KEY`, `BRAVE_API_KEY`, and `BRAVE_SEARCH_API_KEY` are optional. Missing providers are skipped or downgraded through the router.
 
-## Recent Progress
+## Capability Progress
 
-Latest implementation work moved the project beyond the original v15/v16 plan:
+Implementation history is grouped by capability rather than presented as product releases:
 
-- **V17 audit remediation completed**: quality layer became a runtime gate; graph payloads, report models, scoring, and safety checks were pinned by tests.
-- **V18 supply-chain explorer completed and hardened**: Sankey model, recursive expansion, real SearchRouter path, graph writer, observability, and frontend integration.
-- **V19 context guardrail layer started**: memory adapters, ingestion, graph-edge memory, and memory write guardrails are in place.
-- **V20 tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
-- **V21 agent system in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
+- **Risk Studio remediation completed**: quality layer became a runtime gate; graph payloads, report models, scoring, and safety checks were pinned by tests.
+- **Supply-chain explorer completed and hardened**: Sankey model, recursive expansion, real SearchRouter path, graph writer, observability, and frontend integration.
+- **Context guardrail layer started**: memory adapters, ingestion, graph-edge memory, and memory write guardrails are in place.
+- **Tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
+- **Agent runtime in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
 - **Local E2E validated**: recorded runs show real FinRisk, supply-chain, and agent-run flows through local SGLang, FastAPI, Vite, and Neo4j-compatible paths.
 - **GitHub Pages published**: static dashboard is live at the project URL above.
 
 Recorded validation reports:
 
-```text
-docs/specs/v17-code-audit-remediation/07-completion-summary.md
-docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md
-docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md
-docs/reports/local-llm-e2e-api-frontend-2026-06-27.md
-docs/reports/agent-system-gap-report-2026-06-27.md
-```
+- [Documentation hub](docs/README.md)
+- [Current analyst-workbench roadmap](docs/current/analyst-workbench-roadmap.md)
+- [Risk Studio remediation summary](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
+- [Supply-chain explorer completion summary](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
+- [Supply-chain production hardening progress](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
+- [Local LLM E2E validation](docs/history/reports/validation/local-llm-e2e-api-frontend-2026-06-27.md)
+- [Agent system gap audit](docs/history/reports/audits/agent-system-gap-report-2026-06-27.md)
 
 ## Testing
 

@@ -5,7 +5,7 @@
 本目录细化：
 
 ```text
-docs/implementation-plan/18-product-supply-chain-sankey-roadmap.md
+docs/history/implementation-plans/18-product-supply-chain-sankey-roadmap.md
 ```
 
 第 18 版目标：

@@ -15,7 +15,7 @@ Usage::
         ...
 
 Limitations (documented; tracked in
-``docs/security/known-limitations.md``):
+``docs/operations/security/known-limitations.md``):
 
 - DNS-rebinding: we resolve at validate-time, but the underlying
   HTTP client re-resolves when it connects. A follow-up using a

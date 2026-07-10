@@ -28,7 +28,7 @@
 第 16 版详细规格见：
 
 ```text
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+docs/history/implementation-plans/16-quality-layer-and-graph-reasoning-roadmap.md
 docs/specs/v16-quality-graph/
 ```
 

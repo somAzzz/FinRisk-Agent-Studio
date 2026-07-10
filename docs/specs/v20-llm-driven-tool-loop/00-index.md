@@ -16,7 +16,7 @@ Workflow controls writes and quality gates
 
 ## 与原始 roadmap 的关系
 
-`docs/architecture-roadmap-cn.md` 规划了：
+`docs/history/foundation/architecture-roadmap-cn.md` 规划了：
 
 - 本地 LLM Agent 系统。
 - Filing / Transcript / Web / Graph Agents。

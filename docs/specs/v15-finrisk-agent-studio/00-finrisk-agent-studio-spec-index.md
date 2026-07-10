@@ -2,7 +2,7 @@
 
 ## 目标
 
-本目录把 `docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md` 拆成可直接交给编程助手执行的详细规格。
+本目录把 `docs/history/implementation-plans/15-finrisk-agent-studio-workflow-roadmap.md` 拆成可直接交给编程助手执行的详细规格。
 
 总目标：
 

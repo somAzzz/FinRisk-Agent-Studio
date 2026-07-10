@@ -2,7 +2,7 @@
 
 ## 目标
 
-本目录细化 `docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md`。
+本目录细化 `docs/history/implementation-plans/16-quality-layer-and-graph-reasoning-roadmap.md`。
 
 第 16 版目标：
 

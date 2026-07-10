@@ -28,7 +28,7 @@ This document records the v18 acceptance run performed against
 
 ## Definition of Done (Spec 06)
 
-- ✅ 总 plan: `docs/implementation-plan/18-product-supply-chain-sankey-roadmap.md`
+- ✅ 总 plan: `docs/history/implementation-plans/18-product-supply-chain-sankey-roadmap.md`
 - ✅ Specs: `docs/specs/v18-product-supply-chain-sankey/00..06.md`
 - ✅ Schema: `src/supply_chain/models.py` (12 Pydantic models)
 - ✅ Demo fixture: `src/supply_chain/fixtures.py` (19 nodes, 17 edges, 12 evidence)

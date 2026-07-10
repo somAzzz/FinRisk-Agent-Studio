@@ -854,9 +854,9 @@ README 必须包含：
 新增文档：
 
 ```text
-docs/agent-workflow.md
+docs/guides/agent-workflow.md
 docs/evaluation.md
-docs/demo-script.md
+docs/guides/demo-script.md
 docs/deployment.md
 ```
 

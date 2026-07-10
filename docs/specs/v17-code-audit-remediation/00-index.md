@@ -5,7 +5,7 @@
 本目录细化：
 
 ```text
-docs/implementation-plan/17-code-audit-remediation-plan.md
+docs/history/implementation-plans/17-code-audit-remediation-plan.md
 ```
 
 第 17 版目标：

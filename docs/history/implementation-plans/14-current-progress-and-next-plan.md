@@ -227,8 +227,8 @@ uv run ruff check src/schemas src/data src/agents src/graph src/pipelines src/to
 涉及文件：
 
 ```text
-docs/implementation-plan/12-stabilization-and-next-steps.md
-docs/implementation-plan/13-production-execution-roadmap.md
+docs/history/implementation-plans/12-stabilization-and-next-steps.md
+docs/history/implementation-plans/13-production-execution-roadmap.md
 ```
 
 执行要求：

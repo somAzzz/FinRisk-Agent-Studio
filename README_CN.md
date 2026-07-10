@@ -166,7 +166,7 @@ src/
 ├── reports/           # report models and markdown renderer
 ├── supply_chain/      # product supply-chain workflow and Sankey payloads
 ├── tools/             # web/search/data/graph tool catalog
-└── workflows/         # FinRisk workflow state, steps, v16 runner
+└── workflows/         # FinRisk workflow state、steps 与质量门控 runner
 
 frontend/
 docs/
@@ -190,25 +190,25 @@ docker compose up -d
 
 Demo 和 CI 路径设计为不需要真实 API keys。
 
-## Recent Progress(最新进展)
+## Capability Progress（能力进展）
 
-- **V17 audit remediation completed**: Quality Layer 已成为 runtime gate;graph payload、report model、scoring 与 safety checks 由测试固定。
-- **V18 supply-chain explorer completed and hardened**: Sankey model、recursive expansion、real SearchRouter path、graph writer、observability 与 frontend integration 已落地。
-- **V19 context guardrail layer started**: memory adapters、ingestion、graph-edge memory 与 memory write guardrails 已有最小工程切片。
-- **V20 tool loop implemented**: provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
-- **V21 agent system in progress**: `/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
+- **Risk Studio 整改已完成**：Quality Layer 已成为 runtime gate，graph payload、report model、scoring 与 safety checks 由测试固定。
+- **供应链研究能力已完成并加固**：Sankey model、recursive expansion、real SearchRouter path、graph writer、observability 与 frontend integration 已落地。
+- **Context guardrail layer 已启动**：memory adapters、ingestion、graph-edge memory 与 memory write guardrails 已有最小工程切片。
+- **Tool loop 已实现**：provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
+- **Agent runtime 持续完善**：`/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
 - **Local E2E validated**: 记录过真实 FinRisk、supply-chain 与 agent-run flows,覆盖 local SGLang、FastAPI、Vite 与 Neo4j-compatible paths。
 - **GitHub Pages published**: 静态 dashboard 已上线。
 
 相关记录:
 
-```text
-docs/specs/v17-code-audit-remediation/07-completion-summary.md
-docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md
-docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md
-docs/reports/local-llm-e2e-api-frontend-2026-06-27.md
-docs/reports/agent-system-gap-report-2026-06-27.md
-```
+- [文档中心](docs/README.md)
+- [当前分析师工作台路线图](docs/current/analyst-workbench-roadmap.md)
+- [Risk Studio 整改总结](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
+- [供应链研究能力完成总结](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
+- [供应链生产化加固进度](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
+- [本地 LLM 端到端验证](docs/history/reports/validation/local-llm-e2e-api-frontend-2026-06-27.md)
+- [Agent 系统差距审计](docs/history/reports/audits/agent-system-gap-report-2026-06-27.md)
 
 ## Testing(测试)
 

@@ -38,7 +38,7 @@ Agent reads suggestion → decides whether to call MarketExplorer as separate to
 
 **MarketExplorer Tool Schema (for reference):**
 - Name: `market_explorer`
-- See: `docs/superpowers/specs/2026-03-19-browser-exploration-design.md`
+- See: `docs/history/superpowers/specs/2026-03-19-browser-exploration-design.md`
 
 ### Processing Order (Critical)
 

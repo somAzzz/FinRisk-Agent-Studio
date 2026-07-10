@@ -2,7 +2,7 @@ services:
   sglang:
     # Pinned 2026-06-27 (audit remediation R8). Floating ``latest``
     # tags were the audit's R8 finding. Bump quarterly; see
-    # docs/docker-image-pinning.md for the rationale (we prefer
+    # docs/operations/deployment/docker-image-pinning.md for the rationale (we prefer
     # minor-version pinning over digest pinning to preserve layered
     # image caching and easy cross-registry promotion).
     #

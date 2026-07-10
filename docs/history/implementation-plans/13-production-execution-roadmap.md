@@ -124,7 +124,7 @@ uv run pytest tests/graph -q
 涉及：
 
 ```text
-docs/implementation-plan/12-stabilization-and-next-steps.md
+docs/history/implementation-plans/12-stabilization-and-next-steps.md
 ```
 
 更新内容：

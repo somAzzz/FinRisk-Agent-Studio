@@ -121,7 +121,7 @@ scripts/
     models.py                # Data models (TestCase, TestResult etc.)
     cli.py                   # CLI argument parsing
 
-docs/superpowers/specs/
+docs/history/superpowers/specs/
   2026-03-22-tool-comparison-design.md  # This design doc
 ```
 

@@ -1,4 +1,4 @@
-# V22 分析师工作台优先级执行方案
+# 分析师工作台优先级执行方案
 
 状态：核心 P0–P2 首轮已完成；P3 与生产化增强列入后续  
 制定日期：2026-07-11  
@@ -16,7 +16,7 @@
 
 | 优先级 | 工作包 | 目标结果 | 当前状态 |
 |---|---|---|---|
-| P0 | 研究结果前端交付 | v16 全字段可见、claims 可追溯、研究就绪度可判断 | 本轮已实施，待全量验收 |
+| P0 | 研究结果前端交付 | 风险报告完整字段可见、claims 可追溯、研究就绪度可判断 | 本轮已实施，待全量验收 |
 | P0 | 工程完整性门禁 | 所有正式模块可 import，断链入口被发现 | 已完成 import smoke 与根 CLI 正式入口 |
 | P1 | 季度研究快照 | filing/transcript/XBRL 形成统一时间点快照 | XBRL 财务快照、API 与前端首版已实施 |
 | P1 | 跨期变化检测 | 风险、措辞、guidance、财务指标可比 | 财务同比/环比/TTM 已实施；文本与 guidance 待实施 |
@@ -36,7 +36,7 @@
 - 渲染 `recent_changes`、`evidence_table`、`second_order_effects`；
 - 渲染 evidence/inference/hypothesis 和置信度；
 - 渲染 limitations、recommended questions；
-- 将 v16 claims 接入 Claim–Evidence Matrix；
+- 将风险报告 claims 接入 Claim–Evidence Matrix；
 - 增加 Analyst Decision Ledger；
 - 去除用户可见的版本号术语。
 
@@ -97,7 +97,7 @@ src/research/store.py
 
 验收：AAPL、NVDA、XOM 各至少 12 个季度与年报数字对齐。
 
-Live smoke（2026-07-11）：AAPL/NVDA/XOM 分别得到 60/60/37 个无重复 revenue 单季，最新 TTM 均与最新季度对齐。验证过程修复了 discrete+YTD 重复、错误依赖 SEC `fy` 以及 XOM 当前/历史 CIK continuity。详见 `docs/reports/live-financial-snapshot-validation-2026-07-11.md`。数值逐项人工核对仍待完成。
+Live smoke（2026-07-11）：AAPL/NVDA/XOM 分别得到 60/60/37 个无重复 revenue 单季，最新 TTM 均与最新季度对齐。验证过程修复了 discrete+YTD 重复、错误依赖 SEC `fy` 以及 XOM 当前/历史 CIK continuity。详见 `docs/current/validation/sec-financial-snapshot-2026-07-11.md`。数值逐项人工核对仍待完成。
 
 ### 4.3 Transcript 结构化
 
@@ -139,7 +139,7 @@ confidence
 
 将现有风险分数明确更名为 `ResearchPriorityScore`，新增独立维度：概率、财务影响、时间紧迫性、未定价程度。允许 `unknown`。
 
-当前切片（2026-07-11）：前端已改称 Research Priority Score；v16 报告新增 evidence-linked financial impact channels，把风险映射到 volume、price、cost、margin、capex、working capital、financing 及对应财务指标。首版严格标记为 `unquantified`，概率与影响金额保持空值，待用户情景输入和分部暴露数据具备后再量化。
+当前切片（2026-07-11）：前端已改称 Research Priority Score；结构化风险报告新增 evidence-linked financial impact channels，把风险映射到 volume、price、cost、margin、capex、working capital、financing 及对应财务指标。首版严格标记为 `unquantified`，概率与影响金额保持空值，待用户情景输入和分部暴露数据具备后再量化。
 
 ### 5.3 前端季度研究页
 
@@ -198,7 +198,7 @@ Golden cases 从 5 个扩展至至少 30 个，覆盖银行、生物科技、能
 
 ## 9. 完成定义
 
-V22 不是以“新增页面”完成，而是以下分析师任务可以闭环：
+本路线图不是以“新增页面”完成，而是以下分析师任务可以闭环：
 
 1. 选择一家公司，查看最新季度相对上季发生的变化；
 2. 从变化定位到原始 filing/transcript/XBRL 证据；

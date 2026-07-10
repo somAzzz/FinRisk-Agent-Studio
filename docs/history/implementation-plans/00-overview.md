@@ -2,7 +2,7 @@
 
 ## 目标
 
-本目录把 `docs/architecture-roadmap-cn.md` 拆成可执行的分步工程计划。每个步骤都是一份独立任务说明书，可以交给不同编程助手实现。
+本目录把 `docs/history/foundation/architecture-roadmap-cn.md` 拆成可执行的分步工程计划。每个步骤都是一份独立任务说明书，可以交给不同编程助手实现。
 
 最终系统目标：
 
@@ -111,7 +111,7 @@ python -m src.pipelines.analyze_company --ticker AAPL --year 2024
 在完成初版骨架实现后，先执行：
 
 ```text
-docs/implementation-plan/12-stabilization-and-next-steps.md
+docs/history/implementation-plans/12-stabilization-and-next-steps.md
 ```
 
 该文档记录了当前代码审核结果、测试失败原因、修正方案和下一步功能优先级。后续编程助手应优先完成 Step 12 中的 P0/P1 任务，再继续扩展新功能。
@@ -121,7 +121,7 @@ docs/implementation-plan/12-stabilization-and-next-steps.md
 完成稳定化后，后续工作应以正式项目目标推进，而不是继续围绕离线 demo 扩展：
 
 ```text
-docs/implementation-plan/13-production-execution-roadmap.md
+docs/history/implementation-plans/13-production-execution-roadmap.md
 ```
 
 该文档按真实 SEC filing、电话会议、网页搜索、LLM 结构化抽取、Neo4j 图推理、风险/机会研究和 API 服务层拆分后续执行阶段。
@@ -131,7 +131,7 @@ docs/implementation-plan/13-production-execution-roadmap.md
 在 Step 13 之后，应继续参考：
 
 ```text
-docs/implementation-plan/14-current-progress-and-next-plan.md
+docs/history/implementation-plans/14-current-progress-and-next-plan.md
 ```
 
 该文档基于最近本地 Git 提交重新评估当前实现进度，并把下一步拆成质量收口、真实 SEC 数据闭环、电话会议、网页搜索、LLM Agent、Neo4j 图推理、政策/地缘风险和评估回测等执行阶段。
@@ -141,7 +141,7 @@ docs/implementation-plan/14-current-progress-and-next-plan.md
 在正式生产路线之外，还应参考：
 
 ```text
-docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
+docs/history/implementation-plans/15-finrisk-agent-studio-workflow-roadmap.md
 ```
 
 该文档把当前工具库和 pipeline 重新组织为 `FinRisk Agent Studio`：一个可运行、可解释、可评估、可部署的 Agent Workflow Demo。它重点规划 workflow skeleton、Pydantic structured outputs、guardrails、evaluation、FastAPI、前端 timeline/report/graph，以及 local-LLM/API 双运行模式。
@@ -151,7 +151,7 @@ docs/implementation-plan/15-finrisk-agent-studio-workflow-roadmap.md
 在 Step 15 的工作流产品化路线之上，应继续参考：
 
 ```text
-docs/implementation-plan/16-quality-layer-and-graph-reasoning-roadmap.md
+docs/history/implementation-plans/16-quality-layer-and-graph-reasoning-roadmap.md
 docs/specs/v16-quality-graph/
 ```
 
@@ -162,7 +162,7 @@ docs/specs/v16-quality-graph/
 在完成 Step 16 的初步实现后，应参考：
 
 ```text
-docs/implementation-plan/17-code-audit-remediation-plan.md
+docs/history/implementation-plans/17-code-audit-remediation-plan.md
 ```
 
 该文档基于当前完整代码审查结果，列出与 V16 设计不一致的关键问题和修正优先级，包括 runtime Quality Layer 接入主 workflow、Graph API V15/V16 payload 类型错位、V16 state 强类型化、RiskReportV16 主路径迁移、Graph narrative 安全措辞、Neo4j backend 和 ruff 质量门禁。
