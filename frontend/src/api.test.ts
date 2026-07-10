@@ -93,6 +93,45 @@ describe("api client", () => {
     );
   });
 
+  it("fetches a point-in-time financial snapshot", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ticker: "AAPL", metrics: [], changes: [] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.getFinancialSnapshot("AAPL", "2025-12-31");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/research/financials/AAPL?as_of=2025-12-31",
+      expect.any(Object),
+    );
+  });
+
+  it("posts only explicit scenario valuation assumptions", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ scenarios: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const request = {
+      ticker: "ACME", currency: "USD", base_revenue: 1000, net_debt: 0,
+      diluted_shares: 100, forecast_years: 2, evidence_ids: [],
+      scenarios: [
+        { name: "bear" as const, annual_revenue_growth: 0, terminal_operating_margin: 0.1, ev_to_operating_income_multiple: 10 },
+        { name: "base" as const, annual_revenue_growth: 0.1, terminal_operating_margin: 0.2, ev_to_operating_income_multiple: 12 },
+        { name: "bull" as const, annual_revenue_growth: 0.2, terminal_operating_margin: 0.3, ev_to_operating_income_multiple: 15 },
+      ],
+    };
+    await api.calculateValuation(request);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/research/valuation/scenarios",
+      expect.objectContaining({ method: "POST", body: JSON.stringify(request) }),
+    );
+  });
+
+  it("fetches due research reminders", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.listResearchReminders();
+    expect(fetchMock).toHaveBeenCalledWith("/research/reminders", expect.any(Object));
+  });
+
   it("raises FinRiskApiError on non-2xx responses", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,

@@ -66,6 +66,7 @@ export interface RiskScore {
   evidence_quality: number;
   source_diversity: number;
   novelty_score: number;
+  novelty_available?: boolean;
   graph_centrality?: number | null;
   final_score: number;
   score_reasoning: string;
@@ -191,6 +192,22 @@ export interface RiskReportV16Wire {
     supporting_evidence_ids: string[];
     confidence: number;
   }>;
+  financial_impacts?: Array<{
+    risk_id: string;
+    affected_segment?: string | null;
+    drivers: string[];
+    affected_metrics: string[];
+    direction: "adverse" | "favorable" | "mixed" | "unknown";
+    time_horizon: string;
+    evidence_ids: string[];
+    evidence_quote: string;
+    confidence: number;
+    quantification_status: "unquantified" | "quantified";
+    probability?: number | null;
+    estimated_impact?: number | null;
+    assumptions: string[];
+    rationale: string;
+  }>;
   limitations: string[];
   recommended_next_questions: string[];
   disclaimer: string;
@@ -314,6 +331,185 @@ export interface WorkflowEvaluationResponse extends WorkflowEvaluationV16 {}
 export interface WorkflowArtifactsResponse {
   run_id: string;
   artifacts: Record<string, string>;
+}
+
+export type FinancialPeriodKind =
+  | "quarter"
+  | "year_to_date"
+  | "annual"
+  | "ttm"
+  | "instant"
+  | "unknown";
+
+export interface FinancialMetricPoint {
+  metric: string;
+  value: number;
+  unit: string;
+  period_end: string;
+  period_start?: string | null;
+  period_kind: FinancialPeriodKind;
+  fiscal_year?: number | null;
+  fiscal_period?: string | null;
+  form_type?: string | null;
+  accession_number?: string | null;
+  filed_at?: string | null;
+  source_concept: string;
+  status: "reported" | "derived";
+  derivation?: string | null;
+  source_accession_numbers: string[];
+}
+
+export interface FinancialChange {
+  metric: string;
+  change_type: "qoq" | "yoy" | "annual_yoy" | "ttm_yoy";
+  current_period_end: string;
+  comparison_period_end: string;
+  current_value: number;
+  comparison_value: number;
+  absolute_change: number;
+  percent_change?: number | null;
+  unit: string;
+  source_accession_numbers: string[];
+}
+
+export interface FinancialSnapshot {
+  ticker: string;
+  cik: string;
+  company_name?: string | null;
+  as_of: string;
+  currency: string;
+  metrics: FinancialMetricPoint[];
+  changes: FinancialChange[];
+  warnings: string[];
+}
+
+export interface Catalyst {
+  catalyst_id: string;
+  title: string;
+  expected_date?: string | null;
+  status: "upcoming" | "occurred" | "missed" | "cancelled";
+  evidence_ids: string[];
+}
+
+export interface ThesisReview {
+  review_id: string;
+  reviewed_at: string;
+  outcome: "supported" | "mixed" | "invalidated" | "unknown";
+  notes: string;
+  evidence_ids: string[];
+}
+
+export interface InvestmentThesis {
+  thesis_id: string;
+  ticker: string;
+  statement: string;
+  time_horizon: string;
+  status: "draft" | "active" | "invalidated" | "closed";
+  key_drivers: string[];
+  risks: string[];
+  disconfirming_conditions: string[];
+  monitoring_metrics: string[];
+  catalysts: Catalyst[];
+  evidence_ids: string[];
+  reviews: ThesisReview[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WatchlistItem {
+  ticker: string;
+  thesis_ids: string[];
+  monitoring_questions: string[];
+  next_review_date?: string | null;
+  active: boolean;
+  updated_at: string;
+}
+
+export interface ResearchReminder {
+  reminder_id: string;
+  ticker: string;
+  reminder_type: "thesis_review" | "catalyst";
+  title: string;
+  due_date: string;
+  overdue: boolean;
+  thesis_id?: string | null;
+  catalyst_id?: string | null;
+}
+
+export interface ValuationScenarioInput {
+  name: "bear" | "base" | "bull";
+  annual_revenue_growth: number;
+  terminal_operating_margin: number;
+  ev_to_operating_income_multiple: number;
+}
+
+export interface ScenarioValuationRequest {
+  ticker: string;
+  currency: string;
+  base_revenue: number;
+  net_debt: number;
+  diluted_shares: number;
+  forecast_years: number;
+  current_share_price?: number | null;
+  scenarios: ValuationScenarioInput[];
+  evidence_ids: string[];
+}
+
+export interface ScenarioValuationResponse {
+  ticker: string;
+  currency: string;
+  forecast_years: number;
+  scenarios: Array<{
+    name: "bear" | "base" | "bull";
+    projected_revenue: number;
+    projected_operating_income: number;
+    enterprise_value: number;
+    equity_value: number;
+    implied_share_price: number;
+    upside_downside?: number | null;
+    current_price_implied_terminal_margin?: number | null;
+    assumptions: ValuationScenarioInput;
+  }>;
+  evidence_ids: string[];
+  methodology: string;
+  disclaimer: string;
+}
+
+export interface ManagementPeriodSnapshot {
+  ticker: string;
+  year: number;
+  quarter: number;
+  transcript_id: string;
+  provider: string;
+  source_url?: string | null;
+  overall_tone: "positive" | "neutral" | "negative" | "mixed";
+  prepared_remarks_tone: "positive" | "neutral" | "negative" | "mixed" | "unclear";
+  qa_tone: "positive" | "neutral" | "negative" | "mixed" | "unclear";
+  uncertainty: number;
+  defensiveness: number;
+  guidance_signal: "raised" | "lowered" | "maintained" | "unclear";
+  topic_signals: Array<{
+    topic: string;
+    sentiment: string;
+    confidence: number;
+    evidence_ids: string[];
+    quotes: string[];
+  }>;
+  evidence_ids: string[];
+}
+
+export interface ManagementComparisonResponse {
+  current: ManagementPeriodSnapshot;
+  previous?: ManagementPeriodSnapshot | null;
+  changes: Array<{
+    dimension: string;
+    previous_value: string | number;
+    current_value: string | number;
+    direction: "strengthened" | "weakened" | "increased" | "decreased" | "changed";
+    previous_period: string;
+    current_period: string;
+    evidence_ids: string[];
+  }>;
 }
 
 // ---------------------------------------------------------------------------

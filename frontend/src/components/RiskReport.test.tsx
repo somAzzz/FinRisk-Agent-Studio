@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { RiskReport } from "./RiskReport";
-import type { RiskReport as RiskReportType } from "../types";
+import reportPayload from "../../../tests/fixtures/finrisk/report_payload_contract.json";
+import type { RiskReport as RiskReportType, RiskReportV16Wire } from "../types";
 
 const FIXTURE: RiskReportType = {
   title: "Apple Inc. Risk Intelligence Brief",
@@ -82,5 +83,22 @@ describe("RiskReport", () => {
     expect(screen.getByTestId("evidence-vs-inference")).toBeInTheDocument();
     expect(screen.getByTestId("limitations")).toBeInTheDocument();
     expect(screen.getByTestId("recommendations")).toBeInTheDocument();
+  });
+
+  it("renders every analyst-facing section in a v16 report", () => {
+    render(
+      <RiskReport
+        report={null}
+        reportV16={reportPayload as RiskReportV16Wire}
+      />,
+    );
+
+    expect(screen.getByTestId("v16-recent-changes")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-evidence-table")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-second-order-effects")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-claims")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-financial-impacts")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-limitations")).toBeInTheDocument();
+    expect(screen.getByTestId("v16-recommendations")).toBeInTheDocument();
   });
 });

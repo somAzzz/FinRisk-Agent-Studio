@@ -11,6 +11,14 @@ import type {
   AgentRunTimelineResponse,
   AgentRunTraceResponse,
   FinRiskRequest,
+  FinancialSnapshot,
+  InvestmentThesis,
+  ManagementComparisonResponse,
+  ResearchReminder,
+  ScenarioValuationRequest,
+  ScenarioValuationResponse,
+  ThesisReview,
+  WatchlistItem,
   WorkflowArtifactsResponse,
   WorkflowChunksResponse,
   WorkflowEvaluationResponse,
@@ -115,6 +123,70 @@ export const api = {
   listWorkflows(limit = 20): Promise<WorkflowRunSummary[]> {
     return sendRequest<WorkflowRunSummary[]>(`/workflows?limit=${limit}`);
   },
+  getFinancialSnapshot(
+    ticker: string,
+    asOf?: string,
+  ): Promise<FinancialSnapshot> {
+    const query = asOf ? `?as_of=${encodeURIComponent(asOf)}` : "";
+    return sendRequest<FinancialSnapshot>(
+      `/research/financials/${encodeURIComponent(ticker)}${query}`,
+    );
+  },
+  calculateValuation(
+    valuation: ScenarioValuationRequest,
+  ): Promise<ScenarioValuationResponse> {
+    return sendRequest<ScenarioValuationResponse>(
+      "/research/valuation/scenarios",
+      { method: "POST", body: JSON.stringify(valuation) },
+    );
+  },
+  getManagementComparison(
+    ticker: string,
+    year: number,
+    quarter: number,
+    compareYear?: number,
+    compareQuarter?: number,
+  ): Promise<ManagementComparisonResponse> {
+    const params = new URLSearchParams({ year: String(year), quarter: String(quarter) });
+    if (compareYear != null && compareQuarter != null) {
+      params.set("compare_year", String(compareYear));
+      params.set("compare_quarter", String(compareQuarter));
+    }
+    return sendRequest<ManagementComparisonResponse>(
+      `/research/management/${encodeURIComponent(ticker)}?${params.toString()}`,
+    );
+  },
+  listTheses(ticker?: string): Promise<InvestmentThesis[]> {
+    const query = ticker ? `?ticker=${encodeURIComponent(ticker)}` : "";
+    return sendRequest<InvestmentThesis[]>(`/research/theses${query}`);
+  },
+  saveThesis(thesis: InvestmentThesis): Promise<InvestmentThesis> {
+    return sendRequest<InvestmentThesis>("/research/theses", {
+      method: "POST",
+      body: JSON.stringify(thesis),
+    });
+  },
+  reviewThesis(
+    thesisId: string,
+    review: ThesisReview,
+  ): Promise<InvestmentThesis> {
+    return sendRequest<InvestmentThesis>(
+      `/research/theses/${encodeURIComponent(thesisId)}/reviews`,
+      { method: "POST", body: JSON.stringify(review) },
+    );
+  },
+  listWatchlist(): Promise<WatchlistItem[]> {
+    return sendRequest<WatchlistItem[]>("/research/watchlist");
+  },
+  listResearchReminders(): Promise<ResearchReminder[]> {
+    return sendRequest<ResearchReminder[]>("/research/reminders");
+  },
+  saveWatchlistItem(item: WatchlistItem): Promise<WatchlistItem> {
+    return sendRequest<WatchlistItem>(
+      `/research/watchlist/${encodeURIComponent(item.ticker)}`,
+      { method: "PUT", body: JSON.stringify(item) },
+    );
+  },
   // v18 supply chain
   listSupplyChains(
     limit = 20,
@@ -209,6 +281,9 @@ export const apiPaths = {
   artifacts: (runId: string) => `/workflows/${runId}/artifacts`,
   health: "/workflows/health",
   workflowHistory: "/workflows",
+  financialSnapshot: (ticker: string) => `/research/financials/${ticker}`,
+  theses: "/research/theses",
+  watchlist: "/research/watchlist",
   agentRunHistory: "/agent-runs",
   supplyChainHistory: "/supply-chain",
   startSupplyChain: "/supply-chain/explore",

@@ -18,6 +18,7 @@ export default defineConfig({
       "/workflows": "http://127.0.0.1:8000",
       "/supply-chain": "http://127.0.0.1:8000",
       "/agent-runs": "http://127.0.0.1:8000",
+      "/research": "http://127.0.0.1:8000",
     },
   },
   test: {

@@ -24,7 +24,7 @@ export function RiskReport({ report, reportV16 }: Props) {
   if (reportV16) {
     return (
       <div className="section" data-testid="risk-report">
-        <h2>Risk Report (v16)</h2>
+        <h2>Risk Intelligence Report</h2>
         <h1 style={{ fontSize: 18, margin: "0 0 8px 0" }}>
           {reportV16.title}
         </h1>
@@ -46,7 +46,7 @@ export function RiskReport({ report, reportV16 }: Props) {
                   className="severity-pill"
                   data-testid={`score-${item.risk_id}`}
                 >
-                  score {item.final_score.toFixed(2)}
+                  priority {item.final_score.toFixed(2)}
                 </span>
                 <span className={severityClass(item.severity)}>
                   severity {item.severity}/5
@@ -66,8 +66,87 @@ export function RiskReport({ report, reportV16 }: Props) {
             ) : null}
           </div>
         ))}
+        <h3>Recent Changes</h3>
+        {reportV16.recent_changes.length ? (
+          <ul className="evidence-list" data-testid="v16-recent-changes">
+            {reportV16.recent_changes.map((change) => (
+              <li key={change.change_id}>
+                {change.text} <span className="muted">({Math.round(change.confidence * 100)}% confidence)</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="muted">No recent change has been evidenced.</p>}
+
+        <h3>Evidence Register</h3>
+        <div className="table-scroll">
+          <table className="research-table" data-testid="v16-evidence-table">
+            <thead><tr><th>ID</th><th>Source</th><th>Evidence</th><th>Quality</th></tr></thead>
+            <tbody>
+              {reportV16.evidence_table.map((item) => (
+                <tr key={item.evidence_id}>
+                  <td className="mono">{item.evidence_id}</td>
+                  <td>{item.source_url ? <a href={item.source_url} target="_blank" rel="noreferrer">{item.source_name}</a> : item.source_name}</td>
+                  <td>{item.quote_or_summary}</td>
+                  <td>{Math.round(item.source_quality_score * 100)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Second-Order Effects</h3>
+        {reportV16.second_order_effects.length ? (
+          <div className="insight-grid" data-testid="v16-second-order-effects">
+            {reportV16.second_order_effects.map((insight, index) => (
+              <article className="insight-card" key={insight.insight_id ?? `${insight.source_company}-${index}`}>
+                <div className="insight-card-meta">{insight.insight_type} · {Math.round(insight.confidence * 100)}%</div>
+                <strong>{insight.affected_entities.join(" → ") || insight.source_company}</strong>
+                <p>{insight.explanation}</p>
+                {insight.uncertainty ? <small>Uncertainty: {insight.uncertainty}</small> : null}
+              </article>
+            ))}
+          </div>
+        ) : <p className="muted">No evidence-backed second-order effect identified.</p>}
+
+        <h3>Evidence, Inference & Hypothesis</h3>
+        <div className="claim-list" data-testid="v16-claims">
+          {reportV16.evidence_vs_inference.map((claim) => (
+            <article key={claim.claim_id} className={`claim-row ${claim.claim_type}`}>
+              <span>{claim.claim_type}</span>
+              <div><strong>{claim.text}</strong><small>{claim.supporting_evidence_ids.join(", ") || "No linked evidence"}</small></div>
+              <b>{Math.round(claim.confidence * 100)}%</b>
+            </article>
+          ))}
+        </div>
+
+        <h3>Financial Impact Channels</h3>
+        {(reportV16.financial_impacts ?? []).length ? (
+          <div className="impact-grid" data-testid="v16-financial-impacts">
+            {(reportV16.financial_impacts ?? []).map((impact) => (
+              <article className="impact-card" key={impact.risk_id}>
+                <header>
+                  <strong>{impact.risk_id}</strong>
+                  <span>{impact.quantification_status}</span>
+                </header>
+                <p>{impact.drivers.join(" → ") || "Impact channel unknown"}</p>
+                <small>Affected: {impact.affected_metrics.join(", ") || "not mapped"}</small>
+                <small>{impact.rationale}</small>
+              </article>
+            ))}
+          </div>
+        ) : <p className="muted">Financial impact has not been mapped yet.</p>}
+
+        <h3>Limitations</h3>
+        <ul className="evidence-list" data-testid="v16-limitations">
+          {reportV16.limitations.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+
+        <h3>Recommended Next Research Questions</h3>
+        <ol className="evidence-list" data-testid="v16-recommendations">
+          {reportV16.recommended_next_questions.map((item) => <li key={item}>{item}</li>)}
+        </ol>
         <h3>Disclaimer</h3>
-        <p>{reportV16.disclaimer}</p>
+        <p className="report-disclaimer">{reportV16.disclaimer}</p>
       </div>
     );
   }

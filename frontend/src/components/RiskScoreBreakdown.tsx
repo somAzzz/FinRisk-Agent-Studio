@@ -23,7 +23,7 @@ export function RiskScoreBreakdown({ scores }: Props) {
   }
   return (
     <div className="section" data-testid="risk-score-breakdown">
-      <h2>Risk Score Breakdown</h2>
+      <h2>Research Priority Score</h2>
       <table
         style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}
       >
@@ -35,7 +35,7 @@ export function RiskScoreBreakdown({ scores }: Props) {
                 {c.label}
               </th>
             ))}
-            <th style={th}>Final (0-100)</th>
+            <th style={th}>Priority (0-100)</th>
           </tr>
         </thead>
         <tbody>
@@ -46,7 +46,9 @@ export function RiskScoreBreakdown({ scores }: Props) {
               </td>
               {COMPONENT_KEYS.map((c) => (
                 <td key={String(c.key)} style={td}>
-                  {score[c.key] as number}
+                  {c.key === "novelty_score" && score.novelty_available === false
+                    ? "N/A"
+                    : (score[c.key] as number)}
                 </td>
               ))}
               <td style={td} data-testid={`final-${score.risk_id}`}>

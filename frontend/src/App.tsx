@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Boxes, GitBranch, Radar } from "lucide-react";
+import { BookOpen, Boxes, GitBranch, Radar } from "lucide-react";
 import { AgentTimeline } from "./components/AgentTimeline";
 import {
   AgentProcessMonitor,
@@ -10,9 +10,14 @@ import { ClaimEvidenceMatrix } from "./components/ClaimEvidenceMatrix";
 import { EvaluationPanel } from "./components/EvaluationPanel";
 import { EvaluationTab } from "./components/EvaluationTab";
 import { EvidenceGraph } from "./components/EvidenceGraph";
+import { FinancialTrendPanel } from "./components/FinancialTrendPanel";
 import { LLMAgentRunPanel } from "./components/LLMAgentRunPanel";
+import { ManagementComparisonPanel } from "./components/ManagementComparisonPanel";
 import { RiskReport } from "./components/RiskReport";
+import { ResearchDecisionBrief } from "./components/ResearchDecisionBrief";
+import { ResearchJournalPanel } from "./components/ResearchJournalPanel";
 import { RiskScoreBreakdown } from "./components/RiskScoreBreakdown";
+import { ScenarioValuationPanel } from "./components/ScenarioValuationPanel";
 import {
   RunHistoryPanel,
   type RunHistoryItem,
@@ -31,6 +36,7 @@ import {
 import type {
   AgentRunTimelineResponse,
   FinRiskRequest,
+  FinancialSnapshot,
   WorkflowEvaluationResponse,
   WorkflowGraphResponse,
   WorkflowReportResponse,
@@ -43,7 +49,7 @@ import type { SupplyChainStatusResponseWire } from "./supply-chain-types";
 const POLL_INTERVAL_MS = 1500;
 const STATIC_DEMO_MODE = isStaticDemoMode();
 
-type AppView = "finrisk" | "supply-chain" | "agent-runs";
+type AppView = "finrisk" | "supply-chain" | "agent-runs" | "journal";
 
 const FINRISK_STEPS = [
   "company_resolver",
@@ -82,6 +88,7 @@ function initialProcessMonitors(): Record<AppView, ProcessMonitorSnapshot> {
     finrisk: emptyMonitor("Risk Intelligence"),
     "supply-chain": emptyMonitor("Product Supply Chain"),
     "agent-runs": emptyMonitor("LLM Agent Run"),
+    journal: emptyMonitor("Research Journal"),
   };
 }
 
@@ -230,6 +237,9 @@ export function App() {
   const [evaluation, setEvaluation] = useState<WorkflowEvaluationResponse | null>(
     STATIC_DEMO_MODE ? staticDemoEvaluation : null,
   );
+  const [financials, setFinancials] = useState<FinancialSnapshot | null>(null);
+  const [financialsLoading, setFinancialsLoading] = useState(false);
+  const [financialsError, setFinancialsError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
   const [processMonitors, setProcessMonitors] =
@@ -321,6 +331,7 @@ export function App() {
         next.status === "failed" ||
         next.status === "needs_review"
       ) {
+        stopPolling();
         try {
           const r = await api.getReport(runId);
           setReport(r);
@@ -345,7 +356,18 @@ export function App() {
             setError((err as Error).message);
           }
         }
-        stopPolling();
+        if (!STATIC_DEMO_MODE && next.company?.ticker) {
+          setFinancialsLoading(true);
+          setFinancialsError(null);
+          try {
+            setFinancials(await api.getFinancialSnapshot(next.company.ticker));
+          } catch {
+            setFinancials(null);
+            setFinancialsError("SEC financial history is unavailable for this run.");
+          } finally {
+            setFinancialsLoading(false);
+          }
+        }
       }
     } catch (err) {
       setError((err as Error).message);
@@ -393,6 +415,8 @@ export function App() {
     setStatus(null);
     setGraph(null);
     setEvaluation(null);
+    setFinancials(null);
+    setFinancialsError(null);
     setSummary(newSummary);
     setSelectedHistoryRunId(newSummary.run_id);
     setRequest(newRequest);
@@ -414,6 +438,9 @@ export function App() {
   const loadFinriskRun = async (runId: string) => {
     stopPolling();
     setError(null);
+    setFinancials(null);
+    setFinancialsError(null);
+    setFinancialsLoading(false);
     const next = await api.getStatus(runId);
     setSummary({
       run_id: next.run_id,
@@ -444,6 +471,18 @@ export function App() {
         setEvaluation(await api.getEvaluation(runId));
       } catch (err) {
         if (!(err instanceof FinRiskApiError)) setError((err as Error).message);
+      }
+      if (next.company?.ticker) {
+        setFinancialsLoading(true);
+        setFinancialsError(null);
+        try {
+          setFinancials(await api.getFinancialSnapshot(next.company.ticker));
+        } catch {
+          setFinancials(null);
+          setFinancialsError("SEC financial history is unavailable for this run.");
+        } finally {
+          setFinancialsLoading(false);
+        }
       }
       setPolling(false);
     } else {
@@ -527,6 +566,15 @@ export function App() {
               <Boxes size={15} />
               LLM Agent Runs
             </button>
+            <button
+              type="button"
+              className={activeView === "journal" ? "active" : ""}
+              onClick={() => setActiveView("journal")}
+              data-testid="tab-journal"
+            >
+              <BookOpen size={15} />
+              Research Journal
+            </button>
           </>
         ) : null}
       </nav>
@@ -545,6 +593,14 @@ export function App() {
                 setViewMonitor("agent-runs", agentRunSnapshot(timeline));
               }}
             />
+          </main>
+          <main
+            className={`app-main journal-view view-panel ${
+              activeView === "journal" ? "active" : ""
+            }`}
+            aria-hidden={activeView !== "journal"}
+          >
+            <ResearchJournalPanel />
           </main>
           <main
             className={`app-main supply-chain-view view-panel ${
@@ -594,7 +650,27 @@ export function App() {
               </p>
             </div>
           ) : null}
+          {summary ? (
+            <ResearchDecisionBrief
+              company={status?.company ?? null}
+              report={report?.report_v16 ?? null}
+              evaluation={status?.evaluation ?? report?.evaluation ?? null}
+            />
+          ) : null}
           {summary ? <AgentTimeline status={status} /> : null}
+          {summary && !STATIC_DEMO_MODE ? (
+            <FinancialTrendPanel
+              snapshot={financials}
+              loading={financialsLoading}
+              error={financialsError}
+            />
+          ) : null}
+          {summary && !STATIC_DEMO_MODE ? (
+            <ScenarioValuationPanel snapshot={financials} />
+          ) : null}
+          {summary && !STATIC_DEMO_MODE ? (
+            <ManagementComparisonPanel ticker={status?.company?.ticker ?? null} />
+          ) : null}
           {summary ? (
             <EvaluationPanel
               evaluation={status?.evaluation ?? report?.evaluation ?? null}
@@ -615,7 +691,16 @@ export function App() {
             />
           ) : null}
           {summary ? (
-            <ClaimEvidenceMatrix claims={[]} />
+            <ClaimEvidenceMatrix
+              claims={(report?.report_v16?.evidence_vs_inference ?? []).map((claim) => ({
+                ...claim,
+                grounding: claim.supporting_evidence_ids.length ? "grounded" : "unsupported",
+                status: claim.supporting_evidence_ids.length ? "pass" : "needs_review",
+                recommendation: claim.supporting_evidence_ids.length
+                  ? null
+                  : "Link primary evidence before relying on this claim.",
+              }))}
+            />
           ) : null}
           {summary ? (
             <EvidenceGraph
