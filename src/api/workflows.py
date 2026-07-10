@@ -160,6 +160,7 @@ async def _run_and_store(state) -> None:
             get_fixture_path(),
         )
         await _run_store.update(finished)
+        await _maybe_create_research_snapshot(finished)
     except Exception as exc:
         logger.exception("workflow %s failed", state.run_id)
         state.status = "failed"
@@ -173,6 +174,34 @@ async def _run_and_store(state) -> None:
             )
         )
         await _run_store.update(state)
+
+
+async def _maybe_create_research_snapshot(state) -> None:
+    """Optionally carry a completed FinRisk report into the research cycle."""
+    if os.environ.get("RESEARCH_SNAPSHOT_ON_WORKFLOW") != "1":
+        return
+    company = getattr(state, "company", None)
+    ticker = str(getattr(company, "ticker", "")).upper().strip()
+    if not ticker or getattr(state, "report_v16", None) is None:
+        return
+    try:
+        from src.api.research import create_company_research_run
+        from src.research.orchestrator import ResearchRunRequest
+
+        await create_company_research_run(
+            ResearchRunRequest(
+                ticker=ticker,
+                include_management=False,
+                include_risks=True,
+                workflow_run_id=state.run_id,
+            )
+        )
+    except Exception as exc:
+        logger.warning(
+            "optional research snapshot failed for workflow %s: %s",
+            state.run_id,
+            type(exc).__name__,
+        )
 
 
 def _run_workflow_sync(state, fixture_path: Path):

@@ -4,13 +4,41 @@ from __future__ import annotations
 
 import asyncio
 import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.research import FinancialSnapshot, FinancialSnapshotBuilder
+from src.research.alert_store import (
+    AlertActionRequest,
+    AlertStatus,
+    ResearchAlert,
+    ResearchAlertStore,
+)
+from src.research.change_detection import (
+    ChangeReviewRequest,
+    ResearchChange,
+    ResearchChangeSet,
+    detect_research_changes,
+)
+from src.research.change_store import ResearchChangeStore
+from src.research.comparison import (
+    CompanyComparisonRequest,
+    CompanyComparisonResponse,
+    ResearchQueueResponse,
+    build_research_queue,
+    compare_company_snapshots,
+)
+from src.research.expectations import (
+    ExpectationComparison,
+    ExpectationImportResult,
+    ExpectationPoint,
+    ExpectationStore,
+    compare_expectation_to_actual,
+)
 from src.research.financial_snapshot import merge_company_facts
 from src.research.journal import (
     InvestmentThesis,
@@ -22,13 +50,41 @@ from src.research.journal import (
 )
 from src.research.management_snapshot import (
     ManagementComparisonResponse,
+    ManagementPeriodSnapshot,
     build_management_snapshot,
     compare_management_snapshots,
 )
+from src.research.models import (
+    CompanyResearchSnapshot,
+    FinancialMetricPoint,
+    ResearchRunManifest,
+)
+from src.research.monitor import (
+    MonitorScanRequest,
+    MonitorScanResponse,
+    WatchlistMonitor,
+)
+from src.research.orchestrator import (
+    CompanyResearchOrchestrator,
+    ResearchRunRequest,
+    ResearchRunResponse,
+)
+from src.research.post_earnings import (
+    ConfirmPostEarningsReviewRequest,
+    PostEarningsDraftRequest,
+    PostEarningsReviewDraft,
+    PostEarningsReviewStore,
+    build_post_earnings_review_draft,
+)
+from src.research.risk_adapter import risk_observations_from_report
+from src.research.snapshot_store import ResearchSnapshotStore
 from src.research.valuation import (
     ScenarioValuationRequest,
     ScenarioValuationResponse,
+    SensitivityMatrixRequest,
+    SensitivityMatrixResponse,
     calculate_scenario_valuation,
+    calculate_sensitivity_matrix,
 )
 
 router = APIRouter(prefix="/research")
@@ -95,9 +151,7 @@ class ManagementResearchService:
         compare_quarter: int | None = None,
     ) -> ManagementComparisonResponse:
         provider = self._transcript_provider or self._default_provider()
-        current = build_management_snapshot(
-            provider.get_transcript(ticker.upper(), year, quarter)
-        )
+        current = build_management_snapshot(provider.get_transcript(ticker.upper(), year, quarter))
         previous = None
         changes = []
         if compare_year is not None and compare_quarter is not None:
@@ -125,6 +179,25 @@ class ManagementResearchService:
 _service = FinancialResearchService()
 _management_service = ManagementResearchService()
 _journal_store: ResearchJournalStore | None = None
+_snapshot_store: ResearchSnapshotStore | None = None
+_research_orchestrator: CompanyResearchOrchestrator | None = None
+_change_store: ResearchChangeStore | None = None
+_expectation_store: ExpectationStore | None = None
+_alert_store: ResearchAlertStore | None = None
+_watchlist_monitor: WatchlistMonitor | None = None
+_post_earnings_store: PostEarningsReviewStore | None = None
+
+
+class ExpectationCSVImportRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content: str
+
+
+class ResearchQueueRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    tickers: list[str] = Field(min_length=1, max_length=50)
 
 
 def set_financial_research_service_for_tests(
@@ -159,6 +232,541 @@ def set_research_journal_store_for_tests(store: ResearchJournalStore | None) -> 
     _journal_store = store
 
 
+def get_research_snapshot_store() -> ResearchSnapshotStore:
+    global _snapshot_store
+    if _snapshot_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _snapshot_store = ResearchSnapshotStore(path)
+    return _snapshot_store
+
+
+def set_research_snapshot_store_for_tests(
+    store: ResearchSnapshotStore | None,
+) -> None:
+    global _snapshot_store, _research_orchestrator
+    _snapshot_store = store
+    _research_orchestrator = None
+
+
+def get_company_research_orchestrator() -> CompanyResearchOrchestrator:
+    global _research_orchestrator
+    if _research_orchestrator is None:
+        _research_orchestrator = CompanyResearchOrchestrator(
+            store=get_research_snapshot_store(),
+            financial_loader=_load_financial_snapshot,
+            management_loader=_load_management_snapshot,
+        )
+    return _research_orchestrator
+
+
+def _load_financial_snapshot(ticker: str, as_of: date | None) -> FinancialSnapshot:
+    return _service.build_snapshot(ticker, as_of)
+
+
+def _load_management_snapshot(ticker: str, year: int, quarter: int) -> ManagementPeriodSnapshot:
+    return _management_service.compare(
+        ticker=ticker,
+        year=year,
+        quarter=quarter,
+    ).current
+
+
+def set_company_research_orchestrator_for_tests(
+    orchestrator: CompanyResearchOrchestrator | None,
+) -> None:
+    global _research_orchestrator
+    _research_orchestrator = orchestrator
+
+
+def get_research_change_store() -> ResearchChangeStore:
+    global _change_store
+    if _change_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _change_store = ResearchChangeStore(path)
+    return _change_store
+
+
+def set_research_change_store_for_tests(store: ResearchChangeStore | None) -> None:
+    global _change_store
+    _change_store = store
+
+
+def get_expectation_store() -> ExpectationStore:
+    global _expectation_store
+    if _expectation_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _expectation_store = ExpectationStore(path)
+    return _expectation_store
+
+
+def set_expectation_store_for_tests(store: ExpectationStore | None) -> None:
+    global _expectation_store
+    _expectation_store = store
+
+
+def get_research_alert_store() -> ResearchAlertStore:
+    global _alert_store
+    if _alert_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _alert_store = ResearchAlertStore(path)
+    return _alert_store
+
+
+def set_research_alert_store_for_tests(store: ResearchAlertStore | None) -> None:
+    global _alert_store, _watchlist_monitor
+    _alert_store = store
+    _watchlist_monitor = None
+
+
+def get_watchlist_monitor() -> WatchlistMonitor:
+    global _watchlist_monitor
+    if _watchlist_monitor is None:
+        _watchlist_monitor = WatchlistMonitor(
+            orchestrator=get_company_research_orchestrator(),
+            snapshot_store=get_research_snapshot_store(),
+            change_store=get_research_change_store(),
+            alert_store=get_research_alert_store(),
+            journal_store=get_research_journal_store(),
+        )
+    return _watchlist_monitor
+
+
+def set_watchlist_monitor_for_tests(monitor: WatchlistMonitor | None) -> None:
+    global _watchlist_monitor
+    _watchlist_monitor = monitor
+
+
+def get_post_earnings_review_store() -> PostEarningsReviewStore:
+    global _post_earnings_store
+    if _post_earnings_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _post_earnings_store = PostEarningsReviewStore(path)
+    return _post_earnings_store
+
+
+def set_post_earnings_review_store_for_tests(
+    store: PostEarningsReviewStore | None,
+) -> None:
+    global _post_earnings_store
+    _post_earnings_store = store
+
+
+@router.post(
+    "/runs",
+    response_model=ResearchRunResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_company_research_run(
+    request: ResearchRunRequest,
+) -> ResearchRunResponse:
+    """Build and persist one point-in-time company research snapshot."""
+    orchestrator = get_company_research_orchestrator()
+    if request.workflow_run_id:
+        from src.api.workflows import get_run_store
+
+        state = await get_run_store().get(request.workflow_run_id)
+        if state is None:
+            raise HTTPException(status_code=404, detail="workflow run not found")
+        company = getattr(state, "company", None)
+        workflow_ticker = str(getattr(company, "ticker", "")).upper()
+        if workflow_ticker and workflow_ticker != request.ticker:
+            raise HTTPException(
+                status_code=422,
+                detail="workflow run ticker does not match research ticker",
+            )
+        risks = risk_observations_from_report(getattr(state, "report_v16", None))
+        orchestrator = CompanyResearchOrchestrator(
+            store=get_research_snapshot_store(),
+            financial_loader=_load_financial_snapshot,
+            management_loader=_load_management_snapshot,
+            risk_loader=lambda _ticker, _cutoff: risks,
+        )
+    return await asyncio.to_thread(orchestrator.run, request)
+
+
+@router.get("/runs/{run_id}", response_model=ResearchRunManifest)
+async def get_company_research_run(run_id: str) -> ResearchRunManifest:
+    run = await asyncio.to_thread(get_research_snapshot_store().get_run, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="research run not found")
+    return run
+
+
+@router.get("/snapshots/{snapshot_id}", response_model=CompanyResearchSnapshot)
+async def get_company_research_snapshot(
+    snapshot_id: str,
+) -> CompanyResearchSnapshot:
+    snapshot = await asyncio.to_thread(
+        get_research_snapshot_store().get_snapshot,
+        snapshot_id,
+    )
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail="research snapshot not found")
+    return snapshot
+
+
+@router.get("/snapshots", response_model=list[CompanyResearchSnapshot])
+async def list_company_research_snapshots(
+    ticker: str,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[CompanyResearchSnapshot]:
+    return await asyncio.to_thread(
+        get_research_snapshot_store().list_snapshots,
+        ticker,
+        limit=limit,
+    )
+
+
+@router.get("/changes/{ticker}", response_model=ResearchChangeSet)
+async def get_company_research_changes(
+    ticker: str,
+    from_snapshot_id: str | None = None,
+    to_snapshot_id: str | None = None,
+) -> ResearchChangeSet:
+    store = get_research_snapshot_store()
+    if (from_snapshot_id is None) != (to_snapshot_id is None):
+        raise HTTPException(
+            status_code=422,
+            detail="from_snapshot_id and to_snapshot_id must be provided together",
+        )
+    if from_snapshot_id and to_snapshot_id:
+        previous = await asyncio.to_thread(store.get_snapshot, from_snapshot_id)
+        current = await asyncio.to_thread(store.get_snapshot, to_snapshot_id)
+    else:
+        snapshots = await asyncio.to_thread(store.list_snapshots, ticker, limit=2)
+        if len(snapshots) < 2:
+            raise HTTPException(
+                status_code=404,
+                detail="at least two research snapshots are required",
+            )
+        current, previous = snapshots
+    if previous is None or current is None:
+        raise HTTPException(status_code=404, detail="research snapshot not found")
+    if current.ticker != ticker.upper() or previous.ticker != ticker.upper():
+        raise HTTPException(status_code=422, detail="snapshot ticker mismatch")
+    try:
+        change_set = await asyncio.to_thread(
+            detect_research_changes,
+            previous,
+            current,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return await asyncio.to_thread(
+        get_research_change_store().save_change_set,
+        change_set,
+    )
+
+
+@router.post("/changes/{change_id}/review", response_model=ResearchChange)
+async def review_company_research_change(
+    change_id: str,
+    review: ChangeReviewRequest,
+) -> ResearchChange:
+    try:
+        return await asyncio.to_thread(
+            get_research_change_store().review_change,
+            change_id,
+            review,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="research change not found") from exc
+
+
+@router.post(
+    "/expectations",
+    response_model=ExpectationPoint,
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_research_expectation(point: ExpectationPoint) -> ExpectationPoint:
+    saved, _created = await asyncio.to_thread(get_expectation_store().save, point)
+    return saved
+
+
+@router.get("/expectations", response_model=list[ExpectationPoint])
+async def list_research_expectations(
+    ticker: str,
+    metric: str | None = None,
+    fiscal_period: str | None = None,
+    known_on_or_before: datetime | None = None,
+) -> list[ExpectationPoint]:
+    return await asyncio.to_thread(
+        get_expectation_store().list,
+        ticker=ticker,
+        metric=metric,
+        fiscal_period=fiscal_period,
+        known_on_or_before=known_on_or_before,
+    )
+
+
+@router.post(
+    "/expectations/import-csv",
+    response_model=ExpectationImportResult,
+)
+async def import_research_expectations(
+    request: ExpectationCSVImportRequest,
+) -> ExpectationImportResult:
+    try:
+        return await asyncio.to_thread(
+            get_expectation_store().import_csv,
+            request.content,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get(
+    "/expectations/{expectation_id}/compare",
+    response_model=ExpectationComparison,
+)
+async def compare_research_expectation(
+    expectation_id: str,
+    snapshot_id: str,
+) -> ExpectationComparison:
+    expectation = await asyncio.to_thread(
+        get_expectation_store().get,
+        expectation_id,
+    )
+    snapshot = await asyncio.to_thread(
+        get_research_snapshot_store().get_snapshot,
+        snapshot_id,
+    )
+    if expectation is None or snapshot is None:
+        raise HTTPException(status_code=404, detail="expectation or snapshot not found")
+    if expectation.ticker != snapshot.ticker or snapshot.financials is None:
+        raise HTTPException(status_code=422, detail="expectation and snapshot mismatch")
+    candidates = [
+        point
+        for point in snapshot.financials.metrics
+        if point.metric == expectation.metric
+        and point.unit == expectation.unit
+        and _financial_period_label(point) == expectation.fiscal_period
+    ]
+    if not candidates:
+        raise HTTPException(status_code=404, detail="matching actual metric not found")
+    actual = max(candidates, key=lambda point: (point.filed_at or date.min, point.period_end))
+    try:
+        return compare_expectation_to_actual(expectation, actual)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _financial_period_label(point: FinancialMetricPoint) -> str:
+    if point.fiscal_year and point.fiscal_period:
+        return f"{point.fiscal_year}{point.fiscal_period}"
+    return point.period_end.isoformat()
+
+
+@router.post("/monitor/scan", response_model=MonitorScanResponse)
+async def scan_research_watchlist(
+    request: MonitorScanRequest,
+) -> MonitorScanResponse:
+    return await asyncio.to_thread(get_watchlist_monitor().scan, request)
+
+
+@router.get("/alerts", response_model=list[ResearchAlert])
+async def list_research_alerts(
+    ticker: str | None = None,
+    alert_status: Annotated[AlertStatus | None, Query(alias="status")] = None,
+) -> list[ResearchAlert]:
+    return await asyncio.to_thread(
+        get_research_alert_store().list_alerts,
+        ticker=ticker,
+        status=alert_status,
+    )
+
+
+@router.post("/alerts/{alert_id}/action", response_model=ResearchAlert)
+async def act_on_research_alert(
+    alert_id: str,
+    request: AlertActionRequest,
+) -> ResearchAlert:
+    try:
+        return await asyncio.to_thread(
+            get_research_alert_store().act,
+            alert_id,
+            request,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="research alert not found") from exc
+
+
+@router.post(
+    "/post-earnings/drafts",
+    response_model=PostEarningsReviewDraft,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_post_earnings_review_draft(
+    request: PostEarningsDraftRequest,
+) -> PostEarningsReviewDraft:
+    thesis = await asyncio.to_thread(
+        get_research_journal_store().get_thesis,
+        request.thesis_id,
+    )
+    previous = await asyncio.to_thread(
+        get_research_snapshot_store().get_snapshot,
+        request.from_snapshot_id,
+    )
+    current = await asyncio.to_thread(
+        get_research_snapshot_store().get_snapshot,
+        request.to_snapshot_id,
+    )
+    if thesis is None or previous is None or current is None:
+        raise HTTPException(status_code=404, detail="thesis or snapshot not found")
+    try:
+        change_set = detect_research_changes(previous, current)
+        comparisons = []
+        for expectation_id in request.expectation_ids:
+            expectation = get_expectation_store().get(expectation_id)
+            if expectation is None or current.financials is None:
+                raise ValueError(f"expectation unavailable: {expectation_id}")
+            candidates = [
+                point
+                for point in current.financials.metrics
+                if point.metric == expectation.metric
+                and point.unit == expectation.unit
+                and _financial_period_label(point) == expectation.fiscal_period
+            ]
+            if not candidates:
+                raise ValueError(f"matching actual unavailable for expectation: {expectation_id}")
+            actual = max(
+                candidates,
+                key=lambda point: (point.filed_at or date.min, point.period_end),
+            )
+            comparisons.append(compare_expectation_to_actual(expectation, actual))
+        draft = build_post_earnings_review_draft(
+            thesis=thesis,
+            previous=previous,
+            current=current,
+            changes=change_set.changes,
+            expectation_comparisons=comparisons,
+            locked_assumptions=request.locked_assumptions,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return await asyncio.to_thread(get_post_earnings_review_store().save, draft)
+
+
+@router.get(
+    "/post-earnings/drafts",
+    response_model=list[PostEarningsReviewDraft],
+)
+async def list_post_earnings_review_drafts(
+    ticker: str | None = None,
+) -> list[PostEarningsReviewDraft]:
+    return await asyncio.to_thread(
+        get_post_earnings_review_store().list,
+        ticker=ticker,
+    )
+
+
+@router.get(
+    "/post-earnings/drafts/{draft_id}",
+    response_model=PostEarningsReviewDraft,
+)
+async def get_post_earnings_review_draft(
+    draft_id: str,
+) -> PostEarningsReviewDraft:
+    draft = await asyncio.to_thread(get_post_earnings_review_store().get, draft_id)
+    if draft is None:
+        raise HTTPException(status_code=404, detail="post-earnings draft not found")
+    return draft
+
+
+@router.post(
+    "/post-earnings/drafts/{draft_id}/confirm",
+    response_model=PostEarningsReviewDraft,
+)
+async def confirm_post_earnings_review(
+    draft_id: str,
+    request: ConfirmPostEarningsReviewRequest,
+) -> PostEarningsReviewDraft:
+    try:
+        return await asyncio.to_thread(
+            get_post_earnings_review_store().confirm,
+            draft_id,
+            request,
+            get_research_journal_store(),
+        )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="post-earnings draft or thesis not found",
+        ) from exc
+
+
+@router.post("/comparison", response_model=CompanyComparisonResponse)
+async def compare_research_companies(
+    request: CompanyComparisonRequest,
+) -> CompanyComparisonResponse:
+    snapshots = []
+    for snapshot_id in request.snapshot_ids:
+        snapshot = await asyncio.to_thread(
+            get_research_snapshot_store().get_snapshot,
+            snapshot_id,
+        )
+        if snapshot is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"research snapshot not found: {snapshot_id}",
+            )
+        snapshots.append(snapshot)
+    try:
+        return compare_company_snapshots(
+            snapshots,
+            metrics=request.metrics,
+            period_kind=request.period_kind,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/research-queue", response_model=ResearchQueueResponse)
+async def build_company_research_queue(
+    request: ResearchQueueRequest,
+) -> ResearchQueueResponse:
+    change_sets = []
+    for ticker in request.tickers:
+        snapshots = await asyncio.to_thread(
+            get_research_snapshot_store().list_snapshots,
+            ticker,
+            limit=2,
+        )
+        if len(snapshots) < 2:
+            continue
+        current, previous = snapshots
+        if previous.as_of >= current.as_of:
+            continue
+        change_set = detect_research_changes(previous, current)
+        change_sets.append(get_research_change_store().save_change_set(change_set))
+    return build_research_queue(change_sets)
+
+
 @router.get(
     "/financials/{ticker}",
     response_model=FinancialSnapshot,
@@ -191,6 +799,19 @@ async def calculate_valuation_scenarios(
 ) -> ScenarioValuationResponse:
     """Calculate transparent user-supplied valuation scenarios."""
     return calculate_scenario_valuation(request)
+
+
+@router.post(
+    "/valuation/sensitivity",
+    response_model=SensitivityMatrixResponse,
+)
+async def calculate_valuation_sensitivity(
+    request: SensitivityMatrixRequest,
+) -> SensitivityMatrixResponse:
+    try:
+        return calculate_sensitivity_matrix(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get(
@@ -313,15 +934,49 @@ async def list_research_reminders(
 __all__ = [
     "FinancialResearchService",
     "ManagementResearchService",
+    "act_on_research_alert",
+    "build_company_research_queue",
     "calculate_valuation_scenarios",
+    "calculate_valuation_sensitivity",
+    "compare_research_companies",
+    "compare_research_expectation",
+    "confirm_post_earnings_review",
+    "create_company_research_run",
+    "create_post_earnings_review_draft",
+    "get_company_research_changes",
+    "get_company_research_orchestrator",
+    "get_company_research_run",
+    "get_company_research_snapshot",
+    "get_expectation_store",
     "get_financial_snapshot",
     "get_investment_thesis",
     "get_management_comparison",
+    "get_post_earnings_review_draft",
+    "get_post_earnings_review_store",
+    "get_research_alert_store",
+    "get_research_change_store",
     "get_research_journal_store",
+    "get_research_snapshot_store",
+    "get_watchlist_monitor",
+    "import_research_expectations",
+    "list_company_research_snapshots",
+    "list_post_earnings_review_drafts",
+    "list_research_alerts",
+    "list_research_expectations",
+    "review_company_research_change",
     "router",
     "save_investment_thesis",
+    "save_research_expectation",
     "save_watchlist_item",
+    "scan_research_watchlist",
+    "set_company_research_orchestrator_for_tests",
+    "set_expectation_store_for_tests",
     "set_financial_research_service_for_tests",
     "set_management_research_service_for_tests",
+    "set_post_earnings_review_store_for_tests",
+    "set_research_alert_store_for_tests",
+    "set_research_change_store_for_tests",
     "set_research_journal_store_for_tests",
+    "set_research_snapshot_store_for_tests",
+    "set_watchlist_monitor_for_tests",
 ]

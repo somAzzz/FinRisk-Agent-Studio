@@ -109,6 +109,50 @@ def test_preserves_missing_metrics_as_explicit_warnings() -> None:
     assert "missing_metric:long_term_debt" in snapshot.warnings
 
 
+def test_supports_ifrs_20f_and_discrete_6k_facts() -> None:
+    facts = {
+        "facts": {
+            "ifrs-full": {
+                "Revenue": _concept(
+                    [
+                        {
+                            "start": "2024-01-01", "end": "2024-12-31",
+                            "val": 1000, "form": "20-F", "filed": "2025-04-17",
+                            "fy": 2024, "fp": "FY", "accn": "20f",
+                        },
+                        {
+                            "start": "2025-01-01", "end": "2025-03-31",
+                            "val": 300, "form": "6-K", "filed": "2025-04-30",
+                            "accn": "6k-q1",
+                        },
+                        {
+                            "start": "2025-01-01", "end": "2025-06-30",
+                            "val": 650, "form": "6-K", "filed": "2025-07-31",
+                            "accn": "6k-ytd",
+                        },
+                    ]
+                ),
+                "ProfitLossFromOperatingActivities": _concept(
+                    [{
+                        "start": "2024-01-01", "end": "2024-12-31",
+                        "val": 300, "form": "20-F", "filed": "2025-04-17",
+                        "fy": 2024, "fp": "FY", "accn": "20f",
+                    }]
+                ),
+            }
+        }
+    }
+
+    snapshot = FinancialSnapshotBuilder().build(
+        ticker="FPI", cik="123", facts=facts,
+    )
+
+    assert snapshot.series("revenue", "annual")[0].value == 1000
+    assert snapshot.series("revenue", "quarter")[0].value == 300
+    assert snapshot.series("revenue", "year_to_date")[0].value == 650
+    assert snapshot.series("operating_income", "annual")[0].value == 300
+
+
 def test_merges_concept_alias_history_and_derives_total_debt() -> None:
     facts = {
         "facts": {

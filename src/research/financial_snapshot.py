@@ -18,28 +18,49 @@ from src.research.models import (
 # Ordered aliases let the builder support issuers that use older or more
 # specific US-GAAP concepts while keeping one stable output vocabulary.
 METRIC_CONCEPTS: dict[str, tuple[str, ...]] = {
-    "revenue": ("RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"),
+    "revenue": (
+        "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "Revenues",
+        "SalesRevenueNet",
+        "Revenue",
+        "RevenueFromContractsWithCustomers",
+    ),
     "gross_profit": ("GrossProfit",),
-    "operating_income": ("OperatingIncomeLoss",),
+    "operating_income": ("OperatingIncomeLoss", "ProfitLossFromOperatingActivities"),
     "net_income": ("NetIncomeLoss", "ProfitLoss"),
-    "operating_cash_flow": ("NetCashProvidedByUsedInOperatingActivities",),
+    "operating_cash_flow": (
+        "NetCashProvidedByUsedInOperatingActivities",
+        "CashFlowsFromUsedInOperatingActivities",
+    ),
     "capital_expenditure": (
         "PaymentsToAcquirePropertyPlantAndEquipment",
         "PaymentsForAdditionsToPropertyPlantAndEquipment",
+        "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
     ),
-    "cash": ("CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"),
+    "cash": (
+        "CashAndCashEquivalentsAtCarryingValue",
+        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+        "CashAndCashEquivalents",
+    ),
     "current_debt": (
         "ShortTermBorrowings",
         "ShortTermDebtCurrent",
         "LongTermDebtAndFinanceLeaseObligationsCurrent",
         "LongTermDebtCurrent",
+        "ShorttermBorrowings",
+        "CurrentPortionOfLongtermBorrowings",
     ),
     "long_term_debt": (
         "LongTermDebtAndFinanceLeaseObligationsNoncurrent",
         "LongTermDebtNoncurrent",
         "LongTermDebt",
+        "LongtermBorrowings",
     ),
-    "diluted_shares": ("WeightedAverageNumberOfDilutedSharesOutstanding",),
+    "diluted_shares": (
+        "WeightedAverageNumberOfDilutedSharesOutstanding",
+        "WeightedAverageShares",
+        "AdjustedWeightedAverageShares",
+    ),
 }
 
 INSTANT_METRICS = {"cash", "current_debt", "long_term_debt", "total_debt"}
@@ -105,8 +126,9 @@ def _is_year_apart(
 def _period_kind(fact: FactValue, metric: str) -> PeriodKind:
     if metric in INSTANT_METRICS:
         return "instant"
-    if fact.form_type == "10-K" or fact.fiscal_period == "FY":
+    if fact.form_type in {"10-K", "20-F"} or fact.fiscal_period == "FY":
         return "annual"
+    result: PeriodKind = "unknown"
     # SEC frames identify a discrete quarter. Q1 is also discrete when the
     # issuer omits frame; Q2/Q3 facts without a frame are commonly YTD and
     # must not be mislabeled as standalone quarters.
@@ -114,14 +136,20 @@ def _period_kind(fact: FactValue, metric: str) -> PeriodKind:
         (fact.frame is not None and "Q" in fact.frame)
         or fact.fiscal_period == "Q1"
     ):
-        return "quarter"
-    if fact.form_type == "10-Q" and fact.fiscal_period in {"Q2", "Q3"}:
-        return "year_to_date"
-    return "unknown"
+        result = "quarter"
+    elif fact.form_type == "10-Q" and fact.fiscal_period in {"Q2", "Q3"}:
+        result = "year_to_date"
+    elif fact.form_type == "6-K" and fact.period_start and fact.period_end:
+        duration_days = (fact.period_end - fact.period_start).days
+        if duration_days <= 120:
+            result = "quarter"
+        elif duration_days < 330:
+            result = "year_to_date"
+    return result
 
 
 def _is_usable(fact: FactValue, as_of: date | None) -> bool:
-    if fact.period_end is None or fact.form_type not in {"10-K", "10-Q"}:
+    if fact.period_end is None or fact.form_type not in {"10-K", "10-Q", "20-F", "6-K"}:
         return False
     return not (as_of and fact.filed_at and fact.filed_at > as_of)
 

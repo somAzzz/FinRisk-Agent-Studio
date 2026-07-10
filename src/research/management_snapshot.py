@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -32,6 +33,7 @@ class ManagementPeriodSnapshot(BaseModel):
     transcript_id: str
     provider: str
     source_url: str | None = None
+    published_at: datetime | None = None
     overall_tone: OverallTone
     prepared_remarks_tone: SentimentLabel = "unclear"
     qa_tone: SentimentLabel = "unclear"
@@ -95,6 +97,7 @@ def build_management_snapshot(transcript: Transcript) -> ManagementPeriodSnapsho
         transcript_id=transcript.transcript_id,
         provider=transcript.provider,
         source_url=transcript.url,
+        published_at=transcript.published_at,
         overall_tone=result.overall_tone,
         prepared_remarks_tone=prepared_tone,
         qa_tone=qa_tone,
