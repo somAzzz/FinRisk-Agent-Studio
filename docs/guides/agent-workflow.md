@@ -143,7 +143,7 @@ wrapper that maps `final_status` to `state.status`.
 
 ## 8. Golden Cases & Eval Runner
 
-- `eval/golden_cases.json` — 5 cases (AAPL, NVDA, MSFT, TSLA, XOM).
+- `eval/golden_cases.json` — 30 guardrail cases across industries and negative paths.
 - `eval/run_eval.py` — runs each case through the demo workflow and
   prints a one-line CSV summary. Exit code is non-zero on `fail`.
 

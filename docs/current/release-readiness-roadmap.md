@@ -12,6 +12,7 @@
 - [个人研究闭环补齐方案](research-closure-plan.md)
 - [研究闭环真实数据验证](validation/research-closure-live-matrix-2026-07-11.md)
 - [12 季度财务勾稽记录](validation/financial-reconciliation-2026-07-11.md)
+- [候选发布审计](validation/release-audit-2026-07-11.md)
 
 ## 0. 当前执行状态
 
@@ -23,7 +24,7 @@
 | 默认编排与变化可信度 | 进行中 | 组件状态语义、correlation ID、风险来源 manifest、来源冲突/过期规则 | 启动新 FinRisk run、Watchlist 组件策略、guidance 数值与措辞 diff |
 | 同行企业分析 | 进行中 | 持久化 Peer Group、确认门、行业/币种/财年策略、快照新鲜度比较 API | 候选生成、估值/预期/风险联合视图和专用前端区域 |
 | 估值与监控深化 | 进行中 | P/E、EV/EBITDA、FCF yield、简化 DCF；扫描节流与重试参数 | assumptions 历史、系统定时器模板、事件级 cursor 和可选推送 |
-| Golden cases 与发布审计 | 待实施 | 已有单元、集成和 live matrix 基线 | 30 cases、全新安装、浏览器和最终发布门禁 |
+| Golden cases 与发布审计 | 进行中 | 30/30 guardrail cases、后端 962 tests、前端 64 tests、生产构建 | 全新安装、真实浏览器和最终发布门禁 |
 
 ## 1. 范围判断
 

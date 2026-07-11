@@ -12,5 +12,6 @@
 6. [SEC 财务快照验证](validation/sec-financial-snapshot-2026-07-11.md)：关键财务数据链路的验证证据。
 7. [研究闭环真实数据矩阵](validation/research-closure-live-matrix-2026-07-11.md)：六类公司、IFRS/20-F 与监控去重验证。
 8. [12 季度财务勾稽](validation/financial-reconciliation-2026-07-11.md)：AAPL、NVDA、XOM 的来源、派生公式与覆盖验证。
+9. [候选发布审计](validation/release-audit-2026-07-11.md)：自动化门禁、跳过项、浏览器与产品阻塞项。
 
 完成或被新文档替代后，应将旧材料移入 `../history/`，避免当前结论出现多个互相冲突的版本。
