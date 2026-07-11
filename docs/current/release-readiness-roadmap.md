@@ -19,12 +19,12 @@
 | 工作包 | 状态 | 已完成 | 剩余退出条件 |
 | --- | --- | --- | --- |
 | 浏览器与可访问性 | 阻塞 | 前后端自动化与生产构建已有基线 | Browser runtime 恢复、三视口与键盘真实验收 |
-| 数据库迁移与恢复 | 完成 | 事务迁移、幂等、失败回滚、在线备份/恢复、CLI 和测试 | 纳入最终发布审计 |
-| 财务正确性与行业事实 | 进行中 | AAPL/NVDA/XOM 12 期间勾稽；六类指标配置 | JPM、TSM、restatement 与分部事实 |
-| 默认编排与变化可信度 | 进行中 | 组件状态语义、correlation ID、风险来源 manifest、来源冲突/过期规则 | 启动新 FinRisk run、Watchlist 组件策略、guidance 数值与措辞 diff |
-| 同行企业分析 | 进行中 | 持久化 Peer Group、确认门、行业/币种/财年策略、快照新鲜度比较 API | 候选生成、估值/预期/风险联合视图和专用前端区域 |
-| 估值与监控深化 | 进行中 | P/E、EV/EBITDA、FCF yield、简化 DCF；扫描节流与重试参数 | assumptions 历史、系统定时器模板、事件级 cursor 和可选推送 |
-| Golden cases 与发布审计 | 进行中 | 30/30 guardrail cases、后端 962 tests、前端 64 tests、生产构建 | 全新安装、真实浏览器和最终发布门禁 |
+| 数据库迁移与恢复 | 完成 | schema v3、事务迁移、幂等、失败回滚、在线备份/恢复、CLI 和测试 | 最终发布时再执行一次恢复演练 |
+| 财务正确性与行业事实 | 进行中 | AAPL/NVDA/XOM 12 期间；JPM 银行；TSM 20-F；六类配置；三种 restatement policy | inline XBRL/独立 provider 的分部维度事实 |
+| 默认编排与变化可信度 | 完成 | 直接启动 FinRisk、组件策略、correlation ID、风险 manifest、冲突/过期、guidance range 与 quote diff | 外部 consensus provider 属于可选深化 |
+| 同行企业分析 | 完成 | Peer Group、SIC 候选确认、口径/新鲜度、专用 UI、财务/风险/预期/显式估值分层 | 自动 FX provider 属于可选深化 |
+| 估值与监控深化 | 完成 | 四类估值、assumptions 历史、节流/重试、来源 cursor、launchd/systemd 模板 | 邮件/移动推送属于 P2 可选能力 |
+| Golden cases 与发布审计 | 阻塞 | 30/30、后端 967、前端 66、生产构建、npm audit 0、全新依赖安装 | 真实浏览器和最终发布门禁 |
 
 ## 1. 范围判断
 

@@ -30,7 +30,7 @@
 | Thesis 与复盘 | 基本完成 | Thesis、证伪条件、催化剂、Watchlist、复盘草稿、人工确认 | guidance 命中率、来源可靠度和个人判断校准 |
 | 持续监控 | 初版完成 | 一次性 CLI、dry-run、并发、失败隔离、游标、去重提醒 | 请求节流、系统级定时配置、外部推送、政策/供应链事件触发 |
 | 同行企业比较 | 初版完成 | 同 `as_of` 标准财务比较、不可比保护、研究队列、Watchlist UI | Peer Group、自动同行候选、币种转换、行业 KPI、估值和预期差横向表 |
-| 质量验证 | 部分完成 | 后端 962 tests、前端 64 tests、30 个 guardrail cases、SEC 六公司、transcript 三公司 live smoke、三公司 12 季度勾稽 | 真实浏览器验收、全新安装演练 |
+| 质量验证 | 部分完成 | 后端 967 tests、前端 66 tests、30 个 guardrail cases、npm audit 0、SEC/IFRS 五公司勾稽、全新依赖安装 | 真实浏览器验收 |
 
 ## 3. 已形成的研究闭环
 
