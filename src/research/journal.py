@@ -10,6 +10,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from src.research.database import apply_migrations
+
 ThesisStatus = Literal["draft", "active", "invalidated", "closed"]
 ReviewOutcome = Literal["supported", "mixed", "invalidated", "unknown"]
 CatalystStatus = Literal["upcoming", "occurred", "missed", "cancelled"]
@@ -106,6 +108,7 @@ class ResearchJournalStore:
     def __init__(self, path: Path | str) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        apply_migrations(self.path)
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:

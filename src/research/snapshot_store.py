@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from src.research.database import apply_migrations
 from src.research.models import CompanyResearchSnapshot, ResearchRunManifest
 
 
@@ -14,6 +15,7 @@ class ResearchSnapshotStore:
     def __init__(self, path: Path | str) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        apply_migrations(self.path)
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:

@@ -6,6 +6,12 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS = {
+    "Migration": "src.research.database",
+    "apply_migrations": "src.research.database",
+    "backup_database": "src.research.database",
+    "restore_database": "src.research.database",
+    "schema_version": "src.research.database",
+    "verify_integrity": "src.research.database",
     "AlertActionRequest": "src.research.alert_store",
     "MonitorCursor": "src.research.alert_store",
     "ResearchAlert": "src.research.alert_store",

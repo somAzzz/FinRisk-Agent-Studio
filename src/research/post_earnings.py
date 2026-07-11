@@ -12,6 +12,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.research.change_detection import ResearchChange
+from src.research.database import apply_migrations
 from src.research.expectations import ExpectationComparison
 from src.research.journal import (
     InvestmentThesis,
@@ -64,6 +65,7 @@ class PostEarningsReviewStore:
     def __init__(self, path: Path | str) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        apply_migrations(self.path)
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:

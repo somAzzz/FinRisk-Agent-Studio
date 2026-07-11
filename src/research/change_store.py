@@ -11,12 +11,14 @@ from src.research.change_detection import (
     ResearchChange,
     ResearchChangeSet,
 )
+from src.research.database import apply_migrations
 
 
 class ResearchChangeStore:
     def __init__(self, path: Path | str) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        apply_migrations(self.path)
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:

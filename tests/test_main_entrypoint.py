@@ -41,3 +41,12 @@ def test_monitor_command_runs_one_shot_scan(capsys) -> None:
     assert request.tickers == ["AAPL"]
     assert request.dry_run is True
     assert '"ticker": "AAPL"' in capsys.readouterr().out
+
+
+def test_database_migrate_command(tmp_path, capsys) -> None:
+    path = tmp_path / "research.sqlite"
+
+    result = entrypoint.main(["database", "migrate", "--path", str(path)])
+
+    assert result == 0
+    assert "schema version: 1" in capsys.readouterr().out

@@ -37,7 +37,46 @@ def _parser() -> argparse.ArgumentParser:
     )
     monitor.add_argument("--max-workers", type=int, default=2)
     monitor.add_argument("--dry-run", action="store_true")
+    database = commands.add_parser(
+        "database",
+        help="Migrate, back up, or restore a research SQLite database",
+    )
+    database.add_argument("action", choices=("migrate", "backup", "restore"))
+    database.add_argument(
+        "--path",
+        default=".cache/research_snapshots.sqlite",
+        help="Database to migrate, back up, or restore",
+    )
+    database.add_argument("--destination", help="Backup destination")
+    database.add_argument("--backup", help="Backup source used for restore")
     return parser
+
+
+def _run_database_command(
+    args: argparse.Namespace,
+    parser: argparse.ArgumentParser,
+) -> int:
+    from src.research.database import (
+        apply_migrations,
+        backup_database,
+        restore_database,
+    )
+
+    if args.action == "migrate":
+        version = apply_migrations(args.path)
+        print(f"schema version: {version}")
+        return 0
+    if args.action == "backup":
+        if not args.destination:
+            parser.error("database backup requires --destination")
+        result = backup_database(args.path, args.destination)
+        print(result)
+        return 0
+    if not args.backup:
+        parser.error("database restore requires --backup")
+    result = restore_database(args.backup, args.path)
+    print(result)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,6 +113,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(response.model_dump(mode="json"), indent=2))
         return 1 if any(item.status == "failed" for item in response.results) else 0
+    if args.command == "database":
+        return _run_database_command(args, parser)
     parser.print_help()
     return 0
 

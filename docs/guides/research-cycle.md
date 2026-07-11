@@ -118,15 +118,31 @@ uv run python main.py monitor --ticker AAPL --as-of 2026-06-30
 
 ## 9. 备份与恢复
 
-备份前停止 API 和扫描进程，确保 SQLite 没有进行中的写入，然后复制两个数据库文件：
+首次使用或升级代码后，先对 Snapshot 和 Journal 数据库执行幂等迁移：
 
 ```bash
 SNAPSHOT_DB="${RESEARCH_SNAPSHOT_PATH:-.cache/research_snapshots.sqlite}"
 JOURNAL_DB="${RESEARCH_JOURNAL_PATH:-.cache/research_journal.sqlite}"
-cp "$SNAPSHOT_DB" "${SNAPSHOT_DB}.backup"
-cp "$JOURNAL_DB" "${JOURNAL_DB}.backup"
+uv run python main.py database migrate --path "$SNAPSHOT_DB"
+uv run python main.py database migrate --path "$JOURNAL_DB"
 ```
 
-恢复时同样先停止进程，将备份复制回原路径，再启动 API。恢复后先调用 `/research/watchlist` 和 `/research/snapshots?ticker=AAPL` 做只读核验。
+备份使用 SQLite 在线 backup API，不需要直接复制正在写入的数据库文件：
 
-如果两个环境变量未设置，请使用默认 `.cache/` 路径。不要在 API 正在写入时直接复制数据库；需要在线备份时使用 SQLite backup API。
+```bash
+uv run python main.py database backup --path "$SNAPSHOT_DB" \
+  --destination "${SNAPSHOT_DB}.backup"
+uv run python main.py database backup --path "$JOURNAL_DB" \
+  --destination "${JOURNAL_DB}.backup"
+```
+
+恢复会以备份完整替换目标数据库。先停止 API 和扫描进程，再执行：
+
+```bash
+uv run python main.py database restore --path "$SNAPSHOT_DB" \
+  --backup "${SNAPSHOT_DB}.backup"
+uv run python main.py database restore --path "$JOURNAL_DB" \
+  --backup "${JOURNAL_DB}.backup"
+```
+
+命令在迁移前、备份后和恢复后执行完整性检查；失败迁移会整体回滚。恢复后再调用 `/research/watchlist` 和 `/research/snapshots?ticker=AAPL` 做只读核验。
