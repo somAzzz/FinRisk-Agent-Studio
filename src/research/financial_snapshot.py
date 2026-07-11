@@ -7,6 +7,7 @@ from datetime import UTC, date, datetime, time
 from itertools import pairwise
 
 from src.data.xbrl import FactValue, extract_metric
+from src.research.metric_config import MetricTemplate, load_metric_template
 from src.research.models import (
     ChangeType,
     FinancialChange,
@@ -15,65 +16,10 @@ from src.research.models import (
     PeriodKind,
 )
 
-# Ordered aliases let the builder support issuers that use older or more
-# specific US-GAAP concepts while keeping one stable output vocabulary.
-METRIC_CONCEPTS: dict[str, tuple[str, ...]] = {
-    "revenue": (
-        "RevenueFromContractWithCustomerExcludingAssessedTax",
-        "Revenues",
-        "SalesRevenueNet",
-        "Revenue",
-        "RevenueFromContractsWithCustomers",
-    ),
-    "gross_profit": ("GrossProfit",),
-    "operating_income": ("OperatingIncomeLoss", "ProfitLossFromOperatingActivities"),
-    "net_income": ("NetIncomeLoss", "ProfitLoss"),
-    "operating_cash_flow": (
-        "NetCashProvidedByUsedInOperatingActivities",
-        "CashFlowsFromUsedInOperatingActivities",
-    ),
-    "capital_expenditure": (
-        "PaymentsToAcquirePropertyPlantAndEquipment",
-        "PaymentsForAdditionsToPropertyPlantAndEquipment",
-        "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
-    ),
-    "cash": (
-        "CashAndCashEquivalentsAtCarryingValue",
-        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
-        "CashAndCashEquivalents",
-    ),
-    "current_debt": (
-        "ShortTermBorrowings",
-        "ShortTermDebtCurrent",
-        "LongTermDebtAndFinanceLeaseObligationsCurrent",
-        "LongTermDebtCurrent",
-        "ShorttermBorrowings",
-        "CurrentPortionOfLongtermBorrowings",
-    ),
-    "long_term_debt": (
-        "LongTermDebtAndFinanceLeaseObligationsNoncurrent",
-        "LongTermDebtNoncurrent",
-        "LongTermDebt",
-        "LongtermBorrowings",
-    ),
-    "diluted_shares": (
-        "WeightedAverageNumberOfDilutedSharesOutstanding",
-        "WeightedAverageShares",
-        "AdjustedWeightedAverageShares",
-    ),
-}
-
-INSTANT_METRICS = {"cash", "current_debt", "long_term_debt", "total_debt"}
+_GENERAL_TEMPLATE = load_metric_template()
+INSTANT_METRICS = _GENERAL_TEMPLATE.instant_metrics | {"total_debt"}
 SHARE_METRICS = {"diluted_shares"}
-TTM_SUM_METRICS = {
-    "revenue",
-    "gross_profit",
-    "operating_income",
-    "net_income",
-    "operating_cash_flow",
-    "capital_expenditure",
-    "free_cash_flow",
-}
+TTM_SUM_METRICS = _GENERAL_TEMPLATE.ttm_metrics | {"free_cash_flow"}
 MARGIN_METRICS = {
     "gross_profit": "gross_margin",
     "operating_income": "operating_margin",
@@ -123,8 +69,12 @@ def _is_year_apart(
     return 330 <= (current.period_end - previous.period_end).days <= 400
 
 
-def _period_kind(fact: FactValue, metric: str) -> PeriodKind:
-    if metric in INSTANT_METRICS:
+def _period_kind(
+    fact: FactValue,
+    metric: str,
+    instant_metrics: set[str] = INSTANT_METRICS,
+) -> PeriodKind:
+    if metric in instant_metrics:
         return "instant"
     if fact.form_type in {"10-K", "20-F"} or fact.fiscal_period == "FY":
         return "annual"
@@ -154,7 +104,11 @@ def _is_usable(fact: FactValue, as_of: date | None) -> bool:
     return not (as_of and fact.filed_at and fact.filed_at > as_of)
 
 
-def _dedupe_facts(facts: Iterable[FactValue], metric: str) -> list[FactValue]:
+def _dedupe_facts(
+    facts: Iterable[FactValue],
+    metric: str,
+    instant_metrics: set[str] = INSTANT_METRICS,
+) -> list[FactValue]:
     """Keep the latest filed value for an equivalent reported period."""
     selected: dict[tuple[date, str], FactValue] = {}
     for fact in facts:
@@ -162,7 +116,7 @@ def _dedupe_facts(facts: Iterable[FactValue], metric: str) -> list[FactValue]:
             continue
         key = (
             fact.period_end,
-            _period_kind(fact, metric),
+            _period_kind(fact, metric, instant_metrics),
         )
         current = selected.get(key)
         if current is None or (fact.filed_at or date.min) > (current.filed_at or date.min):
@@ -172,6 +126,16 @@ def _dedupe_facts(facts: Iterable[FactValue], metric: str) -> list[FactValue]:
 
 class FinancialSnapshotBuilder:
     """Normalize common financial metrics from an SEC companyfacts payload."""
+
+    def __init__(
+        self,
+        industry_template: str = "general",
+        *,
+        metric_template: MetricTemplate | None = None,
+    ) -> None:
+        self.metric_template = metric_template or load_metric_template(industry_template)
+        self._instant_metrics = self.metric_template.instant_metrics | {"total_debt"}
+        self._ttm_metrics = self.metric_template.ttm_metrics | {"free_cash_flow"}
 
     def build(
         self,
@@ -185,13 +149,16 @@ class FinancialSnapshotBuilder:
         points: list[FinancialMetricPoint] = []
         warnings: list[str] = []
 
-        for metric, concepts in METRIC_CONCEPTS.items():
-            unit = "shares" if metric in SHARE_METRICS else "USD"
+        for metric, definition in self.metric_template.metrics.items():
             extracted: list[FactValue] = []
-            for concept in concepts:
+            for concept in definition.concepts:
                 candidate = [
                     item
-                    for item in extract_metric(facts, concept=concept, unit=unit)
+                    for item in extract_metric(
+                        facts,
+                        concept=concept,
+                        unit=definition.unit,
+                    )
                     if _is_usable(item, as_of)
                 ]
                 if candidate:
@@ -201,7 +168,11 @@ class FinancialSnapshotBuilder:
                 continue
             points.extend(
                 self._to_point(metric, fact.concept, fact)
-                for fact in _dedupe_facts(extracted, metric)
+                for fact in _dedupe_facts(
+                    extracted,
+                    metric,
+                    self._instant_metrics,
+                )
             )
 
         points.extend(self._derive_discrete_quarters(points))
@@ -224,8 +195,12 @@ class FinancialSnapshotBuilder:
             warnings=warnings,
         )
 
-    @staticmethod
-    def _to_point(metric: str, concept: str, fact: FactValue) -> FinancialMetricPoint:
+    def _to_point(
+        self,
+        metric: str,
+        concept: str,
+        fact: FactValue,
+    ) -> FinancialMetricPoint:
         assert fact.period_end is not None
         return FinancialMetricPoint(
             metric=metric,
@@ -233,7 +208,7 @@ class FinancialSnapshotBuilder:
             unit=fact.unit,
             period_end=fact.period_end,
             period_start=fact.period_start,
-            period_kind=_period_kind(fact, metric),
+            period_kind=_period_kind(fact, metric, self._instant_metrics),
             fiscal_year=fact.fiscal_year,
             fiscal_period=fact.fiscal_period,
             form_type=fact.form_type,
@@ -245,8 +220,8 @@ class FinancialSnapshotBuilder:
             ),
         )
 
-    @staticmethod
     def _derive_discrete_quarters(
+        self,
         points: list[FinancialMetricPoint],
     ) -> list[FinancialMetricPoint]:
         """Convert reported YTD flows into discrete Q2/Q3 and derive Q4."""
@@ -259,7 +234,7 @@ class FinancialSnapshotBuilder:
         flow_points = [
             point
             for point in points
-            if point.metric not in INSTANT_METRICS
+            if point.metric not in self._instant_metrics
             and point.metric not in SHARE_METRICS
             and point.period_start is not None
         ]
@@ -418,12 +393,12 @@ class FinancialSnapshotBuilder:
             )
         return derived
 
-    @staticmethod
     def _derive_ttm(
+        self,
         points: list[FinancialMetricPoint],
     ) -> list[FinancialMetricPoint]:
         derived: list[FinancialMetricPoint] = []
-        for metric in TTM_SUM_METRICS:
+        for metric in self._ttm_metrics:
             quarters = sorted(
                 (
                     point

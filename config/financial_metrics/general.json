@@ -1,0 +1,15 @@
+{
+  "template": "general",
+  "metrics": {
+    "revenue": {"concepts": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet", "Revenue", "RevenueFromContractsWithCustomers"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "gross_profit": {"concepts": ["GrossProfit"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "operating_income": {"concepts": ["OperatingIncomeLoss", "ProfitLossFromOperatingActivities"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "net_income": {"concepts": ["NetIncomeLoss", "ProfitLoss"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "operating_cash_flow": {"concepts": ["NetCashProvidedByUsedInOperatingActivities", "CashFlowsFromUsedInOperatingActivities"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "capital_expenditure": {"concepts": ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets", "PaymentsForAdditionsToPropertyPlantAndEquipment", "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "cash": {"concepts": ["CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents", "CashAndCashEquivalents"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "current_debt": {"concepts": ["ShortTermBorrowings", "ShortTermDebtCurrent", "LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtCurrent", "ShorttermBorrowings", "CurrentPortionOfLongtermBorrowings"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "long_term_debt": {"concepts": ["LongTermDebtAndFinanceLeaseObligationsNoncurrent", "LongTermDebtNoncurrent", "LongTermDebt", "LongtermBorrowings"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "diluted_shares": {"concepts": ["WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageShares", "AdjustedWeightedAverageShares"], "unit": "shares", "period_type": "flow", "ttm": false}
+  }
+}

@@ -1,6 +1,6 @@
 # 发布就绪与能力深化方案
 
-状态：待实施
+状态：实施中
 
 制定日期：2026-07-11
 
@@ -11,6 +11,19 @@
 - [分析师工作台能力路线图](analyst-workbench-roadmap.md)
 - [个人研究闭环补齐方案](research-closure-plan.md)
 - [研究闭环真实数据验证](validation/research-closure-live-matrix-2026-07-11.md)
+- [12 季度财务勾稽记录](validation/financial-reconciliation-2026-07-11.md)
+
+## 0. 当前执行状态
+
+| 工作包 | 状态 | 已完成 | 剩余退出条件 |
+| --- | --- | --- | --- |
+| 浏览器与可访问性 | 阻塞 | 前后端自动化与生产构建已有基线 | Browser runtime 恢复、三视口与键盘真实验收 |
+| 数据库迁移与恢复 | 完成 | 事务迁移、幂等、失败回滚、在线备份/恢复、CLI 和测试 | 纳入最终发布审计 |
+| 财务正确性与行业事实 | 进行中 | AAPL/NVDA/XOM 12 期间勾稽；六类指标配置 | JPM、TSM、restatement 与分部事实 |
+| 默认编排与变化可信度 | 待实施 | 已有可选自动快照和基础变化检测 | 默认组件策略、correlation ID、冲突/过期/措辞语义 |
+| 同行企业分析 | 待实施 | 已有 Watchlist 同期、币种安全的基础比较 | Peer Group、行业 KPI、估值/预期/风险横向视图 |
+| 估值与监控深化 | 待实施 | 已有情景估值、敏感性矩阵和增量扫描 | 多估值方法、本地调度、节流与事件 cursor |
+| Golden cases 与发布审计 | 待实施 | 已有单元、集成和 live matrix 基线 | 30 cases、全新安装、浏览器和最终发布门禁 |
 
 ## 1. 范围判断
 
@@ -68,12 +81,10 @@
 
 ### 4.1 迁移框架
 
-建议新增：
+已实现：
 
 ```text
 src/research/database.py
-src/research/migrations/001_initial_research_cycle.py
-src/research/migrations/002_peer_groups.py
 tests/research/test_database_migrations.py
 ```
 
@@ -107,14 +118,15 @@ tests/research/test_database_migrations.py
 
 ### 5.2 公司与行业配置
 
-新增可审计配置，而不是把更多 alias 继续硬编码在 builder：
+已新增可审计配置，新的 alias 不再继续硬编码在 builder：
 
 ```text
-config/financial_metrics/general.yaml
-config/financial_metrics/bank.yaml
-config/financial_metrics/energy.yaml
-config/financial_metrics/semiconductor.yaml
-config/financial_metrics/biotech.yaml
+config/financial_metrics/general.json
+config/financial_metrics/bank.json
+config/financial_metrics/saas.json
+config/financial_metrics/energy.json
+config/financial_metrics/semiconductor.json
+config/financial_metrics/biotech.json
 ```
 
 首批行业 KPI：

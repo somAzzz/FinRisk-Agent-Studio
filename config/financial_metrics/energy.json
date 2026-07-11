@@ -1,0 +1,8 @@
+{
+  "template": "energy",
+  "metrics": {
+    "oil_and_gas_revenue": {"concepts": ["OilAndGasRevenue"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "productive_asset_capex": {"concepts": ["PaymentsToAcquireProductiveAssets", "PaymentsToAcquirePropertyPlantAndEquipment"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "property_plant_equipment": {"concepts": ["PropertyPlantAndEquipmentNet"], "unit": "USD", "period_type": "instant", "ttm": false}
+  }
+}

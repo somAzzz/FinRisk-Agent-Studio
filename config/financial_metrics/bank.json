@@ -1,0 +1,10 @@
+{
+  "template": "bank",
+  "metrics": {
+    "net_interest_income": {"concepts": ["InterestIncomeExpenseNonoperatingNet", "InterestIncomeExpenseAfterProvisionForLoanLoss"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "credit_loss_provision": {"concepts": ["ProvisionForCreditLosses", "ProvisionForLoanLeaseAndOtherLosses"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "loans_net": {"concepts": ["LoansAndLeasesReceivableNetReportedAmount"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "deposits": {"concepts": ["Deposits"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "cet1_ratio": {"concepts": ["CommonEquityTierOneCapitalRatio"], "unit": "pure", "period_type": "instant", "ttm": false}
+  }
+}

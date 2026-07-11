@@ -1,0 +1,7 @@
+{
+  "template": "biotech",
+  "metrics": {
+    "research_and_development": {"concepts": ["ResearchAndDevelopmentExpense"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "cash_and_short_term_investments": {"concepts": ["CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents", "CashAndCashEquivalentsAtCarryingValue", "ShortTermInvestments"], "unit": "USD", "period_type": "instant", "ttm": false}
+  }
+}

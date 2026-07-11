@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import date
 
+import pytest
+
 from src.research.financial_snapshot import (
     FinancialSnapshotBuilder,
     merge_company_facts,
@@ -360,3 +362,42 @@ def test_merges_current_and_predecessor_company_facts() -> None:
     assert snapshot.series("revenue", "annual")[0].accession_number == (
         "predecessor"
     )
+
+
+def test_loads_industry_metrics_and_productive_asset_capex_alias() -> None:
+    facts = {
+        "facts": {
+            "us-gaap": {
+                "InventoryNet": _concept([
+                    {
+                        "end": "2025-01-31", "val": 11, "form": "10-K",
+                        "filed": "2025-03-01", "fy": 2025, "fp": "FY",
+                        "accn": "fy",
+                    }
+                ]),
+                "PaymentsToAcquireProductiveAssets": _concept([
+                    {
+                        "start": "2024-02-01", "end": "2025-01-31",
+                        "val": 7, "form": "10-K", "filed": "2025-03-01",
+                        "fy": 2025, "fp": "FY", "accn": "fy",
+                    }
+                ]),
+            }
+        }
+    }
+
+    snapshot = FinancialSnapshotBuilder("semiconductor").build(
+        ticker="CHIP",
+        cik="123",
+        facts=facts,
+    )
+
+    assert snapshot.series("inventory", "instant")[0].value == 11
+    assert snapshot.series("capital_expenditure", "annual")[0].value == 7
+    assert snapshot.series("productive_asset_capex", "annual")[0].value == 7
+    assert "missing_metric:inventory" not in snapshot.warnings
+
+
+def test_rejects_unknown_industry_template() -> None:
+    with pytest.raises(ValueError, match="unknown financial metric template"):
+        FinancialSnapshotBuilder("not_a_real_industry")

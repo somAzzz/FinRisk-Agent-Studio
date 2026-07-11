@@ -1,0 +1,8 @@
+{
+  "template": "saas",
+  "metrics": {
+    "remaining_performance_obligation": {"concepts": ["RevenueRemainingPerformanceObligation"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "share_based_compensation": {"concepts": ["ShareBasedCompensation"], "unit": "USD", "period_type": "flow", "ttm": true},
+    "research_and_development": {"concepts": ["ResearchAndDevelopmentExpense"], "unit": "USD", "period_type": "flow", "ttm": true}
+  }
+}
