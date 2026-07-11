@@ -97,6 +97,9 @@ uv run python main.py monitor --ticker AAPL --dry-run
 
 # 固定知识截止日
 uv run python main.py monitor --ticker AAPL --as-of 2026-06-30
+
+# 对外部 provider 全局节流，并允许失败后重试
+uv run python main.py monitor --request-interval-seconds 1.0 --max-retries 2
 ```
 
 个人部署建议使用 cron、launchd 或 systemd timer 调用该命令。CLI 对单公司失败进行隔离；只要任一公司失败，进程返回非零退出码。

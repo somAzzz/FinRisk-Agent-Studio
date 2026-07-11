@@ -49,4 +49,4 @@ def test_database_migrate_command(tmp_path, capsys) -> None:
     result = entrypoint.main(["database", "migrate", "--path", str(path)])
 
     assert result == 0
-    assert "schema version: 1" in capsys.readouterr().out
+    assert "schema version: 2" in capsys.readouterr().out

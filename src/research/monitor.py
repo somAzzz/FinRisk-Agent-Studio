@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, date, datetime
 from typing import Literal
@@ -26,6 +28,8 @@ class MonitorScanRequest(BaseModel):
     dry_run: bool = False
     year: int | None = Field(default=None, ge=1990, le=2100)
     quarter: int | None = Field(default=None, ge=1, le=4)
+    request_interval_seconds: float = Field(default=0.0, ge=0.0, le=60.0)
+    max_retries: int = Field(default=1, ge=0, le=3)
 
     def model_post_init(self, _context: object) -> None:
         if (self.year is None) != (self.quarter is None):
@@ -67,6 +71,8 @@ class WatchlistMonitor:
         self.change_store = change_store
         self.alert_store = alert_store
         self.journal_store = journal_store
+        self._rate_lock = threading.Lock()
+        self._next_request_at = 0.0
 
     def scan(self, request: MonitorScanRequest) -> MonitorScanResponse:
         started = datetime.now(UTC)
@@ -108,17 +114,19 @@ class WatchlistMonitor:
     ) -> TickerScanResult:
         previous_snapshots = self.snapshot_store.list_snapshots(item.ticker, limit=1)
         previous = previous_snapshots[0] if previous_snapshots else None
-        run = self.orchestrator.run(
-            ResearchRunRequest(
-                ticker=item.ticker,
-                as_of=request.as_of,
-                year=request.year,
-                quarter=request.quarter,
-                include_management=request.year is not None,
-                include_risks=True,
-            ),
-            persist=False,
+        run_request = ResearchRunRequest(
+            ticker=item.ticker,
+            as_of=request.as_of,
+            year=request.year,
+            quarter=request.quarter,
+            include_management=request.year is not None,
+            include_risks=True,
         )
+        for attempt in range(request.max_retries + 1):
+            self._wait_for_slot(request.request_interval_seconds)
+            run = self.orchestrator.run(run_request, persist=False)
+            if run.manifest.state != "failed" or attempt == request.max_retries:
+                break
         current = run.snapshot
         if current is None:
             return TickerScanResult(
@@ -177,6 +185,16 @@ class WatchlistMonitor:
             new_alerts=alerts,
             change_count=len(changes),
         )
+
+    def _wait_for_slot(self, interval_seconds: float) -> None:
+        if interval_seconds <= 0:
+            return
+        with self._rate_lock:
+            now = time.monotonic()
+            delay = max(0.0, self._next_request_at - now)
+            if delay:
+                time.sleep(delay)
+            self._next_request_at = time.monotonic() + interval_seconds
 
     def _save_cursor(self, snapshot) -> None:
         self.alert_store.save_cursor(

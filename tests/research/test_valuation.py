@@ -4,9 +4,13 @@ import pytest
 from pydantic import ValidationError
 
 from src.research.valuation import (
+    DiscountedCashFlowRequest,
+    MultipleValuationRequest,
     ScenarioValuationRequest,
     SensitivityMatrixRequest,
     ValuationScenarioInput,
+    calculate_discounted_cash_flow,
+    calculate_multiple_valuation,
     calculate_scenario_valuation,
     calculate_sensitivity_matrix,
 )
@@ -113,3 +117,60 @@ def test_margin_multiple_sensitivity_keeps_negative_equity_visible() -> None:
         )
     )
     assert all(cell.implied_share_price < 0 for cell in response.cells)
+
+
+def test_multiple_valuation_exposes_inputs_and_negative_pe_na() -> None:
+    response = calculate_multiple_valuation(
+        MultipleValuationRequest(
+            ticker="ACME",
+            method="ev_ebitda",
+            share_price=10,
+            diluted_shares=100,
+            net_debt=200,
+            ebitda=100,
+            period="TTM 2026Q1",
+            evidence_ids=["filing"],
+        )
+    )
+    assert response.value == 12
+    assert response.evidence_ids == ["filing"]
+
+    unavailable = calculate_multiple_valuation(
+        MultipleValuationRequest(
+            ticker="LOSS",
+            method="pe",
+            share_price=10,
+            diluted_shares=100,
+            earnings=-20,
+            period="TTM 2026Q1",
+        )
+    )
+    assert unavailable.status == "not_available"
+    assert unavailable.value is None
+
+
+def test_discounted_cash_flow_uses_explicit_forecast_and_terminal_spread() -> None:
+    response = calculate_discounted_cash_flow(
+        DiscountedCashFlowRequest(
+            ticker="ACME",
+            forecast_free_cash_flows=[100, 110],
+            wacc=0.1,
+            terminal_growth=0.03,
+            net_debt=100,
+            diluted_shares=100,
+        )
+    )
+    assert response.enterprise_value > response.present_value_forecast
+    assert response.implied_share_price == pytest.approx(
+        response.equity_value / 100
+    )
+
+    with pytest.raises(ValidationError, match="wacc"):
+        DiscountedCashFlowRequest(
+            ticker="ACME",
+            forecast_free_cash_flows=[100],
+            wacc=0.03,
+            terminal_growth=0.03,
+            net_debt=0,
+            diluted_shares=100,
+        )

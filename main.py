@@ -37,6 +37,8 @@ def _parser() -> argparse.ArgumentParser:
     )
     monitor.add_argument("--max-workers", type=int, default=2)
     monitor.add_argument("--dry-run", action="store_true")
+    monitor.add_argument("--request-interval-seconds", type=float, default=0.0)
+    monitor.add_argument("--max-retries", type=int, default=1)
     database = commands.add_parser(
         "database",
         help="Migrate, back up, or restore a research SQLite database",
@@ -107,6 +109,8 @@ def main(argv: list[str] | None = None) -> int:
                 minimum_materiality=args.minimum_materiality,
                 max_workers=args.max_workers,
                 dry_run=args.dry_run,
+                request_interval_seconds=args.request_interval_seconds,
+                max_retries=args.max_retries,
                 year=args.year,
                 quarter=args.quarter,
             )

@@ -80,10 +80,16 @@ from src.research.post_earnings import (
 from src.research.risk_adapter import risk_observations_from_report
 from src.research.snapshot_store import ResearchSnapshotStore
 from src.research.valuation import (
+    DiscountedCashFlowRequest,
+    DiscountedCashFlowResponse,
+    MultipleValuationRequest,
+    MultipleValuationResponse,
     ScenarioValuationRequest,
     ScenarioValuationResponse,
     SensitivityMatrixRequest,
     SensitivityMatrixResponse,
+    calculate_discounted_cash_flow,
+    calculate_multiple_valuation,
     calculate_scenario_valuation,
     calculate_sensitivity_matrix,
 )
@@ -891,6 +897,20 @@ async def calculate_valuation_sensitivity(
         return calculate_sensitivity_matrix(request)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/valuation/multiple", response_model=MultipleValuationResponse)
+async def calculate_valuation_multiple(
+    request: MultipleValuationRequest,
+) -> MultipleValuationResponse:
+    return calculate_multiple_valuation(request)
+
+
+@router.post("/valuation/dcf", response_model=DiscountedCashFlowResponse)
+async def calculate_valuation_dcf(
+    request: DiscountedCashFlowRequest,
+) -> DiscountedCashFlowResponse:
+    return calculate_discounted_cash_flow(request)
 
 
 @router.get(
