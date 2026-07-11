@@ -37,6 +37,7 @@ class ResearchRunRequest(BaseModel):
     include_management: bool = True
     include_risks: bool = True
     workflow_run_id: str | None = None
+    correlation_id: str | None = None
 
     @field_validator("ticker")
     @classmethod
@@ -81,6 +82,7 @@ class CompanyResearchOrchestrator:
         started = datetime.now(UTC)
         started_clock = time.perf_counter()
         run_id = f"research-{uuid.uuid4().hex[:16]}"
+        correlation_id = request.correlation_id or request.workflow_run_id or run_id
         cutoff = _knowledge_cutoff(request.as_of)
         components: list[SnapshotComponentResult] = []
         warnings: list[str] = []
@@ -137,6 +139,14 @@ class CompanyResearchOrchestrator:
                     reason = f"management data unavailable: {type(exc).__name__}"
                     components.append(SnapshotComponentResult(component="management", state="failed", reason=reason))
                     warnings.append(reason)
+        else:
+            components.append(
+                SnapshotComponentResult(
+                    component="management",
+                    state="not_requested",
+                    reason="management component was not requested",
+                )
+            )
 
         if request.include_risks:
             if self.risk_loader is None:
@@ -161,8 +171,22 @@ class CompanyResearchOrchestrator:
                     reason = f"risk data unavailable: {type(exc).__name__}"
                     components.append(SnapshotComponentResult(component="risks", state="failed", reason=reason))
                     warnings.append(reason)
+        else:
+            components.append(
+                SnapshotComponentResult(
+                    component="risks",
+                    state="not_requested",
+                    reason="risk component was not requested",
+                )
+            )
 
-        sources = _build_sources(financials, management, cutoff)
+        sources = _build_sources(
+            financials,
+            management,
+            risks,
+            cutoff,
+            workflow_run_id=request.workflow_run_id,
+        )
         fingerprint = _fingerprint(financials, management, risks, sources)
         period = (
             f"{request.year}Q{request.quarter}"
@@ -173,6 +197,7 @@ class CompanyResearchOrchestrator:
         snapshot_id = f"snapshot-{hashlib.sha256(snapshot_seed.encode()).hexdigest()[:16]}"
         snapshot = CompanyResearchSnapshot(
             snapshot_id=snapshot_id,
+            correlation_id=correlation_id,
             ticker=request.ticker,
             period=period,
             as_of=cutoff,
@@ -189,6 +214,7 @@ class CompanyResearchOrchestrator:
         completed = datetime.now(UTC)
         manifest = ResearchRunManifest(
             run_id=run_id,
+            correlation_id=correlation_id,
             ticker=request.ticker,
             requested_as_of=cutoff,
             started_at=started,
@@ -214,7 +240,10 @@ def _knowledge_cutoff(value: date | None) -> datetime:
 def _build_sources(
     financials: FinancialSnapshot | None,
     management: ManagementPeriodSnapshot | None,
+    risks: list[RiskObservation],
     cutoff: datetime,
+    *,
+    workflow_run_id: str | None,
 ) -> list[SourceManifestEntry]:
     sources: list[SourceManifestEntry] = []
     if financials is not None:
@@ -244,6 +273,25 @@ def _build_sources(
                 metadata={"year": management.year, "quarter": management.quarter},
             )
         )
+    if risks and workflow_run_id:
+        sources.append(
+            SourceManifestEntry(
+                source_id=workflow_run_id,
+                source_type="risk_report",
+                provider="FinRisk",
+                as_of=cutoff,
+                metadata={
+                    "risk_count": len(risks),
+                    "evidence_count": len(
+                        {
+                            evidence_id
+                            for risk in risks
+                            for evidence_id in risk.evidence_ids
+                        }
+                    ),
+                },
+            )
+        )
     return sources
 
 
@@ -264,7 +312,9 @@ def _fingerprint(
 
 
 def _run_state(components: list[SnapshotComponentResult]) -> str:
-    states = {item.state for item in components}
+    states = {
+        item.state for item in components if item.state != "not_requested"
+    }
     if not states.intersection({"complete", "partial"}):
         return "failed"
     if states <= {"complete"}:

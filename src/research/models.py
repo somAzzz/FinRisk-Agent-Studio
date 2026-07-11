@@ -19,7 +19,13 @@ PeriodKind = Literal[
 ]
 MetricStatus = Literal["reported", "derived"]
 ChangeType = Literal["qoq", "yoy", "annual_yoy", "ttm_yoy"]
-SnapshotComponentState = Literal["complete", "partial", "unavailable", "failed"]
+SnapshotComponentState = Literal[
+    "complete",
+    "partial",
+    "not_requested",
+    "unavailable",
+    "failed",
+]
 ResearchRunState = Literal["completed", "partial", "failed"]
 
 
@@ -137,6 +143,7 @@ class CompanyResearchSnapshot(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     snapshot_id: str
+    correlation_id: str | None = None
     ticker: str
     period: str
     as_of: datetime
@@ -156,6 +163,7 @@ class ResearchRunManifest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     run_id: str
+    correlation_id: str | None = None
     ticker: str
     requested_as_of: datetime
     started_at: datetime

@@ -174,3 +174,90 @@ def test_unavailable_risk_component_does_not_create_false_resolution() -> None:
         change.category == "risk" and change.status == "resolved"
         for change in result.changes
     )
+    assert result.warnings == ["component_not_comparable:risks:unavailable"]
+
+
+def test_propagates_snapshot_correlation_to_change_set() -> None:
+    previous = _snapshot(
+        snapshot_id="old",
+        as_of=datetime(2025, 4, 30, tzinfo=UTC),
+        revenue=100,
+        guidance="maintained",
+    )
+    current = _snapshot(
+        snapshot_id="new",
+        as_of=datetime(2026, 4, 30, tzinfo=UTC),
+        revenue=120,
+        guidance="maintained",
+    ).model_copy(update={"correlation_id": "workflow-123"})
+
+    result = detect_research_changes(previous, current)
+
+    assert result.correlation_id == "workflow-123"
+
+
+def test_detects_source_staleness_threshold_crossing() -> None:
+    previous = _snapshot(
+        snapshot_id="old",
+        as_of=datetime(2026, 1, 20, tzinfo=UTC),
+        revenue=100,
+        guidance="maintained",
+    )
+    current = _snapshot(
+        snapshot_id="new",
+        as_of=datetime(2026, 3, 20, tzinfo=UTC),
+        revenue=100,
+        guidance="maintained",
+    ).model_copy(update={"sources": previous.sources})
+
+    result = detect_research_changes(
+        previous,
+        current,
+        source_stale_after_days=45,
+    )
+
+    stale = next(change for change in result.changes if "source_stale" in change.key)
+    assert stale.status == "weakened"
+    assert stale.after["threshold_days"] == 45
+
+
+def test_detects_conflicting_normalized_source_values() -> None:
+    previous = _snapshot(
+        snapshot_id="old",
+        as_of=datetime(2025, 4, 30, tzinfo=UTC),
+        revenue=100,
+        guidance="maintained",
+    )
+    current = _snapshot(
+        snapshot_id="new",
+        as_of=datetime(2026, 4, 30, tzinfo=UTC),
+        revenue=100,
+        guidance="maintained",
+    ).model_copy(
+        update={
+            "sources": [
+                SourceManifestEntry(
+                    source_id="provider-a",
+                    source_type="other",
+                    provider="A",
+                    as_of=datetime(2026, 4, 30, tzinfo=UTC),
+                    metadata={"fact_key": "guidance:revenue", "value": 100},
+                ),
+                SourceManifestEntry(
+                    source_id="provider-b",
+                    source_type="other",
+                    provider="B",
+                    as_of=datetime(2026, 4, 30, tzinfo=UTC),
+                    metadata={"fact_key": "guidance:revenue", "value": 120},
+                ),
+            ]
+        }
+    )
+
+    result = detect_research_changes(previous, current)
+
+    conflict = next(
+        change for change in result.changes if "source_conflict" in change.key
+    )
+    assert conflict.status == "new"
+    assert conflict.after_evidence_ids == ["provider-a", "provider-b"]

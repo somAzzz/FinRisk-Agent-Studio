@@ -45,7 +45,7 @@ curl -X POST http://127.0.0.1:8000/research/runs \
   -d '{"ticker":"AAPL","year":2026,"quarter":2,"include_management":true,"include_risks":true}'
 ```
 
-返回的 `components` 会明确标记 `complete`、`partial`、`unavailable` 或 `failed`。某个 provider 不可用时，系统保留 partial snapshot，不会用 fixture 冒充真实数据。
+返回的 `components` 会明确标记 `complete`、`partial`、`not_requested`、`unavailable` 或 `failed`：未请求、未配置和执行失败不会再混成同一种 partial。某个 provider 不可用时，系统保留降级快照，不会用 fixture 冒充真实数据。关联 FinRisk workflow 时，workflow、research run 和 snapshot 使用同一个 `correlation_id`。
 
 如需在 FinRisk workflow 完成后自动固化包含风险报告的快照，可显式启用：
 
@@ -58,6 +58,8 @@ export RESEARCH_SNAPSHOT_ON_WORKFLOW=1
 ## 4. 跨期变化
 
 公司至少有两个快照后，前端会显示财务、风险、guidance、管理层和证据覆盖变化。每项变化包含 before/after、证据 ID、检测方式和 materiality。
+
+风险组件不可用时不会生成“风险已消失”，change set 会给出不可比较警告。检测器也支持用户指定来源新鲜度阈值，并在来源 metadata 提供相同 `fact_key` 时识别跨来源数值冲突。
 
 用户可以选择：
 

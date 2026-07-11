@@ -26,6 +26,7 @@ class ResearchAlert(BaseModel):
     explanation: str
     status: AlertStatus = "new"
     snapshot_id: str
+    correlation_id: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -89,6 +90,7 @@ class ResearchAlertStore:
         change: ResearchChange,
         *,
         snapshot_id: str,
+        correlation_id: str | None = None,
     ) -> tuple[ResearchAlert, bool]:
         alert = ResearchAlert(
             alert_id=f"alert-{change.change_id.removeprefix('change-')}",
@@ -98,6 +100,7 @@ class ResearchAlertStore:
             title=f"{change.category}: {change.key}",
             explanation=change.explanation,
             snapshot_id=snapshot_id,
+            correlation_id=correlation_id,
         )
         with self._connect() as connection:
             row = connection.execute(

@@ -156,12 +156,14 @@ class WatchlistMonitor:
                         title=f"{change.category}: {change.key}",
                         explanation=change.explanation,
                         snapshot_id=current.snapshot_id,
+                        correlation_id=current.correlation_id,
                     )
                     alerts.append(alert)
                 else:
                     alert, created = self.alert_store.create_for_change(
                         change,
                         snapshot_id=current.snapshot_id,
+                        correlation_id=current.correlation_id,
                     )
                     if created:
                         alerts.append(alert)

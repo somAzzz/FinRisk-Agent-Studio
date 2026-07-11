@@ -436,7 +436,7 @@ export interface ResearchReminder {
   catalyst_id?: string | null;
 }
 
-export type SnapshotComponentState = "complete" | "partial" | "unavailable" | "failed";
+export type SnapshotComponentState = "complete" | "partial" | "not_requested" | "unavailable" | "failed";
 
 export interface SnapshotComponentResult {
   component: "financials" | "management" | "risks";
