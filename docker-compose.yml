@@ -61,7 +61,7 @@ services:
     #
     # Pinned 2026-06-30: v0.24.0 is the upstream version tested
     # with NVFP4 + MTP for Qwen3.6. Bump per
-    # docs/docker-image-pinning.md (quarterly cadence).
+    # docs/operations/deployment/docker-image-pinning.md (quarterly cadence).
     #
     # NVFP4 + Blackwell (sm_100 / sm_120) is required: NVFP4 uses
     # Blackwell's FP4 Tensor Core + NVLS hardware instructions and

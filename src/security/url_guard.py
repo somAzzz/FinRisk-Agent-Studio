@@ -86,18 +86,17 @@ def _is_blocked_ip(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> str | N
     # thing.
     if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
         ip = ip.ipv4_mapped
-    if ip.is_loopback:
-        return "loopback address"
-    if ip.is_link_local:
-        return "link-local address"
-    if ip.is_private:
-        return "private address"
-    if ip.is_multicast:
-        return "multicast address"
-    if ip.is_reserved:
-        return "reserved address"
-    if ip.is_unspecified:
-        return "unspecified address"
+    blocked_flags = (
+        (ip.is_loopback, "loopback address"),
+        (ip.is_link_local, "link-local address"),
+        (ip.is_private, "private address"),
+        (ip.is_multicast, "multicast address"),
+        (ip.is_reserved, "reserved address"),
+        (ip.is_unspecified, "unspecified address"),
+    )
+    for is_blocked, reason in blocked_flags:
+        if is_blocked:
+            return reason
     return None
 
 
