@@ -164,7 +164,12 @@ def _management_changes(
         return []
     changes: list[ResearchChange] = []
     for signal in compare_management_snapshots(previous.management, current.management):
-        category: ChangeCategory = "guidance" if signal.dimension == "guidance_signal" else "management"
+        category: ChangeCategory = (
+            "guidance"
+            if signal.dimension == "guidance_signal"
+            or signal.dimension.startswith("guidance_range:")
+            else "management"
+        )
         status: ChangeStatus
         if signal.direction in {"strengthened", "increased"}:
             status = "strengthened"
@@ -182,8 +187,22 @@ def _management_changes(
                 key=signal.dimension,
                 status=status,
                 materiality=materiality,
-                before=signal.previous_value,
-                after=signal.current_value,
+                before=(
+                    {
+                        "value": signal.previous_value,
+                        "quotes": signal.previous_quotes,
+                    }
+                    if signal.previous_quotes
+                    else signal.previous_value
+                ),
+                after=(
+                    {
+                        "value": signal.current_value,
+                        "quotes": signal.current_quotes,
+                    }
+                    if signal.current_quotes
+                    else signal.current_value
+                ),
                 before_evidence=evidence,
                 after_evidence=evidence,
                 method="deterministic_management_signal_comparison",

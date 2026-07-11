@@ -69,6 +69,7 @@ class ScenarioValuationResponse(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
     methodology: str
     disclaimer: str
+    assumption_snapshot_id: str | None = None
 
 
 class SensitivityMatrixRequest(BaseModel):
@@ -110,6 +111,7 @@ class SensitivityMatrixResponse(BaseModel):
     column_values: list[float]
     cells: list[SensitivityCell]
     disclaimer: str
+    assumption_snapshot_id: str | None = None
 
 
 class MultipleValuationRequest(BaseModel):
@@ -142,6 +144,7 @@ class MultipleValuationResponse(BaseModel):
     evidence_ids: list[str]
     methodology: str
     disclaimer: str
+    assumption_snapshot_id: str | None = None
 
 
 class DiscountedCashFlowRequest(BaseModel):
@@ -174,6 +177,7 @@ class DiscountedCashFlowResponse(BaseModel):
     assumptions: DiscountedCashFlowRequest
     methodology: str
     disclaimer: str
+    assumption_snapshot_id: str | None = None
 
 
 def calculate_scenario_valuation(

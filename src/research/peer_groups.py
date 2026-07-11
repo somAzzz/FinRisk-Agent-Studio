@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
@@ -68,6 +69,24 @@ class PeerGroup(PeerGroupInput):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class PeerCandidateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    tickers: list[str] = Field(default_factory=list, max_length=50)
+
+
+class PeerCandidate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ticker: str
+    company_name: str | None = None
+    sic: str | None = None
+    sic_description: str | None = None
+    similarity: Literal["same_sic", "same_sic_division"]
+    inclusion_reason: str
+    confirmed_by_user: bool = False
+
+
 class PeerGroupStore:
     def __init__(self, path: Path | str) -> None:
         self.path = Path(path)
@@ -100,6 +119,33 @@ class PeerGroupStore:
             ).fetchall()
         return [PeerGroup.model_validate_json(row["payload"]) for row in rows]
 
+    def update(self, peer_group_id: str, value: PeerGroupInput) -> PeerGroup:
+        existing = self.get(peer_group_id)
+        if existing is None:
+            raise KeyError(peer_group_id)
+        updated = PeerGroup(
+            **value.model_dump(),
+            peer_group_id=peer_group_id,
+            created_at=existing.created_at,
+            updated_at=datetime.now(UTC),
+        )
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE research_peer_groups
+                SET name = ?, base_ticker = ?, updated_at = ?, payload = ?
+                WHERE peer_group_id = ?
+                """,
+                (
+                    updated.name,
+                    updated.base_ticker,
+                    updated.updated_at.isoformat(),
+                    updated.model_dump_json(),
+                    peer_group_id,
+                ),
+            )
+        return updated
+
     def get(self, peer_group_id: str) -> PeerGroup | None:
         with self._connect() as connection:
             row = connection.execute(
@@ -117,4 +163,60 @@ class PeerGroupStore:
         return cursor.rowcount > 0
 
 
-__all__ = ["PeerGroup", "PeerGroupInput", "PeerGroupStore", "PeerMember"]
+def suggest_peer_candidates(
+    *,
+    base_ticker: str,
+    candidate_tickers: list[str],
+    resolver: object,
+    submissions_fetcher: Callable[[str], dict],
+) -> list[PeerCandidate]:
+    """Suggest SEC SIC peers; candidates remain unconfirmed and cannot be saved."""
+    base_identity = resolver.resolve(base_ticker)
+    if base_identity is None:
+        raise LookupError(f"ticker not resolved: {base_ticker}")
+    base_submission = submissions_fetcher(base_identity.cik)
+    base_sic = str(base_submission.get("sic") or "").strip()
+    if not base_sic:
+        return []
+    candidates: list[PeerCandidate] = []
+    for ticker in sorted({item.upper().strip() for item in candidate_tickers}):
+        if not ticker or ticker == base_ticker.upper().strip():
+            continue
+        identity = resolver.resolve(ticker)
+        if identity is None:
+            continue
+        submission = submissions_fetcher(identity.cik)
+        sic = str(submission.get("sic") or "").strip()
+        if sic == base_sic:
+            similarity: Literal["same_sic", "same_sic_division"] = "same_sic"
+        elif sic and sic[:2] == base_sic[:2]:
+            similarity = "same_sic_division"
+        else:
+            continue
+        description = str(submission.get("sicDescription") or "").strip() or None
+        candidates.append(
+            PeerCandidate(
+                ticker=ticker,
+                company_name=getattr(identity, "name", None),
+                sic=sic,
+                sic_description=description,
+                similarity=similarity,
+                inclusion_reason=(
+                    f"SEC SIC {sic} ({description or 'description unavailable'}); "
+                    f"candidate requires analyst confirmation."
+                ),
+            )
+        )
+    rank = {"same_sic": 0, "same_sic_division": 1}
+    return sorted(candidates, key=lambda item: (rank[item.similarity], item.ticker))
+
+
+__all__ = [
+    "PeerCandidate",
+    "PeerCandidateRequest",
+    "PeerGroup",
+    "PeerGroupInput",
+    "PeerGroupStore",
+    "PeerMember",
+    "suggest_peer_candidates",
+]

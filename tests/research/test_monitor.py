@@ -122,3 +122,4 @@ def test_default_scan_keeps_cursor_on_persisted_snapshot_when_sources_unchanged(
     cursor = alerts.get_cursor("ACME")
     assert cursor is not None
     assert cursor.snapshot_id == first.results[0].snapshot_id
+    assert cursor.source_cursors["sec_filing:SEC"].startswith("2026-04-20")

@@ -30,6 +30,7 @@ class MonitorScanRequest(BaseModel):
     quarter: int | None = Field(default=None, ge=1, le=4)
     request_interval_seconds: float = Field(default=0.0, ge=0.0, le=60.0)
     max_retries: int = Field(default=1, ge=0, le=3)
+    source_stale_after_days: int | None = Field(default=None, ge=1, le=3650)
 
     def model_post_init(self, _context: object) -> None:
         if (self.year is None) != (self.quarter is None):
@@ -119,8 +120,10 @@ class WatchlistMonitor:
             as_of=request.as_of,
             year=request.year,
             quarter=request.quarter,
-            include_management=request.year is not None,
-            include_risks=True,
+            include_management=(
+                "management" in item.research_components and request.year is not None
+            ),
+            include_risks="risks" in item.research_components,
         )
         for attempt in range(request.max_retries + 1):
             self._wait_for_slot(request.request_interval_seconds)
@@ -148,7 +151,11 @@ class WatchlistMonitor:
         changes = []
         alerts: list[ResearchAlert] = []
         if previous and previous.as_of < current.as_of:
-            change_set = detect_research_changes(previous, current)
+            change_set = detect_research_changes(
+                previous,
+                current,
+                source_stale_after_days=request.source_stale_after_days,
+            )
             changes = change_set.changes
             if not request.dry_run:
                 self.change_store.save_change_set(change_set)
@@ -203,6 +210,10 @@ class WatchlistMonitor:
                 snapshot_id=snapshot.snapshot_id,
                 source_fingerprint=snapshot.source_fingerprint,
                 last_success_at=datetime.now(UTC),
+                source_cursors={
+                    f"{source.source_type}:{source.provider}": source.as_of.isoformat()
+                    for source in snapshot.sources
+                },
             )
         )
 

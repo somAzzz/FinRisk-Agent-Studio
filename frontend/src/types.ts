@@ -423,6 +423,7 @@ export interface WatchlistItem {
   next_review_date?: string | null;
   active: boolean;
   updated_at: string;
+  research_components?: Array<"management" | "risks">;
 }
 
 export interface ResearchReminder {
@@ -651,6 +652,48 @@ export interface PeerGroup {
   user_notes?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface PeerCandidate {
+  ticker: string;
+  company_name?: string | null;
+  sic?: string | null;
+  sic_description?: string | null;
+  similarity: "same_sic" | "same_sic_division";
+  inclusion_reason: string;
+  confirmed_by_user: false;
+}
+
+export interface PeerAnalysisResponse {
+  financials: CompanyComparisonResponse;
+  risks: Array<{
+    ticker: string;
+    total: number;
+    new: number;
+    strengthened: number;
+    weakened: number;
+    evidence_ids: string[];
+  }>;
+  expectations: Array<{
+    ticker: string;
+    metric: string;
+    fiscal_period: string;
+    value: number;
+    unit: string;
+    source: string;
+    as_of: string;
+  }>;
+  valuations: Array<{
+    ticker: string;
+    method: "pe" | "ev_ebitda" | "fcf_yield";
+    status: "available" | "not_available";
+    value?: number | null;
+    unit: "x" | "percent";
+    period: string;
+    evidence_ids: string[];
+  }>;
+  warnings: string[];
+  disclaimer: string;
 }
 
 export interface ResearchQueueResponse {

@@ -6,7 +6,7 @@ import asyncio
 import os
 from datetime import date, datetime
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,7 +28,10 @@ from src.research.change_store import ResearchChangeStore
 from src.research.comparison import (
     CompanyComparisonRequest,
     CompanyComparisonResponse,
+    PeerAnalysisRequest,
+    PeerAnalysisResponse,
     ResearchQueueResponse,
+    build_peer_analysis,
     build_research_queue,
     compare_company_snapshots,
 )
@@ -69,7 +72,14 @@ from src.research.orchestrator import (
     ResearchRunRequest,
     ResearchRunResponse,
 )
-from src.research.peer_groups import PeerGroup, PeerGroupInput, PeerGroupStore
+from src.research.peer_groups import (
+    PeerCandidate,
+    PeerCandidateRequest,
+    PeerGroup,
+    PeerGroupInput,
+    PeerGroupStore,
+    suggest_peer_candidates,
+)
 from src.research.post_earnings import (
     ConfirmPostEarningsReviewRequest,
     PostEarningsDraftRequest,
@@ -93,6 +103,10 @@ from src.research.valuation import (
     calculate_scenario_valuation,
     calculate_sensitivity_matrix,
 )
+from src.research.valuation_store import (
+    ValuationAssumptionSnapshot,
+    ValuationAssumptionStore,
+)
 
 router = APIRouter(prefix="/research")
 
@@ -113,6 +127,10 @@ class FinancialResearchService:
         self,
         ticker: str,
         as_of: date | None = None,
+        industry_template: str = "general",
+        restatement_policy: Literal[
+            "latest_known", "original", "amended_only"
+        ] = "latest_known",
     ) -> FinancialSnapshot:
         resolver = self._ticker_resolver or self._default_resolver()
         ident = resolver.resolve(ticker)
@@ -123,7 +141,10 @@ class FinancialResearchService:
             fetcher(ident.cik),
             *(fetcher(cik) for cik in getattr(ident, "historical_ciks", [])),
         )
-        return FinancialSnapshotBuilder().build(
+        return FinancialSnapshotBuilder(
+            industry_template,
+            restatement_policy=restatement_policy,
+        ).build(
             ticker=ident.ticker,
             cik=ident.cik,
             company_name=getattr(ident, "name", None),
@@ -194,6 +215,7 @@ _alert_store: ResearchAlertStore | None = None
 _watchlist_monitor: WatchlistMonitor | None = None
 _post_earnings_store: PostEarningsReviewStore | None = None
 _peer_group_store: PeerGroupStore | None = None
+_valuation_assumption_store: ValuationAssumptionStore | None = None
 
 
 class ExpectationCSVImportRequest(BaseModel):
@@ -400,6 +422,26 @@ def get_peer_group_store() -> PeerGroupStore:
 def set_peer_group_store_for_tests(store: PeerGroupStore | None) -> None:
     global _peer_group_store
     _peer_group_store = store
+
+
+def get_valuation_assumption_store() -> ValuationAssumptionStore:
+    global _valuation_assumption_store
+    if _valuation_assumption_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _valuation_assumption_store = ValuationAssumptionStore(path)
+    return _valuation_assumption_store
+
+
+def set_valuation_assumption_store_for_tests(
+    store: ValuationAssumptionStore | None,
+) -> None:
+    global _valuation_assumption_store
+    _valuation_assumption_store = store
 
 
 @router.post(
@@ -790,6 +832,21 @@ async def get_peer_group(peer_group_id: str) -> PeerGroup:
     return group
 
 
+@router.put("/peer-groups/{peer_group_id}", response_model=PeerGroup)
+async def update_peer_group(
+    peer_group_id: str,
+    request: PeerGroupInput,
+) -> PeerGroup:
+    try:
+        return await asyncio.to_thread(
+            get_peer_group_store().update,
+            peer_group_id,
+            request,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="peer group not found") from exc
+
+
 @router.post(
     "/peer-groups/{peer_group_id}/comparison",
     response_model=CompanyComparisonResponse,
@@ -822,6 +879,82 @@ async def compare_peer_group(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post(
+    "/peer-groups/{peer_group_id}/analysis",
+    response_model=PeerAnalysisResponse,
+)
+async def analyze_peer_group(
+    peer_group_id: str,
+    request: PeerAnalysisRequest,
+) -> PeerAnalysisResponse:
+    group = await asyncio.to_thread(get_peer_group_store().get, peer_group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="peer group not found")
+    member_tickers = {member.ticker for member in group.members}
+    snapshots = []
+    for snapshot_id in request.snapshot_ids:
+        snapshot = await asyncio.to_thread(
+            get_research_snapshot_store().get_snapshot,
+            snapshot_id,
+        )
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail=f"snapshot not found: {snapshot_id}")
+        if snapshot.ticker not in member_tickers:
+            raise HTTPException(status_code=422, detail=f"{snapshot.ticker} is not in the peer group")
+        snapshots.append(snapshot)
+    expectations = {
+        snapshot.ticker: await asyncio.to_thread(
+            get_expectation_store().list,
+            ticker=snapshot.ticker,
+        )
+        for snapshot in snapshots
+    }
+    try:
+        return build_peer_analysis(
+            snapshots,
+            request=request,
+            expectations_by_ticker=expectations,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post(
+    "/peer-groups/{peer_group_id}/candidates",
+    response_model=list[PeerCandidate],
+)
+async def get_peer_group_candidates(
+    peer_group_id: str,
+    request: PeerCandidateRequest,
+) -> list[PeerCandidate]:
+    group = await asyncio.to_thread(get_peer_group_store().get, peer_group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="peer group not found")
+    tickers = request.tickers
+    if not tickers:
+        watchlist = await asyncio.to_thread(get_research_journal_store().list_watchlist)
+        tickers = [item.ticker for item in watchlist]
+    from src.data.sec_client import SECClient
+    from src.data.ticker_resolver import TickerResolver
+
+    client = SECClient()
+    try:
+        return await asyncio.to_thread(
+            suggest_peer_candidates,
+            base_ticker=group.base_ticker,
+            candidate_tickers=tickers,
+            resolver=TickerResolver(),
+            submissions_fetcher=client.get_submissions,
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"peer candidate data unavailable: {type(exc).__name__}",
+        ) from exc
 
 
 @router.delete("/peer-groups/{peer_group_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -859,10 +992,20 @@ async def build_company_research_queue(
 async def get_financial_snapshot(
     ticker: str,
     as_of: Annotated[date | None, Query()] = None,
+    industry_template: str = "general",
+    restatement_policy: Literal[
+        "latest_known", "original", "amended_only"
+    ] = "latest_known",
 ) -> FinancialSnapshot:
     """Return normalized SEC facts known on or before ``as_of``."""
     try:
-        return await asyncio.to_thread(_service.build_snapshot, ticker, as_of)
+        return await asyncio.to_thread(
+            _service.build_snapshot,
+            ticker,
+            as_of,
+            industry_template,
+            restatement_policy,
+        )
     except LookupError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -883,7 +1026,18 @@ async def calculate_valuation_scenarios(
     request: ScenarioValuationRequest,
 ) -> ScenarioValuationResponse:
     """Calculate transparent user-supplied valuation scenarios."""
-    return calculate_scenario_valuation(request)
+    result = calculate_scenario_valuation(request)
+    saved = await asyncio.to_thread(
+        get_valuation_assumption_store().save,
+        ticker=request.ticker,
+        kind="scenario",
+        request=request.model_dump(mode="json"),
+        result=result.model_dump(mode="json"),
+        evidence_ids=request.evidence_ids,
+    )
+    return result.model_copy(
+        update={"assumption_snapshot_id": saved.assumption_snapshot_id}
+    )
 
 
 @router.post(
@@ -894,23 +1048,71 @@ async def calculate_valuation_sensitivity(
     request: SensitivityMatrixRequest,
 ) -> SensitivityMatrixResponse:
     try:
-        return calculate_sensitivity_matrix(request)
+        result = calculate_sensitivity_matrix(request)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    saved = await asyncio.to_thread(
+        get_valuation_assumption_store().save,
+        ticker=request.ticker,
+        kind="sensitivity",
+        request=request.model_dump(mode="json"),
+        result=result.model_dump(mode="json"),
+        evidence_ids=[],
+    )
+    return result.model_copy(
+        update={"assumption_snapshot_id": saved.assumption_snapshot_id}
+    )
 
 
 @router.post("/valuation/multiple", response_model=MultipleValuationResponse)
 async def calculate_valuation_multiple(
     request: MultipleValuationRequest,
 ) -> MultipleValuationResponse:
-    return calculate_multiple_valuation(request)
+    result = calculate_multiple_valuation(request)
+    saved = await asyncio.to_thread(
+        get_valuation_assumption_store().save,
+        ticker=request.ticker,
+        kind="multiple",
+        request=request.model_dump(mode="json"),
+        result=result.model_dump(mode="json"),
+        evidence_ids=request.evidence_ids,
+    )
+    return result.model_copy(
+        update={"assumption_snapshot_id": saved.assumption_snapshot_id}
+    )
 
 
 @router.post("/valuation/dcf", response_model=DiscountedCashFlowResponse)
 async def calculate_valuation_dcf(
     request: DiscountedCashFlowRequest,
 ) -> DiscountedCashFlowResponse:
-    return calculate_discounted_cash_flow(request)
+    result = calculate_discounted_cash_flow(request)
+    saved = await asyncio.to_thread(
+        get_valuation_assumption_store().save,
+        ticker=request.ticker,
+        kind="dcf",
+        request=request.model_dump(mode="json"),
+        result=result.model_dump(mode="json"),
+        evidence_ids=request.evidence_ids,
+    )
+    return result.model_copy(
+        update={"assumption_snapshot_id": saved.assumption_snapshot_id}
+    )
+
+
+@router.get(
+    "/valuation/history/{ticker}",
+    response_model=list[ValuationAssumptionSnapshot],
+)
+async def list_valuation_assumption_history(
+    ticker: str,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> list[ValuationAssumptionSnapshot]:
+    return await asyncio.to_thread(
+        get_valuation_assumption_store().list,
+        ticker,
+        limit=limit,
+    )
 
 
 @router.get(

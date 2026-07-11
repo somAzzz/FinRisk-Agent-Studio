@@ -154,9 +154,24 @@ def _migration_002_peer_groups(connection: sqlite3.Connection) -> None:
     )
 
 
+def _migration_003_valuation_assumptions(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS research_valuation_assumptions (
+            assumption_snapshot_id TEXT PRIMARY KEY,
+            ticker TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            payload TEXT NOT NULL
+        )
+        """
+    )
+
+
 DEFAULT_MIGRATIONS = (
     Migration(1, "initial_research_cycle", _migration_001_initial_research_cycle),
     Migration(2, "peer_groups", _migration_002_peer_groups),
+    Migration(3, "valuation_assumptions", _migration_003_valuation_assumptions),
 )
 
 

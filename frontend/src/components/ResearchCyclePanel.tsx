@@ -10,10 +10,13 @@ import type {
   ResearchChangeSet,
   ResearchRunResponse,
   ResearchQueueResponse,
+  WorkflowRunSummary,
 } from "../types";
+import { PeerAnalysisPanel } from "./PeerAnalysisPanel";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentQuarter = () => Math.floor(new Date().getMonth() / 3) + 1;
+const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
 export function ResearchCyclePanel() {
   const [ticker, setTicker] = useState("");
@@ -38,6 +41,8 @@ export function ResearchCyclePanel() {
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
+  const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
 
   const refreshGlobal = async () => {
     try {
@@ -100,6 +105,57 @@ export function ResearchCyclePanel() {
       await refreshTicker(ticker);
     } catch {
       setError("Research snapshot could not be created.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startFullCycle = async () => {
+    const normalized = ticker.toUpperCase().trim();
+    if (!normalized || !analysisGoal.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      let next = await api.startWorkflow({
+        ticker: normalized,
+        analysis_goal: analysisGoal.trim(),
+        year: Number(year),
+        sources: ["filing", "web", "transcript", "graph"],
+        demo_mode: false,
+        cached_mode: false,
+      });
+      setWorkflow(next);
+      for (let attempt = 0; attempt < 300; attempt += 1) {
+        if (["completed", "needs_review", "failed"].includes(next.status)) break;
+        await wait(1000);
+        const status = await api.getStatus(next.run_id);
+        next = {
+          run_id: status.run_id,
+          status: status.status,
+          current_step: status.current_step,
+          started_at: next.started_at,
+          completed_at: status.completed_at,
+          report_url: next.report_url,
+        };
+        setWorkflow(next);
+      }
+      if (next.status === "failed") throw new Error("FinRisk workflow failed");
+      if (!["completed", "needs_review"].includes(next.status)) {
+        throw new Error("FinRisk workflow timed out");
+      }
+      const response = await api.startResearchRun({
+        ticker: normalized,
+        year: Number(year),
+        quarter: Number(quarter),
+        include_management: true,
+        include_risks: true,
+        workflow_run_id: next.run_id,
+        correlation_id: next.run_id,
+      });
+      setRun(response);
+      await refreshTicker(normalized);
+    } catch {
+      setError("FinRisk workflow or linked research snapshot could not be completed.");
     } finally {
       setBusy(false);
     }
@@ -225,8 +281,11 @@ export function ResearchCyclePanel() {
         <label>Year<input aria-label="Research cycle year" type="number" value={year} onChange={(event) => setYear(event.target.value)} /></label>
         <label>Quarter<select aria-label="Research cycle quarter" value={quarter} onChange={(event) => setQuarter(event.target.value)}>{[1, 2, 3, 4].map((item) => <option key={item} value={item}>Q{item}</option>)}</select></label>
         <button className="primary" type="button" disabled={busy || !ticker.trim()} onClick={() => void startRun()}>Create snapshot</button>
+        <button className="primary" type="button" disabled={busy || !ticker.trim() || !analysisGoal.trim()} onClick={() => void startFullCycle()}>Run FinRisk + snapshot</button>
         <button className="ghost" type="button" disabled={!ticker.trim()} onClick={() => void refreshTicker()}>Load history</button>
       </div>
+      <label className="cycle-full-run-goal">FinRisk analysis goal<input aria-label="FinRisk analysis goal" value={analysisGoal} onChange={(event) => setAnalysisGoal(event.target.value)} /><small>Estimated providers: SEC filing, web search, transcript and graph. Actual requests depend on availability.</small></label>
+      {workflow ? <div className={`cycle-run-state ${workflow.status}`}><strong>FinRisk: {workflow.status}</strong><span>{workflow.run_id}</span>{workflow.current_step ? <small>{workflow.current_step}</small> : null}</div> : null}
       {run ? <div className={`cycle-run-state ${run.manifest.state}`}><strong>{run.manifest.state}</strong><span>{run.manifest.run_id}</span>{run.manifest.components.map((item) => <small key={item.component}>{item.component}: {item.state}{item.reason ? ` · ${item.reason}` : ""}</small>)}</div> : null}
       {error ? <p className="journal-error">{error}</p> : null}
 
@@ -257,6 +316,7 @@ export function ResearchCyclePanel() {
       <div className="cycle-queue"><header><h3>Research queue</h3><div><input aria-label="Comparison metrics" value={comparisonMetrics} onChange={(event) => setComparisonMetrics(event.target.value)} /><button className="ghost" type="button" onClick={() => void compareWatchlist()}>Compare watchlist</button></div></header>{queue?.entries.map((entry) => <article className={entry.priority} key={entry.ticker}><strong>{entry.ticker}</strong><span>{entry.priority} review priority</span><ul>{entry.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></article>)}{queue && !queue.entries.length ? <p className="muted">No material unreviewed changes.</p> : null}{comparison ? <div className="table-scroll"><table className="research-table"><thead><tr><th>Company</th><th>Metric</th><th>Value</th><th>Status</th></tr></thead><tbody>{comparison.values.map((value) => <tr key={`${value.ticker}-${value.metric}`}><td>{value.ticker}</td><td>{value.metric}</td><td>{value.value == null ? "N/A" : `${value.value.toLocaleString()} ${value.unit ?? ""}`}</td><td>{value.status}</td></tr>)}</tbody></table><p className="report-disclaimer">{comparison.disclaimer}</p></div> : null}</div>
 
       <div className="cycle-reviews"><header><h3>Post-earnings review</h3><button className="ghost" type="button" disabled={snapshots.length < 2 || !theses.some((item) => item.ticker === ticker.toUpperCase().trim())} onClick={() => void createDraft()}>Generate draft</button></header>{drafts.filter((draft) => !ticker || draft.ticker === ticker.toUpperCase().trim()).map((draft) => <article key={draft.draft_id}><strong>{draft.ticker} · suggested {draft.suggested_outcome}</strong><p>{draft.rationale}</p><small>{draft.changes.length} changes · {draft.status}</small>{draft.status === "draft" ? <div><input aria-label={`Review notes for ${draft.ticker} draft`} value={reviewNotes[draft.draft_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [draft.draft_id]: event.target.value }))} placeholder="Analyst conclusion" /><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void confirmDraft(draft, "invalidated")}>Invalidated</button></div> : null}</article>)}</div>
+      <PeerAnalysisPanel />
     </section>
   );
 }

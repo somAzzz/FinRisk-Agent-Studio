@@ -1,0 +1,11 @@
+[Unit]
+Description=Run FinText Watchlist monitor every morning
+
+[Timer]
+OnCalendar=*-*-* 07:30:00
+Persistent=true
+RandomizedDelaySec=300
+Unit=fintext-monitor.service
+
+[Install]
+WantedBy=timers.target

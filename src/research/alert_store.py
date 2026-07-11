@@ -44,6 +44,7 @@ class MonitorCursor(BaseModel):
     snapshot_id: str
     source_fingerprint: str
     last_success_at: datetime
+    source_cursors: dict[str, str] = Field(default_factory=dict)
 
 
 class ResearchAlertStore:

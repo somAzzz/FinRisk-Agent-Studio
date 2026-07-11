@@ -23,6 +23,11 @@ vi.mock("../api", () => ({
     actOnResearchAlert: vi.fn(),
     createPostEarningsDraft: vi.fn(),
     confirmPostEarningsDraft: vi.fn(),
+    listPeerGroups: vi.fn(),
+    createPeerGroup: vi.fn(),
+    comparePeerGroup: vi.fn(),
+    startWorkflow: vi.fn(),
+    getStatus: vi.fn(),
   },
 }));
 
@@ -47,6 +52,10 @@ describe("ResearchCyclePanel", () => {
     vi.mocked(api.listPostEarningsDrafts).mockResolvedValue([]);
     vi.mocked(api.listTheses).mockResolvedValue([]);
     vi.mocked(api.listWatchlist).mockResolvedValue([]);
+    vi.mocked(api.listPeerGroups).mockResolvedValue([]);
+    vi.mocked(api.startWorkflow).mockResolvedValue({
+      run_id: "workflow-one", status: "completed", started_at: "2026-04-30T00:00:00Z",
+    });
     vi.mocked(api.buildResearchQueue).mockResolvedValue({
       entries: [], disclaimer: "Research review only",
     });
@@ -101,5 +110,19 @@ describe("ResearchCyclePanel", () => {
     await waitFor(() => expect(api.scanWatchlist).toHaveBeenCalledWith({
       minimum_materiality: "medium", max_workers: 2,
     }));
+  });
+
+  it("starts FinRisk and links its run to the research snapshot", async () => {
+    render(<ResearchCyclePanel />);
+    fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+    fireEvent.click(screen.getByRole("button", { name: "Run FinRisk + snapshot" }));
+
+    await waitFor(() => expect(api.startResearchRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ticker: "ACME",
+        workflow_run_id: "workflow-one",
+        correlation_id: "workflow-one",
+      }),
+    ));
   });
 });

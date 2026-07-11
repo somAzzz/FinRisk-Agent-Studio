@@ -6,13 +6,17 @@ import pytest
 
 from src.research.change_detection import ResearchChange, ResearchChangeSet
 from src.research.comparison import (
+    PeerAnalysisRequest,
+    build_peer_analysis,
     build_research_queue,
     compare_company_snapshots,
 )
+from src.research.expectations import ExpectationPoint
 from src.research.models import (
     CompanyResearchSnapshot,
     FinancialMetricPoint,
     FinancialSnapshot,
+    RiskObservation,
 )
 
 
@@ -129,3 +133,45 @@ def test_research_queue_orders_evidence_review_not_investment_scores() -> None:
     assert [item.ticker for item in queue.entries] == ["AAA", "BBB"]
     assert queue.entries[0].priority == "high"
     assert "not an investment score" in queue.disclaimer
+
+
+def test_peer_analysis_keeps_risk_expectation_and_valuation_layers_separate() -> None:
+    first = _snapshot("AAA").model_copy(
+        update={
+            "risks": [
+                RiskObservation(
+                    risk_id="supply",
+                    title="Supply concentration",
+                    status="new",
+                    evidence_ids=["risk-a"],
+                )
+            ]
+        }
+    )
+    second = _snapshot("BBB")
+    expectation = ExpectationPoint(
+        ticker="AAA",
+        metric="revenue",
+        fiscal_period="2026Q1",
+        value=110,
+        unit="USD",
+        source="personal model",
+        observed_at=datetime(2026, 3, 1, tzinfo=UTC),
+        as_of=datetime(2026, 3, 1, tzinfo=UTC),
+    )
+
+    response = build_peer_analysis(
+        [first, second],
+        request=PeerAnalysisRequest(
+            snapshot_ids=[first.snapshot_id, second.snapshot_id],
+            metrics=["revenue"],
+            period_kind="ttm",
+        ),
+        expectations_by_ticker={"AAA": [expectation], "BBB": []},
+    )
+
+    assert response.risks[0].new == 1
+    assert response.risks[0].evidence_ids == ["risk-a"]
+    assert response.expectations[0].source == "personal model"
+    assert response.valuations == []
+    assert any("Valuation inputs were not supplied" in item for item in response.warnings)

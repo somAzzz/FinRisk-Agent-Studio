@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from src.research.management_snapshot import (
+    GuidanceMetricRange,
     build_management_snapshot,
     compare_management_snapshots,
 )
@@ -88,6 +89,58 @@ def test_compare_surfaces_guidance_tone_and_topic_changes() -> None:
     demand = next(change for change in changes if change.dimension == "topic:demand")
     assert demand.direction == "strengthened"
     assert demand.evidence_ids
+    assert demand.previous_quotes
+    assert demand.current_quotes
+
+
+def test_compare_guidance_ranges_tracks_midpoint_and_withdrawal() -> None:
+    previous = build_management_snapshot(
+        _transcript(
+            year=2025,
+            quarter=4,
+            prepared="Guidance is maintained.",
+            qa="Demand is stable.",
+        )
+    ).model_copy(
+        update={
+            "guidance_metrics": [
+                GuidanceMetricRange(
+                    metric="revenue",
+                    period="2026FY",
+                    low=100,
+                    high=110,
+                    unit="USDm",
+                    evidence_ids=["old-guidance"],
+                )
+            ]
+        }
+    )
+    current = previous.model_copy(
+        update={
+            "year": 2026,
+            "quarter": 1,
+            "guidance_metrics": [
+                GuidanceMetricRange(
+                    metric="revenue",
+                    period="2026FY",
+                    low=110,
+                    high=120,
+                    unit="USDm",
+                    evidence_ids=["new-guidance"],
+                )
+            ],
+        }
+    )
+
+    changes = compare_management_snapshots(previous, current)
+
+    guidance = next(
+        item for item in changes if item.dimension == "guidance_range:revenue:2026FY"
+    )
+    assert guidance.direction == "increased"
+    assert guidance.previous_value["midpoint"] == 105
+    assert guidance.current_value["midpoint"] == 115
+    assert guidance.evidence_ids == ["new-guidance", "old-guidance"]
 
 
 def test_compare_rejects_different_companies() -> None:

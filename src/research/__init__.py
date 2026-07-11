@@ -77,6 +77,8 @@ _EXPORTS = {
     "MultipleValuationResponse": "src.research.valuation",
     "calculate_discounted_cash_flow": "src.research.valuation",
     "calculate_multiple_valuation": "src.research.valuation",
+    "ValuationAssumptionSnapshot": "src.research.valuation_store",
+    "ValuationAssumptionStore": "src.research.valuation_store",
     "ExpectationComparison": "src.research.expectations",
     "ExpectationImportResult": "src.research.expectations",
     "ExpectationPoint": "src.research.expectations",

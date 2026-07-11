@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.fintext.monitor</string>
+  <key>WorkingDirectory</key><string>__PROJECT_DIR__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string><string>uv</string><string>run</string>
+    <string>python</string><string>main.py</string><string>monitor</string>
+    <string>--max-workers</string><string>2</string>
+    <string>--request-interval-seconds</string><string>1</string>
+    <string>--max-retries</string><string>2</string>
+    <string>--source-stale-after-days</string><string>180</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>30</integer></dict>
+  <key>StandardOutPath</key><string>__PROJECT_DIR__/.cache/monitor.stdout.log</string>
+  <key>StandardErrorPath</key><string>__PROJECT_DIR__/.cache/monitor.stderr.log</string>
+</dict>
+</plist>

@@ -47,6 +47,8 @@ curl -X POST http://127.0.0.1:8000/research/runs \
 
 返回的 `components` 会明确标记 `complete`、`partial`、`not_requested`、`unavailable` 或 `failed`：未请求、未配置和执行失败不会再混成同一种 partial。某个 provider 不可用时，系统保留降级快照，不会用 fixture 冒充真实数据。关联 FinRisk workflow 时，workflow、research run 和 snapshot 使用同一个 `correlation_id`。
 
+前端 “Run FinRisk + snapshot” 会启动新的 live FinRisk workflow，等待 completed 或 needs-review，再将风险报告关联到同一研究快照。页面会先显示可能使用的 SEC、web、transcript 与 graph provider；实际请求数由可用性决定。
+
 如需在 FinRisk workflow 完成后自动固化包含风险报告的快照，可显式启用：
 
 ```bash
@@ -102,7 +104,26 @@ uv run python main.py monitor --ticker AAPL --as-of 2026-06-30
 uv run python main.py monitor --request-interval-seconds 1.0 --max-retries 2
 ```
 
-个人部署建议使用 cron、launchd 或 systemd timer 调用该命令。CLI 对单公司失败进行隔离；只要任一公司失败，进程返回非零退出码。
+个人部署可使用仓库内的 `deploy/systemd/` 或 `deploy/launchd/` 模板。复制前必须修改项目路径；密钥只放在本机环境文件，不写入 plist 或仓库。CLI 对单公司失败进行隔离；只要任一公司失败，进程返回非零退出码。
+
+systemd user timer：
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp deploy/systemd/fintext-monitor.* ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now fintext-monitor.timer
+```
+
+macOS launchd：复制 example，替换全部 `__PROJECT_DIR__` 后再加载。
+
+```bash
+sed "s|__PROJECT_DIR__|$PWD|g" deploy/launchd/com.fintext.monitor.plist.example \
+  > ~/Library/LaunchAgents/com.fintext.monitor.plist
+launchctl load ~/Library/LaunchAgents/com.fintext.monitor.plist
+```
+
+Monitor cursor 会记录每类来源/provider 的最后成功时间。使用 `--source-stale-after-days` 后，来源首次越过阈值会生成待复核的 evidence change，不会在每次扫描重复报警。
 
 ## 7. 提醒与财报后复盘
 
@@ -122,6 +143,8 @@ uv run python main.py monitor --request-interval-seconds 1.0 --max-retries 2
 比较要求各公司快照使用相同 `as_of` 和期间口径。币种不同的货币指标显示 `not_comparable`，不会直接混排。研究队列按需要复核的变化排序，不是投资评分或交易信号。
 
 需要长期维护的同业集合使用 Peer Group。每个组保存基准公司、成员纳入理由、行业指标模板、币种策略和财年策略；系统建议的成员必须由用户确认后才能保存。组内快照日期不同时，比较结果逐公司显示 `freshness_days`，不会隐藏信息时差。
+
+候选建议只在 Watchlist 范围内比较 SEC SIC/SIC division，结果默认未确认。Peer Analysis 分开显示财务、风险、point-in-time 预期和显式估值输入；缺少市场价格或估值分母时显示 N/A，不自动补值，也不合成单一评分。
 
 ## 9. 备份与恢复
 

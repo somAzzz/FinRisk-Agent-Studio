@@ -78,6 +78,9 @@ class WatchlistItem(BaseModel):
     monitoring_questions: list[str] = Field(default_factory=list)
     next_review_date: date | None = None
     active: bool = True
+    research_components: list[Literal["management", "risks"]] = Field(
+        default_factory=lambda: ["risks"]
+    )
     updated_at: datetime = Field(default_factory=_utcnow)
 
     @field_validator("ticker")

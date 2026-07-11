@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from src.research.peer_groups import PeerGroupInput, PeerGroupStore, PeerMember
+from src.research.peer_groups import (
+    PeerGroupInput,
+    PeerGroupStore,
+    PeerMember,
+    suggest_peer_candidates,
+)
 
 
 def _input() -> PeerGroupInput:
@@ -24,6 +29,10 @@ def test_peer_group_store_round_trip(tmp_path) -> None:
 
     assert store.get(saved.peer_group_id) == saved
     assert store.list() == [saved]
+    updated_input = _input().model_copy(update={"name": "Updated peers"})
+    updated = store.update(saved.peer_group_id, updated_input)
+    assert updated.name == "Updated peers"
+    assert updated.created_at == saved.created_at
     assert store.delete(saved.peer_group_id)
     assert store.list() == []
 
@@ -52,3 +61,34 @@ def test_peer_group_requires_base_and_confirmation() -> None:
                 ),
             ],
         )
+
+
+def test_suggests_same_sic_candidates_without_confirming_them() -> None:
+    class Identity:
+        def __init__(self, ticker: str) -> None:
+            self.ticker = ticker
+            self.cik = ticker
+            self.name = f"{ticker} Corp"
+
+    class Resolver:
+        def resolve(self, ticker: str):
+            return Identity(ticker)
+
+    submissions = {
+        "BASE": {"sic": "3674", "sicDescription": "Semiconductors"},
+        "EXACT": {"sic": "3674", "sicDescription": "Semiconductors"},
+        "DIV": {"sic": "3679", "sicDescription": "Electronic components"},
+        "OTHER": {"sic": "6021", "sicDescription": "Banks"},
+    }
+
+    candidates = suggest_peer_candidates(
+        base_ticker="BASE",
+        candidate_tickers=["OTHER", "DIV", "EXACT"],
+        resolver=Resolver(),
+        submissions_fetcher=lambda cik: submissions[cik],
+    )
+
+    assert [item.ticker for item in candidates] == ["EXACT", "DIV"]
+    assert candidates[0].similarity == "same_sic"
+    assert all(item.confirmed_by_user is False for item in candidates)
+    assert "requires analyst confirmation" in candidates[0].inclusion_reason

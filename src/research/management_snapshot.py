@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 from src.pipelines.analyze_sentiment import analyze_management_sentiment
 from src.schemas.analysis import GuidanceSignal, OverallTone, SentimentLabel, Topic
@@ -22,6 +22,28 @@ class ManagementTopicSignal(BaseModel):
     confidence: float
     evidence_ids: list[str] = Field(default_factory=list)
     quotes: list[str] = Field(default_factory=list)
+
+
+class GuidanceMetricRange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    metric: str
+    period: str
+    low: float
+    high: float
+    unit: str
+    evidence_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _ordered_range(self) -> GuidanceMetricRange:
+        if self.high < self.low:
+            raise ValueError("guidance high must be greater than or equal to low")
+        return self
+
+    @computed_field
+    @property
+    def midpoint(self) -> float:
+        return (self.low + self.high) / 2
 
 
 class ManagementPeriodSnapshot(BaseModel):
@@ -42,18 +64,21 @@ class ManagementPeriodSnapshot(BaseModel):
     guidance_signal: GuidanceSignal
     topic_signals: list[ManagementTopicSignal] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
+    guidance_metrics: list[GuidanceMetricRange] = Field(default_factory=list)
 
 
 class ManagementSignalChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dimension: str
-    previous_value: str | float
-    current_value: str | float
+    previous_value: str | float | dict | None
+    current_value: str | float | dict | None
     direction: ChangeDirection
     previous_period: str
     current_period: str
     evidence_ids: list[str] = Field(default_factory=list)
+    previous_quotes: list[str] = Field(default_factory=list)
+    current_quotes: list[str] = Field(default_factory=list)
 
 
 class ManagementComparisonResponse(BaseModel):
@@ -174,6 +199,45 @@ def compare_management_snapshots(
                 previous_period=previous_period,
                 current_period=current_period,
                 evidence_ids=sorted(set(before.evidence_ids + after.evidence_ids)),
+                previous_quotes=before.quotes,
+                current_quotes=after.quotes,
+            )
+        )
+    previous_guidance = {
+        (item.metric, item.period, item.unit): item
+        for item in previous.guidance_metrics
+    }
+    current_guidance = {
+        (item.metric, item.period, item.unit): item
+        for item in current.guidance_metrics
+    }
+    for key in sorted(previous_guidance.keys() | current_guidance.keys()):
+        before = previous_guidance.get(key)
+        after = current_guidance.get(key)
+        if before is not None and after is not None and before == after:
+            continue
+        if before is None:
+            direction: ChangeDirection = "changed"
+        elif after is None:
+            direction = "changed"
+        else:
+            direction = "increased" if after.midpoint > before.midpoint else "decreased"
+            if after.midpoint == before.midpoint:
+                direction = "changed"
+        changes.append(
+            ManagementSignalChange(
+                dimension=f"guidance_range:{key[0]}:{key[1]}",
+                previous_value=before.model_dump() if before else None,
+                current_value=after.model_dump() if after else None,
+                direction=direction,
+                previous_period=previous_period,
+                current_period=current_period,
+                evidence_ids=sorted(
+                    set(
+                        (before.evidence_ids if before else [])
+                        + (after.evidence_ids if after else [])
+                    )
+                ),
             )
         )
     return changes

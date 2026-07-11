@@ -19,6 +19,8 @@ import type {
   ManagementComparisonResponse,
   MonitorScanResponse,
   PeerGroup,
+  PeerCandidate,
+  PeerAnalysisResponse,
   PostEarningsReviewDraft,
   ResearchAlert,
   ResearchChange,
@@ -208,6 +210,7 @@ export const api = {
     include_management?: boolean;
     include_risks?: boolean;
     workflow_run_id?: string | null;
+    correlation_id?: string | null;
   }): Promise<ResearchRunResponse> {
     return sendRequest<ResearchRunResponse>("/research/runs", {
       method: "POST",
@@ -346,6 +349,18 @@ export const api = {
       body: JSON.stringify(input),
     });
   },
+  updatePeerGroup(peerGroupId: string, input: Omit<PeerGroup, "peer_group_id" | "created_at" | "updated_at">): Promise<PeerGroup> {
+    return sendRequest<PeerGroup>(`/research/peer-groups/${encodeURIComponent(peerGroupId)}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    });
+  },
+  suggestPeerCandidates(peerGroupId: string, tickers: string[] = []): Promise<PeerCandidate[]> {
+    return sendRequest<PeerCandidate[]>(
+      `/research/peer-groups/${encodeURIComponent(peerGroupId)}/candidates`,
+      { method: "POST", body: JSON.stringify({ tickers }) },
+    );
+  },
   comparePeerGroup(peerGroupId: string, input: {
     snapshot_ids: string[];
     metrics: string[];
@@ -353,6 +368,17 @@ export const api = {
   }): Promise<CompanyComparisonResponse> {
     return sendRequest<CompanyComparisonResponse>(
       `/research/peer-groups/${encodeURIComponent(peerGroupId)}/comparison`,
+      { method: "POST", body: JSON.stringify(input) },
+    );
+  },
+  analyzePeerGroup(peerGroupId: string, input: {
+    snapshot_ids: string[];
+    metrics: string[];
+    period_kind: "quarter" | "annual" | "ttm";
+    valuations?: unknown[];
+  }): Promise<PeerAnalysisResponse> {
+    return sendRequest<PeerAnalysisResponse>(
+      `/research/peer-groups/${encodeURIComponent(peerGroupId)}/analysis`,
       { method: "POST", body: JSON.stringify(input) },
     );
   },

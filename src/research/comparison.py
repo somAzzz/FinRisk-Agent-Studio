@@ -7,7 +7,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.research.change_detection import ResearchChangeSet
+from src.research.expectations import ExpectationPoint
 from src.research.models import CompanyResearchSnapshot, FinancialMetricPoint, PeriodKind
+from src.research.valuation import (
+    MultipleValuationRequest,
+    MultipleValuationResponse,
+    calculate_multiple_valuation,
+)
 
 
 class CompanyComparisonRequest(BaseModel):
@@ -47,6 +53,44 @@ class CompanyComparisonResponse(BaseModel):
     period_kind: PeriodKind
     tickers: list[str]
     values: list[ComparableMetricValue]
+    warnings: list[str] = Field(default_factory=list)
+    disclaimer: str
+
+
+class PeerAnalysisRequest(CompanyComparisonRequest):
+    valuations: list[MultipleValuationRequest] = Field(default_factory=list, max_length=90)
+
+
+class PeerRiskSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ticker: str
+    total: int
+    new: int
+    strengthened: int
+    weakened: int
+    evidence_ids: list[str]
+
+
+class PeerExpectationSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ticker: str
+    metric: str
+    fiscal_period: str
+    value: float
+    unit: str
+    source: str
+    as_of: str
+
+
+class PeerAnalysisResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    financials: CompanyComparisonResponse
+    risks: list[PeerRiskSummary]
+    expectations: list[PeerExpectationSummary]
+    valuations: list[MultipleValuationResponse]
     warnings: list[str] = Field(default_factory=list)
     disclaimer: str
 
@@ -205,6 +249,90 @@ def build_research_queue(
     )
 
 
+def build_peer_analysis(
+    snapshots: list[CompanyResearchSnapshot],
+    *,
+    request: PeerAnalysisRequest,
+    expectations_by_ticker: dict[str, list[ExpectationPoint]],
+) -> PeerAnalysisResponse:
+    financials = compare_company_snapshots(
+        snapshots,
+        metrics=request.metrics,
+        period_kind=request.period_kind,
+        strict_as_of=False,
+    )
+    risks = [
+        PeerRiskSummary(
+            ticker=snapshot.ticker,
+            total=len(snapshot.risks),
+            new=sum(item.status == "new" for item in snapshot.risks),
+            strengthened=sum(item.status == "strengthened" for item in snapshot.risks),
+            weakened=sum(item.status == "weakened" for item in snapshot.risks),
+            evidence_ids=sorted(
+                {
+                    evidence_id
+                    for risk in snapshot.risks
+                    for evidence_id in risk.evidence_ids
+                }
+            ),
+        )
+        for snapshot in snapshots
+    ]
+    expectations: list[PeerExpectationSummary] = []
+    for ticker, points in expectations_by_ticker.items():
+        latest: dict[tuple[str, str], ExpectationPoint] = {}
+        for point in points:
+            key = (point.metric, point.fiscal_period)
+            current = latest.get(key)
+            if current is None or point.as_of > current.as_of:
+                latest[key] = point
+        expectations.extend(
+            PeerExpectationSummary(
+                ticker=ticker,
+                metric=point.metric,
+                fiscal_period=point.fiscal_period,
+                value=point.value,
+                unit=point.unit,
+                source=point.source,
+                as_of=point.as_of.isoformat(),
+            )
+            for point in latest.values()
+        )
+    member_tickers = {snapshot.ticker for snapshot in snapshots}
+    invalid_valuations = sorted(
+        {
+            item.ticker.upper().strip()
+            for item in request.valuations
+            if item.ticker.upper().strip() not in member_tickers
+        }
+    )
+    if invalid_valuations:
+        raise ValueError(
+            f"valuation tickers are not in the peer snapshots: {invalid_valuations}"
+        )
+    valuations = [calculate_multiple_valuation(item) for item in request.valuations]
+    warnings = list(financials.warnings)
+    missing_valuation = sorted(member_tickers - {item.ticker for item in valuations})
+    if missing_valuation:
+        warnings.append(
+            "Valuation inputs were not supplied for: " + ", ".join(missing_valuation)
+        )
+    return PeerAnalysisResponse(
+        financials=financials,
+        risks=risks,
+        expectations=sorted(
+            expectations,
+            key=lambda item: (item.ticker, item.metric, item.fiscal_period),
+        ),
+        valuations=valuations,
+        warnings=warnings,
+        disclaimer=(
+            "Peer analysis keeps financial, risk, expectation and valuation "
+            "lineage separate; it is not a composite score or recommendation."
+        ),
+    )
+
+
 def _latest_point(
     points: list[FinancialMetricPoint],
     metric: str,
@@ -221,8 +349,11 @@ def _evidence(point: FinancialMetricPoint) -> list[str]:
 __all__ = [
     "CompanyComparisonRequest",
     "CompanyComparisonResponse",
+    "PeerAnalysisRequest",
+    "PeerAnalysisResponse",
     "ResearchQueueEntry",
     "ResearchQueueResponse",
+    "build_peer_analysis",
     "build_research_queue",
     "compare_company_snapshots",
 ]

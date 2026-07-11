@@ -14,6 +14,7 @@ from src.api.research import (
     set_research_change_store_for_tests,
     set_research_journal_store_for_tests,
     set_research_snapshot_store_for_tests,
+    set_valuation_assumption_store_for_tests,
 )
 from src.research.alert_store import ResearchAlertStore
 from src.research.change_store import ResearchChangeStore
@@ -23,6 +24,7 @@ from src.research.models import FinancialMetricPoint, FinancialSnapshot
 from src.research.orchestrator import CompanyResearchOrchestrator
 from src.research.peer_groups import PeerGroupStore
 from src.research.snapshot_store import ResearchSnapshotStore
+from src.research.valuation_store import ValuationAssumptionStore
 
 
 def _financials(ticker: str, as_of: date | None) -> FinancialSnapshot:
@@ -66,6 +68,7 @@ def client(tmp_path, monkeypatch):
     set_expectation_store_for_tests(ExpectationStore(database))
     set_research_journal_store_for_tests(ResearchJournalStore(database))
     set_peer_group_store_for_tests(PeerGroupStore(database))
+    set_valuation_assumption_store_for_tests(ValuationAssumptionStore(database))
     yield TestClient(app)
     set_company_research_orchestrator_for_tests(None)
     set_research_snapshot_store_for_tests(None)
@@ -74,6 +77,7 @@ def client(tmp_path, monkeypatch):
     set_expectation_store_for_tests(None)
     set_research_journal_store_for_tests(None)
     set_peer_group_store_for_tests(None)
+    set_valuation_assumption_store_for_tests(None)
 
 
 def test_research_snapshot_change_expectation_and_sensitivity_contract(client) -> None:
@@ -145,6 +149,11 @@ def test_research_snapshot_change_expectation_and_sensitivity_contract(client) -
     )
     assert sensitivity.status_code == 200
     assert len(sensitivity.json()["cells"]) == 4
+    assumption_id = sensitivity.json()["assumption_snapshot_id"]
+    assert assumption_id.startswith("valuation-")
+    history = client.get("/research/valuation/history/ACME")
+    assert history.status_code == 200
+    assert history.json()[0]["assumption_snapshot_id"] == assumption_id
 
 
 def test_peer_group_contract_requires_confirmed_members(client) -> None:
