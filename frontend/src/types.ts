@@ -456,6 +456,7 @@ export interface SourceManifestEntry {
 
 export interface CompanyResearchSnapshot {
   snapshot_id: string;
+  correlation_id?: string | null;
   ticker: string;
   period: string;
   as_of: string;
@@ -478,6 +479,7 @@ export interface CompanyResearchSnapshot {
 
 export interface ResearchRunManifest {
   run_id: string;
+  correlation_id?: string | null;
   ticker: string;
   requested_as_of: string;
   started_at: string;
@@ -515,6 +517,7 @@ export interface ResearchChangeSet {
   ticker: string;
   from_snapshot_id: string;
   to_snapshot_id: string;
+  correlation_id?: string | null;
   generated_at: string;
   changes: ResearchChange[];
   warnings: string[];
@@ -529,6 +532,7 @@ export interface ResearchAlert {
   explanation: string;
   status: "new" | "acknowledged" | "ignored";
   snapshot_id: string;
+  correlation_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -621,12 +625,32 @@ export interface CompanyComparisonResponse {
     value?: number | null;
     unit?: string | null;
     period_end?: string | null;
+    source_as_of?: string | null;
+    freshness_days?: number | null;
     status: "reported" | "derived" | "not_available" | "not_comparable";
     evidence_ids: string[];
     reason?: string | null;
   }>;
   warnings: string[];
   disclaimer: string;
+}
+
+export interface PeerGroup {
+  peer_group_id: string;
+  name: string;
+  base_ticker: string;
+  members: Array<{
+    ticker: string;
+    inclusion_reason: string;
+    source: "user" | "suggested";
+    confirmed_by_user: boolean;
+  }>;
+  industry_template: "general" | "bank" | "saas" | "semiconductor" | "energy" | "biotech";
+  currency_policy: "original" | "single_currency" | "no_conversion";
+  fiscal_period_policy: "latest_quarter" | "calendarized_ttm" | "latest_fy";
+  user_notes?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ResearchQueueResponse {

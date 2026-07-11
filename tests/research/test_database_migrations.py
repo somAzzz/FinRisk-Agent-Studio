@@ -48,15 +48,15 @@ def test_legacy_database_upgrades_without_losing_journal_data(tmp_path) -> None:
             ),
         )
 
-    assert apply_migrations(path) == 1
-    assert apply_migrations(path) == 1
-    assert schema_version(path) == 1
+    assert apply_migrations(path) == 2
+    assert apply_migrations(path) == 2
+    assert schema_version(path) == 2
     assert ResearchJournalStore(path).get_thesis(thesis.thesis_id) == thesis
     with sqlite3.connect(path) as connection:
         count = connection.execute(
             "SELECT COUNT(*) FROM research_schema_migrations"
         ).fetchone()[0]
-    assert count == 1
+    assert count == 2
 
 
 def test_failed_migration_rolls_back_schema_and_version(tmp_path) -> None:
@@ -69,12 +69,12 @@ def test_failed_migration_rolls_back_schema_and_version(tmp_path) -> None:
 
     migrations = (
         *DEFAULT_MIGRATIONS,
-        Migration(2, "forced_failure", fail_after_ddl),
+        Migration(3, "forced_failure", fail_after_ddl),
     )
     with pytest.raises(RuntimeError, match="forced migration failure"):
         apply_migrations(path, migrations=migrations)
 
-    assert schema_version(path) == 1
+    assert schema_version(path) == 2
     with sqlite3.connect(path) as connection:
         row = connection.execute(
             "SELECT name FROM sqlite_master WHERE name = 'must_rollback'"

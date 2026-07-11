@@ -69,6 +69,7 @@ from src.research.orchestrator import (
     ResearchRunRequest,
     ResearchRunResponse,
 )
+from src.research.peer_groups import PeerGroup, PeerGroupInput, PeerGroupStore
 from src.research.post_earnings import (
     ConfirmPostEarningsReviewRequest,
     PostEarningsDraftRequest,
@@ -186,6 +187,7 @@ _expectation_store: ExpectationStore | None = None
 _alert_store: ResearchAlertStore | None = None
 _watchlist_monitor: WatchlistMonitor | None = None
 _post_earnings_store: PostEarningsReviewStore | None = None
+_peer_group_store: PeerGroupStore | None = None
 
 
 class ExpectationCSVImportRequest(BaseModel):
@@ -374,6 +376,24 @@ def set_post_earnings_review_store_for_tests(
 ) -> None:
     global _post_earnings_store
     _post_earnings_store = store
+
+
+def get_peer_group_store() -> PeerGroupStore:
+    global _peer_group_store
+    if _peer_group_store is None:
+        path = Path(
+            os.environ.get(
+                "RESEARCH_SNAPSHOT_PATH",
+                ".cache/research_snapshots.sqlite",
+            )
+        )
+        _peer_group_store = PeerGroupStore(path)
+    return _peer_group_store
+
+
+def set_peer_group_store_for_tests(store: PeerGroupStore | None) -> None:
+    global _peer_group_store
+    _peer_group_store = store
 
 
 @router.post(
@@ -744,6 +764,65 @@ async def compare_research_companies(
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/peer-groups", response_model=PeerGroup, status_code=status.HTTP_201_CREATED)
+async def create_peer_group(request: PeerGroupInput) -> PeerGroup:
+    return await asyncio.to_thread(get_peer_group_store().save, request)
+
+
+@router.get("/peer-groups", response_model=list[PeerGroup])
+async def list_peer_groups() -> list[PeerGroup]:
+    return await asyncio.to_thread(get_peer_group_store().list)
+
+
+@router.get("/peer-groups/{peer_group_id}", response_model=PeerGroup)
+async def get_peer_group(peer_group_id: str) -> PeerGroup:
+    group = await asyncio.to_thread(get_peer_group_store().get, peer_group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="peer group not found")
+    return group
+
+
+@router.post(
+    "/peer-groups/{peer_group_id}/comparison",
+    response_model=CompanyComparisonResponse,
+)
+async def compare_peer_group(
+    peer_group_id: str,
+    request: CompanyComparisonRequest,
+) -> CompanyComparisonResponse:
+    group = await asyncio.to_thread(get_peer_group_store().get, peer_group_id)
+    if group is None:
+        raise HTTPException(status_code=404, detail="peer group not found")
+    snapshots = []
+    member_tickers = {member.ticker for member in group.members}
+    for snapshot_id in request.snapshot_ids:
+        snapshot = await asyncio.to_thread(
+            get_research_snapshot_store().get_snapshot,
+            snapshot_id,
+        )
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail=f"snapshot not found: {snapshot_id}")
+        if snapshot.ticker not in member_tickers:
+            raise HTTPException(status_code=422, detail=f"{snapshot.ticker} is not in the peer group")
+        snapshots.append(snapshot)
+    try:
+        return compare_company_snapshots(
+            snapshots,
+            metrics=request.metrics,
+            period_kind=request.period_kind,
+            strict_as_of=False,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.delete("/peer-groups/{peer_group_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_peer_group(peer_group_id: str) -> None:
+    deleted = await asyncio.to_thread(get_peer_group_store().delete, peer_group_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="peer group not found")
 
 
 @router.post("/research-queue", response_model=ResearchQueueResponse)

@@ -9,6 +9,7 @@ from src.api.main import app
 from src.api.research import (
     set_company_research_orchestrator_for_tests,
     set_expectation_store_for_tests,
+    set_peer_group_store_for_tests,
     set_research_alert_store_for_tests,
     set_research_change_store_for_tests,
     set_research_journal_store_for_tests,
@@ -20,6 +21,7 @@ from src.research.expectations import ExpectationStore
 from src.research.journal import ResearchJournalStore
 from src.research.models import FinancialMetricPoint, FinancialSnapshot
 from src.research.orchestrator import CompanyResearchOrchestrator
+from src.research.peer_groups import PeerGroupStore
 from src.research.snapshot_store import ResearchSnapshotStore
 
 
@@ -63,6 +65,7 @@ def client(tmp_path, monkeypatch):
     set_research_alert_store_for_tests(ResearchAlertStore(database))
     set_expectation_store_for_tests(ExpectationStore(database))
     set_research_journal_store_for_tests(ResearchJournalStore(database))
+    set_peer_group_store_for_tests(PeerGroupStore(database))
     yield TestClient(app)
     set_company_research_orchestrator_for_tests(None)
     set_research_snapshot_store_for_tests(None)
@@ -70,6 +73,7 @@ def client(tmp_path, monkeypatch):
     set_research_alert_store_for_tests(None)
     set_expectation_store_for_tests(None)
     set_research_journal_store_for_tests(None)
+    set_peer_group_store_for_tests(None)
 
 
 def test_research_snapshot_change_expectation_and_sensitivity_contract(client) -> None:
@@ -141,3 +145,23 @@ def test_research_snapshot_change_expectation_and_sensitivity_contract(client) -
     )
     assert sensitivity.status_code == 200
     assert len(sensitivity.json()["cells"]) == 4
+
+
+def test_peer_group_contract_requires_confirmed_members(client) -> None:
+    response = client.post(
+        "/research/peer-groups",
+        json={
+            "name": "Semiconductors",
+            "base_ticker": "NVDA",
+            "industry_template": "semiconductor",
+            "members": [
+                {"ticker": "NVDA", "inclusion_reason": "Base company"},
+                {"ticker": "AMD", "inclusion_reason": "Accelerator peer"},
+            ],
+        },
+    )
+
+    assert response.status_code == 201
+    listed = client.get("/research/peer-groups")
+    assert listed.status_code == 200
+    assert listed.json()[0]["members"][1]["inclusion_reason"] == "Accelerator peer"

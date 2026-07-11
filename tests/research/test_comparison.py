@@ -76,6 +76,25 @@ def test_company_comparison_marks_currency_mismatch_not_comparable() -> None:
         )
 
 
+def test_peer_comparison_exposes_snapshot_freshness() -> None:
+    stale = _snapshot("AAA").model_copy(
+        update={"as_of": datetime(2026, 4, 20, tzinfo=UTC)}
+    )
+    current = _snapshot("BBB")
+
+    response = compare_company_snapshots(
+        [stale, current],
+        metrics=["revenue"],
+        period_kind="ttm",
+        strict_as_of=False,
+    )
+
+    values = {item.ticker: item for item in response.values}
+    assert values["AAA"].freshness_days == 10
+    assert values["BBB"].freshness_days == 0
+    assert response.as_of == "2026-04-30"
+
+
 def test_research_queue_orders_evidence_review_not_investment_scores() -> None:
     high = ResearchChange(
         change_id="high",

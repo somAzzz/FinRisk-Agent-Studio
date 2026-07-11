@@ -140,8 +140,23 @@ def _migration_001_initial_research_cycle(connection: sqlite3.Connection) -> Non
         connection.execute(statement)
 
 
+def _migration_002_peer_groups(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS research_peer_groups (
+            peer_group_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            base_ticker TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            payload TEXT NOT NULL
+        )
+        """
+    )
+
+
 DEFAULT_MIGRATIONS = (
     Migration(1, "initial_research_cycle", _migration_001_initial_research_cycle),
+    Migration(2, "peer_groups", _migration_002_peer_groups),
 )
 
 

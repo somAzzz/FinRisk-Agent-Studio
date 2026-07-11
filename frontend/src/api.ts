@@ -18,6 +18,7 @@ import type {
   InvestmentThesis,
   ManagementComparisonResponse,
   MonitorScanResponse,
+  PeerGroup,
   PostEarningsReviewDraft,
   ResearchAlert,
   ResearchChange,
@@ -335,6 +336,25 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     });
+  },
+  listPeerGroups(): Promise<PeerGroup[]> {
+    return sendRequest<PeerGroup[]>("/research/peer-groups");
+  },
+  createPeerGroup(input: Omit<PeerGroup, "peer_group_id" | "created_at" | "updated_at">): Promise<PeerGroup> {
+    return sendRequest<PeerGroup>("/research/peer-groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  comparePeerGroup(peerGroupId: string, input: {
+    snapshot_ids: string[];
+    metrics: string[];
+    period_kind: "quarter" | "annual" | "ttm";
+  }): Promise<CompanyComparisonResponse> {
+    return sendRequest<CompanyComparisonResponse>(
+      `/research/peer-groups/${encodeURIComponent(peerGroupId)}/comparison`,
+      { method: "POST", body: JSON.stringify(input) },
+    );
   },
   buildResearchQueue(tickers: string[]): Promise<ResearchQueueResponse> {
     return sendRequest<ResearchQueueResponse>("/research/research-queue", {

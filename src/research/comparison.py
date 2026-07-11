@@ -33,6 +33,8 @@ class ComparableMetricValue(BaseModel):
     value: float | None = None
     unit: str | None = None
     period_end: str | None = None
+    source_as_of: str | None = None
+    freshness_days: int | None = None
     status: Literal["reported", "derived", "not_available", "not_comparable"]
     evidence_ids: list[str] = Field(default_factory=list)
     reason: str | None = None
@@ -71,12 +73,14 @@ def compare_company_snapshots(
     *,
     metrics: list[str],
     period_kind: PeriodKind,
+    strict_as_of: bool = True,
 ) -> CompanyComparisonResponse:
     if len(snapshots) < 2:
         raise ValueError("at least two snapshots are required")
     dates = {snapshot.as_of.date() for snapshot in snapshots}
-    if len(dates) != 1:
+    if strict_as_of and len(dates) != 1:
         raise ValueError("all snapshots must use the same as_of date")
+    comparison_date = max(dates)
     tickers = [snapshot.ticker for snapshot in snapshots]
     if len(tickers) != len(set(tickers)):
         raise ValueError("snapshots must represent different companies")
@@ -85,6 +89,10 @@ def compare_company_snapshots(
     warnings = []
     if len(currencies) > 1:
         warnings.append("Currency mismatch: monetary values are marked not comparable.")
+    if len(dates) > 1:
+        warnings.append(
+            "Snapshot dates differ; freshness_days is shown for each company."
+        )
     values: list[ComparableMetricValue] = []
     for metric in metrics:
         for snapshot in snapshots:
@@ -95,6 +103,8 @@ def compare_company_snapshots(
                         ticker=snapshot.ticker,
                         metric=metric,
                         status="not_available",
+                        source_as_of=snapshot.as_of.date().isoformat(),
+                        freshness_days=(comparison_date - snapshot.as_of.date()).days,
                         reason="financial snapshot unavailable",
                     )
                 )
@@ -106,6 +116,8 @@ def compare_company_snapshots(
                         ticker=snapshot.ticker,
                         metric=metric,
                         status="not_available",
+                        source_as_of=snapshot.as_of.date().isoformat(),
+                        freshness_days=(comparison_date - snapshot.as_of.date()).days,
                         reason=f"no {period_kind} value",
                     )
                 )
@@ -120,6 +132,8 @@ def compare_company_snapshots(
                         period_end=point.period_end.isoformat(),
                         status="not_comparable",
                         evidence_ids=_evidence(point),
+                        source_as_of=snapshot.as_of.date().isoformat(),
+                        freshness_days=(comparison_date - snapshot.as_of.date()).days,
                         reason="currency mismatch",
                     )
                 )
@@ -133,10 +147,12 @@ def compare_company_snapshots(
                     period_end=point.period_end.isoformat(),
                     status=point.status,
                     evidence_ids=_evidence(point),
+                    source_as_of=snapshot.as_of.date().isoformat(),
+                    freshness_days=(comparison_date - snapshot.as_of.date()).days,
                 )
             )
     return CompanyComparisonResponse(
-        as_of=next(iter(dates)).isoformat(),
+        as_of=comparison_date.isoformat(),
         period_kind=period_kind,
         tickers=tickers,
         values=values,
