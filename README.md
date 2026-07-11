@@ -1,6 +1,6 @@
 # FinRisk Agent Studio
 
-Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, product supply-chain exploration, runtime quality guardrails, and human review.
+Evidence-first financial research workbench for SEC filing analysis, point-in-time company snapshots, peer analysis, valuation, monitoring, graph reasoning, supply-chain exploration, runtime quality guardrails, and human review.
 
 FinRisk Agent Studio is an open-source reference implementation for financial research workflows. It is not a generic "chat with filings" demo. The project focuses on auditable agent execution: structured inputs, tool traces, evidence candidates, deterministic scoring, graph paths, quality gates, and reviewable outputs.
 
@@ -23,6 +23,10 @@ The hosted GitHub Pages version is a static dashboard backed by offline fixtures
 - **Provider-neutral tool loop**: OpenAI-compatible structured outputs, native tool calling where supported, JSON fallback, budget controls, and no-tool finalization.
 - **Evidence and data tools**: SEC EDGAR, filing sections, transcripts, XBRL/financial metrics, web search/fetch, browser exploration, search routing, caching, and provider fallbacks.
 - **Memory/context guardrails**: evidence-memory adapters, graph-edge memory, active/candidate lifecycle rules, and write guardrails for hypothesis or untrusted evidence.
+- **Personal research cycle**: immutable company snapshots, thesis/watchlist journal, expectations, material-change review, alerts, post-earnings review, and direct FinRisk-to-snapshot orchestration.
+- **Financial fact layer**: auditable SEC aliases, industry templates, original/amended/latest-known restatement policies, TTM and quarter derivations, and live reconciliation across AAPL, NVDA, XOM, JPM, and TSM.
+- **Peer Analysis**: saved peer groups, SEC SIC candidate suggestions with analyst confirmation, fiscal-period/currency safeguards, freshness disclosure, and separate financial, risk, expectation, and valuation layers.
+- **Valuation and monitoring**: scenario valuation, sensitivity matrices, P/E, EV/EBITDA, FCF yield, simplified DCF, immutable assumption history, request throttling/retries, source cursors, and local scheduler templates.
 - **Deployment path**: GitHub Pages static dashboard published from `gh-pages`; local full-stack mode runs FastAPI + Vite.
 
 ## Current Workflow Shape
@@ -64,7 +68,7 @@ Install frontend dependencies:
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 Run backend locally:
@@ -87,7 +91,14 @@ Open:
 http://127.0.0.1:5173/
 ```
 
-The Vite dev server proxies `/workflows`, `/supply-chain`, and `/agent-runs` to the FastAPI backend.
+The Vite dev server proxies `/workflows`, `/supply-chain`, `/agent-runs`, and `/research` to the FastAPI backend.
+
+Initialize or upgrade the local research databases before the first run:
+
+```bash
+uv run python main.py database migrate --path .cache/research_snapshots.sqlite
+uv run python main.py database migrate --path .cache/research_journal.sqlite
+```
 
 ## Static Dashboard Build
 
@@ -147,6 +158,19 @@ POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
 GET  /research/financials/{ticker}
 GET  /research/management/{ticker}
 POST /research/valuation/scenarios
+POST /research/valuation/sensitivity
+POST /research/valuation/multiple
+POST /research/valuation/dcf
+GET  /research/valuation/history/{ticker}
+POST /research/runs
+GET  /research/snapshots
+GET  /research/changes/{ticker}
+GET/POST /research/expectations
+GET/POST /research/alerts
+GET/POST /research/peer-groups
+POST /research/peer-groups/{peer_group_id}/candidates
+POST /research/peer-groups/{peer_group_id}/analysis
+POST /research/monitor/scan
 GET/POST /research/theses
 GET/PUT  /research/watchlist
 GET      /research/reminders
@@ -169,6 +193,7 @@ src/
 ├── llm/               # OpenAI-compatible clients and tool-loop runtime
 ├── memory/            # evidence/graph memory and context guardrails
 ├── reports/           # report models and markdown renderer
+├── research/          # snapshots, journal, peers, valuation, monitoring
 ├── supply_chain/      # product supply-chain workflow and Sankey payloads
 ├── tools/             # web/search/data/graph tool catalog
 └── workflows/         # FinRisk workflow state, steps, quality-gated runner
@@ -231,6 +256,8 @@ Implementation history is grouped by capability rather than presented as product
 - **Context guardrail layer started**: memory adapters, ingestion, graph-edge memory, and memory write guardrails are in place.
 - **Tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
 - **Agent runtime in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
+- **Analyst workbench core completed**: Research Cycle can start FinRisk, carry correlation IDs into immutable snapshots, detect evidence-linked changes, compare confirmed peers, preserve valuation assumptions, and run unattended Watchlist scans.
+- **Release evidence current**: database schema v3, five-company financial reconciliation, 30/30 guardrail cases, 967 backend tests, 66 frontend tests, production build, and zero npm audit vulnerabilities.
 - **Local E2E validated**: recorded runs show real FinRisk, supply-chain, and agent-run flows through local SGLang, FastAPI, Vite, and Neo4j-compatible paths.
 - **GitHub Pages published**: static dashboard is live at the project URL above.
 
@@ -238,6 +265,9 @@ Recorded validation reports:
 
 - [Documentation hub](docs/README.md)
 - [Current analyst-workbench roadmap](docs/current/analyst-workbench-roadmap.md)
+- [Release-readiness roadmap](docs/current/release-readiness-roadmap.md)
+- [Financial reconciliation matrix](docs/current/validation/financial-reconciliation-2026-07-11.md)
+- [Release candidate audit](docs/current/validation/release-audit-2026-07-11.md)
 - [Risk Studio remediation summary](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
 - [Supply-chain explorer completion summary](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
 - [Supply-chain production hardening progress](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
@@ -260,6 +290,8 @@ npm test
 npm run build
 ```
 
+Latest recorded release audit: `967 passed, 7 skipped` on the backend; 18 frontend test files with 66 passing tests; 30/30 offline guardrail cases; `npm audit` reports zero vulnerabilities.
+
 Focused checks used during recent development include:
 
 ```bash
@@ -270,15 +302,9 @@ uv run ruff check src/workflows src/evaluation src/graph_reasoning src/reports s
 
 ## Roadmap
 
-Current priorities are production hardening rather than proving the workflow concept:
+The `v0.1.0` candidate is code-complete for the personal analyst-workbench scope. The remaining release gate is real browser acceptance at 1440px, 1024px, and 390px, including keyboard navigation, console errors, overflow, and degraded states. Segment-axis facts remain provider-limited because SEC Company Facts omits dimensional segment data; the application does not infer them.
 
-1. Add persistent run storage for workflows, supply-chain runs, and agent runs beyond the current in-memory/default local store paths.
-2. Complete real Neo4j integration smoke tests for graph write/read, upstream path query, and recursive supply-chain expansion.
-3. Replace rule-based supply-chain decomposition and supplier relation extraction with structured LLM/NLI extractors guarded by evidence checks.
-4. Tighten provider budget controls: max provider calls, timeout policies, retry budgets, cache TTLs, and cost estimates.
-5. Continue hardening browser exploration with stricter timeout, backend-health, and trace metadata.
-6. Expand golden-case evaluation for agent runs, evidence candidate quality, and human-review outcomes.
-7. Keep the GitHub Pages demo aligned with the local dashboard as frontend features evolve.
+After that gate, optional directions are external consensus/FX providers, email or mobile notifications, inline-XBRL segment ingestion, and longer unattended-monitoring calibration.
 
 ## Non-Goals
 

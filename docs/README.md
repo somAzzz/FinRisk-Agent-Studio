@@ -11,6 +11,8 @@
 - [个人研究闭环实施记录](current/research-closure-plan.md)：已完成首版闭环的实现契约与验收基线。
 - [SEC 财务快照验证](current/validation/sec-financial-snapshot-2026-07-11.md)：AAPL、NVDA、XOM 的公开数据验证记录。
 - [研究闭环真实数据矩阵](current/validation/research-closure-live-matrix-2026-07-11.md)：六类公司与 Watchlist 去重验证。
+- [财务勾稽矩阵](current/validation/financial-reconciliation-2026-07-11.md)：五家公司、行业模板、IFRS 与 restatement 验证。
+- [候选发布审计](current/validation/release-audit-2026-07-11.md)：自动化门禁、依赖审计与浏览器阻塞项。
 
 详见 [current/README.md](current/README.md)。
 

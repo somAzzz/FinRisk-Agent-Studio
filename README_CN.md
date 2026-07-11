@@ -1,6 +1,6 @@
 # FinRisk Agent Studio
 
-Evidence-first agent workflow for SEC filing analysis, market evidence collection, graph reasoning, product supply-chain exploration, runtime quality guardrails, and human review.
+面向个人金融研究的 evidence-first 工作台，覆盖 SEC filing、point-in-time 公司快照、同行比较、估值、监控、图推理、供应链、质量门禁与人工复核。
 
 FinRisk Agent Studio 是一个面向金融研究的 evidence-first agent workflow 开源参考实现。它不是通用的 "chat with filings" 演示,而是强调可审计执行:结构化输入、工具 trace、证据候选、确定性打分、图路径、质量门禁与人工复核。
 
@@ -25,6 +25,10 @@ GitHub Pages 托管版是基于离线 fixtures 的静态 dashboard。它展示 F
 - **Provider-neutral tool loop**: OpenAI-compatible structured outputs、native tool calling、JSON fallback、budget controls 与 no-tool finalization。
 - **Evidence and data tools**: SEC EDGAR、filing sections、transcripts、XBRL/financial metrics、web search/fetch、browser exploration、search routing、caching 与 provider fallback。
 - **Memory/context guardrails**: evidence-memory adapters、graph-edge memory、active/candidate lifecycle rules 与 memory write guardrails。
+- **个人研究闭环**：不可变快照、Thesis/Watchlist、预期、重大变化复核、提醒、财报后复盘，以及 FinRisk 直接关联研究快照。
+- **财务事实层**：可审计 alias、六类行业模板、original/amended/latest-known 查询、单季与 TTM 派生，以及 AAPL、NVDA、XOM、JPM、TSM 真实勾稽。
+- **Peer Analysis**：持久化同行组、SEC SIC 候选与人工确认、财年/币种/新鲜度控制，以及财务、风险、预期、估值分层视图。
+- **估值与监控**：情景估值、敏感性、P/E、EV/EBITDA、FCF yield、简化 DCF、假设历史、节流重试、来源 cursor 与本地调度模板。
 - **Deployment path**: GitHub Pages 静态 dashboard 已发布;本地 full-stack 模式运行 FastAPI + Vite。
 
 ## Current Workflow Shape(工作流形态)
@@ -66,7 +70,7 @@ uv sync
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 启动后端:
@@ -89,7 +93,14 @@ npm run dev
 http://127.0.0.1:5173/
 ```
 
-Vite dev server 会把 `/workflows`、`/supply-chain`、`/agent-runs` 代理到 FastAPI 后端。
+Vite dev server 会把 `/workflows`、`/supply-chain`、`/agent-runs`、`/research` 代理到 FastAPI 后端。
+
+首次运行或升级后迁移本地数据库：
+
+```bash
+uv run python main.py database migrate --path .cache/research_snapshots.sqlite
+uv run python main.py database migrate --path .cache/research_journal.sqlite
+```
 
 ## Static Dashboard Build(静态页面构建)
 
@@ -142,6 +153,19 @@ POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
 GET  /research/financials/{ticker}
 GET  /research/management/{ticker}
 POST /research/valuation/scenarios
+POST /research/valuation/sensitivity
+POST /research/valuation/multiple
+POST /research/valuation/dcf
+GET  /research/valuation/history/{ticker}
+POST /research/runs
+GET  /research/snapshots
+GET  /research/changes/{ticker}
+GET/POST /research/expectations
+GET/POST /research/alerts
+GET/POST /research/peer-groups
+POST /research/peer-groups/{peer_group_id}/candidates
+POST /research/peer-groups/{peer_group_id}/analysis
+POST /research/monitor/scan
 GET/POST /research/theses
 GET/PUT  /research/watchlist
 GET      /research/reminders
@@ -164,6 +188,7 @@ src/
 ├── llm/               # OpenAI-compatible clients and tool-loop runtime
 ├── memory/            # evidence/graph memory and context guardrails
 ├── reports/           # report models and markdown renderer
+├── research/          # 快照、研究日志、同行、估值与监控
 ├── supply_chain/      # product supply-chain workflow and Sankey payloads
 ├── tools/             # web/search/data/graph tool catalog
 └── workflows/         # FinRisk workflow state、steps 与质量门控 runner
@@ -197,6 +222,8 @@ Demo 和 CI 路径设计为不需要真实 API keys。
 - **Context guardrail layer 已启动**：memory adapters、ingestion、graph-edge memory 与 memory write guardrails 已有最小工程切片。
 - **Tool loop 已实现**：provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
 - **Agent runtime 持续完善**：`/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
+- **分析师工作台核心闭环已完成**：Research Cycle 可启动 FinRisk、贯穿 correlation ID、创建不可变快照、检测变化、比较确认同行、保存估值假设并执行无人值守扫描。
+- **发布证据已更新**：数据库 schema v3、五公司财务勾稽、30/30 guardrail cases、后端 967 tests、前端 66 tests、生产构建与 npm audit 0 vulnerabilities。
 - **Local E2E validated**: 记录过真实 FinRisk、supply-chain 与 agent-run flows,覆盖 local SGLang、FastAPI、Vite 与 Neo4j-compatible paths。
 - **GitHub Pages published**: 静态 dashboard 已上线。
 
@@ -204,6 +231,9 @@ Demo 和 CI 路径设计为不需要真实 API keys。
 
 - [文档中心](docs/README.md)
 - [当前分析师工作台路线图](docs/current/analyst-workbench-roadmap.md)
+- [发布就绪方案](docs/current/release-readiness-roadmap.md)
+- [财务勾稽矩阵](docs/current/validation/financial-reconciliation-2026-07-11.md)
+- [候选发布审计](docs/current/validation/release-audit-2026-07-11.md)
 - [Risk Studio 整改总结](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
 - [供应链研究能力完成总结](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
 - [供应链生产化加固进度](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
@@ -222,17 +252,13 @@ npm test
 npm run build
 ```
 
+最近一次候选审计：后端 `967 passed, 7 skipped`；前端 18 个测试文件、66 tests；30/30 离线 guardrail cases；`npm audit` 为 0 vulnerabilities。
+
 ## Roadmap(路线图)
 
-当前重点是 production hardening,而不是证明 workflow 概念:
+个人分析工作台范围已达到 `v0.1.0` 代码候选。唯一剩余发布门禁是真实浏览器验收：1440px、1024px、390px 三视口，以及键盘、console、溢出和降级状态。SEC Company Facts 不提供维度化 segment axis，因此系统不会推断分部数据。
 
-1. 为 workflows、supply-chain runs、agent runs 增加持久化 run store。
-2. 完成真实 Neo4j integration smoke tests。
-3. 用带 evidence guardrails 的 structured LLM/NLI extractor 替换部分 rule-based supply-chain decomposition / supplier relation extraction。
-4. 强化 provider budget controls: max calls、timeout、retry、cache TTL、cost estimate。
-5. 继续收紧 browser exploration timeout、backend health 与 trace metadata。
-6. 扩展 agent golden cases、evidence candidate quality 与 human-review outcome 评估。
-7. 保持 GitHub Pages demo 与本地 dashboard 能力同步。
+通过浏览器门禁后，可选方向包括外部 consensus/FX provider、邮件或移动提醒、inline-XBRL 分部事实和更长期的无人值守监控校准。
 
 ## Non-Goals(非目标)
 
