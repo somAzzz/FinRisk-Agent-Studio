@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import UTC, date, datetime, time
 from itertools import pairwise
+from typing import Literal
 
 from src.data.xbrl import FactValue, extract_metric
 from src.research.metric_config import MetricTemplate, load_metric_template
@@ -25,6 +26,11 @@ MARGIN_METRICS = {
     "operating_income": "operating_margin",
     "net_income": "net_margin",
 }
+RestatementPolicy = Literal["latest_known", "original", "amended_only"]
+
+
+def _base_form(form_type: str | None) -> str | None:
+    return form_type.removesuffix("/A") if form_type else None
 
 
 def merge_company_facts(*payloads: dict) -> dict:
@@ -76,20 +82,21 @@ def _period_kind(
 ) -> PeriodKind:
     if metric in instant_metrics:
         return "instant"
-    if fact.form_type in {"10-K", "20-F"} or fact.fiscal_period == "FY":
+    form_type = _base_form(fact.form_type)
+    if form_type in {"10-K", "20-F"} or fact.fiscal_period == "FY":
         return "annual"
     result: PeriodKind = "unknown"
     # SEC frames identify a discrete quarter. Q1 is also discrete when the
     # issuer omits frame; Q2/Q3 facts without a frame are commonly YTD and
     # must not be mislabeled as standalone quarters.
-    if fact.form_type == "10-Q" and (
+    if form_type == "10-Q" and (
         (fact.frame is not None and "Q" in fact.frame)
         or fact.fiscal_period == "Q1"
     ):
         result = "quarter"
-    elif fact.form_type == "10-Q" and fact.fiscal_period in {"Q2", "Q3"}:
+    elif form_type == "10-Q" and fact.fiscal_period in {"Q2", "Q3"}:
         result = "year_to_date"
-    elif fact.form_type == "6-K" and fact.period_start and fact.period_end:
+    elif form_type == "6-K" and fact.period_start and fact.period_end:
         duration_days = (fact.period_end - fact.period_start).days
         if duration_days <= 120:
             result = "quarter"
@@ -99,7 +106,12 @@ def _period_kind(
 
 
 def _is_usable(fact: FactValue, as_of: date | None) -> bool:
-    if fact.period_end is None or fact.form_type not in {"10-K", "10-Q", "20-F", "6-K"}:
+    if fact.period_end is None or _base_form(fact.form_type) not in {
+        "10-K",
+        "10-Q",
+        "20-F",
+        "6-K",
+    }:
         return False
     return not (as_of and fact.filed_at and fact.filed_at > as_of)
 
@@ -108,6 +120,7 @@ def _dedupe_facts(
     facts: Iterable[FactValue],
     metric: str,
     instant_metrics: set[str] = INSTANT_METRICS,
+    restatement_policy: RestatementPolicy = "latest_known",
 ) -> list[FactValue]:
     """Keep the latest filed value for an equivalent reported period."""
     selected: dict[tuple[date, str], FactValue] = {}
@@ -119,7 +132,16 @@ def _dedupe_facts(
             _period_kind(fact, metric, instant_metrics),
         )
         current = selected.get(key)
-        if current is None or (fact.filed_at or date.min) > (current.filed_at or date.min):
+        if restatement_policy == "amended_only" and not (
+            fact.form_type and fact.form_type.endswith("/A")
+        ):
+            continue
+        replace = current is None
+        if current is not None and restatement_policy == "original":
+            replace = (fact.filed_at or date.max) < (current.filed_at or date.max)
+        elif current is not None:
+            replace = (fact.filed_at or date.min) > (current.filed_at or date.min)
+        if replace:
             selected[key] = fact
     return sorted(selected.values(), key=lambda item: item.period_end or date.min)
 
@@ -132,10 +154,14 @@ class FinancialSnapshotBuilder:
         industry_template: str = "general",
         *,
         metric_template: MetricTemplate | None = None,
+        restatement_policy: RestatementPolicy = "latest_known",
     ) -> None:
+        if restatement_policy not in {"latest_known", "original", "amended_only"}:
+            raise ValueError(f"unsupported restatement policy: {restatement_policy}")
         self.metric_template = metric_template or load_metric_template(industry_template)
         self._instant_metrics = self.metric_template.instant_metrics | {"total_debt"}
         self._ttm_metrics = self.metric_template.ttm_metrics | {"free_cash_flow"}
+        self.restatement_policy = restatement_policy
 
     def build(
         self,
@@ -172,6 +198,7 @@ class FinancialSnapshotBuilder:
                     extracted,
                     metric,
                     self._instant_metrics,
+                    self.restatement_policy,
                 )
             )
 

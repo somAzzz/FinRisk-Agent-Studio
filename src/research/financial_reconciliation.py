@@ -189,6 +189,8 @@ def reconcile_financial_snapshot(
         selected = quarter_points
         if not selected:
             selected = snapshot.series(metric, "instant")[-expected_periods:]
+        if not selected:
+            selected = snapshot.series(metric, "annual")[-expected_periods:]
         if not selected and metric in allowed:
             results.append(
                 MetricReconciliation(

@@ -1,6 +1,7 @@
 {
   "template": "bank",
   "metrics": {
+    "revenue": {"concepts": ["RevenuesNetOfInterestExpense", "Revenues"], "unit": "USD", "period_type": "flow", "ttm": true},
     "net_interest_income": {"concepts": ["InterestIncomeExpenseNonoperatingNet", "InterestIncomeExpenseAfterProvisionForLoanLoss"], "unit": "USD", "period_type": "flow", "ttm": true},
     "credit_loss_provision": {"concepts": ["ProvisionForCreditLosses", "ProvisionForLoanLeaseAndOtherLosses"], "unit": "USD", "period_type": "flow", "ttm": true},
     "loans_net": {"concepts": ["LoansAndLeasesReceivableNetReportedAmount"], "unit": "USD", "period_type": "instant", "ttm": false},

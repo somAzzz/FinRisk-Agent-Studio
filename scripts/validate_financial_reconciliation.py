@@ -25,18 +25,55 @@ CORE_METRICS = (
     "diluted_shares",
 )
 MATRIX = {
-    "AAPL": {"template": "general", "allowed_missing": ()},
-    "NVDA": {"template": "semiconductor", "allowed_missing": ()},
+    "AAPL": {"template": "general", "allowed_missing": (), "periods": 12},
+    "NVDA": {"template": "semiconductor", "allowed_missing": (), "periods": 12},
     "XOM": {
         "template": "energy",
         "allowed_missing": ("gross_profit", "operating_income"),
+        "periods": 12,
+    },
+    "JPM": {
+        "template": "bank",
+        "allowed_missing": ("gross_profit", "operating_income", "cet1_ratio"),
+        "periods": 12,
+        "metrics": (
+            "revenue",
+            "gross_profit",
+            "operating_income",
+            "net_income",
+            "operating_cash_flow",
+            "cash",
+            "diluted_shares",
+            "net_interest_income",
+            "credit_loss_provision",
+            "deposits",
+            "cet1_ratio",
+        ),
+    },
+    "TSM": {
+        "template": "semiconductor",
+        "allowed_missing": ("gross_profit", "operating_income"),
+        "periods": 8,
+        "metrics": (
+            "revenue",
+            "gross_profit",
+            "operating_income",
+            "net_income",
+            "operating_cash_flow",
+            "capital_expenditure",
+            "cash",
+            "diluted_shares",
+            "inventory",
+            "research_and_development",
+            "productive_asset_capex",
+        ),
     },
 }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--periods", type=int, default=12)
+    parser.add_argument("--periods", type=int)
     args = parser.parse_args()
     resolver = TickerResolver()
     client = SECClient()
@@ -58,8 +95,8 @@ def main() -> int:
         report = reconcile_financial_snapshot(
             snapshot,
             facts,
-            metrics=CORE_METRICS,
-            expected_periods=args.periods,
+            metrics=settings.get("metrics", CORE_METRICS),
+            expected_periods=args.periods or settings["periods"],
             allowed_missing=settings["allowed_missing"],
         )
         output.append(

@@ -401,3 +401,32 @@ def test_loads_industry_metrics_and_productive_asset_capex_alias() -> None:
 def test_rejects_unknown_industry_template() -> None:
     with pytest.raises(ValueError, match="unknown financial metric template"):
         FinancialSnapshotBuilder("not_a_real_industry")
+
+
+def test_restatement_policies_preserve_original_amended_and_latest_queries() -> None:
+    rows = [
+        {
+            "start": "2024-01-01", "end": "2024-12-31", "val": 100,
+            "form": "10-K", "filed": "2025-02-01", "fy": 2024,
+            "fp": "FY", "accn": "original",
+        },
+        {
+            "start": "2024-01-01", "end": "2024-12-31", "val": 110,
+            "form": "10-K/A", "filed": "2025-03-01", "fy": 2024,
+            "fp": "FY", "accn": "amended",
+        },
+    ]
+    facts = {"facts": {"us-gaap": {"Revenues": _concept(rows)}}}
+
+    original = FinancialSnapshotBuilder(restatement_policy="original").build(
+        ticker="TST", cik="1", facts=facts
+    )
+    amended = FinancialSnapshotBuilder(restatement_policy="amended_only").build(
+        ticker="TST", cik="1", facts=facts
+    )
+    latest = FinancialSnapshotBuilder().build(ticker="TST", cik="1", facts=facts)
+
+    assert original.series("revenue", "annual")[0].value == 100
+    assert amended.series("revenue", "annual")[0].value == 110
+    assert amended.series("revenue", "annual")[0].form_type == "10-K/A"
+    assert latest.series("revenue", "annual")[0].accession_number == "amended"

@@ -1,8 +1,8 @@
 {
   "template": "semiconductor",
   "metrics": {
-    "inventory": {"concepts": ["InventoryNet"], "unit": "USD", "period_type": "instant", "ttm": false},
+    "inventory": {"concepts": ["InventoryNet", "Inventories"], "unit": "USD", "period_type": "instant", "ttm": false},
     "research_and_development": {"concepts": ["ResearchAndDevelopmentExpense"], "unit": "USD", "period_type": "flow", "ttm": true},
-    "productive_asset_capex": {"concepts": ["PaymentsToAcquireProductiveAssets", "PaymentsToAcquirePropertyPlantAndEquipment"], "unit": "USD", "period_type": "flow", "ttm": true}
+    "productive_asset_capex": {"concepts": ["PaymentsToAcquireProductiveAssets", "PaymentsToAcquirePropertyPlantAndEquipment", "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities"], "unit": "USD", "period_type": "flow", "ttm": true}
   }
 }
