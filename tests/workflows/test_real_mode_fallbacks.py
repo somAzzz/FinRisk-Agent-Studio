@@ -144,6 +144,50 @@ async def test_market_explorer_real_mode_swallows_router_exception() -> None:
     )
 
 
+async def test_market_explorer_respects_browser_budget_and_prioritizes_severity() -> None:
+    state = _state(demo_mode=False)
+    state.request.max_browser_steps = 2
+    state.filing_risks = [
+        ExtractedRisk(
+            risk_id=f"risk-{severity}",
+            risk_type="operational",
+            risk_factor=f"severity {severity}",
+            severity=severity,
+            evidence_quote="source quote",
+            source="sec_filing:test",
+            filing_section="section_1a",
+            confidence=0.7,
+        )
+        for severity in (1, 5, 3, 4)
+    ]
+
+    class CountingRouter:
+        def __init__(self) -> None:
+            self.queries: list[str] = []
+
+        def search(self, query, **_kwargs):
+            self.queries.append(query)
+            return SearchResponse(
+                provider="fake",
+                query=query,
+                retrieved_at=utcnow(),
+                results=[
+                    SearchResult(
+                        title="Current risk update",
+                        url="https://example.com/risk",
+                        snippet="Current sourced market evidence.",
+                        rank=1,
+                    )
+                ],
+            )
+
+    router = CountingRouter()
+    result = await MarketExplorerStep(search_router=lambda: router).run(state)
+
+    assert router.queries == ["severity 5", "severity 4"]
+    assert len(result.market_evidence) == 2
+
+
 async def test_market_explorer_llm_shadow_records_trace_without_changing_evidence() -> None:
     state = _state(demo_mode=False)
 

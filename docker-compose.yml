@@ -93,6 +93,11 @@ services:
       - "30000:30000"
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
+      # Persist torch.compile and FlashInfer kernel artifacts so container
+      # recreation can reuse cacheable work. FlashInfer may still profile
+      # runtime shapes during a cold start.
+      - ~/.cache/vllm:/root/.cache/vllm
+      - ~/.cache/flashinfer:/root/.cache/flashinfer
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - CUDA_DEVICE_ORDER=PCI_BUS_ID
@@ -127,7 +132,7 @@ services:
       - -c
       - >-
         MODEL="$${LLM_MODEL:-nvidia/Qwen3.6-27B-NVFP4}";
-        ARGS="$${MODEL} --host 0.0.0.0 --port 30000 --trust-remote-code --dtype bfloat16 --gpu-memory-utilization 0.9 --max-model-len $${LLM_MAX_MODEL_LEN:-32768}";
+        ARGS="$${MODEL} --host 0.0.0.0 --port 30000 --trust-remote-code --dtype bfloat16 --gpu-memory-utilization 0.9 --max-model-len $${LLM_MAX_MODEL_LEN:-262144}";
         if [ "$${LLM_ENABLE_MTP:-1}" = "1" ]; then
         ARGS="$${ARGS} --speculative-config {\"method\":\"mtp\",\"num_speculative_tokens\":3}";
         fi;

@@ -44,9 +44,10 @@ class AcceptanceError(RuntimeError):
 
 
 class ApiClient:
-    def __init__(self, base_url: str, timeout_s: float) -> None:
+    def __init__(self, base_url: str, timeout_s: float, api_key: str | None = None) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout_s = timeout_s
+        self.api_key = api_key
 
     def get(self, path: str) -> dict[str, Any]:
         return self._request("GET", path)
@@ -62,6 +63,8 @@ class ApiClient:
     ) -> dict[str, Any]:
         body = None if payload is None else json.dumps(payload).encode()
         headers = {"Content-Type": "application/json"} if body is not None else {}
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
         request = Request(
             f"{self.base_url}{path}",
             data=body,
@@ -83,7 +86,7 @@ def main() -> int:
         "checks": [],
         "artifacts": {},
     }
-    client = ApiClient(args.api_base, args.request_timeout_s)
+    client = ApiClient(args.api_base, args.request_timeout_s, args.api_key)
     output_path = Path(args.output).expanduser()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -241,6 +244,11 @@ def run_frontend_acceptance(args: argparse.Namespace) -> dict[str, Any]:
         )
     env = os.environ.copy()
     env["FRONTEND_URL"] = args.frontend_url
+    env["EXPECTED_LLM_PROVIDER"] = args.llm_provider
+    if args.llm_base_url:
+        env["EXPECTED_LLM_BASE_URL"] = args.llm_base_url
+    if args.llm_model:
+        env["EXPECTED_LLM_MODEL"] = args.llm_model
     env.setdefault("PLAYWRIGHT_BROWSERS_PATH", os.environ.get("PLAYWRIGHT_BROWSERS_PATH", ""))
     started = time.perf_counter()
     proc = subprocess.run(
@@ -465,6 +473,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--frontend-url", default=os.environ.get("FRONTEND_URL", "http://127.0.0.1:5173"))
     parser.add_argument("--output", default="artifacts/real_data_acceptance/latest.json")
     parser.add_argument("--request-timeout-s", type=float, default=30.0)
+    parser.add_argument(
+        "--api-key",
+        default=os.environ.get("FINRISK_API_KEY"),
+        help="API key sent as X-API-Key; never written to the report",
+    )
     parser.add_argument("--workflow-timeout-s", type=float, default=240.0)
     parser.add_argument("--skip-frontend", action="store_true")
     parser.add_argument("--require-llm", action=argparse.BooleanOptionalAction, default=True)

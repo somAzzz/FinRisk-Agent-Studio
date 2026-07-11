@@ -26,6 +26,7 @@ reports/
 !docs/reports/
 !docs/reports/**
 demo_output/
+artifacts/
 
 # Environment and secrets
 .env

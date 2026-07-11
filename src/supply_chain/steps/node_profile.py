@@ -83,7 +83,7 @@ class SupplyChainNodeProfileStep(SupplyChainStep):
                 "Do not include markdown or commentary."
             ),
             prompt=_profile_prompt(state, targets),
-            max_tokens=1800,
+            max_tokens=3200,
             temperature=0.1,
         )
         self._record_provider_call(state, call)

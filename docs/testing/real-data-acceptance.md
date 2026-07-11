@@ -18,11 +18,26 @@ The flow validates:
 
 ## Prerequisites
 
-Start the stack you want to test:
+Start Qwen3.6 NVFP4 and Neo4j, then wait for the model endpoint. The default
+context length is 262144 tokens; set `LLM_MAX_MODEL_LEN` only when you want to
+trade context length for more concurrent requests.
 
 ```bash
-uvicorn src.api.main:app --host 127.0.0.1 --port 8000
-cd frontend && npm run dev -- --host 127.0.0.1 --port 5173
+docker compose up -d neo4j vllm
+curl http://127.0.0.1:30000/v1/models
+```
+
+Start the API and frontend with the same local API key. Vite injects the key
+into proxied development requests without exposing it in the browser bundle.
+
+```bash
+set -a; source .env; set +a
+FINRISK_API_KEYS=local-real-acceptance \
+  uv run uvicorn src.api.main:app --host 127.0.0.1 --port 8000
+
+cd frontend
+FINRISK_API_KEY=local-real-acceptance \
+  npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
 Start the selected LLM backend and any search/data providers required by `.env`.
@@ -38,7 +53,7 @@ For vLLM:
 
 ```bash
 export LLM_PROVIDER=vllm
-export LLM_BASE_URL=http://localhost:8000/v1
+export LLM_BASE_URL=http://localhost:30000/v1
 ```
 
 For cloud providers, set the provider-specific API keys already documented in `.env.example`.
@@ -51,8 +66,14 @@ API + frontend:
 uv run python scripts/real_data_acceptance.py \
   --api-base http://127.0.0.1:8000 \
   --frontend-url http://127.0.0.1:5173 \
-  --llm-provider sglang \
+  --llm-provider vllm \
   --llm-base-url http://localhost:30000/v1
+```
+
+When API authentication is enabled, export the client-side key before running:
+
+```bash
+export FINRISK_API_KEY=local-real-acceptance
 ```
 
 API only:
@@ -60,7 +81,7 @@ API only:
 ```bash
 uv run python scripts/real_data_acceptance.py \
   --skip-frontend \
-  --llm-provider sglang \
+  --llm-provider vllm \
   --llm-base-url http://localhost:30000/v1
 ```
 

@@ -2,6 +2,9 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 
 const APP_URL = process.env.FRONTEND_URL ?? "http://127.0.0.1:5173";
+const EXPECTED_LLM_PROVIDER = process.env.EXPECTED_LLM_PROVIDER ?? "vllm";
+const EXPECTED_LLM_BASE_URL = process.env.EXPECTED_LLM_BASE_URL ?? "http://localhost:30000/v1";
+const EXPECTED_LLM_MODEL = process.env.EXPECTED_LLM_MODEL ?? "nvidia/Qwen3.6-27B-NVFP4";
 
 async function waitForText(page, selector, pattern, timeout = 120_000) {
   const deadline = Date.now() + timeout;
@@ -48,13 +51,18 @@ async function main() {
   assert.equal(workflowPayloads[0].demo_mode, false, "Risk demo_mode must be false");
   assert.equal(workflowPayloads[0].cached_mode, false, "Risk cached_mode must be false");
   assert.equal(workflowPayloads[0].ticker, "AAPL");
-  assert.equal(workflowPayloads[0].llm_config.provider, "sglang");
-  assert.equal(workflowPayloads[0].llm_config.base_url, "http://localhost:30000/v1");
+  assert.equal(workflowPayloads[0].llm_config.provider, EXPECTED_LLM_PROVIDER);
+  assert.equal(workflowPayloads[0].llm_config.base_url, EXPECTED_LLM_BASE_URL);
+  assert.equal(workflowPayloads[0].llm_config.model, EXPECTED_LLM_MODEL);
 
   await page.getByTestId("risk-report").waitFor({ timeout: 120_000 });
   await page.getByTestId("evaluation-tab").waitFor({ timeout: 10_000 });
   await page.getByTestId("agent-timeline").waitFor({ timeout: 10_000 });
-  await waitForText(page, "[data-testid='risk-report']", /Risk Report/);
+  await waitForText(
+    page,
+    "[data-testid='risk-report']",
+    /Risk (?:Report|Intelligence Brief)/,
+  );
   const riskReportText = await page.getByTestId("risk-report").textContent();
   assert.match(riskReportText ?? "", /Disclaimer|Top Risks/);
 
@@ -69,7 +77,9 @@ async function main() {
   assert.equal(supplyChainPayloads[0].cached_mode, false, "Supply-chain cached_mode must be false");
   assert.equal(supplyChainPayloads[0].company_name, "NVIDIA");
   assert.equal(supplyChainPayloads[0].product_name, "GPU");
-  assert.equal(supplyChainPayloads[0].llm_config.provider, "sglang");
+  assert.equal(supplyChainPayloads[0].llm_config.provider, EXPECTED_LLM_PROVIDER);
+  assert.equal(supplyChainPayloads[0].llm_config.base_url, EXPECTED_LLM_BASE_URL);
+  assert.equal(supplyChainPayloads[0].llm_config.model, EXPECTED_LLM_MODEL);
 
   await page.getByTestId("sc-sankey").waitFor({ timeout: 120_000 });
   const nodeCountText = await page.getByTestId("sc-sankey-node-count").textContent();

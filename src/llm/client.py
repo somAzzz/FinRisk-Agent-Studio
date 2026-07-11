@@ -131,8 +131,8 @@ class EdgarLLMClient:
         call_id = f"llm-{uuid.uuid4().hex[:12]}"
         try:
             request_kwargs: dict[str, Any] = {}
-            if self.provider == "sglang":
-                # Qwen reasoning models served by SGLang may prepend a
+            if self.provider in {"sglang", "vllm"}:
+                # Qwen reasoning models served locally may prepend a
                 # thinking transcript unless the chat template toggle is
                 # disabled. The extractor needs machine-parseable JSON.
                 request_kwargs["extra_body"] = {
@@ -456,6 +456,8 @@ class EdgarLLMClient:
         :meth:`DeepSeekClient.complete_with_tools`. It assumes the configured
         local server supports OpenAI-compatible ``tools`` / ``tool_calls``.
         """
+        if extra_body is None and self.provider in {"sglang", "vllm"}:
+            extra_body = {"chat_template_kwargs": {"enable_thinking": False}}
         try:
             content, loop = self._complete_with_selected_tool_loop(
                 prompt,
@@ -492,6 +494,8 @@ class EdgarLLMClient:
         max_total_tool_result_chars: int | None = None,
     ) -> tuple[str, list[LLMCall]]:
         """Return ``(final_text, audit_calls)`` after resolving tool calls."""
+        if extra_body is None and self.provider in {"sglang", "vllm"}:
+            extra_body = {"chat_template_kwargs": {"enable_thinking": False}}
         try:
             content, calls, loop = self._chat_with_selected_tool_loop(
                 messages,

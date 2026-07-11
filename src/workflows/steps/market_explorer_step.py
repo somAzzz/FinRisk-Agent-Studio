@@ -113,7 +113,16 @@ class MarketExplorerStep(WorkflowStep):
             from src.tools.search_router import to_evidence
 
             collected: list[MarketEvidence] = []
-            for risk in state.filing_risks:
+            # A filing can yield dozens of risks. Real providers commonly
+            # take seconds per query, so searching every row makes one run
+            # take minutes and ignores the request's explicit browser budget.
+            # Prioritize the highest-severity risks within that budget.
+            risks_to_search = sorted(
+                state.filing_risks,
+                key=lambda item: item.severity,
+                reverse=True,
+            )[: state.request.max_browser_steps]
+            for risk in risks_to_search:
                 response = router.search(
                     risk.risk_factor, intent="supply_chain", ttl_seconds=60
                 )

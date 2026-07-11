@@ -11,12 +11,12 @@ const DEFAULT_REQUEST: FinRiskRequest = {
   time_horizon: "6-12 months",
   sources: ["filing", "web", "graph"],
   max_browser_steps: 5,
-  demo_mode: true,
+  demo_mode: false,
   cached_mode: false,
   llm_config: {
-    provider: "sglang",
+    provider: "vllm",
     base_url: "http://localhost:30000/v1",
-    model: "Qwen/Qwen3.5-35B-A3B",
+    model: "nvidia/Qwen3.6-27B-NVFP4",
   },
 };
 

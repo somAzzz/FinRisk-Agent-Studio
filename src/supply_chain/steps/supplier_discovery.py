@@ -12,6 +12,7 @@ from src.supply_chain.llm import (
     build_supply_chain_llm_client,
     complete_json_with_trace,
 )
+from src.supply_chain.llm_extraction import extract_supplier_relations
 from src.supply_chain.models import (
     NormalizedSupplyChainEvidence,
     ProviderCall,
@@ -106,6 +107,7 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         ]
         _increment_metric(state, "requirement_count", len(requirement_nodes))
         self._add_llm_supplier_candidates(state, requirement_nodes)
+        evidence_llm_client = self._build_llm_client(state)
         router = self._search_router
         if router is None:
             try:
@@ -162,7 +164,12 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 )
                 continue
             _increment_metric(state, "raw_result_count", len(response.results))
-            self._add_supplier_edges(state, requirement, response)
+            self._add_supplier_edges(
+                state,
+                requirement,
+                response,
+                llm_client=evidence_llm_client,
+            )
         if state.metrics.get("raw_result_count", 0) == 0:
             state.fallback_events.append("supplier_discovery:ZERO_SEARCH_RESULTS")
         elif state.metrics.get("evidence_row_count", 0) == 0:
@@ -334,7 +341,54 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         state: SupplyChainExploreState,
         requirement: SupplyChainNode,
         response: Any,
+        *,
+        llm_client: Any | None,
     ) -> None:
+        if llm_client is not None:
+            started = time.perf_counter()
+            try:
+                relations, _raw = extract_supplier_relations(
+                    llm_client,
+                    company_name=state.request.company_name or state.request.ticker,
+                    product_name=state.request.product_name,
+                    source_label=requirement.label,
+                    search_query=response.query,
+                    search_results=list(response.results),
+                    max_suppliers=state.request.max_suppliers_per_node,
+                )
+                if relations:
+                    self._add_extracted_supplier_edges(
+                        state,
+                        requirement,
+                        response,
+                        relations,
+                    )
+                self._record_provider_call(
+                    state,
+                    ProviderCall(
+                        provider=state.request.llm_config.provider,
+                        operation="llm_extract_suppliers",
+                        status="success",
+                        latency_ms=int((time.perf_counter() - started) * 1000),
+                    ),
+                )
+                if relations:
+                    return
+            except Exception as exc:
+                self._record_provider_call(
+                    state,
+                    ProviderCall(
+                        provider=state.request.llm_config.provider,
+                        operation="llm_extract_suppliers",
+                        status="failed",
+                        latency_ms=int((time.perf_counter() - started) * 1000),
+                        error=str(exc),
+                    ),
+                )
+
+        # Conservative deterministic fallback for known companies. This path
+        # is intentionally secondary: real search snippets are first parsed by
+        # the selected LLM instead of being limited to a hard-coded name list.
         existing_nodes = {node.node_id for node in state.nodes}
         existing_edges = {edge.edge_id: edge for edge in state.links}
         existing_evidence = {ev.evidence_id for ev in state.evidence}
@@ -424,6 +478,117 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
             _increment_metric(state, "supplier_edge_count")
             if added >= state.request.max_suppliers_per_node:
                 break
+
+    def _add_extracted_supplier_edges(
+        self,
+        state: SupplyChainExploreState,
+        requirement: SupplyChainNode,
+        response: Any,
+        relations: list[Any],
+    ) -> None:
+        existing_nodes = {node.node_id for node in state.nodes}
+        existing_edges = {edge.edge_id: edge for edge in state.links}
+        existing_evidence = {row.evidence_id for row in state.evidence}
+        for relation in relations:
+            result_index = relation.source_index - 1
+            if result_index < 0 or result_index >= len(response.results):
+                continue
+            source = response.results[result_index]
+            source_text = f"{source.title} {source.snippet}".lower()
+            quote = relation.quote.strip()
+            if quote.lower() not in source_text:
+                _increment_metric(state, "llm_unsupported_quote_count")
+                continue
+            supplier_name = relation.supplier_name.strip()
+            supplier_id = f"company:{_slug(supplier_name)}"
+            if _is_seed_company(state, supplier_name, supplier_id):
+                _increment_metric(state, "self_supplier_candidate_count")
+                continue
+            evidence_dict = build_evidence_from_search(
+                {
+                    "url": source.url,
+                    "title": source.title,
+                    "snippet": quote,
+                },
+                query=response.query,
+                confidence=relation.confidence,
+            )
+            is_confirmed = bool(evidence_dict.pop("is_confirmed", False))
+            if not is_confirmed:
+                continue
+            evidence = NormalizedSupplyChainEvidence.model_validate(evidence_dict)
+            if evidence.evidence_id not in existing_evidence:
+                state.evidence.append(evidence)
+                existing_evidence.add(evidence.evidence_id)
+                _increment_metric(state, "evidence_row_count")
+            if supplier_id not in existing_nodes:
+                state.nodes.append(
+                    SupplyChainNode(
+                        node_id=supplier_id,
+                        node_type="company",
+                        label=supplier_name,
+                        normalized_name=_slug(supplier_name),
+                        ticker=relation.ticker,
+                        depth=requirement.depth + 1,
+                        parent_node_id=requirement.node_id,
+                        confidence=relation.confidence,
+                        evidence_ids=[evidence.evidence_id],
+                        metadata={
+                            "method": "llm_search_evidence_extraction",
+                            "provider": state.request.llm_config.provider,
+                        },
+                    )
+                )
+                existing_nodes.add(supplier_id)
+            edge_id = f"sc-edge:{requirement.node_id}:{supplier_id}:supplied_by"
+            if edge_id in existing_edges:
+                _upgrade_existing_edge_with_evidence(
+                    state,
+                    edge_id=edge_id,
+                    evidence_id=evidence.evidence_id,
+                    confidence=relation.confidence,
+                    provider=response.provider,
+                    query=response.query,
+                )
+            else:
+                edge = SupplyChainEdge(
+                    edge_id=edge_id,
+                    source_node_id=requirement.node_id,
+                    target_node_id=supplier_id,
+                    relation_type=relation.relation_type,
+                    value=0.7,
+                    confidence=relation.confidence,
+                    evidence_ids=[evidence.evidence_id],
+                    metadata={
+                        "query": response.query,
+                        "provider": response.provider,
+                        "method": "llm_search_evidence_extraction",
+                        "rationale": relation.rationale,
+                    },
+                )
+                state.links.append(edge)
+                existing_edges[edge_id] = edge
+            _append_unique_candidates(
+                state,
+                [
+                    SupplierCandidate(
+                        supplier_name=supplier_name,
+                        ticker=relation.ticker,
+                        relation_type=(
+                            relation.relation_type
+                            if relation.relation_type in {"supplied_by", "hypothesized"}
+                            else "supplied_by"
+                        ),
+                        product_or_service=relation.component or requirement.label,
+                        evidence_ids=[evidence.evidence_id],
+                        confidence=relation.confidence,
+                        uncertainty=relation.rationale,
+                        source_requirement_node_id=requirement.node_id,
+                    )
+                ],
+            )
+            _increment_metric(state, "supplier_edge_count")
+            _increment_metric(state, "supplier_edge_confirmed_count")
 
     @staticmethod
     def _record_provider_call(

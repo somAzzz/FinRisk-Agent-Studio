@@ -18,6 +18,22 @@ def test_compute_embedding_method_exists():
     assert callable(client.compute_embedding)
 
 
+def test_vllm_chat_disables_qwen_thinking_for_machine_readable_output():
+    response = MagicMock()
+    response.choices = [MagicMock(message=MagicMock(content='{"risks": []}'))]
+
+    with patch("src.llm.client.OpenAI") as OpenAIMock:
+        sdk = OpenAIMock.return_value
+        sdk.chat.completions.create.return_value = response
+        client = EdgarLLMClient(model="local-model", provider="vllm")
+        client.complete("Return JSON only.")
+
+    kwargs = sdk.chat.completions.create.call_args.kwargs
+    assert kwargs["extra_body"] == {
+        "chat_template_kwargs": {"enable_thinking": False}
+    }
+
+
 def test_edgar_client_complete_with_tools_uses_openai_compatible_tools():
     tool_call = MagicMock()
     tool_call.id = "call-local"

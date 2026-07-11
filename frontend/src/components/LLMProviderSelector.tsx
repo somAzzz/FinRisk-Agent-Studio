@@ -20,8 +20,8 @@ const PROVIDERS: Array<{
   {
     value: "vllm",
     label: "Local vLLM",
-    baseUrl: "http://localhost:8000/v1",
-    model: "Qwen/Qwen3.5-35B-A3B",
+    baseUrl: "http://localhost:30000/v1",
+    model: "nvidia/Qwen3.6-27B-NVFP4",
   },
   {
     value: "deepseek",

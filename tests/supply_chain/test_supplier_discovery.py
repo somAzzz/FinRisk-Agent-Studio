@@ -147,6 +147,71 @@ async def test_real_supplier_discovery_creates_confirmed_edge() -> None:
     assert state.metrics["supplier_edge_count"] > 0
 
 
+async def test_real_supplier_discovery_uses_llm_to_extract_search_evidence() -> None:
+    from src.supply_chain.models import SupplyChainExploreRequest
+    from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
+    from src.supply_chain.steps.requirement_decomposer import (
+        SupplyChainRequirementDecomposerStep,
+    )
+    from src.supply_chain.steps.supplier_discovery import (
+        SupplyChainSupplierDiscoveryStep,
+    )
+    from src.supply_chain.workflow import run_supply_chain_workflow
+
+    quote = "TSMC manufactures advanced chips used in accelerator products."
+    router = StubRouter(
+        [
+            SearchResult(
+                title="Foundry supply update",
+                url="https://example.com/tsmc-foundry",
+                snippet=quote,
+                rank=1,
+            )
+        ]
+    )
+
+    class FakeLLM:
+        provider = "vllm"
+        model = "test-model"
+
+        def complete(self, prompt, **_kwargs):
+            if "Search query:" not in prompt:
+                return '{"suppliers":[]}'
+            return (
+                '{"relations":[{"supplier_name":"TSMC","ticker":"TSM",'
+                '"relation_type":"manufactured_by","component":"advanced chips",'
+                f'"source_index":1,"quote":"{quote}","confidence":0.9}}]}}'
+            )
+
+    state = await run_supply_chain_workflow(
+        SupplyChainExploreRequest(
+            company_name="NVIDIA",
+            product_name="GPU",
+            demo_mode=False,
+            cached_mode=False,
+        ),
+        steps=[
+            SupplyChainProductResolverStep(),
+            SupplyChainRequirementDecomposerStep(
+                llm_client_factory=lambda _config: None,
+            ),
+            SupplyChainSupplierDiscoveryStep(
+                search_router=router,
+                llm_client_factory=lambda _config: FakeLLM(),
+            ),
+        ],
+    )
+
+    assert state.evidence
+    assert any(edge.target_node_id == "company:tsmc" for edge in state.links)
+    assert state.metrics["evidence_row_count"] > 0
+    calls = [call for event in state.trace for call in event.provider_calls]
+    assert any(
+        call.operation == "llm_extract_suppliers" and call.status == "success"
+        for call in calls
+    )
+
+
 async def test_supplier_discovery_skips_seed_company_self_supplier() -> None:
     from src.supply_chain.models import SupplyChainExploreRequest
     from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
