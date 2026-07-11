@@ -33,9 +33,10 @@ the minor version. The PR must include:
 - A manual smoke test (`docker compose up -d <service>` and a
   trivial `docker exec` check).
 
-## Pinned images (2026-06-26 baseline)
+## Pinned images (2026-06-30 baseline)
 
 | Service | Image | Pinned version | Upstream |
 |---|---|---|---|
-| `sglang` | `lmsysorg/sglang` | `v0.4.10-cu130-runtime` | <https://github.com/sgl-project/sglang/releases> |
+| `sglang` | `lmsysorg/sglang` | `v0.5.14-cu130-runtime` | <https://github.com/sgl-project/sglang/releases> |
+| `vllm` | `vllm/vllm-openai` | `v0.22.0` | <https://github.com/vllm-project/vllm/releases> |
 | `neo4j` | `neo4j` | `5.26.0` | <https://neo4j.com/release-notes/> |
