@@ -54,7 +54,7 @@ class TestDefaults:
 
         settings = Settings()
 
-        assert settings.sec_user_agent == "FinText-LLM contact@example.com"
+        assert settings.sec_user_agent == "FinRisk-Agent-Studio contact@example.com"
         assert settings.sec_rate_limit_per_second == 8.0
         assert settings.openai_base_url == "http://localhost:30000/v1"
         assert settings.openai_api_key == "EMPTY"
@@ -63,7 +63,7 @@ class TestDefaults:
         assert settings.neo4j_uri == "bolt://localhost:7687"
         assert settings.neo4j_user == "neo4j"
         assert settings.neo4j_password is None
-        assert settings.cache_dir == Path(".cache/fintext_llm")
+        assert settings.cache_dir == Path(".cache/finrisk_agent_studio")
 
 
 class TestEnvOverrides:
@@ -88,9 +88,9 @@ class TestEnvOverrides:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         _clear_env()
-        monkeypatch.setenv("CACHE_DIR", "/tmp/fintext-test-cache")
+        monkeypatch.setenv("CACHE_DIR", "/tmp/finrisk-test-cache")
         settings = Settings()
-        assert settings.cache_dir == Path("/tmp/fintext-test-cache")
+        assert settings.cache_dir == Path("/tmp/finrisk-test-cache")
 
     def test_neo4j_password_can_be_set(
         self, monkeypatch: pytest.MonkeyPatch

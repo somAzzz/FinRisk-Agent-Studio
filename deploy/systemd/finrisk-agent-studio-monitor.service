@@ -1,12 +1,12 @@
 [Unit]
-Description=FinText Watchlist research monitor
+Description=FinRisk Agent Studio Watchlist research monitor
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=%h/projects/FinText-LLM
-EnvironmentFile=-%h/.config/fintext/environment
+WorkingDirectory=%h/projects/FinRisk-Agent-Studio
+EnvironmentFile=-%h/.config/finrisk-agent-studio/environment
 ExecStart=/usr/bin/env uv run python main.py monitor --max-workers 2 --request-interval-seconds 1 --max-retries 2 --source-stale-after-days 180
 
 [Install]

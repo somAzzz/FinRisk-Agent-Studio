@@ -219,7 +219,7 @@ class Transcript(BaseModel):
 
 ```python
 class Settings(BaseSettings):
-    sec_user_agent: str = "FinText-LLM contact@example.com"
+    sec_user_agent: str = "FinRisk-Agent-Studio contact@example.com"
     sec_rate_limit_per_second: float = 8.0
     openai_base_url: str = "http://localhost:30000/v1"
     openai_api_key: str = "EMPTY"
@@ -228,7 +228,7 @@ class Settings(BaseSettings):
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str | None = None
-    cache_dir: Path = Path(".cache/fintext_llm")
+    cache_dir: Path = Path(".cache/finrisk_agent_studio")
 ```
 
 ## 实施任务

@@ -1,8 +1,8 @@
-# FinText-LLM Browser Exploration Integration Design
+# FinRisk-Agent-Studio Browser Exploration Integration Design
 
 ## Context
 
-FinText-LLM is a SEC EDGAR filing analysis system using local LLM + Spark + Neo4j. Users want to enhance the LLM with browser capabilities to autonomously explore valuable financial information beyond static EDGAR filings — including real-time market data, news, and regulatory updates.
+FinRisk-Agent-Studio is a SEC EDGAR filing analysis system using local LLM + Spark + Neo4j. Users want to enhance the LLM with browser capabilities to autonomously explore valuable financial information beyond static EDGAR filings — including real-time market data, news, and regulatory updates.
 
 **Goal:** Integrate `agent-browser` (a Rust headless browser CLI) to enable LLM-driven web exploration in a hybrid mode where the LLM autonomously explores but the user can intervene at checkpoints.
 
@@ -255,7 +255,7 @@ def sanitize_snapshot(text: str) *********REMOVED********* str:
 ## File Structure Changes
 
 ```
-FinText-LLM/
+FinRisk-Agent-Studio/
 ├── src/
 │   ├── browser/                    # NEW
 │   │   ├── __init__.py

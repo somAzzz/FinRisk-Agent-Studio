@@ -2,7 +2,7 @@
 
 ## 目标
 
-V20 的目标是把 FinText-LLM 从“workflow 代码直接调用工具”逐步迁移到：
+V20 的目标是把 FinRisk-Agent-Studio 从“workflow 代码直接调用工具”逐步迁移到：
 
 ```text
 LLM decides next tool

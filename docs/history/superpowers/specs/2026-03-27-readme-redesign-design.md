@@ -1,7 +1,7 @@
 # README Redesign Specification
 
 **Date**: 2026-03-27
-**Task**: Redesign README.md for FinText-LLM project
+**Task**: Redesign README.md for FinRisk-Agent-Studio project
 **Status**: Implemented (commit `94cbaae docs: redesign README with layered progressive structure`), subsequently superseded — the README was rewritten again when the project merged with FinRisk-Agent-Studio (2026-06-25). Kept as the historical design rationale for the layered progressive structure.
 
 ## Overview

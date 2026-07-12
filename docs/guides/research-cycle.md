@@ -110,17 +110,17 @@ systemd user timer：
 
 ```bash
 mkdir -p ~/.config/systemd/user
-cp deploy/systemd/fintext-monitor.* ~/.config/systemd/user/
+cp deploy/systemd/finrisk-agent-studio-monitor.* ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user enable --now fintext-monitor.timer
+systemctl --user enable --now finrisk-agent-studio-monitor.timer
 ```
 
 macOS launchd：复制 example，替换全部 `__PROJECT_DIR__` 后再加载。
 
 ```bash
-sed "s|__PROJECT_DIR__|$PWD|g" deploy/launchd/com.fintext.monitor.plist.example \
-  > ~/Library/LaunchAgents/com.fintext.monitor.plist
-launchctl load ~/Library/LaunchAgents/com.fintext.monitor.plist
+sed "s|__PROJECT_DIR__|$PWD|g" deploy/launchd/com.finrisk-agent-studio.monitor.plist.example \
+  > ~/Library/LaunchAgents/com.finrisk-agent-studio.monitor.plist
+launchctl load ~/Library/LaunchAgents/com.finrisk-agent-studio.monitor.plist
 ```
 
 Monitor cursor 会记录每类来源/provider 的最后成功时间。使用 `--source-stale-after-days` 后，来源首次越过阈值会生成待复核的 evidence change，不会在每次扫描重复报警。

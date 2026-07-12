@@ -1,5 +1,5 @@
 [project]
-name = "FinText-LLM"
+name = "FinRisk-Agent-Studio"
 version = "0.1.0"
 description = "Evidence-first financial risk agent studio combining SEC filings, market evidence collection, structured LLM outputs, deterministic risk scoring, graph reasoning, claim grounding, runtime guardrails, and human review gates."
 readme = "README.md"

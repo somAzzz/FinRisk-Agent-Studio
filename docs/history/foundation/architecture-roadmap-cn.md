@@ -1,8 +1,8 @@
-# FinText-LLM 架构与路线图规划
+# FinRisk-Agent-Studio 架构与路线图规划
 
 ## 1. 项目重新定位
 
-FinText-LLM 的目标应从“SEC EDGAR 年报风险抽取工具”升级为：
+FinRisk-Agent-Studio 的目标应从“SEC EDGAR 年报风险抽取工具”升级为：
 
 > 一个本地 LLM 驱动的金融研究 Agent 系统：持续读取年报、电话会议、网页新闻和结构化财务数据，抽取风险、机会、供应链关系和管理层信号，写入图数据库，并生成可追溯证据链的投资研究假设。
 
@@ -122,7 +122,7 @@ src/data/xbrl_facts.py
 配置要求：
 
 ```text
-SEC_USER_AGENT="FinText-LLM contact@example.com"
+SEC_USER_AGENT="FinRisk-Agent-Studio contact@example.com"
 SEC_RATE_LIMIT=8
 ```
 
@@ -768,7 +768,7 @@ MVP 输出：
 
 ## 13. 总结
 
-FinText-LLM 后续应朝着“证据可追溯的本地金融研究 Agent 系统”演进。
+FinRisk-Agent-Studio 后续应朝着“证据可追溯的本地金融研究 Agent 系统”演进。
 
 短期重点不是堆更多单点功能，而是建立统一抽象：
 

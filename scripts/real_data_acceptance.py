@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reusable real-data acceptance runner for FinText-LLM.
+"""Reusable real-data acceptance runner for FinRisk-Agent-Studio.
 
 The runner validates the production-shaped paths against a running API
 and, optionally, the frontend:
@@ -467,7 +467,7 @@ def _now_ms() -> int:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run reusable real-data acceptance checks against a running FinText-LLM stack.",
+        description="Run reusable real-data acceptance checks against a running FinRisk-Agent-Studio stack.",
     )
     parser.add_argument("--api-base", default=os.environ.get("API_BASE", "http://127.0.0.1:8000"))
     parser.add_argument("--frontend-url", default=os.environ.get("FRONTEND_URL", "http://127.0.0.1:5173"))

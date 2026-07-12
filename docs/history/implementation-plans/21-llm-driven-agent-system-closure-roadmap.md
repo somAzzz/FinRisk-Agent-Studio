@@ -2,7 +2,7 @@
 
 ## 背景
 
-V20 已经把 FinText-LLM 从“代码直接调用工具”推进到“LLM 可通过统一 ToolCatalog 调用受控工具”：
+V20 已经把 FinRisk-Agent-Studio 从“代码直接调用工具”推进到“LLM 可通过统一 ToolCatalog 调用受控工具”：
 
 - DeepSeek 与本地 OpenAI-compatible LLM 共用 tool loop。
 - 本地 LLM 支持 `native` / `json_fallback` / `auto`。

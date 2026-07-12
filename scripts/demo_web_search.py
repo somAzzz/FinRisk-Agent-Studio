@@ -20,7 +20,7 @@ from src.tools.router import ToolRouter
 
 async def main():
     print("=" * 60)
-    print("FinText-LLM Web Search Demo")
+    print("FinRisk-Agent-Studio Web Search Demo")
     print("Tool: DuckDuckGo API + LLM Routing")
     print("=" * 60)
 

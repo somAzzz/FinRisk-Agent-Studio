@@ -1,4 +1,4 @@
-// FinText-LLM Neo4j schema bootstrap.
+// FinRisk-Agent-Studio Neo4j schema bootstrap.
 //
 // Run with: cypher-shell -u neo4j -p password < src/graph/schema.cypher
 //

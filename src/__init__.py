@@ -1,1 +1,1 @@
-"""FinText-LLM package."""
+"""FinRisk-Agent-Studio package."""

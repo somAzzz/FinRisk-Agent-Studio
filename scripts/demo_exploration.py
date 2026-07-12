@@ -14,7 +14,7 @@ from src.llm.sglang_client import SGLangClient
 
 async def main():
     print("=" * 60)
-    print("FinText-LLM Browser Exploration Demo")
+    print("FinRisk-Agent-Studio Browser Exploration Demo")
     print("Using SGLang + Pydantic Structured Output")
     print("=" * 60)
 

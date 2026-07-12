@@ -40,7 +40,7 @@ def _build_finrisk_backend():
     if backend == "memory":
         return FinRiskInMemoryRunStore()
     if backend == "sqlite":
-        db_path = os.environ.get("RUN_STORE_DB", ".cache/fintext_llm/runs.sqlite3")
+        db_path = os.environ.get("RUN_STORE_DB", ".cache/finrisk_agent_studio/runs.sqlite3")
         return FinRiskSQLiteRunStore(db_path)
     raise ValueError(
         f"Unknown RUN_STORE_BACKEND={backend!r}. Expected 'memory' or 'sqlite'."
@@ -53,7 +53,7 @@ def _build_supply_chain_backend() -> RunStoreBackend[SupplyChainExploreState]:
     if backend == "memory":
         return InMemoryRunStore[SupplyChainExploreState]()
     if backend == "sqlite":
-        db_path = os.environ.get("RUN_STORE_DB", ".cache/fintext_llm/runs.sqlite3")
+        db_path = os.environ.get("RUN_STORE_DB", ".cache/finrisk_agent_studio/runs.sqlite3")
         return TypedSQLiteRunStore(
             db_path,
             model=SupplyChainExploreState,
@@ -70,7 +70,7 @@ def _build_agent_run_backend() -> RunStoreBackend[AgentRunState]:
     if backend == "memory":
         return InMemoryRunStore[AgentRunState]()
     if backend == "sqlite":
-        db_path = os.environ.get("RUN_STORE_DB", ".cache/fintext_llm/runs.sqlite3")
+        db_path = os.environ.get("RUN_STORE_DB", ".cache/finrisk_agent_studio/runs.sqlite3")
         return TypedSQLiteRunStore(
             db_path,
             model=AgentRunState,

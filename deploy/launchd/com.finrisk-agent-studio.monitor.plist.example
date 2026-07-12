@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>com.fintext.monitor</string>
+  <key>Label</key><string>com.finrisk-agent-studio.monitor</string>
   <key>WorkingDirectory</key><string>__PROJECT_DIR__</string>
   <key>ProgramArguments</key>
   <array>

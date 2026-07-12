@@ -2,7 +2,7 @@
 
 Covers the role/section heuristics, the on-disk cache round-trip, and the
 transcript provider exception hierarchy. The tests use a temporary
-``cache_dir`` so they do not touch the real ``.cache/fintext_llm`` directory.
+``cache_dir`` so they do not touch the real ``.cache/finrisk_agent_studio`` directory.
 """
 
 from __future__ import annotations

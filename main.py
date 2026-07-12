@@ -9,7 +9,7 @@ from datetime import date
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="fintext-llm",
+        prog="finrisk-agent-studio",
         description="Run the FinRisk Agent Studio API or a company workflow.",
     )
     commands = parser.add_subparsers(dest="command")

@@ -6,7 +6,7 @@
 
 总目标：
 
-> 将 FinText-LLM 从金融文本分析工具库升级为 FinRisk Agent Studio：一个可运行、可解释、可评估、可部署的 Agent Workflow Demo。
+> 将 FinRisk-Agent-Studio 从金融文本分析工具库升级为 FinRisk Agent Studio：一个可运行、可解释、可评估、可部署的 Agent Workflow Demo。
 
 ## 推荐执行顺序
 

@@ -35,11 +35,11 @@ def _env_path(name: str, default: Path) -> Path:
 
 @dataclass(frozen=True)
 class Settings:
-    """Runtime configuration for FinText-LLM components."""
+    """Runtime configuration for FinRisk-Agent-Studio components."""
 
     sec_user_agent: str = field(
         default_factory=lambda: _env(
-            "SEC_USER_AGENT", "FinText-LLM contact@example.com"
+            "SEC_USER_AGENT", "FinRisk-Agent-Studio contact@example.com"
         )
     )
     sec_rate_limit_per_second: float = field(
@@ -88,7 +88,7 @@ class Settings:
         default_factory=lambda: os.environ.get("NEO4J_PASSWORD")
     )
     cache_dir: Path = field(
-        default_factory=lambda: _env_path("CACHE_DIR", Path(".cache/fintext_llm"))
+        default_factory=lambda: _env_path("CACHE_DIR", Path(".cache/finrisk_agent_studio"))
     )
     search_provider_order: str = field(
         default_factory=lambda: _env(

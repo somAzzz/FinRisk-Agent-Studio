@@ -1,11 +1,11 @@
 [Unit]
-Description=Run FinText Watchlist monitor every morning
+Description=Run FinRisk Agent Studio Watchlist monitor every morning
 
 [Timer]
 OnCalendar=*-*-* 07:30:00
 Persistent=true
 RandomizedDelaySec=300
-Unit=fintext-monitor.service
+Unit=finrisk-agent-studio-monitor.service
 
 [Install]
 WantedBy=timers.target

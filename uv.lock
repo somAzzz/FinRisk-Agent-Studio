@@ -540,7 +540,7 @@ wheels = [
 ]
 
 [[package]]
-name = "fintext-llm"
+name = "finrisk-agent-studio"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

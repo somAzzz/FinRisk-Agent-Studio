@@ -13,7 +13,7 @@ The client exposes two surfaces:
 
 - :meth:`DeepSeekClient.complete` for plain chat completions.
 - :meth:`DeepSeekClient.extract_risks` for the structured risk
-  extraction prompt the FinText-LLM pipeline already uses; the
+  extraction prompt the FinRisk-Agent-Studio pipeline already uses; the
   output is the same dict shape as :class:`EdgarLLMClient` so the
   caller can swap providers without changing downstream code.
 

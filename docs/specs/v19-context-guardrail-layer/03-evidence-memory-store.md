@@ -13,7 +13,7 @@ src/memory/store.py
 默认数据库：
 
 ```text
-.cache/fintext_llm/memory.sqlite
+.cache/finrisk_agent_studio/memory.sqlite
 ```
 
 ## API

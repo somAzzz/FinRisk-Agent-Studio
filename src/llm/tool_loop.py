@@ -674,7 +674,7 @@ def _run_awaitable_sync(awaitable: Any) -> Any:
         except BaseException as exc:
             outcome["error"] = exc
 
-    thread = threading.Thread(target=runner, name="fintext-tool-awaitable")
+    thread = threading.Thread(target=runner, name="finrisk-agent-studio-tool-awaitable")
     thread.start()
     thread.join()
     if "error" in outcome:

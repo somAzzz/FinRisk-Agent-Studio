@@ -21,7 +21,7 @@ DEFAULT_TTL_SECONDS = 3600
 class SearchCache:
     """SQLite-backed key/value cache for :class:`SearchResponse` objects."""
 
-    def __init__(self, cache_dir: Path | str = ".cache/fintext_llm", db_name: str = "search_cache.sqlite"):
+    def __init__(self, cache_dir: Path | str = ".cache/finrisk_agent_studio", db_name: str = "search_cache.sqlite"):
         self._cache_dir = Path(cache_dir)
         self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._db_path = self._cache_dir / db_name

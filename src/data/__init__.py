@@ -1,4 +1,4 @@
-"""Data loading modules for FinText-LLM."""
+"""Data loading modules for FinRisk-Agent-Studio."""
 
 from src.data.edgar_hf import EdgarCorpusLoader
 from src.data.filing_fetcher import FilingFetcher

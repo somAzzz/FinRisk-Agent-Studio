@@ -2,7 +2,7 @@
 
 ## 目标
 
-V21 承接 V20 的 tool loop，把 FinText-LLM 从“局部步骤可由 LLM 调工具”升级为“全局目标由 LLM planner 驱动，后端受控执行，workflow 负责验证和写入”的 agent system。
+V21 承接 V20 的 tool loop，把 FinRisk-Agent-Studio 从“局部步骤可由 LLM 调工具”升级为“全局目标由 LLM planner 驱动，后端受控执行，workflow 负责验证和写入”的 agent system。
 
 核心变化：
 

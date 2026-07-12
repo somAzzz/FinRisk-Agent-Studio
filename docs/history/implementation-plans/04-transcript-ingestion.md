@@ -153,7 +153,7 @@ section 识别规则：
 本步骤可先实现简单文件缓存：
 
 ```text
-.cache/fintext_llm/transcripts/<provider>/<ticker>/<year>Q<quarter>.json
+.cache/finrisk_agent_studio/transcripts/<provider>/<ticker>/<year>Q<quarter>.json
 ```
 
 要求：

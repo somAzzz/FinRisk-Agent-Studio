@@ -1,4 +1,4 @@
-"""Evaluation utilities for the FinText-LLM MVP.
+"""Evaluation utilities for the FinRisk-Agent-Studio MVP.
 
 Re-exports the public API of the evaluation submodules so callers can do::
 

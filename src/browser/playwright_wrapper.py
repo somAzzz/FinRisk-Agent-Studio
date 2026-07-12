@@ -36,7 +36,7 @@ class PlaywrightBrowserWrapper:
         self.headless = headless
         self.browser_type = browser_type
         self._playwright_factory = playwright_factory
-        self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="fintext-playwright")
+        self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="finrisk-agent-studio-playwright")
         self._playwright: Any | None = None
         self._browser: Any | None = None
         self._context: Any | None = None

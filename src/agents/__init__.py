@@ -1,4 +1,4 @@
-"""Agent runtime for FinText-LLM.
+"""Agent runtime for FinRisk-Agent-Studio.
 
 This package provides a small, locally-controllable agent framework built on
 top of the project schemas. It exposes:

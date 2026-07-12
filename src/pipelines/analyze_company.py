@@ -671,7 +671,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="analyze_company",
         description=(
-            "Run the FinText-LLM MVP pipeline against a single ticker. "
+            "Run the FinRisk-Agent-Studio MVP pipeline against a single ticker. "
             "Use --offline-fixtures to bypass all network calls."
         ),
     )

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Integrate agent-browser CLI with FinText-LLM to enable LLM-driven web exploration for financial research.
+**Goal:** Integrate agent-browser CLI with FinRisk-Agent-Studio to enable LLM-driven web exploration for financial research.
 
 **Architecture:** Python CLI wrapper (BrowserWrapper) + LLM agent (MarketExplorer) + checkpoint mechanism. agent-browser handles headless Chrome; Python wraps CLI and provides async execution, novelty detection, and checkpoint callbacks.
 

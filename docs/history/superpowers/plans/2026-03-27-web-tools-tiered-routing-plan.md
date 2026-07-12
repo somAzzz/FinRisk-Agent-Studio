@@ -1,6 +1,6 @@
 # Web Tools Tiered Routing Implementation Plan
 
-> **Status (2026-06-25):** Implemented via commits `d806528` (Tavily), `150d374` (SearXNG), `7361062` (tier detection), `4d8c0de` (tiered routing), `d9caeca` (router quality fixes). The architecture has since evolved — `src/tools/router.py` is now `src/tools/search_router.py` and the tool layer was factored into `src/tools/providers/` with cache (`src/tools/search_cache.py`). Kept as the historical implementation record of the FinText-LLM tiered routing work.
+> **Status (2026-06-25):** Implemented via commits `d806528` (Tavily), `150d374` (SearXNG), `7361062` (tier detection), `4d8c0de` (tiered routing), `d9caeca` (router quality fixes). The architecture has since evolved — `src/tools/router.py` is now `src/tools/search_router.py` and the tool layer was factored into `src/tools/providers/` with cache (`src/tools/search_cache.py`). Kept as the historical implementation record of the FinRisk-Agent-Studio tiered routing work.
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 

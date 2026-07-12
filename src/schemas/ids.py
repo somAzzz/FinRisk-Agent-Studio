@@ -1,4 +1,4 @@
-"""Stable identifier helpers for FinText-LLM schemas."""
+"""Stable identifier helpers for FinRisk-Agent-Studio schemas."""
 
 from __future__ import annotations
 

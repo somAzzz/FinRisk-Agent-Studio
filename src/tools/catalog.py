@@ -1255,7 +1255,7 @@ def _run_browser_explore_with_timeout(
         except BaseException as exc:  # pragma: no cover - defensive thread bridge
             error_box["error"] = exc
 
-    thread = threading.Thread(target=_worker, daemon=True, name="fintext-browser-explore")
+    thread = threading.Thread(target=_worker, daemon=True, name="finrisk-agent-studio-browser-explore")
     thread.start()
     thread.join(timeout=timeout_seconds)
     if thread.is_alive():

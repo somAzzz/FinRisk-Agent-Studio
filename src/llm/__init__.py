@@ -1,4 +1,4 @@
-"""LLM inference modules for FinText-LLM."""
+"""LLM inference modules for FinRisk-Agent-Studio."""
 
 from src.llm.client import EdgarLLMClient
 from src.llm.deepseek_client import (

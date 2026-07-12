@@ -1,4 +1,4 @@
-"""Shared schemas for FinText-LLM.
+"""Shared schemas for FinRisk-Agent-Studio.
 
 Centralizes the data contracts used across data ingestion, agents,
 graph storage, and analysis modules.

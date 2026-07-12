@@ -293,7 +293,7 @@ def web_fetch_sync(url: str) -> WebFetchResult:
         except BaseException as exc:  # pragma: no cover - defensive thread bridge
             error_box["error"] = exc
 
-    thread = threading.Thread(target=_worker, name="fintext-web-fetch-sync")
+    thread = threading.Thread(target=_worker, name="finrisk-agent-studio-web-fetch-sync")
     thread.start()
     thread.join()
     if "error" in error_box:
