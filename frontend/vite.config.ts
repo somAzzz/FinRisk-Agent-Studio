@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 const apiProxy = {
-  target: "http://127.0.0.1:8000",
+  target: process.env.FINRISK_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
   configure(proxy: { on: (event: string, callback: (request: { setHeader: (name: string, value: string) => void }) => void) => void }) {
     const apiKey = process.env.FINRISK_API_KEY;
     if (apiKey) {

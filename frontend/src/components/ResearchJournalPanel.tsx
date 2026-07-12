@@ -35,6 +35,7 @@ export function ResearchJournalPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<ResearchTask>(initialResearchTask);
+  const [researchRevision, setResearchRevision] = useState(0);
 
   const refresh = async () => {
     const [nextTheses, nextWatchlist, nextReminders] = await Promise.allSettled([
@@ -45,6 +46,7 @@ export function ResearchJournalPanel() {
     if (nextTheses.status === "fulfilled") setTheses(nextTheses.value);
     if (nextWatchlist.status === "fulfilled") setWatchlist(nextWatchlist.value);
     if (nextReminders.status === "fulfilled") setReminders(nextReminders.value);
+    setResearchRevision((current) => current + 1);
     const failure = [nextTheses, nextWatchlist, nextReminders].find((result) => result.status === "rejected");
     setError(failure?.status === "rejected" ? describeApiError(failure.reason, "Research journal") : null);
   };
@@ -141,7 +143,7 @@ export function ResearchJournalPanel() {
         <nav className="research-task-nav" aria-label="Research tasks">
           {(["cycle", "valuation", "peers", "reviews"] as ResearchTask[]).map((task) => <button key={task} type="button" className={activeTask === task ? "active" : ""} aria-current={activeTask === task ? "page" : undefined} onClick={() => setActiveTask(task)}>{task === "cycle" ? "Research cycle" : task === "valuation" ? "Valuation" : task === "peers" ? "Peer analysis" : "Reviews"}</button>)}
         </nav>
-        <ResearchCyclePanel activeTask={activeTask} />
+        <ResearchCyclePanel activeTask={activeTask} researchRevision={researchRevision} />
         {reminders.length ? (
           <section className="section reminder-ledger">
             <h2>Due research</h2>

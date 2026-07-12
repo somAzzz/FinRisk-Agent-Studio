@@ -65,6 +65,11 @@ describe("ResearchCyclePanel", () => {
       snapshot("new", 2026), snapshot("old", 2025),
     ]);
     vi.mocked(api.listExpectations).mockResolvedValue([]);
+    vi.mocked(api.saveExpectation).mockResolvedValue({
+      expectation_id: "saved-expectation", ticker: "ACME", metric: "revenue",
+      fiscal_period: "2025FY", value: 100, unit: "USD", source: "analyst model",
+      origin: "user", observed_at: "2025-09-20T00:00:00Z", as_of: "2025-09-20T00:00:00Z",
+    });
     vi.mocked(api.getResearchChanges).mockResolvedValue({
       ticker: "ACME",
       from_snapshot_id: "old",
@@ -139,6 +144,15 @@ describe("ResearchCyclePanel", () => {
     fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
     fireEvent.click(screen.getByRole("button", { name: "Run FinRisk + snapshot" }));
 
+    await waitFor(() => expect(api.startWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        llm_config: {
+          provider: "vllm",
+          base_url: "http://localhost:30000/v1",
+          model: "nvidia/Qwen3.6-27B-NVFP4",
+        },
+      }),
+    ));
     await waitFor(() => expect(api.startResearchRun).toHaveBeenCalledWith(
       expect.objectContaining({
         ticker: "ACME",
@@ -146,5 +160,22 @@ describe("ResearchCyclePanel", () => {
         correlation_id: "workflow-one",
       }),
     ));
+  });
+
+  it("saves a historical point-in-time expectation with explicit dates", async () => {
+    render(<ResearchCyclePanel />);
+    fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+    fireEvent.click(screen.getByText("Expectations and CSV import"));
+    fireEvent.change(screen.getByLabelText("Expectation fiscal period"), { target: { value: "2025FY" } });
+    fireEvent.change(screen.getByLabelText("Expectation value"), { target: { value: "100" } });
+    fireEvent.change(screen.getByLabelText("Expectation source"), { target: { value: "analyst model" } });
+    fireEvent.change(screen.getByLabelText("Expectation observed date"), { target: { value: "2025-09-20" } });
+    fireEvent.change(screen.getByLabelText("Expectation as-of date"), { target: { value: "2025-09-20" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expectation" }));
+
+    await waitFor(() => expect(api.saveExpectation).toHaveBeenCalledWith(expect.objectContaining({
+      observed_at: "2025-09-20T00:00:00Z",
+      as_of: "2025-09-20T00:00:00Z",
+    })));
   });
 });

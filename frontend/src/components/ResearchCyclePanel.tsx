@@ -6,6 +6,7 @@ import type {
   ExpectationPoint,
   ExpectationComparison,
   InvestmentThesis,
+  LLMRunConfig,
   PostEarningsReviewDraft,
   ResearchAlert,
   ResearchChangeSet,
@@ -15,6 +16,7 @@ import type {
 } from "../types";
 import { PeerAnalysisPanel } from "./PeerAnalysisPanel";
 import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
+import { LLMProviderSelector } from "./LLMProviderSelector";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentQuarter = () => Math.floor(new Date().getMonth() / 3) + 1;
@@ -23,7 +25,10 @@ const researchDate = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" })
 
 export type ResearchTask = "cycle" | "valuation" | "peers" | "reviews";
 
-export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: ResearchTask }) {
+export function ResearchCyclePanel({
+  activeTask = "cycle",
+  researchRevision = 0,
+}: { activeTask?: ResearchTask; researchRevision?: number }) {
   const [ticker, setTicker] = useState("");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [quarter, setQuarter] = useState(String(currentQuarter()));
@@ -42,6 +47,8 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
   const [expectedValue, setExpectedValue] = useState("");
   const [unit, setUnit] = useState("USD");
   const [source, setSource] = useState("personal model");
+  const [expectationObservedAt, setExpectationObservedAt] = useState(today());
+  const [expectationAsOf, setExpectationAsOf] = useState(today());
   const [csv, setCsv] = useState("");
   const [comparisonMetrics, setComparisonMetrics] = useState("revenue,free_cash_flow");
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
@@ -49,6 +56,11 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
   const [error, setError] = useState<string | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
   const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
+  const [llmConfig, setLlmConfig] = useState<LLMRunConfig>({
+    provider: "vllm",
+    base_url: "http://localhost:30000/v1",
+    model: "nvidia/Qwen3.6-27B-NVFP4",
+  });
 
   const refreshGlobal = async () => {
     const [nextAlerts, nextDrafts, nextTheses, nextWatchlist] = await Promise.allSettled([
@@ -73,6 +85,9 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
   };
 
   useEffect(() => { void refreshGlobal(); }, []);
+  useEffect(() => {
+    if (researchRevision > 0) void refreshGlobal();
+  }, [researchRevision]);
 
   const refreshTicker = async (selectedTicker = ticker) => {
     const normalized = selectedTicker.toUpperCase().trim();
@@ -129,6 +144,7 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
         sources: ["filing", "web", "transcript", "graph"],
         demo_mode: false,
         cached_mode: false,
+        llm_config: llmConfig,
       });
       setWorkflow(next);
       for (let attempt = 0; attempt < 300; attempt += 1) {
@@ -182,7 +198,12 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
 
   const saveExpectation = async () => {
     if (!ticker || !fiscalPeriod || !expectedValue || !source) return;
-    const timestamp = `${today()}T00:00:00Z`;
+    if (!expectationObservedAt || !expectationAsOf || expectationAsOf < expectationObservedAt) {
+      setError("Expectation as-of date must be on or after the observed date.");
+      return;
+    }
+    const observedAt = `${expectationObservedAt}T00:00:00Z`;
+    const asOf = `${expectationAsOf}T00:00:00Z`;
     try {
       await api.saveExpectation({
         ticker: ticker.toUpperCase().trim(),
@@ -192,8 +213,8 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
         unit,
         source,
         origin: "user",
-        observed_at: timestamp,
-        as_of: timestamp,
+        observed_at: observedAt,
+        as_of: asOf,
       });
       setExpectedValue("");
       await refreshTicker();
@@ -302,6 +323,7 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
         <button className="ghost" type="button" disabled={!ticker.trim()} onClick={() => void refreshTicker()}>Load history</button>
       </div>
       <label className="cycle-full-run-goal">FinRisk analysis goal<input aria-label="FinRisk analysis goal" value={analysisGoal} onChange={(event) => setAnalysisGoal(event.target.value)} /><small>Estimated providers: SEC filing, web search, transcript and graph. Actual requests depend on availability.</small></label>
+      <details className="cycle-details cycle-llm-config"><summary>Research LLM</summary><LLMProviderSelector value={llmConfig} onChange={setLlmConfig} /></details>
       {workflow ? <div className={`cycle-run-state ${workflow.status}`}><strong>FinRisk: {workflow.status}</strong><span>{workflow.run_id}</span>{workflow.current_step ? <small>{workflow.current_step}</small> : null}</div> : null}
       {run ? <div className={`cycle-run-state ${run.manifest.state}`}><strong>{run.manifest.state}</strong><span>{run.manifest.run_id}</span>{run.manifest.components.map((item) => <small key={item.component}>{item.component}: {item.state}{item.reason ? ` · ${item.reason}` : ""}</small>)}</div> : null}
       {error ? <div className="recoverable-error" role="alert"><p>{error}</p><button className="ghost" type="button" onClick={() => void refreshGlobal()}>Retry research data</button></div> : null}
@@ -326,6 +348,8 @@ export function ResearchCyclePanel({ activeTask = "cycle" }: { activeTask?: Rese
         <input aria-label="Expectation value" type="number" value={expectedValue} onChange={(event) => setExpectedValue(event.target.value)} placeholder="value" />
         <input aria-label="Expectation unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
         <input aria-label="Expectation source" value={source} onChange={(event) => setSource(event.target.value)} />
+        <input aria-label="Expectation observed date" type="date" value={expectationObservedAt} onChange={(event) => setExpectationObservedAt(event.target.value)} />
+        <input aria-label="Expectation as-of date" type="date" value={expectationAsOf} min={expectationObservedAt} onChange={(event) => setExpectationAsOf(event.target.value)} />
         <button className="ghost" type="button" onClick={() => void saveExpectation()}>Save expectation</button>
       </div><textarea aria-label="Expectations CSV" name="expectations_csv" autoComplete="off" value={csv} onChange={(event) => setCsv(event.target.value)} placeholder="ticker,metric,fiscal_period,value,unit,source,observed_at,as_of…" /><button className="ghost" type="button" onClick={() => void importCsv()}>Import CSV</button><p className="muted">{expectations.length} point-in-time expectations loaded.</p>
       {expectations.map((point) => { const comparison = point.expectation_id ? expectationComparisons[point.expectation_id] : null; return <article className="expectation-record" key={point.expectation_id ?? `${point.metric}-${point.as_of}`}><div><strong>{point.metric} · {point.fiscal_period}</strong><span>{new Intl.NumberFormat().format(point.value)} {point.unit} · {point.source}</span></div>{point.expectation_id && snapshots[0] ? <button className="ghost" type="button" onClick={() => void compareExpectation(point)}>Compare actual</button> : null}{comparison ? <p aria-live="polite"><b>{comparison.percent_surprise == null ? new Intl.NumberFormat().format(comparison.absolute_surprise) : `${new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 }).format(comparison.percent_surprise)} surprise`}</b> · actual {new Intl.NumberFormat().format(comparison.actual.value)} {comparison.actual.unit}</p> : null}</article>; })}
