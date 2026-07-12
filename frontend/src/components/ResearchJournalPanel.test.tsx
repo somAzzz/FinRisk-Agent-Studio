@@ -16,6 +16,11 @@ vi.mock("../api", () => ({
     saveWatchlistItem: vi.fn(),
     reviewThesis: vi.fn(),
   },
+  describeApiError: (error: { status?: number; retryAfterSeconds?: number }, subject: string) => (
+    error?.status === 429
+      ? `${subject} reached the API request limit. Wait ${error.retryAfterSeconds} seconds, then retry.`
+      : `${subject} could not be loaded. Check the API connection, then retry.`
+  ),
 }));
 
 const thesis = {
@@ -81,5 +86,14 @@ describe("ResearchJournalPanel", () => {
     render(<ResearchJournalPanel />);
     expect(await screen.findByText("Review ACME research thesis")).toBeInTheDocument();
     expect(screen.getByText("Overdue 2026-07-05")).toBeInTheDocument();
+  });
+
+  it("shows an actionable retry when the API rate limit is reached", async () => {
+    vi.mocked(api.listTheses).mockRejectedValueOnce({ status: 429, retryAfterSeconds: 12 });
+    render(<ResearchJournalPanel />);
+    expect(await screen.findByText(/Wait 12 seconds, then retry/)).toBeInTheDocument();
+    const callsBeforeRetry = vi.mocked(api.listTheses).mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Retry journal" }));
+    await waitFor(() => expect(api.listTheses).toHaveBeenCalledTimes(callsBeforeRetry + 1));
   });
 });

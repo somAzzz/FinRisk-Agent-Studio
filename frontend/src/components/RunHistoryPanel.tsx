@@ -46,7 +46,7 @@ export function RunHistoryPanel({
       >
         {collapsed ? <PanelRightOpen size={15} /> : <PanelLeftClose size={15} />}
       </button>
-      <header>
+      {!collapsed ? <><header>
         <div>
           <span>History</span>
           <strong>Recent runs</strong>
@@ -86,6 +86,7 @@ export function RunHistoryPanel({
           No runs yet
         </div>
       )}
+      </> : null}
     </section>
   );
 }

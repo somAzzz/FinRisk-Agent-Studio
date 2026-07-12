@@ -24,7 +24,7 @@ import {
 } from "./components/RunHistoryPanel";
 import { SupplyChainExplorer } from "./components/SupplyChainExplorer";
 import { WorkflowLauncher } from "./components/WorkflowLauncher";
-import { api, FinRiskApiError } from "./api";
+import { api, describeApiError } from "./api";
 import {
   isStaticDemoMode,
   staticDemoEvaluation,
@@ -50,6 +50,13 @@ const POLL_INTERVAL_MS = 1500;
 const STATIC_DEMO_MODE = isStaticDemoMode();
 
 type AppView = "finrisk" | "supply-chain" | "agent-runs" | "journal";
+const APP_VIEWS = new Set<AppView>(["finrisk", "supply-chain", "agent-runs", "journal"]);
+
+function initialAppView(): AppView {
+  if (typeof window === "undefined" || STATIC_DEMO_MODE) return "finrisk";
+  const requested = new URLSearchParams(window.location.search).get("view") as AppView | null;
+  return requested && APP_VIEWS.has(requested) ? requested : "finrisk";
+}
 
 const FINRISK_STEPS = [
   "company_resolver",
@@ -262,7 +269,7 @@ export function App() {
   );
   const [selectedAgentRunId, setSelectedAgentRunId] = useState<string | null>(null);
   const [selectedSupplyChainRunId, setSelectedSupplyChainRunId] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<AppView>("finrisk");
+  const [activeView, setActiveView] = useState<AppView>(initialAppView);
   const pollRef = useRef<number | null>(null);
 
   const setViewMonitor = useCallback((view: AppView, snapshot: ProcessMonitorSnapshot) => {
@@ -336,41 +343,35 @@ export function App() {
           const r = await api.getReport(runId);
           setReport(r);
         } catch (err) {
-          if (!(err instanceof FinRiskApiError)) {
-            setError((err as Error).message);
-          }
+          setError(describeApiError(err, "Risk report"));
         }
         try {
           const g = await api.getGraph(runId);
           setGraph(g);
         } catch (err) {
-          if (!(err instanceof FinRiskApiError)) {
-            setError((err as Error).message);
-          }
+          setError(describeApiError(err, "Evidence graph"));
         }
         try {
           const e = await api.getEvaluation(runId);
           setEvaluation(e);
         } catch (err) {
-          if (!(err instanceof FinRiskApiError)) {
-            setError((err as Error).message);
-          }
+          setError(describeApiError(err, "Workflow evaluation"));
         }
         if (!STATIC_DEMO_MODE && next.company?.ticker) {
           setFinancialsLoading(true);
           setFinancialsError(null);
           try {
             setFinancials(await api.getFinancialSnapshot(next.company.ticker));
-          } catch {
+          } catch (nextError) {
             setFinancials(null);
-            setFinancialsError("SEC financial history is unavailable for this run.");
+            setFinancialsError(describeApiError(nextError, "SEC financial history"));
           } finally {
             setFinancialsLoading(false);
           }
         }
       }
     } catch (err) {
-      setError((err as Error).message);
+      setError(describeApiError(err, "Workflow status"));
       stopPolling();
     }
   };
@@ -387,6 +388,12 @@ export function App() {
   useEffect(() => {
     return () => stopPolling();
   }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", activeView);
+    window.history.replaceState(null, "", url);
+  }, [activeView]);
 
   useEffect(() => {
     if (STATIC_DEMO_MODE) {
@@ -460,26 +467,26 @@ export function App() {
       try {
         setReport(await api.getReport(runId));
       } catch (err) {
-        if (!(err instanceof FinRiskApiError)) setError((err as Error).message);
+        setError(describeApiError(err, "Risk report"));
       }
       try {
         setGraph(await api.getGraph(runId));
       } catch (err) {
-        if (!(err instanceof FinRiskApiError)) setError((err as Error).message);
+        setError(describeApiError(err, "Evidence graph"));
       }
       try {
         setEvaluation(await api.getEvaluation(runId));
       } catch (err) {
-        if (!(err instanceof FinRiskApiError)) setError((err as Error).message);
+        setError(describeApiError(err, "Workflow evaluation"));
       }
       if (next.company?.ticker) {
         setFinancialsLoading(true);
         setFinancialsError(null);
         try {
           setFinancials(await api.getFinancialSnapshot(next.company.ticker));
-        } catch {
+        } catch (nextError) {
           setFinancials(null);
-          setFinancialsError("SEC financial history is unavailable for this run.");
+          setFinancialsError(describeApiError(nextError, "SEC financial history"));
         } finally {
           setFinancialsLoading(false);
         }
@@ -512,6 +519,7 @@ export function App() {
 
   return (
     <div className="app">
+      <a className="skip-link" href="#main-content">Skip to current workspace</a>
       <header className="app-header">
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true">
@@ -578,13 +586,10 @@ export function App() {
           </>
         ) : null}
       </nav>
-      {!STATIC_DEMO_MODE ? (
-        <>
+      <div id="main-content" tabIndex={-1}>
+      {!STATIC_DEMO_MODE && activeView === "agent-runs" ? (
           <main
-            className={`app-main agent-runs-view view-panel ${
-              activeView === "agent-runs" ? "active" : ""
-            }`}
-            aria-hidden={activeView !== "agent-runs"}
+            className="app-main agent-runs-view view-panel active"
           >
             <LLMAgentRunPanel
               selectedRunId={selectedAgentRunId}
@@ -594,19 +599,17 @@ export function App() {
               }}
             />
           </main>
+      ) : null}
+      {!STATIC_DEMO_MODE && activeView === "journal" ? (
           <main
-            className={`app-main journal-view view-panel ${
-              activeView === "journal" ? "active" : ""
-            }`}
-            aria-hidden={activeView !== "journal"}
+            className="app-main journal-view view-panel active"
           >
             <ResearchJournalPanel />
           </main>
+      ) : null}
+      {!STATIC_DEMO_MODE && activeView === "supply-chain" ? (
           <main
-            className={`app-main supply-chain-view view-panel ${
-              activeView === "supply-chain" ? "active" : ""
-            }`}
-            aria-hidden={activeView !== "supply-chain"}
+            className="app-main supply-chain-view view-panel active"
           >
             <SupplyChainExplorer
               selectedRunId={selectedSupplyChainRunId}
@@ -616,14 +619,8 @@ export function App() {
               }}
             />
           </main>
-        </>
       ) : null}
-      <div
-        className={`app-body view-panel ${
-          activeView === "finrisk" ? "active" : ""
-        }`}
-        aria-hidden={activeView !== "finrisk"}
-      >
+      {activeView === "finrisk" ? <div className="app-body view-panel active">
         <aside className="app-side">
           <div className="section">
             <WorkflowLauncher
@@ -677,7 +674,7 @@ export function App() {
             />
           ) : null}
           {summary ? (
-            <EvaluationTab evaluation={evaluation} />
+            <EvaluationTab evaluation={evaluation} runId={summary?.run_id ?? null} />
           ) : null}
           {summary ? (
             <RiskReport
@@ -710,6 +707,7 @@ export function App() {
             />
           ) : null}
         </main>
+      </div> : null}
       </div>
       <RunHistoryPanel
         items={historyItems}

@@ -45,7 +45,7 @@ function statusIcon(status: ProcessNodeStatus) {
 }
 
 export function AgentProcessMonitor({ snapshot }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const activeIndex = snapshot.nodes.findIndex((node) => node.status === "running");
   const fallbackIndex = snapshot.nodes.findIndex((node) =>
     ["needs_review", "failed"].includes(node.status),
@@ -77,7 +77,7 @@ export function AgentProcessMonitor({ snapshot }: Props) {
       >
         {collapsed ? <PanelLeftOpen size={15} /> : <PanelRightClose size={15} />}
       </button>
-      <header>
+      {!collapsed ? <><header>
         <div>
           <span className="monitor-kicker">Current agent</span>
           <strong>{snapshot.title}</strong>
@@ -111,6 +111,7 @@ export function AgentProcessMonitor({ snapshot }: Props) {
       {snapshot.runId ? (
         <footer className="monitor-run-id">{snapshot.runId}</footer>
       ) : null}
+      </> : null}
     </aside>
   );
 }

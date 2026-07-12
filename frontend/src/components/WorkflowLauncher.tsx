@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, FinRiskApiError } from "../api";
+import { api, describeApiError } from "../api";
 import type { FinRiskRequest, WorkflowRunSummary } from "../types";
 import { LLMProviderSelector } from "./LLMProviderSelector";
 
@@ -88,11 +88,7 @@ export function WorkflowLauncher({
       const summary = await api.startWorkflow(request);
       onStarted(summary, request);
     } catch (err) {
-      const msg =
-        err instanceof FinRiskApiError
-          ? `API ${err.status}: ${JSON.stringify(err.body)}`
-          : (err as Error).message;
-      setError(msg);
+      setError(describeApiError(err, "Risk workflow"));
     }
   };
 
@@ -207,14 +203,14 @@ export function WorkflowLauncher({
         value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
         onChange={(next) => update("llm_config", next)}
       />
-      {error ? <div className="error-banner" data-testid="launcher-error">{error}</div> : null}
+      {error ? <div className="error-banner" role="alert" data-testid="launcher-error">{error}</div> : null}
       <button
         type="submit"
         className="primary"
         disabled={busy}
         data-testid="run-button"
       >
-        {busy ? "Working..." : staticMode ? "View Static Demo" : "Run Risk Workflow"}
+        {busy ? "Working…" : staticMode ? "View Static Demo" : "Run Risk Workflow"}
       </button>
     </form>
   );
