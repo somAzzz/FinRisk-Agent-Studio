@@ -18,13 +18,13 @@
 
 | 工作包 | 状态 | 已完成 | 剩余退出条件 |
 | --- | --- | --- | --- |
-| 浏览器与可访问性 | 阻塞 | 前后端自动化与生产构建已有基线 | Browser runtime 恢复、三视口与键盘真实验收 |
+| 浏览器与可访问性 | 完成 | 三视口 Chromium、键盘、reduced motion、溢出、429 与真实业务路径通过 | 已满足 |
 | 数据库迁移与恢复 | 完成 | schema v3、事务迁移、幂等、失败回滚、在线备份/恢复、CLI 和测试 | 最终发布时再执行一次恢复演练 |
 | 财务正确性与行业事实 | 进行中 | AAPL/NVDA/XOM 12 期间；JPM 银行；TSM 20-F；六类配置；三种 restatement policy | inline XBRL/独立 provider 的分部维度事实 |
 | 默认编排与变化可信度 | 完成 | 直接启动 FinRisk、组件策略、correlation ID、风险 manifest、冲突/过期、guidance range 与 quote diff | 外部 consensus provider 属于可选深化 |
 | 同行企业分析 | 完成 | Peer Group、SIC 候选确认、口径/新鲜度、专用 UI、财务/风险/预期/显式估值分层 | 自动 FX provider 属于可选深化 |
 | 估值与监控深化 | 完成 | 四类估值、assumptions 历史、节流/重试、来源 cursor、launchd/systemd 模板 | 邮件/移动推送属于 P2 可选能力 |
-| Golden cases 与发布审计 | 阻塞 | 30/30、后端 967、前端 66、生产构建、npm audit 0、全新依赖安装 | 真实浏览器和最终发布门禁 |
+| Golden cases 与发布审计 | 完成 | 30/30、后端 968、前端 75、生产构建、npm audit 0、真实浏览器 | 创建 tag 前确认版本号 |
 
 ## 1. 范围判断
 

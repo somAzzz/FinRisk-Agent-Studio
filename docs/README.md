@@ -8,6 +8,8 @@
 - [前端评估](current/assessments/frontend-assessment-2026-07-11.md)：研究工作台的交互、信息架构与可用性评估。
 - [发布就绪与能力深化方案](current/release-readiness-roadmap.md)：当前差距、同行分析、实施顺序与发布门禁。
 - [分析师工作台能力路线图](current/analyst-workbench-roadmap.md)：已实现能力、当前阶段与完成定义。
+- [前端功能完整性与真实浏览器修复方案](current/frontend-integration-remediation-plan.md)：前端功能闭环、失败恢复与三视口验收。
+- [前端修复真实验收](current/validation/frontend-remediation-2026-07-12.md)：真实 Chromium、vLLM 流程与回归证据。
 - [个人研究闭环实施记录](current/research-closure-plan.md)：已完成首版闭环的实现契约与验收基线。
 - [SEC 财务快照验证](current/validation/sec-financial-snapshot-2026-07-11.md)：AAPL、NVDA、XOM 的公开数据验证记录。
 - [研究闭环真实数据矩阵](current/validation/research-closure-live-matrix-2026-07-11.md)：六类公司与 Watchlist 去重验证。

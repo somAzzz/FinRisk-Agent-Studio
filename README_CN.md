@@ -223,7 +223,7 @@ Demo 和 CI 路径设计为不需要真实 API keys。
 - **Tool loop 已实现**：provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
 - **Agent runtime 持续完善**：`/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
 - **分析师工作台核心闭环已完成**：Research Cycle 可启动 FinRisk、贯穿 correlation ID、创建不可变快照、检测变化、比较确认同行、保存估值假设并执行无人值守扫描。
-- **发布证据已更新**：数据库 schema v3、五公司财务勾稽、30/30 guardrail cases、后端 967 tests、前端 66 tests、生产构建与 npm audit 0 vulnerabilities。
+- **发布证据已更新**：数据库 schema v3、五公司财务勾稽、30/30 guardrail cases、后端 968 tests、前端 75 tests、生产构建与 npm audit 0 vulnerabilities。
 - **Local E2E validated**: 记录过真实 FinRisk、supply-chain 与 agent-run flows,覆盖 local SGLang、FastAPI、Vite 与 Neo4j-compatible paths。
 - **GitHub Pages published**: 静态 dashboard 已上线。
 
@@ -252,7 +252,7 @@ npm test
 npm run build
 ```
 
-最近一次候选审计：后端 `967 passed, 7 skipped`；前端 18 个测试文件、66 tests；30/30 离线 guardrail cases；`npm audit` 为 0 vulnerabilities。
+最近一次候选审计：后端 `968 passed, 6 skipped`；前端 18 个测试文件、75 tests；三视口 Chromium workbench 与真实 vLLM smoke 通过；30/30 离线 guardrail cases；`npm audit` 为 0 vulnerabilities。
 
 ## Roadmap(路线图)
 
