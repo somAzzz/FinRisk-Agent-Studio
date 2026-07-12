@@ -163,7 +163,7 @@ def _load_filings_live(
                     )
                     try:
                         filing = fetcher.fetch_filing(metadata_obj)
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         logger.info(
                             "Failed to download %s for %s: %s",
                             metadata_obj.accession_number,
@@ -183,9 +183,9 @@ def _load_filings_live(
                         and filing_date.year == year
                     ):
                         break
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.info("SEC live fetch limited: %s", exc)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.info("SEC live fetch skipped: %s", exc)
 
     # 2. If SEC returned nothing, try defeatbeta-api's filing catalog.
@@ -229,7 +229,7 @@ def _load_filings_live(
                         for idx, acc in enumerate(accs):
                             if idx < len(docs) and docs[idx]:
                                 primary_doc_by_accession[acc] = docs[idx]
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         logger.info(
                             "SEC submissions lookup for catalog enrichment failed: %s",
                             exc,
@@ -254,7 +254,7 @@ def _load_filings_live(
                     )
                     try:
                         filing = fetcher.fetch_filing(enriched_metadata)
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         logger.info(
                             "Failed to download %s via defeatbeta catalog: %s",
                             enriched_metadata.accession_number,
@@ -273,7 +273,7 @@ def _load_filings_live(
                         and enriched_metadata.filing_date.year == year
                     ):
                         break
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.info("defeatbeta catalog fetch skipped: %s", exc)
 
     # 3. Fall back to the Hugging Face EDGAR corpus (streaming).
@@ -292,9 +292,12 @@ def _load_filings_live(
                     # the first available filing as a stand-in so the demo
                     # can still produce output.
                     pass
-                if year is not None and filing.year is not None:
-                    if filing.year != year:
-                        continue
+                if (
+                    year is not None
+                    and filing.year is not None
+                    and filing.year != year
+                ):
+                    continue
                 filings.append(filing)
                 if len(filings) >= 1:
                     break
@@ -635,7 +638,7 @@ def analyze_company(args: AnalyzeCompanyArgs) -> str:
         critic_state.evidence = list(deduped_evidence)
         CriticAgent().run(critic_state)
         all_claims = list(critic_state.claims)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("critic agent failed: %s", exc)
 
     # 5. Generate the Markdown report.

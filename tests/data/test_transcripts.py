@@ -26,7 +26,6 @@ from src.data.transcripts import (
 )
 from src.schemas.transcripts import Transcript, TranscriptTurn
 
-
 # --- infer_role ----------------------------------------------------------
 
 
