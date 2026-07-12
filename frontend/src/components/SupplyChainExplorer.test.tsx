@@ -159,6 +159,7 @@ vi.mock("../api", () => ({
     getSupplyChainSankey: (...args: unknown[]) => sankeyMock(...args),
     expandSupplyChain: (...args: unknown[]) => expandMock(...args),
   },
+  describeApiError: (error: Error) => error.message,
   FinRiskApiError: class extends Error {
     status: number;
     body: unknown;

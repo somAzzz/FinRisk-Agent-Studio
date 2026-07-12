@@ -239,7 +239,7 @@ function formatMs(ms: number): string {
 
 function shortText(value: string, max = 260): string {
   if (value.length <= max) return value;
-  return `${value.slice(0, max)}...`;
+  return `${value.slice(0, max)}…`;
 }
 
 function evidenceId(candidate: AgentEvidenceCandidateWire): string {
@@ -509,7 +509,7 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
             data-testid="agent-run-button"
           >
             <PlayCircle size={15} />
-            {busy ? "Running..." : "Run Agent"}
+            {busy ? "Running…" : "Run Agent"}
           </button>
           {summary ? (
             <button

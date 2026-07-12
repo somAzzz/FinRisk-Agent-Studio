@@ -13,10 +13,15 @@ import type {
   CompanyResearchSnapshot,
   CompanyComparisonResponse,
   ExpectationPoint,
+  ExpectationComparison,
   FinRiskRequest,
   FinancialSnapshot,
   InvestmentThesis,
   ManagementComparisonResponse,
+  MultipleValuationRequest,
+  MultipleValuationResponse,
+  DiscountedCashFlowRequest,
+  DiscountedCashFlowResponse,
   MonitorScanResponse,
   PeerGroup,
   PeerCandidate,
@@ -32,6 +37,7 @@ import type {
   ScenarioValuationResponse,
   SensitivityMatrixRequest,
   SensitivityMatrixResponse,
+  ValuationAssumptionSnapshot,
   ThesisReview,
   WatchlistItem,
   WorkflowArtifactsResponse,
@@ -52,33 +58,98 @@ const DEFAULT_BASE = "";
 export class FinRiskApiError extends Error {
   status: number;
   body: unknown;
-  constructor(message: string, status: number, body: unknown) {
+  retryAfterSeconds: number | null;
+  constructor(message: string, status: number, body: unknown, retryAfterSeconds: number | null = null) {
     super(message);
     this.name = "FinRiskApiError";
     this.status = status;
     this.body = body;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+const GET_CACHE_TTL_MS = 2_500;
+const responseCache = new Map<string, { expiresAt: number; value: unknown }>();
+const inFlightGets = new Map<string, Promise<unknown>>();
+
+function errorDetail(body: unknown): string | null {
+  if (typeof body === "string" && body.trim()) return body;
+  if (body && typeof body === "object" && "detail" in body) {
+    const detail = (body as { detail?: unknown }).detail;
+    return typeof detail === "string" ? detail : null;
+  }
+  return null;
+}
+
+export function describeApiError(error: unknown, subject: string): string {
+  if (!(error instanceof FinRiskApiError)) {
+    return `${subject} could not be loaded. Check the API connection, then retry.`;
+  }
+  if (error.status === 401 || error.status === 403) {
+    return `${subject} could not be loaded because the API key was rejected. Check the server-side API key, then retry.`;
+  }
+  if (error.status === 429) {
+    const wait = error.retryAfterSeconds ? ` Wait ${error.retryAfterSeconds} seconds,` : " Wait briefly,";
+    return `${subject} reached the API request limit.${wait} then retry.`;
+  }
+  if (error.status >= 500) {
+    return `${subject} could not be loaded because the API is unavailable. Existing data is preserved; retry when the service recovers.`;
+  }
+  return errorDetail(error.body) ?? `${subject} could not be loaded. Retry the request.`;
+}
+
+export function clearApiCache(pathPrefix = ""): void {
+  for (const key of responseCache.keys()) {
+    if (!pathPrefix || key.startsWith(pathPrefix)) responseCache.delete(key);
   }
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${DEFAULT_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...(init.headers || {}) },
-    ...init,
-  });
-  if (!response.ok) {
-    let body: unknown = null;
-    try {
-      body = await response.json();
-    } catch {
-      body = await response.text().catch(() => null);
-    }
-    throw new FinRiskApiError(
-      `Request failed: ${response.status} ${response.statusText}`,
-      response.status,
-      body,
-    );
+  const method = (init.method ?? "GET").toUpperCase();
+  const cacheKey = `${DEFAULT_BASE}${path}`;
+  if (method === "GET") {
+    const cached = responseCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value as T;
+    const pending = inFlightGets.get(cacheKey);
+    if (pending) return pending as Promise<T>;
+  } else {
+    clearApiCache();
   }
-  return (await response.json()) as T;
+
+  const execute = async (): Promise<T> => {
+    const response = await fetch(cacheKey, {
+      headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+      ...init,
+    });
+    if (!response.ok) {
+      let body: unknown = null;
+      try {
+        body = await response.json();
+      } catch {
+        body = await response.text().catch(() => null);
+      }
+      const retryHeader = response.headers?.get?.("Retry-After") ?? null;
+      const retryAfter = retryHeader == null ? null : Number.parseInt(retryHeader, 10);
+      throw new FinRiskApiError(
+        errorDetail(body) ?? `Request failed: ${response.status} ${response.statusText}`,
+        response.status,
+        body,
+        Number.isFinite(retryAfter) ? retryAfter : null,
+      );
+    }
+    const value = (response.status === 204 ? undefined : await response.json()) as T;
+    if (method === "GET") {
+      responseCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL_MS, value });
+    }
+    return value;
+  };
+
+  const pending = execute();
+  if (method === "GET") {
+    inFlightGets.set(cacheKey, pending);
+    void pending.finally(() => inFlightGets.delete(cacheKey)).catch(() => undefined);
+  }
+  return pending;
 }
 
 // Alias avoids shadowing the global `fetch` and `request` types when
@@ -284,6 +355,11 @@ export const api = {
       `/research/expectations?ticker=${encodeURIComponent(ticker)}`,
     );
   },
+  compareExpectation(expectationId: string, snapshotId: string): Promise<ExpectationComparison> {
+    return sendRequest<ExpectationComparison>(
+      `/research/expectations/${encodeURIComponent(expectationId)}/compare?snapshot_id=${encodeURIComponent(snapshotId)}`,
+    );
+  },
   importExpectationsCsv(content: string): Promise<{
     imported: number;
     skipped: number;
@@ -300,6 +376,23 @@ export const api = {
     return sendRequest<SensitivityMatrixResponse>(
       "/research/valuation/sensitivity",
       { method: "POST", body: JSON.stringify(input) },
+    );
+  },
+  calculateMultipleValuation(input: MultipleValuationRequest): Promise<MultipleValuationResponse> {
+    return sendRequest<MultipleValuationResponse>("/research/valuation/multiple", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  calculateDiscountedCashFlow(input: DiscountedCashFlowRequest): Promise<DiscountedCashFlowResponse> {
+    return sendRequest<DiscountedCashFlowResponse>("/research/valuation/dcf", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+  listValuationAssumptions(ticker: string, limit = 20): Promise<ValuationAssumptionSnapshot[]> {
+    return sendRequest<ValuationAssumptionSnapshot[]>(
+      `/research/valuation/history/${encodeURIComponent(ticker)}?limit=${limit}`,
     );
   },
   listPostEarningsDrafts(ticker?: string): Promise<PostEarningsReviewDraft[]> {
@@ -353,6 +446,11 @@ export const api = {
     return sendRequest<PeerGroup>(`/research/peer-groups/${encodeURIComponent(peerGroupId)}`, {
       method: "PUT",
       body: JSON.stringify(input),
+    });
+  },
+  async deletePeerGroup(peerGroupId: string): Promise<void> {
+    await sendRequest<unknown>(`/research/peer-groups/${encodeURIComponent(peerGroupId)}`, {
+      method: "DELETE",
     });
   },
   suggestPeerCandidates(peerGroupId: string, tickers: string[] = []): Promise<PeerCandidate[]> {

@@ -7,6 +7,7 @@ vi.mock("../api", () => ({
   api: {
     startWorkflow: vi.fn(),
   },
+  describeApiError: (error: Error) => error.message,
   FinRiskApiError: class extends Error {
     status: number;
     body: unknown;

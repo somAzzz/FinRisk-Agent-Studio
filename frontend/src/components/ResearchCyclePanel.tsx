@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, describeApiError } from "../api";
 import type {
   CompanyResearchSnapshot,
   CompanyComparisonResponse,
   ExpectationPoint,
+  ExpectationComparison,
   InvestmentThesis,
+  LLMRunConfig,
   PostEarningsReviewDraft,
   ResearchAlert,
   ResearchChangeSet,
@@ -13,12 +15,20 @@ import type {
   WorkflowRunSummary,
 } from "../types";
 import { PeerAnalysisPanel } from "./PeerAnalysisPanel";
+import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
+import { LLMProviderSelector } from "./LLMProviderSelector";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentQuarter = () => Math.floor(new Date().getMonth() / 3) + 1;
 const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+const researchDate = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
-export function ResearchCyclePanel() {
+export type ResearchTask = "cycle" | "valuation" | "peers" | "reviews";
+
+export function ResearchCyclePanel({
+  activeTask = "cycle",
+  researchRevision = 0,
+}: { activeTask?: ResearchTask; researchRevision?: number }) {
   const [ticker, setTicker] = useState("");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [quarter, setQuarter] = useState(String(currentQuarter()));
@@ -27,6 +37,7 @@ export function ResearchCyclePanel() {
   const [changes, setChanges] = useState<ResearchChangeSet | null>(null);
   const [alerts, setAlerts] = useState<ResearchAlert[]>([]);
   const [expectations, setExpectations] = useState<ExpectationPoint[]>([]);
+  const [expectationComparisons, setExpectationComparisons] = useState<Record<string, ExpectationComparison>>({});
   const [drafts, setDrafts] = useState<PostEarningsReviewDraft[]>([]);
   const [queue, setQueue] = useState<ResearchQueueResponse | null>(null);
   const [comparison, setComparison] = useState<CompanyComparisonResponse | null>(null);
@@ -36,6 +47,8 @@ export function ResearchCyclePanel() {
   const [expectedValue, setExpectedValue] = useState("");
   const [unit, setUnit] = useState("USD");
   const [source, setSource] = useState("personal model");
+  const [expectationObservedAt, setExpectationObservedAt] = useState(today());
+  const [expectationAsOf, setExpectationAsOf] = useState(today());
   const [csv, setCsv] = useState("");
   const [comparisonMetrics, setComparisonMetrics] = useState("revenue,free_cash_flow");
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
@@ -43,51 +56,59 @@ export function ResearchCyclePanel() {
   const [error, setError] = useState<string | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
   const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
+  const [llmConfig, setLlmConfig] = useState<LLMRunConfig>({
+    provider: "vllm",
+    base_url: "http://localhost:30000/v1",
+    model: "nvidia/Qwen3.6-27B-NVFP4",
+  });
 
   const refreshGlobal = async () => {
-    try {
-      const [nextAlerts, nextDrafts, nextTheses, nextWatchlist] = await Promise.all([
-        api.listResearchAlerts(),
-        api.listPostEarningsDrafts(),
-        api.listTheses(),
-        api.listWatchlist(),
-      ]);
-      setAlerts(nextAlerts);
-      setDrafts(nextDrafts);
-      setTheses(nextTheses);
-      setQueue(nextWatchlist.length
-        ? await api.buildResearchQueue(nextWatchlist.map((item) => item.ticker))
-        : { entries: [], disclaimer: "No Watchlist companies are available." });
-    } catch {
-      setError("Research cycle data could not be loaded.");
+    const [nextAlerts, nextDrafts, nextTheses, nextWatchlist] = await Promise.allSettled([
+      api.listResearchAlerts(), api.listPostEarningsDrafts(), api.listTheses(), api.listWatchlist(),
+    ]);
+    if (nextAlerts.status === "fulfilled") setAlerts(nextAlerts.value);
+    if (nextDrafts.status === "fulfilled") setDrafts(nextDrafts.value);
+    if (nextTheses.status === "fulfilled") setTheses(nextTheses.value);
+    if (nextWatchlist.status === "fulfilled") {
+      const watchlist = nextWatchlist.value;
+      try {
+        setQueue(watchlist.length
+          ? await api.buildResearchQueue(watchlist.map((item) => item.ticker))
+          : { entries: [], disclaimer: "No Watchlist companies are available." });
+      } catch (nextError) {
+        setError(describeApiError(nextError, "Research queue"));
+        return;
+      }
     }
+    const failure = [nextAlerts, nextDrafts, nextTheses, nextWatchlist].find((result) => result.status === "rejected");
+    setError(failure?.status === "rejected" ? describeApiError(failure.reason, "Research cycle data") : null);
   };
 
   useEffect(() => { void refreshGlobal(); }, []);
+  useEffect(() => {
+    if (researchRevision > 0) void refreshGlobal();
+  }, [researchRevision]);
 
   const refreshTicker = async (selectedTicker = ticker) => {
     const normalized = selectedTicker.toUpperCase().trim();
     if (!normalized) return;
-    try {
-      const [nextSnapshots, nextExpectations] = await Promise.all([
-        api.listResearchSnapshots(normalized),
-        api.listExpectations(normalized),
-      ]);
-      setSnapshots(nextSnapshots);
-      setExpectations(nextExpectations);
-      if (nextSnapshots.length >= 2) {
-        setChanges(await api.getResearchChanges(
-          normalized,
-          nextSnapshots[1].snapshot_id,
-          nextSnapshots[0].snapshot_id,
-        ));
-      } else {
-        setChanges(null);
-      }
-      setError(null);
-    } catch {
-      setError("Snapshot history or changes could not be loaded.");
+    const [nextSnapshots, nextExpectations] = await Promise.allSettled([
+      api.listResearchSnapshots(normalized), api.listExpectations(normalized),
+    ]);
+    if (nextExpectations.status === "fulfilled") setExpectations(nextExpectations.value);
+    if (nextSnapshots.status === "fulfilled") {
+      setSnapshots(nextSnapshots.value);
+      if (nextSnapshots.value.length >= 2) {
+        try {
+          setChanges(await api.getResearchChanges(normalized, nextSnapshots.value[1].snapshot_id, nextSnapshots.value[0].snapshot_id));
+        } catch (nextError) {
+          setError(describeApiError(nextError, "Research changes"));
+          return;
+        }
+      } else setChanges(null);
     }
+    const failure = [nextSnapshots, nextExpectations].find((result) => result.status === "rejected");
+    setError(failure?.status === "rejected" ? describeApiError(failure.reason, "Snapshot history") : null);
   };
 
   const startRun = async () => {
@@ -123,6 +144,7 @@ export function ResearchCyclePanel() {
         sources: ["filing", "web", "transcript", "graph"],
         demo_mode: false,
         cached_mode: false,
+        llm_config: llmConfig,
       });
       setWorkflow(next);
       for (let attempt = 0; attempt < 300; attempt += 1) {
@@ -176,7 +198,12 @@ export function ResearchCyclePanel() {
 
   const saveExpectation = async () => {
     if (!ticker || !fiscalPeriod || !expectedValue || !source) return;
-    const timestamp = `${today()}T00:00:00Z`;
+    if (!expectationObservedAt || !expectationAsOf || expectationAsOf < expectationObservedAt) {
+      setError("Expectation as-of date must be on or after the observed date.");
+      return;
+    }
+    const observedAt = `${expectationObservedAt}T00:00:00Z`;
+    const asOf = `${expectationAsOf}T00:00:00Z`;
     try {
       await api.saveExpectation({
         ticker: ticker.toUpperCase().trim(),
@@ -186,8 +213,8 @@ export function ResearchCyclePanel() {
         unit,
         source,
         origin: "user",
-        observed_at: timestamp,
-        as_of: timestamp,
+        observed_at: observedAt,
+        as_of: asOf,
       });
       setExpectedValue("");
       await refreshTicker();
@@ -204,6 +231,17 @@ export function ResearchCyclePanel() {
       await refreshTicker();
     } catch {
       setError("CSV expectations could not be imported.");
+    }
+  };
+
+  const compareExpectation = async (point: ExpectationPoint) => {
+    if (!point.expectation_id || !snapshots[0]) return;
+    try {
+      const next = await api.compareExpectation(point.expectation_id, snapshots[0].snapshot_id);
+      setExpectationComparisons((current) => ({ ...current, [point.expectation_id as string]: next }));
+      setError(null);
+    } catch (nextError) {
+      setError(describeApiError(nextError, "Expectation comparison"));
     }
   };
 
@@ -285,14 +323,16 @@ export function ResearchCyclePanel() {
         <button className="ghost" type="button" disabled={!ticker.trim()} onClick={() => void refreshTicker()}>Load history</button>
       </div>
       <label className="cycle-full-run-goal">FinRisk analysis goal<input aria-label="FinRisk analysis goal" value={analysisGoal} onChange={(event) => setAnalysisGoal(event.target.value)} /><small>Estimated providers: SEC filing, web search, transcript and graph. Actual requests depend on availability.</small></label>
+      <details className="cycle-details cycle-llm-config"><summary>Research LLM</summary><LLMProviderSelector value={llmConfig} onChange={setLlmConfig} /></details>
       {workflow ? <div className={`cycle-run-state ${workflow.status}`}><strong>FinRisk: {workflow.status}</strong><span>{workflow.run_id}</span>{workflow.current_step ? <small>{workflow.current_step}</small> : null}</div> : null}
       {run ? <div className={`cycle-run-state ${run.manifest.state}`}><strong>{run.manifest.state}</strong><span>{run.manifest.run_id}</span>{run.manifest.components.map((item) => <small key={item.component}>{item.component}: {item.state}{item.reason ? ` · ${item.reason}` : ""}</small>)}</div> : null}
-      {error ? <p className="journal-error">{error}</p> : null}
+      {error ? <div className="recoverable-error" role="alert"><p>{error}</p><button className="ghost" type="button" onClick={() => void refreshGlobal()}>Retry research data</button></div> : null}
 
+      {activeTask === "cycle" ? <>
       <div className="research-cycle-grid">
         <div>
           <h3>Snapshot history</h3>
-          {snapshots.map((snapshot) => <article className="cycle-record" key={snapshot.snapshot_id}><strong>{snapshot.period}</strong><span>{new Date(snapshot.as_of).toLocaleDateString()}</span><small>{snapshot.sources.length} sources · {snapshot.components.filter((item) => item.state === "complete").length}/{snapshot.components.length} complete</small></article>)}
+          {snapshots.map((snapshot) => <article className="cycle-record" key={snapshot.snapshot_id}><strong>{snapshot.period}</strong><span>{researchDate.format(new Date(snapshot.as_of))}</span><small>{snapshot.sources.length} sources · {snapshot.components.filter((item) => item.state === "complete").length}/{snapshot.components.length} complete</small></article>)}
           {!snapshots.length ? <p className="muted">Load a ticker or create its first snapshot.</p> : null}
         </div>
         <div>
@@ -308,15 +348,21 @@ export function ResearchCyclePanel() {
         <input aria-label="Expectation value" type="number" value={expectedValue} onChange={(event) => setExpectedValue(event.target.value)} placeholder="value" />
         <input aria-label="Expectation unit" value={unit} onChange={(event) => setUnit(event.target.value)} />
         <input aria-label="Expectation source" value={source} onChange={(event) => setSource(event.target.value)} />
+        <input aria-label="Expectation observed date" type="date" value={expectationObservedAt} onChange={(event) => setExpectationObservedAt(event.target.value)} />
+        <input aria-label="Expectation as-of date" type="date" value={expectationAsOf} min={expectationObservedAt} onChange={(event) => setExpectationAsOf(event.target.value)} />
         <button className="ghost" type="button" onClick={() => void saveExpectation()}>Save expectation</button>
-      </div><textarea aria-label="Expectations CSV" value={csv} onChange={(event) => setCsv(event.target.value)} placeholder="ticker,metric,fiscal_period,value,unit,source,observed_at,as_of" /><button className="ghost" type="button" onClick={() => void importCsv()}>Import CSV</button><p className="muted">{expectations.length} point-in-time expectations loaded.</p></details>
+      </div><textarea aria-label="Expectations CSV" name="expectations_csv" autoComplete="off" value={csv} onChange={(event) => setCsv(event.target.value)} placeholder="ticker,metric,fiscal_period,value,unit,source,observed_at,as_of…" /><button className="ghost" type="button" onClick={() => void importCsv()}>Import CSV</button><p className="muted">{expectations.length} point-in-time expectations loaded.</p>
+      {expectations.map((point) => { const comparison = point.expectation_id ? expectationComparisons[point.expectation_id] : null; return <article className="expectation-record" key={point.expectation_id ?? `${point.metric}-${point.as_of}`}><div><strong>{point.metric} · {point.fiscal_period}</strong><span>{new Intl.NumberFormat().format(point.value)} {point.unit} · {point.source}</span></div>{point.expectation_id && snapshots[0] ? <button className="ghost" type="button" onClick={() => void compareExpectation(point)}>Compare actual</button> : null}{comparison ? <p aria-live="polite"><b>{comparison.percent_surprise == null ? new Intl.NumberFormat().format(comparison.absolute_surprise) : `${new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 }).format(comparison.percent_surprise)} surprise`}</b> · actual {new Intl.NumberFormat().format(comparison.actual.value)} {comparison.actual.unit}</p> : null}</article>; })}
+      </details>
 
       {alerts.length ? <div className="cycle-alerts"><h3>Change alerts</h3>{alerts.map((alert) => <article key={alert.alert_id}><strong>{alert.ticker} · {alert.title}</strong><span>{alert.explanation}</span><small>{alert.materiality} · {alert.status}</small>{alert.status === "new" ? <div><button className="ghost" type="button" onClick={() => void actOnAlert(alert.alert_id, "acknowledge")}>Acknowledge</button><button className="ghost danger" type="button" onClick={() => void actOnAlert(alert.alert_id, "ignore")}>Ignore</button></div> : null}</article>)}</div> : null}
 
       <div className="cycle-queue"><header><h3>Research queue</h3><div><input aria-label="Comparison metrics" value={comparisonMetrics} onChange={(event) => setComparisonMetrics(event.target.value)} /><button className="ghost" type="button" onClick={() => void compareWatchlist()}>Compare watchlist</button></div></header>{queue?.entries.map((entry) => <article className={entry.priority} key={entry.ticker}><strong>{entry.ticker}</strong><span>{entry.priority} review priority</span><ul>{entry.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></article>)}{queue && !queue.entries.length ? <p className="muted">No material unreviewed changes.</p> : null}{comparison ? <div className="table-scroll"><table className="research-table"><thead><tr><th>Company</th><th>Metric</th><th>Value</th><th>Status</th></tr></thead><tbody>{comparison.values.map((value) => <tr key={`${value.ticker}-${value.metric}`}><td>{value.ticker}</td><td>{value.metric}</td><td>{value.value == null ? "N/A" : `${value.value.toLocaleString()} ${value.unit ?? ""}`}</td><td>{value.status}</td></tr>)}</tbody></table><p className="report-disclaimer">{comparison.disclaimer}</p></div> : null}</div>
+      </> : null}
 
-      <div className="cycle-reviews"><header><h3>Post-earnings review</h3><button className="ghost" type="button" disabled={snapshots.length < 2 || !theses.some((item) => item.ticker === ticker.toUpperCase().trim())} onClick={() => void createDraft()}>Generate draft</button></header>{drafts.filter((draft) => !ticker || draft.ticker === ticker.toUpperCase().trim()).map((draft) => <article key={draft.draft_id}><strong>{draft.ticker} · suggested {draft.suggested_outcome}</strong><p>{draft.rationale}</p><small>{draft.changes.length} changes · {draft.status}</small>{draft.status === "draft" ? <div><input aria-label={`Review notes for ${draft.ticker} draft`} value={reviewNotes[draft.draft_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [draft.draft_id]: event.target.value }))} placeholder="Analyst conclusion" /><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void confirmDraft(draft, "invalidated")}>Invalidated</button></div> : null}</article>)}</div>
-      <PeerAnalysisPanel />
+      {activeTask === "valuation" ? <div className="research-task-panel"><h3>Valuation lab</h3>{snapshots[0]?.financials ? <ScenarioValuationPanel snapshot={snapshots[0].financials} /> : <p className="muted">Load or create a company snapshot with financial data to calculate valuation.</p>}</div> : null}
+      {activeTask === "reviews" ? <div className="cycle-reviews"><header><h3>Post-earnings review</h3><button className="ghost" type="button" disabled={snapshots.length < 2 || !theses.some((item) => item.ticker === ticker.toUpperCase().trim())} onClick={() => void createDraft()}>Generate draft</button></header>{drafts.filter((draft) => !ticker || draft.ticker === ticker.toUpperCase().trim()).map((draft) => <article key={draft.draft_id}><strong>{draft.ticker} · suggested {draft.suggested_outcome}</strong><p>{draft.rationale}</p><small>{draft.changes.length} changes · {draft.status}</small>{draft.status === "draft" ? <div><input aria-label={`Review notes for ${draft.ticker} draft`} value={reviewNotes[draft.draft_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [draft.draft_id]: event.target.value }))} placeholder="Analyst conclusion" /><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void confirmDraft(draft, "invalidated")}>Invalidated</button></div> : null}</article>)}</div> : null}
+      {activeTask === "peers" ? <PeerAnalysisPanel /> : null}
     </section>
   );
 }

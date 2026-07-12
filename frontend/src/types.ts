@@ -566,6 +566,13 @@ export interface ExpectationPoint {
   notes?: string | null;
 }
 
+export interface ExpectationComparison {
+  expectation: ExpectationPoint;
+  actual: FinancialMetricPoint;
+  absolute_surprise: number;
+  percent_surprise?: number | null;
+}
+
 export interface SensitivityMatrixRequest {
   ticker: string;
   kind: "growth_margin" | "margin_multiple";
@@ -744,6 +751,70 @@ export interface ScenarioValuationResponse {
   evidence_ids: string[];
   methodology: string;
   disclaimer: string;
+}
+
+export type MultipleValuationMethod = "pe" | "ev_ebitda" | "fcf_yield";
+
+export interface MultipleValuationRequest {
+  ticker: string;
+  method: MultipleValuationMethod;
+  share_price: number;
+  diluted_shares: number;
+  net_debt: number;
+  earnings?: number | null;
+  ebitda?: number | null;
+  free_cash_flow?: number | null;
+  period: string;
+  evidence_ids: string[];
+}
+
+export interface MultipleValuationResponse {
+  ticker: string;
+  method: MultipleValuationMethod;
+  status: "available" | "not_available";
+  value?: number | null;
+  unit: "x" | "percent";
+  numerator: number;
+  denominator?: number | null;
+  reason?: string | null;
+  period: string;
+  evidence_ids: string[];
+  methodology: string;
+  disclaimer: string;
+  assumption_snapshot_id?: string | null;
+}
+
+export interface DiscountedCashFlowRequest {
+  ticker: string;
+  forecast_free_cash_flows: number[];
+  wacc: number;
+  terminal_growth: number;
+  net_debt: number;
+  diluted_shares: number;
+  evidence_ids: string[];
+}
+
+export interface DiscountedCashFlowResponse {
+  ticker: string;
+  present_value_forecast: number;
+  present_value_terminal: number;
+  enterprise_value: number;
+  equity_value: number;
+  implied_share_price: number;
+  assumptions: DiscountedCashFlowRequest;
+  methodology: string;
+  disclaimer: string;
+  assumption_snapshot_id?: string | null;
+}
+
+export interface ValuationAssumptionSnapshot {
+  assumption_snapshot_id: string;
+  ticker: string;
+  kind: "scenario" | "sensitivity" | "multiple" | "dcf";
+  created_at: string;
+  request: Record<string, unknown>;
+  result: Record<string, unknown>;
+  evidence_ids: string[];
 }
 
 export interface ManagementPeriodSnapshot {

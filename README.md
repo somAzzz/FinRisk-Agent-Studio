@@ -257,7 +257,7 @@ Implementation history is grouped by capability rather than presented as product
 - **Tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
 - **Agent runtime in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
 - **Analyst workbench core completed**: Research Cycle can start FinRisk, carry correlation IDs into immutable snapshots, detect evidence-linked changes, compare confirmed peers, preserve valuation assumptions, and run unattended Watchlist scans.
-- **Release evidence current**: database schema v3, five-company financial reconciliation, 30/30 guardrail cases, 967 backend tests, 66 frontend tests, production build, and zero npm audit vulnerabilities.
+- **Release evidence current**: database schema v3, five-company financial reconciliation, 30/30 guardrail cases, 968 backend tests, 75 frontend tests, production build, and zero npm audit vulnerabilities.
 - **Local E2E validated**: recorded runs show real FinRisk, supply-chain, and agent-run flows through local SGLang, FastAPI, Vite, and Neo4j-compatible paths.
 - **GitHub Pages published**: static dashboard is live at the project URL above.
 
@@ -268,6 +268,7 @@ Recorded validation reports:
 - [Release-readiness roadmap](docs/current/release-readiness-roadmap.md)
 - [Financial reconciliation matrix](docs/current/validation/financial-reconciliation-2026-07-11.md)
 - [Release candidate audit](docs/current/validation/release-audit-2026-07-11.md)
+- [Research Journal local-LLM acceptance](docs/current/validation/research-journal-live-2026-07-12.md)
 - [Risk Studio remediation summary](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
 - [Supply-chain explorer completion summary](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
 - [Supply-chain production hardening progress](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
@@ -288,9 +289,13 @@ Frontend:
 cd frontend
 npm test
 npm run build
+
+# Isolated Research Journal + local LLM acceptance
+cd ..
+uv run python scripts/research_journal_live_acceptance.py
 ```
 
-Latest recorded release audit: `967 passed, 7 skipped` on the backend; 18 frontend test files with 66 passing tests; 30/30 offline guardrail cases; `npm audit` reports zero vulnerabilities.
+Latest recorded release audit: `968 passed, 6 skipped` on the backend; 18 frontend test files with 75 passing tests; three-viewport Chromium workbench and real-mode vLLM smoke passed; 30/30 offline guardrail cases; `npm audit` reports zero vulnerabilities.
 
 Focused checks used during recent development include:
 

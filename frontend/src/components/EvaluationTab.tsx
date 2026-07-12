@@ -1,9 +1,12 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { CheckCircle2, AlertTriangle, XCircle, Info } from "lucide-react";
+import { api, describeApiError } from "../api";
 import type {
   GuardrailFindingV16,
   StepEvaluationV16,
   WorkflowEvaluationV16,
+  WorkflowArtifactsResponse,
+  WorkflowTraceResponse,
 } from "../types";
 import { StepOutputInspector } from "./StepOutputInspector";
 
@@ -81,6 +84,28 @@ function StepRow({ step }: { step: StepEvaluationV16 }) {
 
 export function EvaluationTab({ evaluation, runId }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(true);
+  const [trace, setTrace] = useState<WorkflowTraceResponse | null>(null);
+  const [artifacts, setArtifacts] = useState<WorkflowArtifactsResponse | null>(null);
+  const [observabilityError, setObservabilityError] = useState<string | null>(null);
+
+  const evaluationRunId = evaluation?.run_id;
+  useEffect(() => {
+    if (!runId || !evaluationRunId) {
+      setTrace(null);
+      setArtifacts(null);
+      return;
+    }
+    let cancelled = false;
+    void Promise.all([api.getTrace(runId), api.getArtifacts(runId)]).then(([nextTrace, nextArtifacts]) => {
+      if (cancelled) return;
+      setTrace(nextTrace);
+      setArtifacts(nextArtifacts);
+      setObservabilityError(null);
+    }).catch((error: unknown) => {
+      if (!cancelled) setObservabilityError(describeApiError(error, "Workflow observability"));
+    });
+    return () => { cancelled = true; };
+  }, [runId, evaluationRunId]);
   if (!evaluation) {
     return (
       <div className="section empty-state" data-testid="evaluation-tab-empty">
@@ -146,6 +171,8 @@ export function EvaluationTab({ evaluation, runId }: Props) {
       </div>
 
       <h3 style={{ marginTop: 16 }}>Step Quality Timeline</h3>
+      {observabilityError ? <div className="recoverable-error" role="alert"><p>{observabilityError}</p></div> : null}
+      {artifacts && Object.keys(artifacts.artifacts).length ? <details className="workflow-artifacts"><summary>Workflow artifacts ({Object.keys(artifacts.artifacts).length})</summary><dl>{Object.entries(artifacts.artifacts).map(([name, location]) => <Fragment key={name}><dt>{name}</dt><dd><code>{location}</code></dd></Fragment>)}</dl></details> : null}
       <ul className="step-eval-list" data-testid="step-eval-list">
         {evaluation.step_evaluations.map((step) => (
           <Fragment key={step.step_name}>
@@ -155,10 +182,11 @@ export function EvaluationTab({ evaluation, runId }: Props) {
                 <StepOutputInspector
                   runId={runId}
                   stepName={step.step_name}
-                  llmCalls={[]}
-                  chunkValidations={[]}
-                  sectionLocations={[]}
-                  riskLifecycles={[]}
+                  llmCalls={trace?.llm_log.filter((call) => call.step_name === step.step_name) ?? []}
+                  chunkValidations={trace?.chunk_validations ?? []}
+                  sectionLocations={trace?.section_locations ?? []}
+                  riskLifecycles={trace?.risk_lifecycles ?? []}
+                  dataLoaded
                 />
               </li>
             ) : null}

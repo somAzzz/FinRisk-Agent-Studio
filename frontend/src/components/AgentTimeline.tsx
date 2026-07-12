@@ -31,7 +31,7 @@ function formatDuration(
   startedAt: string,
   completedAt: string | null | undefined,
 ): string {
-  if (!completedAt) return "...";
+  if (!completedAt) return "…";
   const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime();
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;

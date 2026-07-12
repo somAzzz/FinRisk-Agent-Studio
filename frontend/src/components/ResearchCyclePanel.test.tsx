@@ -14,6 +14,7 @@ vi.mock("../api", () => ({
     compareCompanies: vi.fn(),
     listResearchSnapshots: vi.fn(),
     listExpectations: vi.fn(),
+    compareExpectation: vi.fn(),
     getResearchChanges: vi.fn(),
     startResearchRun: vi.fn(),
     scanWatchlist: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock("../api", () => ({
     startWorkflow: vi.fn(),
     getStatus: vi.fn(),
   },
+  describeApiError: (_error: unknown, subject: string) => `${subject} could not be loaded. Retry the request.`,
 }));
 
 const snapshot = (id: string, year: number): CompanyResearchSnapshot => ({
@@ -63,6 +65,11 @@ describe("ResearchCyclePanel", () => {
       snapshot("new", 2026), snapshot("old", 2025),
     ]);
     vi.mocked(api.listExpectations).mockResolvedValue([]);
+    vi.mocked(api.saveExpectation).mockResolvedValue({
+      expectation_id: "saved-expectation", ticker: "ACME", metric: "revenue",
+      fiscal_period: "2025FY", value: 100, unit: "USD", source: "analyst model",
+      origin: "user", observed_at: "2025-09-20T00:00:00Z", as_of: "2025-09-20T00:00:00Z",
+    });
     vi.mocked(api.getResearchChanges).mockResolvedValue({
       ticker: "ACME",
       from_snapshot_id: "old",
@@ -112,11 +119,40 @@ describe("ResearchCyclePanel", () => {
     }));
   });
 
+  it("compares a saved expectation with the latest snapshot actual", async () => {
+    vi.mocked(api.listExpectations).mockResolvedValue([{
+      expectation_id: "expectation-one", ticker: "ACME", metric: "revenue",
+      fiscal_period: "2026Q1", value: 100, unit: "USD", source: "personal model",
+      origin: "user", observed_at: "2026-01-01T00:00:00Z", as_of: "2026-01-01T00:00:00Z",
+    }]);
+    vi.mocked(api.compareExpectation).mockResolvedValue({
+      expectation: { expectation_id: "expectation-one", ticker: "ACME", metric: "revenue", fiscal_period: "2026Q1", value: 100, unit: "USD", source: "personal model", origin: "user", observed_at: "2026-01-01T00:00:00Z", as_of: "2026-01-01T00:00:00Z" },
+      actual: { metric: "revenue", value: 110, unit: "USD", period_end: "2026-03-31", period_kind: "quarter", source_concept: "Revenue", status: "reported", source_accession_numbers: ["filing"] },
+      absolute_surprise: 10,
+      percent_surprise: 0.1,
+    });
+    render(<ResearchCyclePanel />);
+    fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load history" }));
+    fireEvent.click(await screen.findByText("Expectations and CSV import"));
+    fireEvent.click(await screen.findByRole("button", { name: "Compare actual" }));
+    expect(await screen.findByText("10% surprise")).toBeInTheDocument();
+  });
+
   it("starts FinRisk and links its run to the research snapshot", async () => {
     render(<ResearchCyclePanel />);
     fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
     fireEvent.click(screen.getByRole("button", { name: "Run FinRisk + snapshot" }));
 
+    await waitFor(() => expect(api.startWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        llm_config: {
+          provider: "vllm",
+          base_url: "http://localhost:30000/v1",
+          model: "nvidia/Qwen3.6-27B-NVFP4",
+        },
+      }),
+    ));
     await waitFor(() => expect(api.startResearchRun).toHaveBeenCalledWith(
       expect.objectContaining({
         ticker: "ACME",
@@ -124,5 +160,22 @@ describe("ResearchCyclePanel", () => {
         correlation_id: "workflow-one",
       }),
     ));
+  });
+
+  it("saves a historical point-in-time expectation with explicit dates", async () => {
+    render(<ResearchCyclePanel />);
+    fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+    fireEvent.click(screen.getByText("Expectations and CSV import"));
+    fireEvent.change(screen.getByLabelText("Expectation fiscal period"), { target: { value: "2025FY" } });
+    fireEvent.change(screen.getByLabelText("Expectation value"), { target: { value: "100" } });
+    fireEvent.change(screen.getByLabelText("Expectation source"), { target: { value: "analyst model" } });
+    fireEvent.change(screen.getByLabelText("Expectation observed date"), { target: { value: "2025-09-20" } });
+    fireEvent.change(screen.getByLabelText("Expectation as-of date"), { target: { value: "2025-09-20" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save expectation" }));
+
+    await waitFor(() => expect(api.saveExpectation).toHaveBeenCalledWith(expect.objectContaining({
+      observed_at: "2025-09-20T00:00:00Z",
+      as_of: "2025-09-20T00:00:00Z",
+    })));
   });
 });

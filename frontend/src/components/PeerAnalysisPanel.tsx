@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api";
+import { api, describeApiError } from "../api";
 import type { PeerAnalysisResponse, PeerCandidate, PeerGroup } from "../types";
 
 const parseTickers = (value: string) => Array.from(new Set(
@@ -19,6 +19,8 @@ export function PeerAnalysisPanel() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [candidates, setCandidates] = useState<PeerCandidate[]>([]);
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const selected = useMemo(
     () => groups.find((group) => group.peer_group_id === selectedId) ?? null,
     [groups, selectedId],
@@ -30,8 +32,8 @@ export function PeerAnalysisPanel() {
       setGroups(next);
       setSelectedId((current) => current || next[0]?.peer_group_id || "");
       setError(null);
-    } catch {
-      setError("Peer groups could not be loaded.");
+    } catch (nextError) {
+      setError(describeApiError(nextError, "Peer groups"));
     }
   };
 
@@ -66,8 +68,34 @@ export function PeerAnalysisPanel() {
       setBaseTicker("");
       setMemberText("");
       setError(null);
+      setNotice("Peer group saved.");
     } catch {
       setError("Peer group could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteGroup = async () => {
+    if (!selected) return;
+    if (!deleteArmed) {
+      setDeleteArmed(true);
+      setNotice("Select Delete peer group again to confirm. Saved snapshots are not deleted.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.deletePeerGroup(selected.peer_group_id);
+      const remaining = groups.filter((group) => group.peer_group_id !== selected.peer_group_id);
+      setGroups(remaining);
+      setSelectedId(remaining[0]?.peer_group_id ?? "");
+      setAnalysis(null);
+      setCandidates([]);
+      setDeleteArmed(false);
+      setNotice("Peer group deleted. Research snapshots were preserved.");
+      setError(null);
+    } catch (nextError) {
+      setError(describeApiError(nextError, "Peer group"));
     } finally {
       setBusy(false);
     }
@@ -148,10 +176,12 @@ export function PeerAnalysisPanel() {
     <section className="peer-analysis" aria-labelledby="peer-analysis-title">
       <header><div><span className="research-eyebrow">Comparable-company workspace</span><h3 id="peer-analysis-title">Peer analysis</h3></div></header>
       <div className="peer-analysis-controls">
-        <label>Saved group<select aria-label="Saved peer group" value={selectedId} onChange={(event) => { setSelectedId(event.target.value); setAnalysis(null); }}><option value="">Select a group</option>{groups.map((group) => <option key={group.peer_group_id} value={group.peer_group_id}>{group.name}</option>)}</select></label>
+        <label>Saved group<select aria-label="Saved peer group" value={selectedId} onChange={(event) => { setSelectedId(event.target.value); setAnalysis(null); setDeleteArmed(false); setNotice(null); }}><option value="">Select a group</option>{groups.map((group) => <option key={group.peer_group_id} value={group.peer_group_id}>{group.name}</option>)}</select></label>
         <label>Metrics<input aria-label="Peer comparison metrics" value={metrics} onChange={(event) => setMetrics(event.target.value)} /></label>
         <button className="primary" type="button" disabled={!selected || busy} onClick={() => void compare()}>Compare peers</button>
+        <button className="ghost danger" type="button" disabled={!selected || busy} onClick={() => void deleteGroup()}>{deleteArmed ? "Confirm delete peer group" : "Delete peer group"}</button>
       </div>
+      {notice ? <p className="operation-notice" role="status">{notice}</p> : null}
       <details className="cycle-details"><summary>Optional explicit valuation inputs</summary><textarea aria-label="Peer valuation inputs" value={valuationInputs} onChange={(event) => setValuationInputs(event.target.value)} placeholder='[{"ticker":"NVDA","method":"pe","share_price":100,"diluted_shares":10,"earnings":50,"period":"TTM"}]' /><p className="muted">JSON array using P/E, EV/EBITDA or FCF-yield inputs. Values are never inferred from market data.</p></details>
       {selected ? <div className="peer-group-summary"><strong>{selected.base_ticker} · {selected.industry_template}</strong><span>{selected.fiscal_period_policy} · {selected.currency_policy}</span><ul>{selected.members.map((member) => <li key={member.ticker}><b>{member.ticker}</b> — {member.inclusion_reason}</li>)}</ul><button className="ghost" type="button" disabled={busy} onClick={() => void suggestCandidates()}>Suggest SEC SIC peers from Watchlist</button></div> : null}
       {candidates.length ? <div className="peer-candidates"><strong>Unconfirmed candidates</strong>{candidates.map((candidate) => <article key={candidate.ticker}><div><b>{candidate.ticker}</b><span>{candidate.similarity}</span><p>{candidate.inclusion_reason}</p></div><button className="ghost" type="button" disabled={busy} onClick={() => void confirmCandidate(candidate)}>Confirm peer</button></article>)}</div> : null}

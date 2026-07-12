@@ -1,0 +1,59 @@
+{
+  "scenario_id": "aapl-msft-quarterly-review",
+  "api_port": 18000,
+  "frontend_port": 15173,
+  "api_key": "research-journal-live-local",
+  "primary": {
+    "ticker": "AAPL",
+    "company_name": "Apple",
+    "baseline_year": 2024,
+    "current_year": 2025,
+    "quarter": 4,
+    "analysis_goal": "Identify evidence-linked changes in Apple risk disclosures, financial performance, management guidance, and supply-chain exposure.",
+    "thesis": "Services growth and product mix can support durable free-cash-flow generation despite hardware cyclicality.",
+    "time_horizon": "18 months",
+    "disconfirming_conditions": "Free cash flow declines for two consecutive fiscal years,Services growth falls below company growth",
+    "key_drivers": "services mix,gross margin,installed base",
+    "monitoring_metrics": "revenue,free_cash_flow,gross_margin",
+    "next_review_days_from_now": 3
+  },
+  "peer": {
+    "ticker": "MSFT",
+    "company_name": "Microsoft",
+    "year": 2025,
+    "quarter": 4,
+    "group_name": "Platform cash-flow peers",
+    "industry_template": "general"
+  },
+  "expectation": {
+    "metric": "revenue",
+    "fiscal_period": "2025FY",
+    "value": 400000000000,
+    "unit": "USD",
+    "source": "live acceptance analyst model",
+    "observed_at": "2025-09-20",
+    "as_of": "2025-09-20"
+  },
+  "valuation": {
+    "current_share_price": 200,
+    "bear": { "growth": -0.02, "margin": 0.27, "multiple": 16 },
+    "base": { "growth": 0.05, "margin": 0.31, "multiple": 20 },
+    "bull": { "growth": 0.10, "margin": 0.34, "multiple": 24 },
+    "multiple_method": "pe",
+    "multiple_period": "2025FY",
+    "earnings": 112000000000,
+    "forecast_free_cash_flows": [105000000000, 112000000000, 120000000000],
+    "wacc": 0.09,
+    "terminal_growth": 0.025
+  },
+  "llm": {
+    "provider": "vllm",
+    "base_url": "http://localhost:30000/v1",
+    "model": "nvidia/Qwen3.6-27B-NVFP4"
+  },
+  "timeouts": {
+    "ui_action_ms": 30000,
+    "workflow_ms": 360000,
+    "service_start_s": 60
+  }
+}

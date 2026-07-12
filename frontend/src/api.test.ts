@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { api, FinRiskApiError } from "./api";
+import { api, clearApiCache, describeApiError, FinRiskApiError } from "./api";
 import type {
   FinRiskRequest,
   WorkflowReportResponse,
@@ -43,6 +43,7 @@ const REPORT: WorkflowReportResponse = {
 describe("api client", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    clearApiCache();
   });
 
   it("posts FinRiskRequest to /workflows/finrisk/run", async () => {
@@ -154,6 +155,16 @@ describe("api client", () => {
     );
   });
 
+  it("compares a point-in-time expectation with a saved actual", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ absolute_surprise: 5 }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.compareExpectation("expectation-one", "snapshot-one");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/research/expectations/expectation-one/compare?snapshot_id=snapshot-one",
+      expect.any(Object),
+    );
+  });
+
   it("raises FinRiskApiError on non-2xx responses", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
@@ -163,6 +174,45 @@ describe("api client", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     await expect(api.getStatus("run-x")).rejects.toBeInstanceOf(FinRiskApiError);
+  });
+
+  it("deduplicates simultaneous GET requests", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => STATUS });
+    vi.stubGlobal("fetch", fetchMock);
+    const [left, right] = await Promise.all([api.getStatus("run-shared"), api.getStatus("run-shared")]);
+    expect(left).toEqual(right);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("exposes Retry-After and actionable rate-limit copy", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      headers: new Headers({ "Retry-After": "12" }),
+      json: async () => ({ detail: "Rate limit exceeded." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const error = await api.getStatus("run-rate-limited").then(
+      () => { throw new Error("expected rate limit"); },
+      (value) => value as FinRiskApiError,
+    );
+    expect(error.retryAfterSeconds).toBe(12);
+    expect(describeApiError(error, "Run status")).toContain("Wait 12 seconds");
+  });
+
+  it("calls every advanced valuation endpoint and peer deletion", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.calculateMultipleValuation({ ticker: "ACME", method: "pe", share_price: 10, diluted_shares: 10, net_debt: 0, earnings: 20, period: "TTM", evidence_ids: [] });
+    await api.calculateDiscountedCashFlow({ ticker: "ACME", forecast_free_cash_flows: [10, 11], wacc: 0.1, terminal_growth: 0.03, net_debt: 0, diluted_shares: 10, evidence_ids: [] });
+    await api.listValuationAssumptions("ACME", 20);
+    fetchMock.mockResolvedValueOnce({ ok: true, status: 204, json: async () => undefined });
+    await api.deletePeerGroup("peer-one");
+    expect(fetchMock).toHaveBeenCalledWith("/research/valuation/multiple", expect.objectContaining({ method: "POST" }));
+    expect(fetchMock).toHaveBeenCalledWith("/research/valuation/dcf", expect.objectContaining({ method: "POST" }));
+    expect(fetchMock).toHaveBeenCalledWith("/research/valuation/history/ACME?limit=20", expect.any(Object));
+    expect(fetchMock).toHaveBeenCalledWith("/research/peer-groups/peer-one", expect.objectContaining({ method: "DELETE" }));
   });
 
   it("fetches v16 trace from /workflows/{run_id}/trace", async () => {

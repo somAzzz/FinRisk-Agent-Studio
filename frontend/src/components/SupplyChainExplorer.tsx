@@ -4,7 +4,7 @@ import type {
   SupplyChainSankeyPayloadWire,
   SupplyChainStatusResponseWire,
 } from "../supply-chain-types";
-import { api, FinRiskApiError } from "../api";
+import { api, describeApiError, FinRiskApiError } from "../api";
 import { LLMProviderSelector } from "./LLMProviderSelector";
 import { SupplyChainSankey } from "./SupplyChainSankey";
 import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
@@ -46,8 +46,8 @@ function formatApiError(err: unknown): string {
         .join("; ");
       return `API ${err.status}: ${messages}`;
     }
-    if (detail) return `API ${err.status}: ${String(detail)}`;
-    return `API ${err.status}: ${err.message}`;
+    if (err.status === 422 && detail) return `API ${err.status}: ${String(detail)}`;
+    return describeApiError(err, "Supply chain exploration");
   }
   return (err as Error).message;
 }
@@ -286,10 +286,10 @@ export function SupplyChainExplorer({
           disabled={busy}
           data-testid="sc-run-button"
         >
-          {busy ? "Running..." : "Run Supply Chain"}
+          {busy ? "Running…" : "Run Supply Chain"}
         </button>
         {error ? (
-          <div className="error-banner" data-testid="sc-error">
+          <div className="error-banner" role="alert" data-testid="sc-error">
             {error}
           </div>
         ) : null}

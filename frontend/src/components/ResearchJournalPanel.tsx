@@ -1,17 +1,24 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, describeApiError } from "../api";
 import type {
   InvestmentThesis,
   ResearchReminder,
   ThesisReview,
   WatchlistItem,
 } from "../types";
-import { ResearchCyclePanel } from "./ResearchCyclePanel";
+import { ResearchCyclePanel, type ResearchTask } from "./ResearchCyclePanel";
 
 const now = () => new Date().toISOString();
 const id = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 12)}`;
 const splitList = (value: string) =>
   value.split(",").map((item) => item.trim()).filter(Boolean);
+const RESEARCH_TASKS = new Set<ResearchTask>(["cycle", "valuation", "peers", "reviews"]);
+
+function initialResearchTask(): ResearchTask {
+  if (typeof window === "undefined") return "cycle";
+  const requested = new URLSearchParams(window.location.search).get("task") as ResearchTask | null;
+  return requested && RESEARCH_TASKS.has(requested) ? requested : "cycle";
+}
 
 export function ResearchJournalPanel() {
   const [theses, setTheses] = useState<InvestmentThesis[]>([]);
@@ -27,24 +34,29 @@ export function ResearchJournalPanel() {
   const [reviewDates, setReviewDates] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTask, setActiveTask] = useState<ResearchTask>(initialResearchTask);
+  const [researchRevision, setResearchRevision] = useState(0);
 
   const refresh = async () => {
-    try {
-      const [nextTheses, nextWatchlist, nextReminders] = await Promise.all([
-        api.listTheses(),
-        api.listWatchlist(),
-        api.listResearchReminders(),
-      ]);
-      setTheses(nextTheses);
-      setWatchlist(nextWatchlist);
-      setReminders(nextReminders);
-      setError(null);
-    } catch {
-      setError("Research journal could not be loaded.");
-    }
+    const [nextTheses, nextWatchlist, nextReminders] = await Promise.allSettled([
+      api.listTheses(),
+      api.listWatchlist(),
+      api.listResearchReminders(),
+    ]);
+    if (nextTheses.status === "fulfilled") setTheses(nextTheses.value);
+    if (nextWatchlist.status === "fulfilled") setWatchlist(nextWatchlist.value);
+    if (nextReminders.status === "fulfilled") setReminders(nextReminders.value);
+    setResearchRevision((current) => current + 1);
+    const failure = [nextTheses, nextWatchlist, nextReminders].find((result) => result.status === "rejected");
+    setError(failure?.status === "rejected" ? describeApiError(failure.reason, "Research journal") : null);
   };
 
   useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("task", activeTask);
+    window.history.replaceState(null, "", url);
+  }, [activeTask]);
 
   const saveThesis = async () => {
     if (!ticker.trim() || !statement.trim() || !disconfirming.trim()) return;
@@ -115,20 +127,23 @@ export function ResearchJournalPanel() {
       <aside className="journal-compose section">
         <span className="research-eyebrow">Personal research memory</span>
         <h2>New thesis</h2>
-        <label>Ticker<input value={ticker} onChange={(event) => setTicker(event.target.value)} /></label>
-        <label>Thesis<textarea value={statement} onChange={(event) => setStatement(event.target.value)} /></label>
-        <label>Time horizon<input value={timeHorizon} onChange={(event) => setTimeHorizon(event.target.value)} /></label>
-        <label>What would disprove it?<textarea value={disconfirming} onChange={(event) => setDisconfirming(event.target.value)} placeholder="Comma-separated falsification conditions" /></label>
-        <label>Key drivers<input value={drivers} onChange={(event) => setDrivers(event.target.value)} placeholder="pricing, product mix" /></label>
-        <label>Metrics to monitor<input value={metrics} onChange={(event) => setMetrics(event.target.value)} placeholder="gross_margin, revenue" /></label>
+        <label>Ticker<input name="thesis_ticker" autoComplete="off" spellCheck={false} value={ticker} onChange={(event) => setTicker(event.target.value)} /></label>
+        <label>Thesis<textarea name="thesis_statement" autoComplete="off" value={statement} onChange={(event) => setStatement(event.target.value)} /></label>
+        <label>Time horizon<input name="thesis_time_horizon" autoComplete="off" value={timeHorizon} onChange={(event) => setTimeHorizon(event.target.value)} /></label>
+        <label>What would disprove it?<textarea name="thesis_disconfirming" autoComplete="off" value={disconfirming} onChange={(event) => setDisconfirming(event.target.value)} placeholder="Comma-separated falsification conditions…" /></label>
+        <label>Key drivers<input name="thesis_drivers" autoComplete="off" value={drivers} onChange={(event) => setDrivers(event.target.value)} placeholder="pricing, product mix…" /></label>
+        <label>Metrics to monitor<input name="thesis_metrics" autoComplete="off" spellCheck={false} value={metrics} onChange={(event) => setMetrics(event.target.value)} placeholder="gross_margin, revenue…" /></label>
         <button className="primary" type="button" disabled={busy || !ticker || !statement || !disconfirming} onClick={() => void saveThesis()}>
           Save active thesis
         </button>
-        {error ? <p className="journal-error">{error}</p> : null}
+        {error ? <div className="recoverable-error" role="alert"><p>{error}</p><button className="ghost" type="button" onClick={() => void refresh()}>Retry journal</button></div> : null}
       </aside>
 
       <main className="journal-main">
-        <ResearchCyclePanel />
+        <nav className="research-task-nav" aria-label="Research tasks">
+          {(["cycle", "valuation", "peers", "reviews"] as ResearchTask[]).map((task) => <button key={task} type="button" className={activeTask === task ? "active" : ""} aria-current={activeTask === task ? "page" : undefined} onClick={() => setActiveTask(task)}>{task === "cycle" ? "Research cycle" : task === "valuation" ? "Valuation" : task === "peers" ? "Peer analysis" : "Reviews"}</button>)}
+        </nav>
+        <ResearchCyclePanel activeTask={activeTask} researchRevision={researchRevision} />
         {reminders.length ? (
           <section className="section reminder-ledger">
             <h2>Due research</h2>
@@ -167,6 +182,10 @@ export function ResearchJournalPanel() {
             {!theses.length ? <p className="muted">No saved thesis yet.</p> : null}
           </div>
         </section>
+        <details className="section operations-boundary">
+          <summary>Local data & scheduling</summary>
+          <p>Database migration, backup, restore, API keys, TLS, and system schedulers remain administrator operations. Run them through the documented CLI on the host; the browser does not expose destructive database controls.</p>
+        </details>
       </main>
     </div>
   );
