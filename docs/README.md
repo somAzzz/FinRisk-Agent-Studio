@@ -10,6 +10,7 @@
 - [分析师工作台能力路线图](current/analyst-workbench-roadmap.md)：已实现能力、当前阶段与完成定义。
 - [前端功能完整性与真实浏览器修复方案](current/frontend-integration-remediation-plan.md)：前端功能闭环、失败恢复与三视口验收。
 - [前端修复真实验收](current/validation/frontend-remediation-2026-07-12.md)：真实 Chromium、vLLM 流程与回归证据。
+- [Research Journal 本地 LLM 全链路验收](current/validation/research-journal-live-2026-07-12.md)：隔离数据、真实浏览器与 7 次本地 LLM 调用证据。
 - [个人研究闭环实施记录](current/research-closure-plan.md)：已完成首版闭环的实现契约与验收基线。
 - [SEC 财务快照验证](current/validation/sec-financial-snapshot-2026-07-11.md)：AAPL、NVDA、XOM 的公开数据验证记录。
 - [研究闭环真实数据矩阵](current/validation/research-closure-live-matrix-2026-07-11.md)：六类公司与 Watchlist 去重验证。
@@ -24,6 +25,7 @@
 - [演示脚本](guides/demo-script.md)
 - [EDGAR 语料接入](guides/edgar-corpus.md)
 - [个人研究闭环使用指南](guides/research-cycle.md)
+- [Research Journal 本地 LLM 可复用验收](testing/research-journal-live-acceptance.md)
 
 ## 运维与安全
 

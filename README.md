@@ -268,6 +268,7 @@ Recorded validation reports:
 - [Release-readiness roadmap](docs/current/release-readiness-roadmap.md)
 - [Financial reconciliation matrix](docs/current/validation/financial-reconciliation-2026-07-11.md)
 - [Release candidate audit](docs/current/validation/release-audit-2026-07-11.md)
+- [Research Journal local-LLM acceptance](docs/current/validation/research-journal-live-2026-07-12.md)
 - [Risk Studio remediation summary](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
 - [Supply-chain explorer completion summary](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
 - [Supply-chain production hardening progress](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
@@ -288,6 +289,10 @@ Frontend:
 cd frontend
 npm test
 npm run build
+
+# Isolated Research Journal + local LLM acceptance
+cd ..
+uv run python scripts/research_journal_live_acceptance.py
 ```
 
 Latest recorded release audit: `968 passed, 6 skipped` on the backend; 18 frontend test files with 75 passing tests; three-viewport Chromium workbench and real-mode vLLM smoke passed; 30/30 offline guardrail cases; `npm audit` reports zero vulnerabilities.
