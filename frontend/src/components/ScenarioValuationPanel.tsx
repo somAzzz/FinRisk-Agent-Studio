@@ -11,7 +11,10 @@ import type {
   ValuationAssumptionSnapshot,
 } from "../types";
 
-interface Props { snapshot: FinancialSnapshot | null; }
+interface Props {
+  snapshot: FinancialSnapshot | null;
+  staticMode?: boolean;
+}
 type ScenarioName = "bear" | "base" | "bull";
 type AssumptionState = Record<ScenarioName, { growth: string; margin: string; multiple: string }>;
 
@@ -34,7 +37,7 @@ function numberOrNull(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function ScenarioValuationPanel({ snapshot }: Props) {
+export function ScenarioValuationPanel({ snapshot, staticMode = false }: Props) {
   const [baseRevenue, setBaseRevenue] = useState("");
   const [netDebt, setNetDebt] = useState("");
   const [shares, setShares] = useState("");
@@ -70,13 +73,29 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
     setSensitivity(null);
     setMultipleResult(null);
     setDcfResult(null);
+    if (staticMode) {
+      setCurrentPrice("210");
+      setAssumptions({
+        bear: { growth: "0.01", margin: "0.28", multiple: "18" },
+        base: { growth: "0.05", margin: "0.32", multiple: "22" },
+        bull: { growth: "0.08", margin: "0.35", multiple: "25" },
+      });
+      setEarnings("108700000000");
+      setEbitda("142000000000");
+      setFreeCashFlow("101200000000");
+      setForecastCashFlows("105000000000, 111000000000, 117000000000, 123000000000, 129000000000");
+      setWacc("0.09");
+      setTerminalGrowth("0.03");
+      setHistoryError(null);
+      return;
+    }
     void api.listValuationAssumptions(snapshot.ticker).then((items) => {
       setHistory(items);
       setHistoryError(null);
     }).catch((nextError: unknown) => {
       setHistoryError(describeApiError(nextError, "Valuation history"));
     });
-  }, [snapshot]);
+  }, [snapshot, staticMode]);
 
   if (!snapshot) return null;
 
@@ -104,6 +123,44 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
       return;
     }
     const sourceIds = Array.from(new Set(snapshot.metrics.flatMap((point) => point.source_accession_numbers)));
+    if (staticMode) {
+      const sharePrice = numberOrNull(currentPrice);
+      setResult({
+        ticker: snapshot.ticker,
+        currency: snapshot.currency,
+        forecast_years: forecastYears,
+        scenarios: scenarioRows.map((row) => {
+          const projectedRevenue = revenue * ((1 + (row.annual_revenue_growth as number)) ** forecastYears);
+          const projectedOperatingIncome = projectedRevenue * (row.terminal_operating_margin as number);
+          const enterpriseValue = projectedOperatingIncome * (row.ev_to_operating_income_multiple as number);
+          const equityValue = enterpriseValue - debt;
+          const impliedSharePrice = equityValue / dilutedShares;
+          return {
+            name: row.name,
+            projected_revenue: projectedRevenue,
+            projected_operating_income: projectedOperatingIncome,
+            enterprise_value: enterpriseValue,
+            equity_value: equityValue,
+            implied_share_price: impliedSharePrice,
+            upside_downside: sharePrice ? impliedSharePrice / sharePrice - 1 : null,
+            current_price_implied_terminal_margin: sharePrice
+              ? ((sharePrice * dilutedShares + debt) / (row.ev_to_operating_income_multiple as number)) / projectedRevenue
+              : null,
+            assumptions: {
+              name: row.name,
+              annual_revenue_growth: row.annual_revenue_growth as number,
+              terminal_operating_margin: row.terminal_operating_margin as number,
+              ev_to_operating_income_multiple: row.ev_to_operating_income_multiple as number,
+            },
+          };
+        }),
+        evidence_ids: sourceIds,
+        methodology: "Fixture calculation using explicit analyst assumptions.",
+        disclaimer: "Illustrative static-demo output. This is not investment advice.",
+      });
+      setError(null);
+      return;
+    }
     try {
       setResult(await api.calculateValuation({
         ticker: snapshot.ticker,
@@ -139,6 +196,27 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
       setError("Complete the base case before calculating sensitivity.");
       return;
     }
+    if (staticMode) {
+      const rowValues = [growth! - 0.05, growth!, growth! + 0.05];
+      const columnValues = [margin! - 0.05, margin!, margin! + 0.05];
+      const sharePrice = numberOrNull(currentPrice);
+      setSensitivity({
+        ticker: snapshot.ticker,
+        kind: "growth_margin",
+        row_label: "growth",
+        column_label: "margin",
+        row_values: rowValues,
+        column_values: columnValues,
+        cells: rowValues.flatMap((row) => columnValues.map((column) => {
+          const projected = (revenue as number) * ((1 + row) ** (forecastYears as number));
+          const implied = ((projected * column * (multiple as number)) - (debt as number)) / (dilutedShares as number);
+          return { row_value: row, column_value: column, implied_share_price: implied, upside_downside: sharePrice ? implied / sharePrice - 1 : null };
+        })),
+        disclaimer: "Illustrative static-demo sensitivity. This is not investment advice.",
+      });
+      setError(null);
+      return;
+    }
     try {
       setSensitivity(await api.calculateSensitivity({
         ticker: snapshot.ticker,
@@ -163,6 +241,7 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
   const sourceIds = Array.from(new Set(snapshot.metrics.flatMap((point) => point.source_accession_numbers)));
 
   const refreshHistory = async () => {
+    if (staticMode) return;
     try {
       setHistory(await api.listValuationAssumptions(snapshot.ticker, 20));
       setHistoryError(null);
@@ -178,6 +257,27 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
     const denominator = method === "pe" ? numberOrNull(earnings) : method === "ev_ebitda" ? numberOrNull(ebitda) : numberOrNull(freeCashFlow);
     if (sharePrice == null || dilutedShares == null || debt == null || denominator == null || !period.trim()) {
       setError("Enter share price, diluted shares, net debt, period, and the selected method denominator.");
+      return;
+    }
+    if (staticMode) {
+      const marketCap = sharePrice * dilutedShares;
+      const numerator = method === "ev_ebitda" ? marketCap + debt : method === "fcf_yield" ? denominator : marketCap;
+      const value = method === "fcf_yield" ? (denominator / marketCap) * 100 : numerator / denominator;
+      setMultipleResult({
+        ticker: snapshot.ticker,
+        method,
+        status: denominator > 0 ? "available" : "not_available",
+        value: denominator > 0 ? value : null,
+        unit: method === "fcf_yield" ? "percent" : "x",
+        numerator,
+        denominator,
+        reason: denominator > 0 ? null : "The selected denominator must be positive.",
+        period: period.trim(),
+        evidence_ids: sourceIds,
+        methodology: "Fixture calculation from the explicit price, share count, net debt, and selected denominator.",
+        disclaimer: "Illustrative static-demo output. This is not investment advice.",
+      });
+      setError(null);
       return;
     }
     try {
@@ -214,6 +314,34 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
       setError("WACC must be greater than terminal growth.");
       return;
     }
+    if (staticMode) {
+      const presentValueForecast = cashFlows.reduce((total, cashFlow, index) => total + cashFlow / ((1 + discountRate) ** (index + 1)), 0);
+      const terminalValue = cashFlows[cashFlows.length - 1] * (1 + growth) / (discountRate - growth);
+      const presentValueTerminal = terminalValue / ((1 + discountRate) ** cashFlows.length);
+      const enterpriseValue = presentValueForecast + presentValueTerminal;
+      const equityValue = enterpriseValue - debt;
+      setDcfResult({
+        ticker: snapshot.ticker,
+        present_value_forecast: presentValueForecast,
+        present_value_terminal: presentValueTerminal,
+        enterprise_value: enterpriseValue,
+        equity_value: equityValue,
+        implied_share_price: equityValue / dilutedShares,
+        assumptions: {
+          ticker: snapshot.ticker,
+          forecast_free_cash_flows: cashFlows,
+          wacc: discountRate,
+          terminal_growth: growth,
+          net_debt: debt,
+          diluted_shares: dilutedShares,
+          evidence_ids: sourceIds,
+        },
+        methodology: "Unlevered DCF using explicit annual free-cash-flow inputs and a Gordon-growth terminal value.",
+        disclaimer: "Illustrative static-demo output. This is not investment advice.",
+      });
+      setError(null);
+      return;
+    }
     try {
       setDcfResult(await api.calculateDiscountedCashFlow({
         ticker: snapshot.ticker,
@@ -232,8 +360,8 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
   };
 
   return (
-    <details className="section valuation-panel" data-testid="valuation-panel">
-      <summary><span>Scenario valuation</span><small>User assumptions · no price target</small></summary>
+    <section className="section valuation-panel" data-testid="valuation-panel" aria-labelledby="scenario-valuation-title">
+      <header className="valuation-panel-heading"><div><span className="page-eyebrow">Three-case framework</span><h3 id="scenario-valuation-title">Scenario valuation</h3></div><span className="valuation-badge">User assumptions · no price target</span></header>
       <p className="valuation-note">SEC-derived baselines are prefilled where available. Growth, margin, multiple and market price remain your assumptions.</p>
       <div className="valuation-baseline">
         <label>Base revenue<input aria-label="Base revenue" value={baseRevenue} onChange={(event) => setBaseRevenue(event.target.value)} /></label>
@@ -294,6 +422,6 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
         {history.map((item) => <article key={item.assumption_snapshot_id}><strong>{item.kind}</strong><span>{valuationTimestamp.format(new Date(item.created_at))}</span><small>{item.assumption_snapshot_id}</small></article>)}
         {!history.length && !historyError ? <p className="muted">Calculate a scenario, multiple, sensitivity matrix, or DCF to preserve its assumptions here.</p> : null}
       </details>
-    </details>
+    </section>
   );
 }

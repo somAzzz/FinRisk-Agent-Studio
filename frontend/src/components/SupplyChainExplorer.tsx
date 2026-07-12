@@ -12,6 +12,7 @@ import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
 interface Props {
   initialCompany?: string;
   initialProduct?: string;
+  initialPayload?: SupplyChainSankeyPayloadWire;
   onProgress?: (status: SupplyChainStatusResponseWire | null) => void;
   selectedRunId?: string | null;
 }
@@ -55,6 +56,7 @@ function formatApiError(err: unknown): string {
 export function SupplyChainExplorer({
   initialCompany = "OpenAI",
   initialProduct = "ChatGPT",
+  initialPayload,
   onProgress,
   selectedRunId,
 }: Props) {
@@ -63,10 +65,10 @@ export function SupplyChainExplorer({
     company_name: initialCompany,
     product_name: initialProduct,
   });
-  const [sankey, setSankey] = useState<SupplyChainSankeyPayloadWire | null>(null);
-  const [runId, setRunId] = useState<string | null>(null);
+  const [sankey, setSankey] = useState<SupplyChainSankeyPayloadWire | null>(initialPayload ?? null);
+  const [runId, setRunId] = useState<string | null>(initialPayload ? "fixture-supply-chain" : null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialPayload?.nodes[0]?.node_id ?? null);
   const [busy, setBusy] = useState(false);
   const [latestStatus, setLatestStatus] =
     useState<SupplyChainStatusResponseWire | null>(null);
@@ -143,6 +145,28 @@ export function SupplyChainExplorer({
     setError(null);
     setLatestStatus(null);
     onProgress?.(null);
+    if (initialPayload) {
+      const fixtureStatus: SupplyChainStatusResponseWire = {
+        run_id: "fixture-supply-chain",
+        status: "completed",
+        request: liveRequest,
+        current_step: null,
+        node_count: initialPayload.nodes.length,
+        link_count: initialPayload.links.length,
+        evidence_count: initialPayload.evidence.length,
+        evaluation: null,
+        trace: [],
+        warnings: initialPayload.warnings,
+        fallback_events: ["offline fixture"],
+      };
+      setRunId(fixtureStatus.run_id);
+      setSankey(initialPayload);
+      setSelectedNodeId(initialPayload.nodes[0]?.node_id ?? null);
+      setLatestStatus(fixtureStatus);
+      onProgress?.(fixtureStatus);
+      setBusy(false);
+      return;
+    }
     try {
       const resp = await api.startSupplyChain(liveRequest);
       setRunId(resp.run_id);
@@ -170,6 +194,10 @@ export function SupplyChainExplorer({
 
   const expand = async (nodeId: string) => {
     if (!runId) return;
+    if (initialPayload) {
+      setSelectedNodeId(nodeId);
+      return;
+    }
     setBusy(true);
     setError(null);
     const currentRequest = requestRef.current;
@@ -274,12 +302,15 @@ export function SupplyChainExplorer({
             </div>
           </div>
         </div>
-        <LLMProviderSelector
-          value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
-          onChange={(next) =>
-            setRequest((r) => ({ ...r, llm_config: next }))
-          }
-        />
+        <details className="runtime-disclosure">
+          <summary>Runtime settings <small>{request.llm_config?.provider ?? "default"} · {request.llm_config?.model ?? "configured model"}</small></summary>
+          <LLMProviderSelector
+            value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
+            onChange={(next) =>
+              setRequest((r) => ({ ...r, llm_config: next }))
+            }
+          />
+        </details>
         <button
           type="submit"
           className="primary"

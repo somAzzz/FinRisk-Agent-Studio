@@ -80,6 +80,12 @@ function formatChange(change: FinancialChange | null): string {
   return `${prefix}${(change.percent_change * 100).toFixed(1)}% ${change.change_type}`;
 }
 
+function formatKpiChange(change: FinancialChange | null): string {
+  if (!change || change.percent_change == null) return "No comparison";
+  const prefix = change.percent_change > 0 ? "+" : "";
+  return `${prefix}${(change.percent_change * 100).toFixed(1)}% vs prior`;
+}
+
 export function FinancialTrendPanel({ snapshot, loading, error }: Props) {
   if (loading) {
     return <section className="section empty-state">Loading SEC financial history…</section>;
@@ -101,14 +107,25 @@ export function FinancialTrendPanel({ snapshot, loading, error }: Props) {
   }).filter((row): row is NonNullable<typeof row> => row !== null);
 
   return (
-    <section className="section" data-testid="financial-trend-panel">
+    <section className="section financial-workspace" data-testid="financial-trend-panel">
       <div className="financial-heading">
         <div>
+          <span className="page-eyebrow">Point-in-time fact layer</span>
           <h2>Financial trend</h2>
           <p>Standardized SEC facts · knowledge cutoff {snapshot.as_of.slice(0, 10)}</p>
         </div>
         <span>{snapshot.ticker} · {rows.length} metrics</span>
       </div>
+      <div className="financial-kpi-strip">
+        {rows.slice(0, 5).map(({ definition, point, change }) => (
+          <article key={definition.key}>
+            <span>{point.period_kind === "ttm" ? `TTM ${definition.label}` : definition.label}</span>
+            <strong>{formatValue(point)}</strong>
+            <small className={change?.percent_change && change.percent_change < 0 ? "negative-change" : "positive-change"}>{formatKpiChange(change)}</small>
+          </article>
+        ))}
+      </div>
+      <div className="financial-table-heading"><div><h3>Standardized metrics</h3><p>Every value retains filing lineage and derivation status.</p></div><span>As of {snapshot.as_of.slice(0, 10)}</span></div>
       <div className="table-scroll">
         <table className="research-table financial-table">
           <thead>
