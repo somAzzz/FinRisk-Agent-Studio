@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:workbench": "node e2e/workbench-smoke.cjs"
   },
   "dependencies": {
     "lucide-react": "^0.453.0",
