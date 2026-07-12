@@ -31,6 +31,7 @@ interface Props {
   chunkValidations: ChunkValidation[];
   sectionLocations: SectionLocation[];
   riskLifecycles: RiskLifecycleAnnotation[];
+  dataLoaded?: boolean;
 }
 
 type Tab = "chunks" | "llm" | "section" | "lifecycle";
@@ -49,6 +50,7 @@ export function StepOutputInspector({
   chunkValidations,
   sectionLocations,
   riskLifecycles,
+  dataLoaded = false,
 }: Props) {
   const [tab, setTab] = useState<Tab>("chunks");
   const [data, setData] = useState<Props>({
@@ -58,6 +60,7 @@ export function StepOutputInspector({
     chunkValidations,
     sectionLocations,
     riskLifecycles,
+    dataLoaded,
   });
 
   // Lazily load missing data from the dedicated endpoints so the
@@ -65,6 +68,7 @@ export function StepOutputInspector({
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      if (dataLoaded) return;
       const updates: Partial<Props> = {};
       if (llmCalls.length === 0) {
         const r = await api.getLLMLog(_runId);
@@ -92,13 +96,16 @@ export function StepOutputInspector({
     return () => {
       cancelled = true;
     };
-  }, [_runId, stepName, llmCalls.length, chunkValidations.length, sectionLocations.length, riskLifecycles.length]);
+  }, [_runId, stepName, dataLoaded, llmCalls.length, chunkValidations.length, sectionLocations.length, riskLifecycles.length]);
 
+  const resolved = dataLoaded
+    ? { llmCalls, chunkValidations, sectionLocations, riskLifecycles }
+    : data;
   const counts: Record<Tab, number> = {
-    chunks: data.chunkValidations.length,
-    llm: data.llmCalls.length,
-    section: data.sectionLocations.length,
-    lifecycle: data.riskLifecycles.length,
+    chunks: resolved.chunkValidations.length,
+    llm: resolved.llmCalls.length,
+    section: resolved.sectionLocations.length,
+    lifecycle: resolved.riskLifecycles.length,
   };
 
   return (
@@ -118,13 +125,13 @@ export function StepOutputInspector({
         ))}
       </div>
       <div role="tabpanel" className="step-inspector-panel">
-        {tab === "chunks" && <ChunkList chunks={data.chunkValidations} />}
-        {tab === "llm" && <LLMCallList calls={data.llmCalls} />}
+        {tab === "chunks" && <ChunkList chunks={resolved.chunkValidations} />}
+        {tab === "llm" && <LLMCallList calls={resolved.llmCalls} />}
         {tab === "section" && (
-          <SectionList sections={data.sectionLocations} />
+          <SectionList sections={resolved.sectionLocations} />
         )}
         {tab === "lifecycle" && (
-          <LifecycleList rows={data.riskLifecycles} />
+          <LifecycleList rows={resolved.riskLifecycles} />
         )}
       </div>
     </div>

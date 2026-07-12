@@ -11,7 +11,9 @@ vi.mock("../api", () => ({
     analyzePeerGroup: vi.fn(),
     suggestPeerCandidates: vi.fn(),
     updatePeerGroup: vi.fn(),
+    deletePeerGroup: vi.fn(),
   },
+  describeApiError: (_error: unknown, subject: string) => `${subject} could not be loaded.`,
 }));
 
 const group = {
@@ -69,4 +71,14 @@ it("loads a confirmed group and compares member snapshots", async () => {
   await waitFor(() => expect(api.analyzePeerGroup).toHaveBeenCalled());
   expect(await screen.findByText("100 USD")).toBeInTheDocument();
   expect(screen.getByText("0d")).toBeInTheDocument();
+});
+
+it("requires confirmation before deleting a peer group", async () => {
+  render(<PeerAnalysisPanel />);
+  await screen.findByText("Semiconductors", { selector: "option" });
+  fireEvent.click(screen.getByRole("button", { name: "Delete peer group" }));
+  expect(api.deletePeerGroup).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Confirm delete peer group" }));
+  await waitFor(() => expect(api.deletePeerGroup).toHaveBeenCalledWith("peer-one"));
+  expect(await screen.findByText(/Research snapshots were preserved/)).toBeInTheDocument();
 });

@@ -4,7 +4,16 @@ import { api } from "../api";
 import type { FinancialSnapshot } from "../types";
 import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
 
-vi.mock("../api", () => ({ api: { calculateValuation: vi.fn(), calculateSensitivity: vi.fn() } }));
+vi.mock("../api", () => ({
+  api: {
+    calculateValuation: vi.fn(),
+    calculateSensitivity: vi.fn(),
+    calculateMultipleValuation: vi.fn(),
+    calculateDiscountedCashFlow: vi.fn(),
+    listValuationAssumptions: vi.fn().mockResolvedValue([]),
+  },
+  describeApiError: (_error: unknown, subject: string) => `${subject} could not be loaded.`,
+}));
 
 const snapshot: FinancialSnapshot = {
   ticker: "ACME",
@@ -54,6 +63,25 @@ describe("ScenarioValuationPanel", () => {
       ],
       disclaimer: "analyst-entered assumptions",
     });
+    vi.mocked(api.calculateMultipleValuation).mockResolvedValue({ ticker: "ACME", method: "pe", status: "available", value: 5, unit: "x", numerator: 1000, denominator: 200, period: "TTM", evidence_ids: [], methodology: "market cap / earnings", disclaimer: "analyst inputs" });
+    vi.mocked(api.calculateDiscountedCashFlow).mockResolvedValue({ ticker: "ACME", present_value_forecast: 180, present_value_terminal: 900, enterprise_value: 1080, equity_value: 980, implied_share_price: 9.8, assumptions: { ticker: "ACME", forecast_free_cash_flows: [100, 110], wacc: 0.1, terminal_growth: 0.03, net_debt: 100, diluted_shares: 100, evidence_ids: [] }, methodology: "discounted explicit cash flows", disclaimer: "analyst inputs" });
+  });
+
+  it("calculates a market multiple and DCF from explicit inputs", async () => {
+    render(<ScenarioValuationPanel snapshot={snapshot} />);
+    fireEvent.click(screen.getByText("Scenario valuation"));
+    fireEvent.change(screen.getByLabelText("Current share price"), { target: { value: "10" } });
+    fireEvent.change(screen.getByLabelText("Valuation earnings"), { target: { value: "200" } });
+    fireEvent.click(screen.getByRole("button", { name: "Calculate multiple" }));
+    await waitFor(() => expect(api.calculateMultipleValuation).toHaveBeenCalled());
+    expect(await screen.findByText("5.00x")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Forecast free cash flows"), { target: { value: "100, 110" } });
+    fireEvent.change(screen.getByLabelText("DCF WACC"), { target: { value: "0.10" } });
+    fireEvent.change(screen.getByLabelText("DCF terminal growth"), { target: { value: "0.03" } });
+    fireEvent.click(screen.getByRole("button", { name: "Calculate DCF" }));
+    await waitFor(() => expect(api.calculateDiscountedCashFlow).toHaveBeenCalled());
+    expect(await screen.findByText("$9.80")).toBeInTheDocument();
   });
 
   it("prefills only SEC baselines and requires scenario assumptions", async () => {

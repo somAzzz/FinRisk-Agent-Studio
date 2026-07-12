@@ -14,6 +14,7 @@ vi.mock("../api", () => ({
     compareCompanies: vi.fn(),
     listResearchSnapshots: vi.fn(),
     listExpectations: vi.fn(),
+    compareExpectation: vi.fn(),
     getResearchChanges: vi.fn(),
     startResearchRun: vi.fn(),
     scanWatchlist: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock("../api", () => ({
     startWorkflow: vi.fn(),
     getStatus: vi.fn(),
   },
+  describeApiError: (_error: unknown, subject: string) => `${subject} could not be loaded. Retry the request.`,
 }));
 
 const snapshot = (id: string, year: number): CompanyResearchSnapshot => ({
@@ -110,6 +112,26 @@ describe("ResearchCyclePanel", () => {
     await waitFor(() => expect(api.scanWatchlist).toHaveBeenCalledWith({
       minimum_materiality: "medium", max_workers: 2,
     }));
+  });
+
+  it("compares a saved expectation with the latest snapshot actual", async () => {
+    vi.mocked(api.listExpectations).mockResolvedValue([{
+      expectation_id: "expectation-one", ticker: "ACME", metric: "revenue",
+      fiscal_period: "2026Q1", value: 100, unit: "USD", source: "personal model",
+      origin: "user", observed_at: "2026-01-01T00:00:00Z", as_of: "2026-01-01T00:00:00Z",
+    }]);
+    vi.mocked(api.compareExpectation).mockResolvedValue({
+      expectation: { expectation_id: "expectation-one", ticker: "ACME", metric: "revenue", fiscal_period: "2026Q1", value: 100, unit: "USD", source: "personal model", origin: "user", observed_at: "2026-01-01T00:00:00Z", as_of: "2026-01-01T00:00:00Z" },
+      actual: { metric: "revenue", value: 110, unit: "USD", period_end: "2026-03-31", period_kind: "quarter", source_concept: "Revenue", status: "reported", source_accession_numbers: ["filing"] },
+      absolute_surprise: 10,
+      percent_surprise: 0.1,
+    });
+    render(<ResearchCyclePanel />);
+    fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load history" }));
+    fireEvent.click(await screen.findByText("Expectations and CSV import"));
+    fireEvent.click(await screen.findByRole("button", { name: "Compare actual" }));
+    expect(await screen.findByText("10% surprise")).toBeInTheDocument();
   });
 
   it("starts FinRisk and links its run to the research snapshot", async () => {

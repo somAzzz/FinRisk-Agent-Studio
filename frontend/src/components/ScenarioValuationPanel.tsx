@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, describeApiError } from "../api";
 import type {
+  DiscountedCashFlowResponse,
   FinancialMetricPoint,
   FinancialSnapshot,
+  MultipleValuationMethod,
+  MultipleValuationResponse,
   ScenarioValuationResponse,
   SensitivityMatrixResponse,
+  ValuationAssumptionSnapshot,
 } from "../types";
 
 interface Props { snapshot: FinancialSnapshot | null; }
@@ -16,6 +20,7 @@ const emptyAssumptions = (): AssumptionState => ({
   base: { growth: "", margin: "", multiple: "" },
   bull: { growth: "", margin: "", multiple: "" },
 });
+const valuationTimestamp = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 function latest(snapshot: FinancialSnapshot, metric: string): FinancialMetricPoint | null {
   return [...snapshot.metrics]
@@ -38,6 +43,18 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
   const [assumptions, setAssumptions] = useState<AssumptionState>(emptyAssumptions);
   const [result, setResult] = useState<ScenarioValuationResponse | null>(null);
   const [sensitivity, setSensitivity] = useState<SensitivityMatrixResponse | null>(null);
+  const [method, setMethod] = useState<MultipleValuationMethod>("pe");
+  const [period, setPeriod] = useState("TTM");
+  const [earnings, setEarnings] = useState("");
+  const [ebitda, setEbitda] = useState("");
+  const [freeCashFlow, setFreeCashFlow] = useState("");
+  const [multipleResult, setMultipleResult] = useState<MultipleValuationResponse | null>(null);
+  const [forecastCashFlows, setForecastCashFlows] = useState("");
+  const [wacc, setWacc] = useState("");
+  const [terminalGrowth, setTerminalGrowth] = useState("");
+  const [dcfResult, setDcfResult] = useState<DiscountedCashFlowResponse | null>(null);
+  const [history, setHistory] = useState<ValuationAssumptionSnapshot[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,6 +68,14 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
     setShares(dilutedShares ? String(dilutedShares.value) : "");
     setResult(null);
     setSensitivity(null);
+    setMultipleResult(null);
+    setDcfResult(null);
+    void api.listValuationAssumptions(snapshot.ticker).then((items) => {
+      setHistory(items);
+      setHistoryError(null);
+    }).catch((nextError: unknown) => {
+      setHistoryError(describeApiError(nextError, "Valuation history"));
+    });
   }, [snapshot]);
 
   if (!snapshot) return null;
@@ -135,6 +160,77 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
     }
   };
 
+  const sourceIds = Array.from(new Set(snapshot.metrics.flatMap((point) => point.source_accession_numbers)));
+
+  const refreshHistory = async () => {
+    try {
+      setHistory(await api.listValuationAssumptions(snapshot.ticker, 20));
+      setHistoryError(null);
+    } catch (nextError) {
+      setHistoryError(describeApiError(nextError, "Valuation history"));
+    }
+  };
+
+  const calculateMultiple = async () => {
+    const sharePrice = numberOrNull(currentPrice);
+    const dilutedShares = numberOrNull(shares);
+    const debt = numberOrNull(netDebt);
+    const denominator = method === "pe" ? numberOrNull(earnings) : method === "ev_ebitda" ? numberOrNull(ebitda) : numberOrNull(freeCashFlow);
+    if (sharePrice == null || dilutedShares == null || debt == null || denominator == null || !period.trim()) {
+      setError("Enter share price, diluted shares, net debt, period, and the selected method denominator.");
+      return;
+    }
+    try {
+      setMultipleResult(await api.calculateMultipleValuation({
+        ticker: snapshot.ticker,
+        method,
+        share_price: sharePrice,
+        diluted_shares: dilutedShares,
+        net_debt: debt,
+        earnings: method === "pe" ? denominator : null,
+        ebitda: method === "ev_ebitda" ? denominator : null,
+        free_cash_flow: method === "fcf_yield" ? denominator : null,
+        period: period.trim(),
+        evidence_ids: sourceIds,
+      }));
+      setError(null);
+      await refreshHistory();
+    } catch (nextError) {
+      setError(describeApiError(nextError, "Multiple valuation"));
+    }
+  };
+
+  const calculateDcf = async () => {
+    const cashFlows = forecastCashFlows.split(",").map((value) => Number(value.trim())).filter(Number.isFinite);
+    const discountRate = numberOrNull(wacc);
+    const growth = numberOrNull(terminalGrowth);
+    const debt = numberOrNull(netDebt);
+    const dilutedShares = numberOrNull(shares);
+    if (!cashFlows.length || discountRate == null || growth == null || debt == null || dilutedShares == null) {
+      setError("Enter comma-separated forecast free cash flows, WACC, terminal growth, net debt, and diluted shares.");
+      return;
+    }
+    if (discountRate <= growth) {
+      setError("WACC must be greater than terminal growth.");
+      return;
+    }
+    try {
+      setDcfResult(await api.calculateDiscountedCashFlow({
+        ticker: snapshot.ticker,
+        forecast_free_cash_flows: cashFlows,
+        wacc: discountRate,
+        terminal_growth: growth,
+        net_debt: debt,
+        diluted_shares: dilutedShares,
+        evidence_ids: sourceIds,
+      }));
+      setError(null);
+      await refreshHistory();
+    } catch (nextError) {
+      setError(describeApiError(nextError, "DCF valuation"));
+    }
+  };
+
   return (
     <details className="section valuation-panel" data-testid="valuation-panel">
       <summary><span>Scenario valuation</span><small>User assumptions · no price target</small></summary>
@@ -167,6 +263,37 @@ export function ScenarioValuationPanel({ snapshot }: Props) {
           {sensitivity.row_values.map((row) => <tr key={row}><th>{(row * 100).toFixed(1)}%</th>{sensitivity.column_values.map((column) => { const cell = sensitivity.cells.find((item) => item.row_value === row && item.column_value === column); return <td key={column}>{cell ? new Intl.NumberFormat("en", { style: "currency", currency: snapshot.currency }).format(cell.implied_share_price) : "—"}</td>; })}</tr>)}
         </tbody></table><p className="report-disclaimer">{sensitivity.disclaimer}</p></div>
       ) : null}
+      <div className="valuation-method-grid">
+        <section aria-labelledby="multiple-valuation-title">
+          <h3 id="multiple-valuation-title">Market multiples</h3>
+          <p className="valuation-note">Market price and denominators are explicit analyst inputs. Negative or unavailable denominators remain unavailable.</p>
+          <div className="valuation-baseline">
+            <label>Method<select aria-label="Multiple valuation method" value={method} onChange={(event) => setMethod(event.target.value as MultipleValuationMethod)}><option value="pe">P / E</option><option value="ev_ebitda">EV / EBITDA</option><option value="fcf_yield">FCF yield</option></select></label>
+            <label>Period<input aria-label="Multiple valuation period" value={period} onChange={(event) => setPeriod(event.target.value)} /></label>
+            {method === "pe" ? <label>Earnings<input aria-label="Valuation earnings" value={earnings} onChange={(event) => setEarnings(event.target.value)} /></label> : null}
+            {method === "ev_ebitda" ? <label>EBITDA<input aria-label="Valuation EBITDA" value={ebitda} onChange={(event) => setEbitda(event.target.value)} /></label> : null}
+            {method === "fcf_yield" ? <label>Free cash flow<input aria-label="Valuation free cash flow" value={freeCashFlow} onChange={(event) => setFreeCashFlow(event.target.value)} /></label> : null}
+          </div>
+          <button className="ghost valuation-run" type="button" onClick={() => void calculateMultiple()}>Calculate multiple</button>
+          {multipleResult ? <div className="valuation-result-card" aria-live="polite"><strong>{multipleResult.status === "available" && multipleResult.value != null ? `${multipleResult.value.toFixed(2)}${multipleResult.unit === "x" ? "x" : "%"}` : "N/A"}</strong><span>{multipleResult.method} · {multipleResult.period}</span><p>{multipleResult.reason ?? multipleResult.methodology}</p></div> : null}
+        </section>
+        <section aria-labelledby="dcf-valuation-title">
+          <h3 id="dcf-valuation-title">Discounted cash flow</h3>
+          <p className="valuation-note">Enter each forecast year explicitly. The tool does not generate cash-flow forecasts.</p>
+          <div className="valuation-baseline">
+            <label>Forecast FCF<input aria-label="Forecast free cash flows" placeholder="100, 110, 120" value={forecastCashFlows} onChange={(event) => setForecastCashFlows(event.target.value)} /></label>
+            <label>WACC<input aria-label="DCF WACC" placeholder="0.10" value={wacc} onChange={(event) => setWacc(event.target.value)} /></label>
+            <label>Terminal growth<input aria-label="DCF terminal growth" placeholder="0.03" value={terminalGrowth} onChange={(event) => setTerminalGrowth(event.target.value)} /></label>
+          </div>
+          <button className="ghost valuation-run" type="button" onClick={() => void calculateDcf()}>Calculate DCF</button>
+          {dcfResult ? <div className="valuation-result-card" aria-live="polite"><strong>{new Intl.NumberFormat("en", { style: "currency", currency: snapshot.currency }).format(dcfResult.implied_share_price)}</strong><span>Implied value per share</span><p>{dcfResult.methodology}</p></div> : null}
+        </section>
+      </div>
+      <details className="valuation-history"><summary>Assumption history <small>{history.length} saved runs</small></summary>
+        {historyError ? <div className="recoverable-error" role="alert"><p>{historyError}</p><button className="ghost" type="button" onClick={() => void refreshHistory()}>Retry valuation history</button></div> : null}
+        {history.map((item) => <article key={item.assumption_snapshot_id}><strong>{item.kind}</strong><span>{valuationTimestamp.format(new Date(item.created_at))}</span><small>{item.assumption_snapshot_id}</small></article>)}
+        {!history.length && !historyError ? <p className="muted">Calculate a scenario, multiple, sensitivity matrix, or DCF to preserve its assumptions here.</p> : null}
+      </details>
     </details>
   );
 }

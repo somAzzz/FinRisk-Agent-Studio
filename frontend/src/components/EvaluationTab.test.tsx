@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { api } from "../api";
 import { EvaluationTab } from "./EvaluationTab";
 import type { WorkflowEvaluationV16 } from "../types";
 
@@ -68,5 +69,20 @@ describe("EvaluationTab", () => {
     expect(screen.getByTestId("evaluation-tab-status").getAttribute("data-final-status")).toBe("needs_review");
     expect(screen.getByTestId("findings-drawer")).toBeInTheDocument();
     expect(screen.getByTestId("finding-graph_path")).toBeInTheDocument();
+  });
+
+  it("loads workflow trace and artifacts once for every step inspector", async () => {
+    const trace = vi.spyOn(api, "getTrace").mockResolvedValue({
+      run_id: "r-1", trace: [], fallback_events: [], llm_log: [],
+      chunk_validations: [], section_locations: [], risk_lifecycles: [],
+    });
+    const artifacts = vi.spyOn(api, "getArtifacts").mockResolvedValue({
+      run_id: "r-1", artifacts: { report_markdown: "/tmp/report.md" },
+    });
+    render(<EvaluationTab evaluation={PASS} runId="r-1" />);
+    expect(await screen.findByText("Workflow artifacts (1)")).toBeInTheDocument();
+    await waitFor(() => expect(trace).toHaveBeenCalledTimes(1));
+    expect(artifacts).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("step-inspector-company_resolver")).toBeInTheDocument();
   });
 });
