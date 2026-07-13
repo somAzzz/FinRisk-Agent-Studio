@@ -1,4 +1,4 @@
-import { Check, Download, PlayCircle, RotateCw, X } from "lucide-react";
+import { Check, ChevronDown, Download, PlayCircle, RotateCw, ShieldAlert, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import type {
@@ -40,7 +40,76 @@ interface ToolDisplaySummary {
 interface Props {
   onProgress?: (timeline: AgentRunTimelineResponse | null) => void;
   selectedRunId?: string | null;
+  staticMode?: boolean;
 }
+
+const STATIC_AGENT_SUMMARY: AgentRunSummary = {
+  run_id: "agent-aapl-fixture",
+  status: "completed",
+  timeline_url: "/agent-runs/agent-aapl-fixture/timeline",
+  trace_url: "/agent-runs/agent-aapl-fixture/trace.json",
+};
+
+const STATIC_AGENT_TIMELINE: AgentRunTimelineResponse = {
+  run_id: STATIC_AGENT_SUMMARY.run_id,
+  status: "completed",
+  decisions: [],
+  subgoals: [{
+    subgoal_id: "sg-supply-chain",
+    objective: "Find primary evidence for Apple supply-chain concentration",
+    status: "completed",
+    tool_scope: "finrisk_market",
+    required_evidence_types: ["filing", "company filing"],
+    success_criteria: ["cite sources", "link evidence to the risk claim"],
+    attempt_count: 1,
+    depends_on: [],
+  }],
+  tool_events: [
+    {
+      event_id: "tool-sec-search",
+      round_id: "round-1",
+      tool_call_id: "call-sec-search",
+      tool_name: "web_search",
+      arguments: { query: "Apple 2025 10-K manufacturing outsourcing suppliers" },
+      status: "success",
+      result_summary: JSON.stringify({ data: { results: [{ title: "Apple Inc. 2025 Form 10-K", url: "https://www.sec.gov/Archives/edgar/data/320193/", metadata: { source_quality_score: 0.96 } }] } }),
+      latency_ms: 240,
+      error: null,
+      result_chars: 860,
+      truncated: false,
+      created_at: "2026-07-12T14:32:02Z",
+    },
+    {
+      event_id: "tool-graph-path",
+      round_id: "round-2",
+      tool_call_id: "call-graph-path",
+      tool_name: "graph_path_search",
+      arguments: { source_entity: "AAPL", target_entity: "TSMC" },
+      status: "success",
+      result_summary: JSON.stringify({ data: { graph_source: "offline fixture", paths: [{ source: "AAPL", target: "TSMC" }] } }),
+      latency_ms: 84,
+      error: null,
+      result_chars: 420,
+      truncated: false,
+      created_at: "2026-07-12T14:32:03Z",
+    },
+  ],
+  evidence_candidates: [
+    { evidence_id: "10-K-2025", kind: "filing", status: "accepted", source_url: "https://www.sec.gov/Archives/edgar/data/320193/", source_name: "SEC", summary: "Apple relies on outsourcing partners for manufacturing subassemblies and finished products.", source_quality_score: 0.96, grounding_score: 0.91 },
+    { candidate_id: "ev-supplier-transition", kind: "company filing", status: "needs_review", source_title: "Supplier transition disclosure", summary: "India capacity is expanding, but the transition period may add execution risk.", source_quality_score: 0.78, grounding_score: 0.66, rejection_reason: "Confirm the latest filing period before acceptance." },
+  ],
+  human_review_items: [{ item_id: "review-supplier-transition", run_id: STATIC_AGENT_SUMMARY.run_id, subgoal_id: "sg-supply-chain", object_type: "evidence_candidate", object_id: "ev-supplier-transition", reason: "The claim is relevant but its filing period needs analyst confirmation.", suggested_action: "inspect_source", status: "pending", created_at: "2026-07-12T14:32:04Z" }],
+};
+
+const STATIC_AGENT_TRACE: AgentRunTraceResponse = {
+  run_id: STATIC_AGENT_SUMMARY.run_id,
+  user_goal: DEFAULT_REQUEST.goal,
+  workflow_kind: "finrisk",
+  status: "completed",
+  accepted_evidence_ids: ["10-K-2025"],
+  fallback_events: ["Offline fixture used for product demonstration."],
+  tool_traces: [{ mode: "auto", budget_usage: { max_tool_result_chars: 12000, max_total_tool_result_chars: 40000, used_tool_result_chars: 1280, truncated_events: 0 }, tool_events: STATIC_AGENT_TIMELINE.tool_events }],
+};
 
 function tryParseJson(value: string): unknown {
   try {
@@ -255,11 +324,12 @@ function hostFromUrl(url: string | null | undefined): string | null {
   }
 }
 
-export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
+export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false }: Props = {}) {
   const [request, setRequest] = useState<AgentRunRequest>(DEFAULT_REQUEST);
-  const [summary, setSummary] = useState<AgentRunSummary | null>(null);
-  const [timeline, setTimeline] = useState<AgentRunTimelineResponse | null>(null);
-  const [trace, setTrace] = useState<AgentRunTraceResponse | null>(null);
+  const [summary, setSummary] = useState<AgentRunSummary | null>(staticMode ? STATIC_AGENT_SUMMARY : null);
+  const [timeline, setTimeline] = useState<AgentRunTimelineResponse | null>(staticMode ? STATIC_AGENT_TIMELINE : null);
+  const [trace, setTrace] = useState<AgentRunTraceResponse | null>(staticMode ? STATIC_AGENT_TRACE : null);
+  const [configOpen, setConfigOpen] = useState(!staticMode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
@@ -269,14 +339,24 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
   const acceptedCount = trace?.accepted_evidence_ids?.length ?? 0;
   const failedToolCount = timeline?.tool_events.filter((e) => e.status === "failed")
     .length ?? 0;
-  const reviewCount = timeline?.human_review_items.filter(
+  const pendingHumanReviews = timeline?.human_review_items.filter(
     (item) => item.status === "pending",
-  ).length ?? 0;
+  ) ?? [];
+  const totalReviewCount = new Set([
+    ...(timeline?.evidence_candidates.filter((item) => item.status === "needs_review").map(evidenceId) ?? []),
+    ...(timeline?.human_review_items.filter((item) => item.status === "pending").map((item) => item.object_id || item.item_id) ?? []),
+  ]).size;
+  const nextReviewCandidate = timeline?.evidence_candidates.find(
+    (item) => item.status === "needs_review",
+  );
 
   const traceHref = useMemo(() => {
     if (!summary) return null;
+    if (staticMode && trace) {
+      return `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(trace, null, 2))}`;
+    }
     return summary.trace_url;
-  }, [summary]);
+  }, [staticMode, summary, trace]);
 
   const stopPolling = () => {
     if (pollRef.current !== null) {
@@ -293,6 +373,13 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
     runId = summary?.run_id,
   ): Promise<AgentRunTimelineResponse | null> => {
     if (!runId) return null;
+    if (staticMode) {
+      setTimeline(STATIC_AGENT_TIMELINE);
+      setTrace(STATIC_AGENT_TRACE);
+      onProgress?.(STATIC_AGENT_TIMELINE);
+      setBusy(false);
+      return STATIC_AGENT_TIMELINE;
+    }
     const [nextTimeline, nextTrace] = await Promise.all([
       api.getAgentRunTimeline(runId),
       api.getAgentRunTrace(runId),
@@ -346,8 +433,18 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
     setTrace(null);
     onProgress?.(null);
     try {
+      if (staticMode) {
+        setSummary(STATIC_AGENT_SUMMARY);
+        setTimeline(STATIC_AGENT_TIMELINE);
+        setTrace(STATIC_AGENT_TRACE);
+        onProgress?.(STATIC_AGENT_TIMELINE);
+        setConfigOpen(false);
+        setBusy(false);
+        return;
+      }
       const nextSummary = await api.startAgentRun(request);
       setSummary(nextSummary);
+      setConfigOpen(false);
       startPolling(nextSummary.run_id);
     } catch (err) {
       setError((err as Error).message);
@@ -360,6 +457,12 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
     action: "approve" | "reject",
   ) => {
     if (!summary) return;
+    if (staticMode) {
+      setTimeline((current) => current ? { ...current, human_review_items: current.human_review_items.map((reviewItem) => reviewItem.item_id === item.item_id ? { ...reviewItem, status: action === "approve" ? "approved" : "rejected", reviewed_at: new Date().toISOString() } : reviewItem) } : current);
+      setBusy(false);
+      setError(null);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -377,6 +480,15 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
     action: "approve" | "reject",
   ) => {
     if (!summary) return;
+    if (staticMode) {
+      setTimeline((current) => current ? { ...current, evidence_candidates: current.evidence_candidates.map((item) => evidenceId(item) === evidenceId(candidate) ? { ...item, status: action === "approve" ? "accepted" : "rejected" } : item) } : current);
+      if (action === "approve") {
+        setTrace((current) => current ? { ...current, accepted_evidence_ids: Array.from(new Set([...(current.accepted_evidence_ids ?? []), evidenceId(candidate)])) } : current);
+      }
+      setBusy(false);
+      setError(null);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -393,16 +505,20 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
 
   return (
     <div className="agent-run-view" data-testid="llm-agent-run-panel">
-      <aside className="agent-run-controls">
+      <details className="agent-run-launcher section" open={configOpen} onToggle={(event) => setConfigOpen(event.currentTarget.open)}>
+        <summary>
+          <div><span className="page-eyebrow">Run configuration</span><strong>{summary ? request.goal : "Configure a source-backed research run"}</strong></div>
+          <span>{summary ? "Edit setup" : "Open setup"}<ChevronDown size={16} aria-hidden="true" /></span>
+        </summary>
         <form
-          className="section"
+          className="agent-run-controls"
           onSubmit={(event) => {
             event.preventDefault();
             void run();
           }}
         >
-          <h2>LLM Agent Run</h2>
-          <div className="row stacked">
+          <div className="agent-run-form-grid">
+          <div className="row stacked agent-goal-field">
             <label htmlFor="agent-goal">Goal</label>
             <textarea
               id="agent-goal"
@@ -502,6 +618,8 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
               }
             />
           </div>
+          </div>
+          <div className="agent-run-form-actions">
           <button
             type="submit"
             className="primary icon-button"
@@ -523,79 +641,36 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
               Refresh timeline
             </button>
           ) : null}
+          </div>
           {error ? (
             <div className="error-banner" data-testid="agent-error">
               {error}
             </div>
           ) : null}
         </form>
-      </aside>
+      </details>
 
-      <main className="agent-run-main">
-        <section className="section agent-run-summary">
-          <h2>Run State</h2>
-          {summary ? (
-            <>
-              <div className="agent-run-kpis">
-                <div>
-                  <span className="kpi-label">Status</span>
-                  <strong data-testid="agent-status">{timeline?.status ?? summary.status}</strong>
-                </div>
-                <div>
-                  <span className="kpi-label">Tools</span>
-                  <strong>{timeline?.tool_events.length ?? 0}</strong>
-                </div>
-                <div>
-                  <span className="kpi-label">Accepted evidence</span>
-                  <strong>{acceptedCount}</strong>
-                </div>
-                <div>
-                  <span className="kpi-label">Review</span>
-                  <strong>{reviewCount}</strong>
-                </div>
-              </div>
-              <div className="agent-run-links">
-                <span className="mono">{summary.run_id}</span>
-                {traceHref ? (
-                  <a href={traceHref} target="_blank" rel="noreferrer">
-                    <Download size={14} />
-                    trace.json
-                  </a>
-                ) : null}
-              </div>
-              {budgetUsage ? (
-                <div className="budget-strip" data-testid="agent-budget">
-                  <span>
-                    tool result budget{" "}
-                    <strong>
-                      {budgetUsage.used_tool_result_chars}/
-                      {budgetUsage.max_total_tool_result_chars}
-                    </strong>
-                  </span>
-                  <span>{budgetUsage.truncated_events} truncated</span>
-                  <span>{failedToolCount} failed</span>
-                </div>
-              ) : null}
-              {trace?.fallback_events?.length ? (
-                <ul className="agent-fallbacks">
-                  {trace.fallback_events.map((event) => (
-                    <li key={event}>{event}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          ) : (
-            <div className="empty-state">
-              Run a local agent loop to inspect planner decisions, tool calls,
-              evidence candidates, and review items.
-            </div>
-          )}
+      {summary ? (
+        <section className="run-decision-brief" aria-label="Latest run brief">
+          <header><div><span className="page-eyebrow">Latest research run</span><h2>Run brief</h2></div><span className="mono">{summary.run_id}</span></header>
+          <div className="run-decision-grid">
+            <div><span>Run state</span><strong className={`run-state ${timeline?.status ?? summary.status}`} data-testid="agent-status">{timeline?.status ?? summary.status}</strong><small>{failedToolCount ? `${failedToolCount} failed tool call` : "Execution completed cleanly"}</small></div>
+            <div><span>Evidence outcome</span><strong>{acceptedCount} accepted</strong><small>{timeline?.evidence_candidates.length ?? 0} candidates reviewed</small></div>
+            <div><span>Tool coverage</span><strong>{timeline?.tool_events.length ?? 0} source checks</strong><small>{timeline?.subgoals.length ?? 0} research subgoal</small></div>
+            <div><span>Next analyst action</span><strong className={totalReviewCount ? "review-emphasis" : ""}>{nextReviewCandidate ? "Review candidate evidence" : totalReviewCount ? "Resolve the pending review item." : "No analyst action required."}</strong><small>{totalReviewCount} item{totalReviewCount === 1 ? "" : "s"} awaiting review</small></div>
+          </div>
         </section>
+      ) : (
+        <section className="run-empty-state section"><ShieldAlert size={24} aria-hidden="true" /><div><strong>No run selected</strong><p>Open the configuration above to start a traceable research run.</p></div></section>
+      )}
 
-        {timeline ? (
-          <>
-            <section className="section">
-              <h2>Subgoals</h2>
+      {timeline ? (
+        <div className="agent-audit-layout" aria-label="Agent run details">
+          <div className="run-execution-column">
+            <section className="section run-execution-card">
+              <header className="run-section-heading"><div><span className="page-eyebrow">Planner to evidence</span><h2>Execution trace</h2></div><span>{timeline.tool_events.length} tool events</span></header>
+              <div className="run-subgoals">
+                <h3>Research plan</h3>
               <div className="agent-subgoal-list">
                 {timeline.subgoals.map((subgoal) => (
                   <article
@@ -616,21 +691,46 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
                   </article>
                 ))}
               </div>
-            </section>
-
-            <section className="section">
-              <h2>Tool Trace</h2>
-              <div className="tool-event-list">
+              </div>
+              <div className="run-tool-trace">
+                <h3>Source checks</h3>
+                <div className="tool-event-list">
                 {timeline.tool_events.map((event) => (
                   <ToolEventCard event={event} key={event.event_id} />
                 ))}
+                </div>
               </div>
             </section>
 
             <AgentEvidenceGraph timeline={timeline} />
+          </div>
 
-            <section className="section">
-              <h2>Evidence Candidates</h2>
+          <aside className="run-review-column">
+            <section className="section run-review-card">
+              <header className="run-section-heading"><div><span className="page-eyebrow">Human judgment</span><h2>Review queue</h2></div><span className={totalReviewCount ? "review-count active" : "review-count"}>{totalReviewCount}</span></header>
+              {pendingHumanReviews.length ? (
+                <div className="review-list">
+                  {pendingHumanReviews.map((item) => (
+                    <article className="review-item" key={item.item_id}>
+                      <header>
+                        <strong>{item.object_type.split("_").join(" ")}</strong>
+                        <span className={`status-pill ${item.status}`}>
+                          {item.status}
+                        </span>
+                      </header>
+                      <p>{item.reason}</p>
+                      <div className="review-actions">
+                        <button type="button" className="ghost icon-button" disabled={busy || item.status !== "pending"} onClick={() => void review(item, "approve")}><Check size={14} />Approve</button>
+                        <button type="button" className="ghost icon-button" disabled={busy || item.status !== "pending"} onClick={() => void review(item, "reject")}><X size={14} />Reject</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : <div className="directed-review-empty"><Check size={16} /><span>No pending human review.</span></div>}
+            </section>
+
+            <section className="section run-candidates-card">
+              <header className="run-section-heading"><div><span className="page-eyebrow">Source quality</span><h2>Evidence candidates</h2></div><span>{acceptedCount}/{timeline.evidence_candidates.length}</span></header>
               <div className="candidate-grid">
                 {timeline.evidence_candidates.length ? (
                   timeline.evidence_candidates.map((candidate) => (
@@ -647,49 +747,15 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId }: Props = {}) {
               </div>
             </section>
 
-            <section className="section">
-              <h2>Human Review</h2>
-              {timeline.human_review_items.length ? (
-                <div className="review-list">
-                  {timeline.human_review_items.map((item) => (
-                    <article className="review-item" key={item.item_id}>
-                      <header>
-                        <strong>{item.object_type}</strong>
-                        <span className={`status-pill ${item.status}`}>
-                          {item.status}
-                        </span>
-                      </header>
-                      <p>{item.reason}</p>
-                      <div className="review-actions">
-                        <button
-                          type="button"
-                          className="ghost icon-button"
-                          disabled={busy || item.status !== "pending"}
-                          onClick={() => void review(item, "approve")}
-                        >
-                          <Check size={14} />
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          className="ghost icon-button"
-                          disabled={busy || item.status !== "pending"}
-                          onClick={() => void review(item, "reject")}
-                        >
-                          <X size={14} />
-                          Reject
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">No pending review items.</div>
-              )}
-            </section>
-          </>
-        ) : null}
-      </main>
+            <details className="section run-provenance-card">
+              <summary><span>Run provenance</span><ChevronDown size={15} aria-hidden="true" /></summary>
+              <div className="agent-run-links"><span className="mono">{summary?.run_id}</span>{traceHref ? <a href={traceHref} download={staticMode ? "agent-run-trace.json" : undefined} target={staticMode ? undefined : "_blank"} rel="noreferrer"><Download size={14} />trace.json</a> : null}</div>
+              {budgetUsage ? <div className="budget-strip" data-testid="agent-budget"><span>Tool result budget <strong>{budgetUsage.used_tool_result_chars}/{budgetUsage.max_total_tool_result_chars}</strong></span><span>{budgetUsage.truncated_events} truncated</span><span>{failedToolCount} failed</span></div> : null}
+              {trace?.fallback_events?.length ? <ul className="agent-fallbacks">{trace.fallback_events.map((event) => <li key={event}>{event}</li>)}</ul> : null}
+            </details>
+          </aside>
+        </div>
+      ) : null}
     </div>
   );
 }

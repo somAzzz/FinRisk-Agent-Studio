@@ -17,31 +17,38 @@ import type {
 import { PeerAnalysisPanel } from "./PeerAnalysisPanel";
 import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
 import { LLMProviderSelector } from "./LLMProviderSelector";
+import {
+  staticResearchChanges,
+  staticResearchQueue,
+  staticResearchSnapshots,
+  staticResearchThesis,
+} from "../productDemo";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentQuarter = () => Math.floor(new Date().getMonth() / 3) + 1;
 const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-const researchDate = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+const researchDate = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 export type ResearchTask = "cycle" | "valuation" | "peers" | "reviews";
 
 export function ResearchCyclePanel({
   activeTask = "cycle",
   researchRevision = 0,
-}: { activeTask?: ResearchTask; researchRevision?: number }) {
-  const [ticker, setTicker] = useState("");
+  staticMode = false,
+}: { activeTask?: ResearchTask; researchRevision?: number; staticMode?: boolean }) {
+  const [ticker, setTicker] = useState(staticMode ? "AAPL" : "");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [quarter, setQuarter] = useState(String(currentQuarter()));
   const [run, setRun] = useState<ResearchRunResponse | null>(null);
-  const [snapshots, setSnapshots] = useState<CompanyResearchSnapshot[]>([]);
-  const [changes, setChanges] = useState<ResearchChangeSet | null>(null);
+  const [snapshots, setSnapshots] = useState<CompanyResearchSnapshot[]>(staticMode ? staticResearchSnapshots : []);
+  const [changes, setChanges] = useState<ResearchChangeSet | null>(staticMode ? staticResearchChanges : null);
   const [alerts, setAlerts] = useState<ResearchAlert[]>([]);
   const [expectations, setExpectations] = useState<ExpectationPoint[]>([]);
   const [expectationComparisons, setExpectationComparisons] = useState<Record<string, ExpectationComparison>>({});
   const [drafts, setDrafts] = useState<PostEarningsReviewDraft[]>([]);
-  const [queue, setQueue] = useState<ResearchQueueResponse | null>(null);
+  const [queue, setQueue] = useState<ResearchQueueResponse | null>(staticMode ? staticResearchQueue : null);
   const [comparison, setComparison] = useState<CompanyComparisonResponse | null>(null);
-  const [theses, setTheses] = useState<InvestmentThesis[]>([]);
+  const [theses, setTheses] = useState<InvestmentThesis[]>(staticMode ? [staticResearchThesis] : []);
   const [metric, setMetric] = useState("revenue");
   const [fiscalPeriod, setFiscalPeriod] = useState("");
   const [expectedValue, setExpectedValue] = useState("");
@@ -63,6 +70,12 @@ export function ResearchCyclePanel({
   });
 
   const refreshGlobal = async () => {
+    if (staticMode) {
+      setTheses([staticResearchThesis]);
+      setQueue(staticResearchQueue);
+      setError(null);
+      return;
+    }
     const [nextAlerts, nextDrafts, nextTheses, nextWatchlist] = await Promise.allSettled([
       api.listResearchAlerts(), api.listPostEarningsDrafts(), api.listTheses(), api.listWatchlist(),
     ]);
@@ -92,6 +105,12 @@ export function ResearchCyclePanel({
   const refreshTicker = async (selectedTicker = ticker) => {
     const normalized = selectedTicker.toUpperCase().trim();
     if (!normalized) return;
+    if (staticMode) {
+      setSnapshots(staticResearchSnapshots);
+      setChanges(staticResearchChanges);
+      setError(null);
+      return;
+    }
     const [nextSnapshots, nextExpectations] = await Promise.allSettled([
       api.listResearchSnapshots(normalized), api.listExpectations(normalized),
     ]);
@@ -115,6 +134,27 @@ export function ResearchCyclePanel({
     if (!ticker.trim()) return;
     setBusy(true);
     try {
+      if (staticMode) {
+        setRun({
+          manifest: {
+            run_id: "research-aapl-fixture",
+            ticker: "AAPL",
+            requested_as_of: staticResearchSnapshots[0].as_of,
+            started_at: staticResearchSnapshots[0].created_at,
+            completed_at: staticResearchSnapshots[0].created_at,
+            state: "completed",
+            snapshot_id: staticResearchSnapshots[0].snapshot_id,
+            components: staticResearchSnapshots[0].components,
+            duration_ms: 840,
+            warnings: [],
+          },
+          snapshot: staticResearchSnapshots[0],
+        });
+        setSnapshots(staticResearchSnapshots);
+        setChanges(staticResearchChanges);
+        setError(null);
+        return;
+      }
       const response = await api.startResearchRun({
         ticker: ticker.toUpperCase().trim(),
         year: Number(year),
@@ -137,6 +177,16 @@ export function ResearchCyclePanel({
     setBusy(true);
     setError(null);
     try {
+      if (staticMode) {
+        setWorkflow({ run_id: "static-aapl-demo", status: "completed", current_step: null, started_at: staticResearchSnapshots[0].created_at, completed_at: staticResearchSnapshots[0].created_at, report_url: "/workflows/static-aapl-demo/report" });
+        setRun({
+          manifest: { run_id: "research-aapl-fixture", ticker: "AAPL", requested_as_of: staticResearchSnapshots[0].as_of, started_at: staticResearchSnapshots[0].created_at, completed_at: staticResearchSnapshots[0].created_at, state: "completed", snapshot_id: staticResearchSnapshots[0].snapshot_id, components: staticResearchSnapshots[0].components, duration_ms: 840, warnings: [] },
+          snapshot: staticResearchSnapshots[0],
+        });
+        setSnapshots(staticResearchSnapshots);
+        setChanges(staticResearchChanges);
+        return;
+      }
       let next = await api.startWorkflow({
         ticker: normalized,
         analysis_goal: analysisGoal.trim(),
@@ -186,6 +236,11 @@ export function ResearchCyclePanel({
   const scan = async () => {
     setBusy(true);
     try {
+      if (staticMode) {
+        setQueue(staticResearchQueue);
+        setError(null);
+        return;
+      }
       await api.scanWatchlist({ minimum_materiality: "medium", max_workers: 2 });
       await refreshGlobal();
       if (ticker) await refreshTicker();
@@ -205,6 +260,12 @@ export function ResearchCyclePanel({
     const observedAt = `${expectationObservedAt}T00:00:00Z`;
     const asOf = `${expectationAsOf}T00:00:00Z`;
     try {
+      if (staticMode) {
+        setExpectations((current) => [{ expectation_id: `fixture-${Date.now()}`, ticker: ticker.toUpperCase().trim(), metric, fiscal_period: fiscalPeriod, value: Number(expectedValue), unit, source, origin: "user", observed_at: observedAt, as_of: asOf }, ...current]);
+        setExpectedValue("");
+        setError(null);
+        return;
+      }
       await api.saveExpectation({
         ticker: ticker.toUpperCase().trim(),
         metric,
@@ -226,6 +287,11 @@ export function ResearchCyclePanel({
   const importCsv = async () => {
     if (!csv.trim()) return;
     try {
+      if (staticMode) {
+        setCsv("");
+        setError(null);
+        return;
+      }
       await api.importExpectationsCsv(csv);
       setCsv("");
       await refreshTicker();
@@ -237,6 +303,14 @@ export function ResearchCyclePanel({
   const compareExpectation = async (point: ExpectationPoint) => {
     if (!point.expectation_id || !snapshots[0]) return;
     try {
+      if (staticMode) {
+        const actual = snapshots[0].financials?.metrics.find((item) => item.metric === point.metric) ?? snapshots[0].financials?.metrics[0];
+        if (!actual) return;
+        const absoluteSurprise = actual.value - point.value;
+        setExpectationComparisons((current) => ({ ...current, [point.expectation_id as string]: { expectation: point, actual, absolute_surprise: absoluteSurprise, percent_surprise: point.value ? absoluteSurprise / point.value : null } }));
+        setError(null);
+        return;
+      }
       const next = await api.compareExpectation(point.expectation_id, snapshots[0].snapshot_id);
       setExpectationComparisons((current) => ({ ...current, [point.expectation_id as string]: next }));
       setError(null);
@@ -249,11 +323,19 @@ export function ResearchCyclePanel({
     changeId: string,
     status: "confirmed" | "ignored" | "needs_review",
   ) => {
+    if (staticMode) {
+      setChanges((current) => current ? { ...current, changes: current.changes.map((change) => change.change_id === changeId ? { ...change, analyst_review_status: status } : change) } : current);
+      return;
+    }
     await api.reviewResearchChange(changeId, status);
     await refreshTicker();
   };
 
   const actOnAlert = async (alertId: string, action: "acknowledge" | "ignore") => {
+    if (staticMode) {
+      setAlerts((current) => current.map((alert) => alert.alert_id === alertId ? { ...alert, status: action === "acknowledge" ? "acknowledged" : "ignored" } : alert));
+      return;
+    }
     await api.actOnResearchAlert(alertId, action);
     await refreshGlobal();
   };
@@ -262,6 +344,28 @@ export function ResearchCyclePanel({
     const thesis = theses.find((item) => item.ticker === ticker.toUpperCase().trim());
     if (!thesis || snapshots.length < 2) return;
     try {
+      if (staticMode) {
+        setDrafts((current) => current.length ? current : [{
+          draft_id: "fixture-post-earnings-review",
+          ticker: thesis.ticker,
+          thesis_id: thesis.thesis_id,
+          from_snapshot_id: snapshots[1].snapshot_id,
+          to_snapshot_id: snapshots[0].snapshot_id,
+          generated_at: snapshots[0].created_at,
+          status: "draft",
+          locked_thesis_statement: thesis.statement,
+          locked_disconfirming_conditions: thesis.disconfirming_conditions,
+          locked_assumptions: {},
+          changes: staticResearchChanges.changes,
+          expectation_comparisons: [],
+          suggested_outcome: "mixed",
+          rationale: "Services resilience remains supportive, while supply-chain concentration increased and needs analyst review.",
+          evidence_ids: ["10-K-2025", "sc-ev-5"],
+          confirmed_review_id: null,
+        }]);
+        setError(null);
+        return;
+      }
       await api.createPostEarningsDraft({
         thesis_id: thesis.thesis_id,
         from_snapshot_id: snapshots[1].snapshot_id,
@@ -277,6 +381,18 @@ export function ResearchCyclePanel({
 
   const compareWatchlist = async () => {
     try {
+      if (staticMode) {
+        setComparison({
+          as_of: staticResearchSnapshots[0].as_of,
+          period_kind: "ttm",
+          tickers: ["AAPL"],
+          values: staticResearchSnapshots[0].financials?.metrics.filter((item) => comparisonMetrics.includes(item.metric)).map((item) => ({ ticker: "AAPL", metric: item.metric, value: item.value, unit: item.unit, period_end: item.period_end, source_as_of: staticResearchSnapshots[0].as_of, freshness_days: 0, status: item.status, evidence_ids: item.source_accession_numbers })) ?? [],
+          warnings: ["Add another Watchlist company for a cross-company comparison."],
+          disclaimer: "Offline fixture; analyst review only.",
+        });
+        setError(null);
+        return;
+      }
       const watchlist = await api.listWatchlist();
       const histories = await Promise.all(
         watchlist.map((item) => api.listResearchSnapshots(item.ticker)),
@@ -303,9 +419,10 @@ export function ResearchCyclePanel({
   ) => {
     const notes = reviewNotes[draft.draft_id]?.trim();
     if (!notes) return;
-    await api.confirmPostEarningsDraft(draft.draft_id, outcome, notes);
+    if (staticMode) setDrafts((current) => current.map((item) => item.draft_id === draft.draft_id ? { ...item, status: "confirmed", suggested_outcome: outcome } : item));
+    else await api.confirmPostEarningsDraft(draft.draft_id, outcome, notes);
     setReviewNotes((current) => ({ ...current, [draft.draft_id]: "" }));
-    await refreshGlobal();
+    if (!staticMode) await refreshGlobal();
   };
 
   return (
@@ -362,7 +479,7 @@ export function ResearchCyclePanel({
 
       {activeTask === "valuation" ? <div className="research-task-panel"><h3>Valuation lab</h3>{snapshots[0]?.financials ? <ScenarioValuationPanel snapshot={snapshots[0].financials} /> : <p className="muted">Load or create a company snapshot with financial data to calculate valuation.</p>}</div> : null}
       {activeTask === "reviews" ? <div className="cycle-reviews"><header><h3>Post-earnings review</h3><button className="ghost" type="button" disabled={snapshots.length < 2 || !theses.some((item) => item.ticker === ticker.toUpperCase().trim())} onClick={() => void createDraft()}>Generate draft</button></header>{drafts.filter((draft) => !ticker || draft.ticker === ticker.toUpperCase().trim()).map((draft) => <article key={draft.draft_id}><strong>{draft.ticker} · suggested {draft.suggested_outcome}</strong><p>{draft.rationale}</p><small>{draft.changes.length} changes · {draft.status}</small>{draft.status === "draft" ? <div><input aria-label={`Review notes for ${draft.ticker} draft`} value={reviewNotes[draft.draft_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [draft.draft_id]: event.target.value }))} placeholder="Analyst conclusion" /><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void confirmDraft(draft, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void confirmDraft(draft, "invalidated")}>Invalidated</button></div> : null}</article>)}</div> : null}
-      {activeTask === "peers" ? <PeerAnalysisPanel /> : null}
+      {activeTask === "peers" ? <PeerAnalysisPanel staticMode={staticMode} /> : null}
     </section>
   );
 }

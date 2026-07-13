@@ -6,9 +6,25 @@ const parseTickers = (value: string) => Array.from(new Set(
   value.split(",").map((item) => item.toUpperCase().trim()).filter(Boolean),
 ));
 
-export function PeerAnalysisPanel() {
-  const [groups, setGroups] = useState<PeerGroup[]>([]);
-  const [selectedId, setSelectedId] = useState("");
+const staticPeerGroup: PeerGroup = {
+  peer_group_id: "fixture-consumer-platforms",
+  name: "Consumer platforms",
+  base_ticker: "AAPL",
+  members: [
+    { ticker: "AAPL", inclusion_reason: "Base company", source: "user", confirmed_by_user: true },
+    { ticker: "MSFT", inclusion_reason: "Large-cap platform with recurring services revenue", source: "user", confirmed_by_user: true },
+  ],
+  industry_template: "general",
+  currency_policy: "no_conversion",
+  fiscal_period_policy: "calendarized_ttm",
+  user_notes: null,
+  created_at: "2026-07-12T14:32:00Z",
+  updated_at: "2026-07-12T14:32:00Z",
+};
+
+export function PeerAnalysisPanel({ staticMode = false }: { staticMode?: boolean }) {
+  const [groups, setGroups] = useState<PeerGroup[]>(staticMode ? [staticPeerGroup] : []);
+  const [selectedId, setSelectedId] = useState(staticMode ? staticPeerGroup.peer_group_id : "");
   const [name, setName] = useState("");
   const [baseTicker, setBaseTicker] = useState("");
   const [memberText, setMemberText] = useState("");
@@ -27,6 +43,10 @@ export function PeerAnalysisPanel() {
   );
 
   const loadGroups = async () => {
+    if (staticMode) {
+      setError(null);
+      return;
+    }
     try {
       const next = await api.listPeerGroups();
       setGroups(next);
@@ -48,6 +68,29 @@ export function PeerAnalysisPanel() {
     }
     setBusy(true);
     try {
+      if (staticMode) {
+        const timestamp = new Date().toISOString();
+        const group: PeerGroup = {
+          peer_group_id: `fixture-${Date.now()}`,
+          name: name.trim(),
+          base_ticker: base,
+          members: tickers.map((ticker) => ({ ticker, inclusion_reason: ticker === base ? "Base company" : "Analyst-confirmed comparable company", source: "user" as const, confirmed_by_user: true })),
+          industry_template: industry,
+          currency_policy: "no_conversion",
+          fiscal_period_policy: "calendarized_ttm",
+          user_notes: null,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+        setGroups((current) => [group, ...current]);
+        setSelectedId(group.peer_group_id);
+        setName("");
+        setBaseTicker("");
+        setMemberText("");
+        setError(null);
+        setNotice("Peer group saved.");
+        return;
+      }
       const group = await api.createPeerGroup({
         name: name.trim(),
         base_ticker: base,
@@ -85,7 +128,7 @@ export function PeerAnalysisPanel() {
     }
     setBusy(true);
     try {
-      await api.deletePeerGroup(selected.peer_group_id);
+      if (!staticMode) await api.deletePeerGroup(selected.peer_group_id);
       const remaining = groups.filter((group) => group.peer_group_id !== selected.peer_group_id);
       setGroups(remaining);
       setSelectedId(remaining[0]?.peer_group_id ?? "");
@@ -107,6 +150,25 @@ export function PeerAnalysisPanel() {
     try {
       const valuations = JSON.parse(valuationInputs) as unknown;
       if (!Array.isArray(valuations)) throw new Error("valuation input must be an array");
+      if (staticMode) {
+        setAnalysis({
+          financials: {
+            as_of: "2026-07-12T14:32:00Z",
+            period_kind: "ttm",
+            tickers: selected.members.map((member) => member.ticker),
+            values: selected.members.flatMap((member, memberIndex) => metrics.split(",").map((metric, metricIndex) => ({ ticker: member.ticker, metric: metric.trim(), value: 100 + memberIndex * 12 + metricIndex * 8, unit: metric.includes("margin") ? "ratio" : "USD bn", period_end: "2026-06-28", source_as_of: "2026-07-12T14:32:00Z", freshness_days: 0, status: "reported" as const, evidence_ids: [`fixture-${member.ticker.toLowerCase()}-${metric.trim()}`] }))),
+            warnings: [],
+            disclaimer: "Offline comparable-company fixture; analyst review only.",
+          },
+          risks: selected.members.map((member, index) => ({ ticker: member.ticker, total: 6 - index, new: index, strengthened: index === 0 ? 1 : 0, weakened: 0, evidence_ids: [`fixture-risk-${member.ticker.toLowerCase()}`] })),
+          expectations: [],
+          valuations: [],
+          warnings: [],
+          disclaimer: "Offline comparable-company fixture; analyst review only.",
+        });
+        setError(null);
+        return;
+      }
       const histories = await Promise.all(
         selected.members.map((member) => api.listResearchSnapshots(member.ticker)),
       );
@@ -130,6 +192,11 @@ export function PeerAnalysisPanel() {
     if (!selected) return;
     setBusy(true);
     try {
+      if (staticMode) {
+        setCandidates([{ ticker: "GOOGL", company_name: "Alphabet Inc.", sic: "7370", sic_description: "Computer programming and data processing", similarity: "same_sic_division", inclusion_reason: "Large-cap platform with advertising and cloud exposure", confirmed_by_user: false }]);
+        setError(null);
+        return;
+      }
       setCandidates(await api.suggestPeerCandidates(selected.peer_group_id));
       setError(null);
     } catch {
@@ -143,6 +210,12 @@ export function PeerAnalysisPanel() {
     if (!selected || selected.members.some((member) => member.ticker === candidate.ticker)) return;
     setBusy(true);
     try {
+      if (staticMode) {
+        setGroups((current) => current.map((group) => group.peer_group_id === selected.peer_group_id ? { ...group, members: [...group.members, { ticker: candidate.ticker, inclusion_reason: candidate.inclusion_reason, source: "suggested", confirmed_by_user: true }], updated_at: new Date().toISOString() } : group));
+        setCandidates((current) => current.filter((item) => item.ticker !== candidate.ticker));
+        setError(null);
+        return;
+      }
       const updated = await api.updatePeerGroup(selected.peer_group_id, {
         name: selected.name,
         base_ticker: selected.base_ticker,

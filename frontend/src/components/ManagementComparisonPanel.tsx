@@ -2,14 +2,17 @@ import { useState } from "react";
 import { api } from "../api";
 import type { ManagementComparisonResponse } from "../types";
 
-interface Props { ticker: string | null; }
+interface Props {
+  ticker: string | null;
+  demoResult?: ManagementComparisonResponse;
+}
 
-export function ManagementComparisonPanel({ ticker }: Props) {
-  const [year, setYear] = useState("");
-  const [quarter, setQuarter] = useState("");
-  const [compareYear, setCompareYear] = useState("");
-  const [compareQuarter, setCompareQuarter] = useState("");
-  const [result, setResult] = useState<ManagementComparisonResponse | null>(null);
+export function ManagementComparisonPanel({ ticker, demoResult }: Props) {
+  const [year, setYear] = useState(demoResult ? String(demoResult.current.year) : "");
+  const [quarter, setQuarter] = useState(demoResult ? String(demoResult.current.quarter) : "");
+  const [compareYear, setCompareYear] = useState(demoResult?.previous ? String(demoResult.previous.year) : "");
+  const [compareQuarter, setCompareQuarter] = useState(demoResult?.previous ? String(demoResult.previous.quarter) : "");
+  const [result, setResult] = useState<ManagementComparisonResponse | null>(demoResult ?? null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +33,12 @@ export function ManagementComparisonPanel({ ticker }: Props) {
       return;
     }
     setLoading(true);
+    if (demoResult) {
+      setResult(demoResult);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     try {
       setResult(await api.getManagementComparison(
         ticker, values[0], values[1], values[2], values[3],
@@ -43,8 +52,8 @@ export function ManagementComparisonPanel({ ticker }: Props) {
   };
 
   return (
-    <details className="section management-panel" data-testid="management-panel">
-      <summary><span>Management signal comparison</span><small>Prepared remarks vs Q&amp;A</small></summary>
+    <section className="section management-panel" data-testid="management-panel">
+      <header className="panel-heading"><div><span className="page-eyebrow">Prepared remarks vs Q&amp;A</span><h2>Management signal comparison</h2></div></header>
       <div className="management-periods">
         <fieldset><legend>Current call</legend><label>Year<input aria-label="Current transcript year" value={year} onChange={(event) => setYear(event.target.value)} /></label><label>Quarter<select aria-label="Current transcript quarter" value={quarter} onChange={(event) => setQuarter(event.target.value)}><option value="">—</option>{[1,2,3,4].map((value) => <option key={value} value={value}>Q{value}</option>)}</select></label></fieldset>
         <fieldset><legend>Compare with</legend><label>Year<input aria-label="Comparison transcript year" value={compareYear} onChange={(event) => setCompareYear(event.target.value)} /></label><label>Quarter<select aria-label="Comparison transcript quarter" value={compareQuarter} onChange={(event) => setCompareQuarter(event.target.value)}><option value="">—</option>{[1,2,3,4].map((value) => <option key={value} value={value}>Q{value}</option>)}</select></label></fieldset>
@@ -60,6 +69,6 @@ export function ManagementComparisonPanel({ ticker }: Props) {
           <div className="topic-signal-list">{result.current.topic_signals.map((topic) => <span key={topic.topic}>{topic.topic}: <b>{topic.sentiment}</b></span>)}</div>
         </div>
       ) : null}
-    </details>
+    </section>
   );
 }

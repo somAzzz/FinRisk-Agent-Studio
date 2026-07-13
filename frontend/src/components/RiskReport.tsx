@@ -25,9 +25,9 @@ export function RiskReport({ report, reportV16 }: Props) {
     return (
       <div className="section" data-testid="risk-report">
         <h2>Risk Intelligence Report</h2>
-        <h1 style={{ fontSize: 18, margin: "0 0 8px 0" }}>
+        <h3 className="report-title">
           {reportV16.title}
-        </h1>
+        </h3>
         <p style={{ margin: "0 0 12px 0" }}>{reportV16.executive_summary}</p>
         <h3>Top Risks</h3>
         {reportV16.top_risks.map((item) => (
@@ -161,7 +161,7 @@ export function RiskReport({ report, reportV16 }: Props) {
   return (
     <div className="section" data-testid="risk-report">
       <h2>Risk Report</h2>
-      <h1 style={{ fontSize: 18, margin: "0 0 8px 0" }}>{report.title}</h1>
+      <h3 className="report-title">{report.title}</h3>
       <p style={{ margin: "0 0 12px 0" }}>{report.executive_summary}</p>
 
       <h3>Top Risks</h3>

@@ -44,8 +44,13 @@ function defaultsFor(provider: LLMProvider) {
 export function LLMProviderSelector({ value, onChange }: Props) {
   const selected = defaultsFor(value.provider);
   return (
-    <fieldset className="llm-selector" data-testid="llm-selector">
-      <legend>LLM provider</legend>
+    <details className="runtime-disclosure">
+      <summary>
+        <span>Advanced runtime</span>
+        <small>{selected.label} · {value.model ?? selected.model}</small>
+      </summary>
+      <fieldset className="llm-selector" data-testid="llm-selector">
+        <legend>LLM provider</legend>
       <div className="row">
         <label htmlFor="llm-provider">Provider</label>
         <select
@@ -91,6 +96,7 @@ export function LLMProviderSelector({ value, onChange }: Props) {
           }
         />
       </div>
-    </fieldset>
+      </fieldset>
+    </details>
   );
 }
