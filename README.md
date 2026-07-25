@@ -4,6 +4,8 @@ Evidence-first financial research workbench for SEC filing analysis, point-in-ti
 
 FinRisk Agent Studio is an open-source reference implementation for financial research workflows. It is not a generic "chat with filings" demo. The project focuses on auditable agent execution: structured inputs, tool traces, evidence candidates, deterministic scoring, graph paths, quality gates, and reviewable outputs.
 
+Current documentation version: **v0.1 release candidate**. Python and frontend package version: `0.1.0`.
+
 ## Live Demo
 
 ```text
@@ -249,31 +251,24 @@ searxng
 
 ## Capability Progress
 
-Implementation history is grouped by capability rather than presented as product releases:
+The canonical status is maintained in the [v0.1 project status](docs/STATUS.md). The current summary is:
 
-- **Risk Studio remediation completed**: quality layer became a runtime gate; graph payloads, report models, scoring, and safety checks were pinned by tests.
-- **Supply-chain explorer completed and hardened**: Sankey model, recursive expansion, real SearchRouter path, graph writer, observability, and frontend integration.
-- **Context guardrail layer started**: memory adapters, ingestion, graph-edge memory, and memory write guardrails are in place.
-- **Tool loop implemented**: provider-neutral tool catalog, OpenAI-compatible tool loop, budget controls, data tools, and JSON fallback.
-- **Agent runtime in progress**: `/agent-runs` API, global runtime, evidence candidates, review gates, redacted trace download, and frontend trace UI.
-- **Analyst workbench core completed**: Research Cycle can start FinRisk, carry correlation IDs into immutable snapshots, detect evidence-linked changes, compare confirmed peers, preserve valuation assumptions, and run unattended Watchlist scans.
-- **Release evidence current**: database schema v3, five-company financial reconciliation, 30/30 guardrail cases, 968 backend tests, 75 frontend tests, production build, and zero npm audit vulnerabilities.
-- **Local E2E validated**: recorded runs show real FinRisk, supply-chain, and agent-run flows through local SGLang, FastAPI, Vite, and Neo4j-compatible paths.
-- **GitHub Pages published**: static dashboard is live at the project URL above.
+- **Completed**: quality-gated FinRisk workflow and the point-in-time personal research cycle.
+- **Core complete**: evidence/data foundation, graph and supply-chain research, financial facts, peer analysis, valuation, monitoring, and deployment paths.
+- **In progress**: long-horizon context/memory quality, resilient unattended agent execution, full-repository lint cleanup, and release integration.
+- **Product redesign complete on its branch**: the ten-route Today/Company/Runs/Journal workbench passed desktop/mobile QA, frontend tests, and production build; it is still one commit ahead of `main`.
+- **Unreleased v0.1 candidate**: the repository has no product tag. A code candidate must not be described as a released `v0.1.0`.
 
-Recorded validation reports:
+Current documentation:
 
 - [Documentation hub](docs/README.md)
-- [Current analyst-workbench roadmap](docs/current/analyst-workbench-roadmap.md)
-- [Release-readiness roadmap](docs/current/release-readiness-roadmap.md)
-- [Financial reconciliation matrix](docs/current/validation/financial-reconciliation-2026-07-11.md)
-- [Release candidate audit](docs/current/validation/release-audit-2026-07-11.md)
-- [Research Journal local-LLM acceptance](docs/current/validation/research-journal-live-2026-07-12.md)
-- [Risk Studio remediation summary](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
-- [Supply-chain explorer completion summary](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
-- [Supply-chain production hardening progress](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
-- [Local LLM E2E validation](docs/history/reports/validation/local-llm-e2e-api-frontend-2026-06-27.md)
-- [Agent system gap audit](docs/history/reports/audits/agent-system-gap-report-2026-06-27.md)
+- [v0.1 status](docs/STATUS.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [v0.1 specification](docs/specs/v0.1.md)
+- [Financial reconciliation](docs/validation/financial-reconciliation.md)
+- [Frontend acceptance](docs/validation/frontend-acceptance.md)
+- [Research Journal local-LLM acceptance](docs/validation/research-journal-live.md)
 
 ## Testing
 
@@ -295,7 +290,7 @@ cd ..
 uv run python scripts/research_journal_live_acceptance.py
 ```
 
-Latest recorded release audit: `968 passed, 6 skipped` on the backend; 18 frontend test files with 75 passing tests; three-viewport Chromium workbench and real-mode vLLM smoke passed; 30/30 offline guardrail cases; `npm audit` reports zero vulnerabilities.
+Latest local verification on 2026-07-25: `972 passed, 7 skipped` on the backend; 18 frontend test files with 76 passing tests; production build passed. The latest recorded three-viewport Chromium, real-mode vLLM, 30/30 guardrail, and zero-vulnerability npm audit evidence is dated 2026-07-12.
 
 Focused checks used during recent development include:
 
@@ -307,9 +302,9 @@ uv run ruff check src/workflows src/evaluation src/graph_reasoning src/reports s
 
 ## Roadmap
 
-The `v0.1.0` candidate is code-complete for the personal analyst-workbench scope. The remaining release gate is real browser acceptance at 1440px, 1024px, and 390px, including keyboard navigation, console errors, overflow, and degraded states. Segment-axis facts remain provider-limited because SEC Company Facts omits dimensional segment data; the application does not infer them.
+The immediate v0.1 release path is to merge the product-redesign branch into `main`, re-run CI, npm audit, and browser smoke on that merge candidate, and explicitly choose whether to create the first `v0.1.0` tag.
 
-After that gate, optional directions are external consensus/FX providers, email or mobile notifications, inline-XBRL segment ingestion, and longer unattended-monitoring calibration.
+v0.2 focuses on Agent memory, recovery, idempotency, integration coverage, and lint governance. v0.3 adds segment, consensus, FX, and industry depth; v0.4 covers external notifications and long-horizon calibration. See the [versioned roadmap](docs/ROADMAP.md).
 
 ## Non-Goals
 

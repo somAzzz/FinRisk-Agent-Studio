@@ -4,7 +4,7 @@
 
 ## 前置条件
 
-- 已执行 `uv sync`、`cd frontend && npm install`，并安装 Playwright Chromium。
+- 已执行 `uv sync`、`cd frontend && npm ci`，并安装 Playwright Chromium。
 - 本地 LLM 的 `/v1/models` 可访问；配置中的 model ID 必须与服务返回值完全一致。
 - SEC、transcript、web 和 Neo4j 使用项目现有环境配置。外部来源不可用可形成 partial snapshot，但本地 LLM 调用必须真实成功。
 - 配置中的 API/Vite 端口未被占用。
@@ -79,4 +79,3 @@ uv run python scripts/research_journal_live_acceptance.py --keep-services
 ```
 
 `--reuse-services` 只用于已经按场景端口、API key 和隔离数据库启动服务的调试环境；常规验收不要使用。
-

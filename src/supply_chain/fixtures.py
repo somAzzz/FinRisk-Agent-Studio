@@ -1,7 +1,6 @@
-"""v18 demo fixture loader for the OpenAI / ChatGPT supply chain.
+"""v0.1 demo fixture loader for the OpenAI / ChatGPT supply chain.
 
-The fixture mirrors the structure documented in
-``docs/specs/v18-product-supply-chain-sankey/01-models-and-fixtures.md``:
+The fixture follows the contract documented in ``docs/specs/v0.1.md``:
 
 - 18 nodes covering companies, products, services, components,
   and energy sources.
@@ -11,7 +10,7 @@ The fixture mirrors the structure documented in
 - a CPU expansion subgraph that the recursive-expansion step
   consumes.
 
-The fixture is bundled with the package so the v18 demo runs
+The fixture is bundled with the package so the v0.1 demo runs
 without any external service.
 """
 
@@ -107,7 +106,7 @@ def _edge(
 
 
 def build_default_fixture() -> dict[str, Any]:
-    """Return the v18 demo fixture as a plain ``dict``.
+    """Return the v0.1 demo fixture as a plain ``dict``.
 
     The function is deterministic and side-effect-free so unit
     tests can call it directly without hitting the filesystem.

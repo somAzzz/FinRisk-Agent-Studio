@@ -1,55 +1,41 @@
-# FinRisk-Agent-Studio 文档中心
+# FinRisk Agent Studio v0.1 文档
 
-这里是项目文档的统一入口。阅读时优先从“当前状态”开始；历史实施规格用于理解设计契约；已完成或已被替代的计划统一放在历史归档中。
+文档已按小版本 `v0.1` 重新整理。当前状态、路线图和规格各有一个唯一入口，不再保留 `v15–v21` 实施编号或已完成计划。
 
-## 当前状态
+## 核心文档
 
-- [项目评估](current/assessments/project-assessment-2026-07-11.md)：从个人金融分析师视角评估当前能力、短板与方向。
-- [前端评估](current/assessments/frontend-assessment-2026-07-11.md)：研究工作台的交互、信息架构与可用性评估。
-- [发布就绪与能力深化方案](current/release-readiness-roadmap.md)：当前差距、同行分析、实施顺序与发布门禁。
-- [分析师工作台能力路线图](current/analyst-workbench-roadmap.md)：已实现能力、当前阶段与完成定义。
-- [前端功能完整性与真实浏览器修复方案](current/frontend-integration-remediation-plan.md)：前端功能闭环、失败恢复与三视口验收。
-- [前端修复真实验收](current/validation/frontend-remediation-2026-07-12.md)：真实 Chromium、vLLM 流程与回归证据。
-- [Research Journal 本地 LLM 全链路验收](current/validation/research-journal-live-2026-07-12.md)：隔离数据、真实浏览器与 7 次本地 LLM 调用证据。
-- [个人研究闭环实施记录](current/research-closure-plan.md)：已完成首版闭环的实现契约与验收基线。
-- [SEC 财务快照验证](current/validation/sec-financial-snapshot-2026-07-11.md)：AAPL、NVDA、XOM 的公开数据验证记录。
-- [研究闭环真实数据矩阵](current/validation/research-closure-live-matrix-2026-07-11.md)：六类公司与 Watchlist 去重验证。
-- [财务勾稽矩阵](current/validation/financial-reconciliation-2026-07-11.md)：五家公司、行业模板、IFRS 与 restatement 验证。
-- [候选发布审计](current/validation/release-audit-2026-07-11.md)：自动化门禁、依赖审计与浏览器阻塞项。
-
-详见 [current/README.md](current/README.md)。
+1. [项目状态](STATUS.md)：目标、子系统完成情况、验证基线和已知限制。
+2. [路线图](ROADMAP.md)：v0.1 发布条件及 v0.2–v0.4 方向。
+3. [系统架构](ARCHITECTURE.md)：产品域、服务、数据、工作流和安全边界。
+4. [v0.1 规格](specs/v0.1.md)：当前版本的功能与验收契约。
+5. [版本策略](VERSIONING.md)：文档小版本、包版本和 Git tag 的对应关系。
 
 ## 使用指南
 
-- [Agent 工作流](guides/agent-workflow.md)
-- [演示脚本](guides/demo-script.md)
-- [EDGAR 语料接入](guides/edgar-corpus.md)
-- [个人研究闭环使用指南](guides/research-cycle.md)
-- [Research Journal 本地 LLM 可复用验收](testing/research-journal-live-acceptance.md)
+- [个人研究闭环](guides/research-cycle.md)
+
+## 测试与验收
+
+- [真实数据验收](testing/real-data-acceptance.md)
+- [Research Journal 本地 LLM 验收方法](testing/research-journal-live-acceptance.md)
+- [财务勾稽结果](validation/financial-reconciliation.md)
+- [前端验收结果](validation/frontend-acceptance.md)
+- [Research Journal 本地 LLM 验收结果](validation/research-journal-live.md)
 
 ## 运维与安全
 
-- [Docker 镜像固定策略](operations/deployment/docker-image-pinning.md)
+- [Docker 镜像固定](operations/deployment/docker-image-pinning.md)
 - [安全限制与已知边界](operations/security/known-limitations.md)
 
-## 历史实施规格
-
-`specs/` 按 Risk Studio、Research Intelligence 和 Agent Runtime 三个能力阶段保存实现规格。目录里的旧编号只是历史 ID，不是产品版本。建议先阅读 [历史实施规格索引](specs/README.md)。
-
-产品发布采用语义化版本，目前状态为 `Unreleased`。详见 [产品版本策略](VERSIONING.md)。
-
-## 参考资料
+## 参考
 
 - [SGLang 原生接口参考](reference/sglang_native_reference.py)
 
-## 历史归档
+## 维护规则
 
-`history/` 保存旧架构路线、历史实施计划、阶段审计、验证记录和设计草案。这些材料用于追溯决策，不代表当前优先级。详见 [历史归档索引](history/README.md)。
-
-## 维护约定
-
-- 当前仍指导开发或决策的文档放入 `current/`。
-- 稳定的使用说明放入 `guides/`，部署与安全说明放入 `operations/`。
-- 新设计按能力名称组织；旧 `specs/vXX-*` 目录只作为稳定的历史 ID 保留。
-- 已完成、被替代或仅用于追溯的材料移入 `history/`，保留原始日期。
-- 新增或移动文档时，同步更新本页及仓库内引用路径。
+- 当前完成状态只在 `STATUS.md` 更新。
+- 未来计划只在 `ROADMAP.md` 更新。
+- v0.1 的产品和技术契约只在 `specs/v0.1.md` 更新。
+- 日期化验收报告只记录执行证据，不定义当前优先级。
+- 已完成计划、旧评估、旧版本规格和重复截图直接删除，不再建立新的历史文档堆。
+- 文档版本使用 `v0.x`；包和 Git tag 使用完整语义版本 `0.x.y`。

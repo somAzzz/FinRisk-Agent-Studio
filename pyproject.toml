@@ -41,8 +41,8 @@ line-length = 120
 select = ["E", "F", "I", "UP", "N", "B", "A", "C4", "SIM", "RUF", "PL"]
 
 
-# Per Step 17 audit: defer complexity / magic-value rules for the
-# v17 alignment gate. The CI gate is intentionally narrow: real
+# The v0.1 candidate defers complexity / magic-value rules. The CI
+# gate is intentionally narrow: real
 # errors (E, F, B, I, N) only. PLR0912/0913/0915 and PLR2004 are
 # tracked but not blocking.
 ignore = [
