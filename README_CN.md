@@ -6,6 +6,8 @@ FinRisk Agent Studio 是一个面向金融研究的 evidence-first agent workflo
 
 > 英文 `README.md` 是主文档。本中文版同步核心结构、运行方式与最新进展;终端命令、API 路径、环境变量和模型名保持英文。
 
+当前文档版本：**v0.1 release candidate**；Python 与前端包版本：`0.1.0`。
+
 ## Live Demo
 
 ```text
@@ -217,28 +219,24 @@ Demo 和 CI 路径设计为不需要真实 API keys。
 
 ## Capability Progress（能力进展）
 
-- **Risk Studio 整改已完成**：Quality Layer 已成为 runtime gate，graph payload、report model、scoring 与 safety checks 由测试固定。
-- **供应链研究能力已完成并加固**：Sankey model、recursive expansion、real SearchRouter path、graph writer、observability 与 frontend integration 已落地。
-- **Context guardrail layer 已启动**：memory adapters、ingestion、graph-edge memory 与 memory write guardrails 已有最小工程切片。
-- **Tool loop 已实现**：provider-neutral tool catalog、OpenAI-compatible tool loop、budget controls、data tools 与 JSON fallback。
-- **Agent runtime 持续完善**：`/agent-runs` API、global runtime、evidence candidates、review gates、redacted trace download 与 frontend trace UI。
-- **分析师工作台核心闭环已完成**：Research Cycle 可启动 FinRisk、贯穿 correlation ID、创建不可变快照、检测变化、比较确认同行、保存估值假设并执行无人值守扫描。
-- **发布证据已更新**：数据库 schema v3、五公司财务勾稽、30/30 guardrail cases、后端 968 tests、前端 75 tests、生产构建与 npm audit 0 vulnerabilities。
-- **Local E2E validated**: 记录过真实 FinRisk、supply-chain 与 agent-run flows,覆盖 local SGLang、FastAPI、Vite 与 Neo4j-compatible paths。
-- **GitHub Pages published**: 静态 dashboard 已上线。
+当前状态统一维护在 [v0.1 项目状态](docs/STATUS.md)：
 
-相关记录:
+- **已完成**：带质量门禁的 FinRisk 风险工作流和 point-in-time 个人研究闭环。
+- **核心完成**：证据/数据基础、图与供应链研究、财务事实、同行分析、估值、监控和部署路径。
+- **进行中**：长期 context/memory 质量、可恢复的无人值守 Agent、全仓 lint 治理和候选版本集成。
+- **产品重设计已在当前分支完成**：Today/Company/Runs/Journal 十条路由通过桌面/移动 QA、前端测试与生产构建，但仍比 `main` 多 1 个提交。
+- **v0.1 候选尚未发布**：仓库没有产品 tag，不能把代码候选描述成已发布的 `v0.1.0`。
+
+当前文档：
 
 - [文档中心](docs/README.md)
-- [当前分析师工作台路线图](docs/current/analyst-workbench-roadmap.md)
-- [发布就绪方案](docs/current/release-readiness-roadmap.md)
-- [财务勾稽矩阵](docs/current/validation/financial-reconciliation-2026-07-11.md)
-- [候选发布审计](docs/current/validation/release-audit-2026-07-11.md)
-- [Risk Studio 整改总结](docs/specs/v17-code-audit-remediation/07-completion-summary.md)
-- [供应链研究能力完成总结](docs/specs/v18-product-supply-chain-sankey/07-completion-summary.md)
-- [供应链生产化加固进度](docs/specs/v18-product-supply-chain-sankey/09-production-hardening-progress.md)
-- [本地 LLM 端到端验证](docs/history/reports/validation/local-llm-e2e-api-frontend-2026-06-27.md)
-- [Agent 系统差距审计](docs/history/reports/audits/agent-system-gap-report-2026-06-27.md)
+- [v0.1 项目状态](docs/STATUS.md)
+- [路线图](docs/ROADMAP.md)
+- [系统架构](docs/ARCHITECTURE.md)
+- [v0.1 规格](docs/specs/v0.1.md)
+- [财务勾稽](docs/validation/financial-reconciliation.md)
+- [前端验收](docs/validation/frontend-acceptance.md)
+- [Research Journal 本地 LLM 验收](docs/validation/research-journal-live.md)
 
 ## Testing(测试)
 
@@ -252,13 +250,13 @@ npm test
 npm run build
 ```
 
-最近一次候选审计：后端 `968 passed, 6 skipped`；前端 18 个测试文件、75 tests；三视口 Chromium workbench 与真实 vLLM smoke 通过；30/30 离线 guardrail cases；`npm audit` 为 0 vulnerabilities。
+2026-07-25 本地复核：后端 `972 passed, 7 skipped`；前端 18 个测试文件、76 tests；生产构建通过。三视口 Chromium、真实 vLLM、30/30 guardrail cases 与 `npm audit` 0 vulnerabilities 的最近记录日期为 2026-07-12。
 
 ## Roadmap(路线图)
 
-个人分析工作台范围已达到 `v0.1.0` 代码候选。唯一剩余发布门禁是真实浏览器验收：1440px、1024px、390px 三视口，以及键盘、console、溢出和降级状态。SEC Company Facts 不提供维度化 segment axis，因此系统不会推断分部数据。
+v0.1 的近期发布路径是：把产品重设计分支合入 `main`，在合并候选上重跑 CI、npm audit 和浏览器 smoke，并明确是否创建首个 `v0.1.0` tag。
 
-通过浏览器门禁后，可选方向包括外部 consensus/FX provider、邮件或移动提醒、inline-XBRL 分部事实和更长期的无人值守监控校准。
+v0.2 聚焦 Agent memory、恢复、幂等、集成覆盖和 lint 治理；v0.3 增加分部、consensus、FX 和行业深度；v0.4 处理外部通知和长期校准。详见[版本化路线图](docs/ROADMAP.md)。
 
 ## Non-Goals(非目标)
 

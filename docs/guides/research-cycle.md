@@ -13,7 +13,7 @@ AUTH_DISABLED=1 uv run uvicorn src.api.main:app --reload
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
