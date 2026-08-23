@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "tool_count": 13,
+  "tools": [
+    {
+      "name": "web_search",
+      "scopes": ["company_research", "default", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "web",
+      "max_result_chars": 12000,
+      "required": ["query"],
+      "properties": ["intent", "max_results", "provider", "query", "time_range"],
+      "schema_sha256": "eabb85a832ecbd135d824981f1f6efe8ec58164c73fc2a8f29b42877397afc49"
+    },
+    {
+      "name": "web_fetch",
+      "scopes": ["company_research", "default", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "web",
+      "max_result_chars": 12000,
+      "required": ["url"],
+      "properties": ["url"],
+      "schema_sha256": "76542406f49587e3c514e077c58fed68d5cf6544e3f3e5c2590e87e05debbfa0"
+    },
+    {
+      "name": "search_and_fetch",
+      "scopes": ["company_research", "default", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "web",
+      "max_result_chars": 18000,
+      "required": ["query"],
+      "properties": ["intent", "max_pages", "max_results", "provider", "query", "time_range"],
+      "schema_sha256": "6b527886420261c39fbc66ee52f53fc30fd069eac2c2aa3fa84c53cb30f41542"
+    },
+    {
+      "name": "sec_list_filings",
+      "scopes": ["company_research", "finrisk_filing"],
+      "risk_level": "read_only",
+      "evidence_kind": "filing",
+      "max_result_chars": 12000,
+      "required": ["ticker"],
+      "properties": ["form_types", "limit", "since", "ticker"],
+      "schema_sha256": "1e45cb05a9735288eafbb5b69c05721d10a0417ac788803be3b1cdb6d4161ba1"
+    },
+    {
+      "name": "sec_fetch_filing",
+      "scopes": ["company_research", "finrisk_filing", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "filing",
+      "max_result_chars": 24000,
+      "required": ["ticker"],
+      "properties": ["accession_number", "form_types", "section", "ticker"],
+      "schema_sha256": "0a64c4197f9ad1a4217a87172b05a4a2577d9264c1df5d9515ebd0fa403f1da9"
+    },
+    {
+      "name": "transcript_lookup",
+      "scopes": ["company_research", "finrisk_market", "supply_chain", "transcript_analysis"],
+      "risk_level": "read_only",
+      "evidence_kind": "transcript",
+      "max_result_chars": 20000,
+      "required": ["quarter", "ticker", "year"],
+      "properties": ["quarter", "section", "ticker", "year"],
+      "schema_sha256": "7a1e693f1a200206095ca4fd1965250ed45655f3ff0d172333e363013e0e28d3"
+    },
+    {
+      "name": "management_snapshot_lookup",
+      "scopes": ["company_research", "finrisk_market", "transcript_analysis"],
+      "risk_level": "read_only",
+      "evidence_kind": "transcript",
+      "max_result_chars": 24000,
+      "required": ["quarter", "ticker", "year"],
+      "properties": ["compare_quarter", "compare_year", "quarter", "ticker", "year"],
+      "schema_sha256": "f3eec414b0d5fb6bf7d73906382e705bcb4803473805f06c7e6333cc2853fe20"
+    },
+    {
+      "name": "financial_metrics_lookup",
+      "scopes": ["company_research", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "financial_metric",
+      "max_result_chars": 12000,
+      "required": ["ticker"],
+      "properties": ["metrics", "ticker"],
+      "schema_sha256": "506601cfaddf2a86978f681ec0c593fb14c741bd3af0a725479275e7e8498643"
+    },
+    {
+      "name": "xbrl_fact_lookup",
+      "scopes": ["company_research", "finrisk_filing"],
+      "risk_level": "read_only",
+      "evidence_kind": "financial_metric",
+      "max_result_chars": 12000,
+      "required": ["concepts", "ticker"],
+      "properties": ["concepts", "limit", "ticker", "unit"],
+      "schema_sha256": "27c001b456206652d4813ad6f9f662a9cba11e5a471b9d92c53a1a5a1c2acc46"
+    },
+    {
+      "name": "financial_snapshot_lookup",
+      "scopes": ["company_research", "finrisk_filing"],
+      "risk_level": "read_only",
+      "evidence_kind": "financial_metric",
+      "max_result_chars": 24000,
+      "required": ["ticker"],
+      "properties": ["as_of", "ticker"],
+      "schema_sha256": "7734576e55d27156e2b006ed63fd7bcd3801c0ef16be747a78d146d6ac4e92dd"
+    },
+    {
+      "name": "graph_query",
+      "scopes": ["company_research", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "graph_path",
+      "max_result_chars": 12000,
+      "required": ["entity"],
+      "properties": ["allowed_edge_types", "entity", "max_hops", "ticker"],
+      "schema_sha256": "4d10e62f53737c575202102843ae2f57ca731a91173fa13cb07d13cd75ee8229"
+    },
+    {
+      "name": "graph_path_search",
+      "scopes": ["company_research", "finrisk_market", "supply_chain"],
+      "risk_level": "read_only",
+      "evidence_kind": "graph_path",
+      "max_result_chars": 12000,
+      "required": ["source_entity"],
+      "properties": ["allowed_edge_types", "max_hops", "source_entity", "target_entity", "ticker"],
+      "schema_sha256": "30706dd2d798ec7141b918cc9bd30e55f5c3f25660623a72785567e15a2be0e5"
+    },
+    {
+      "name": "browser_explore",
+      "scopes": ["company_research", "finrisk_market"],
+      "risk_level": "interactive",
+      "evidence_kind": "browser",
+      "max_result_chars": 18000,
+      "required": ["goal"],
+      "properties": ["goal", "initial_urls", "max_steps", "timeout_seconds"],
+      "schema_sha256": "ff9c8840a519badbc4b13de4fc359071649c2c3cc6f981a6352dd5aaaa8983e2"
+    }
+  ]
+}

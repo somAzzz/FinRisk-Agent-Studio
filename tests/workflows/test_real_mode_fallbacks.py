@@ -264,6 +264,7 @@ async def test_market_explorer_llm_shadow_records_trace_without_changing_evidenc
     assert len(new_state.llm_log) == 1
     assert len(new_state.tool_traces) == 1
     assert new_state.tool_traces[0].tool_events[0].tool_name == "web_search"
+    assert "pydantic_ai_market_shadow" in new_state.artifacts
     assert not new_state.fallback_events
 
 

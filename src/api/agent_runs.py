@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
 from src.api.store_factory import get_agent_run_store
+from src.config import AgentRuntimeMode
 from src.security.redaction import redact_obj
 
 router = APIRouter(prefix="/agent-runs")
@@ -48,6 +49,7 @@ class AgentRunSummary(BaseModel):
 
     run_id: str
     status: str
+    runtime_mode: AgentRuntimeMode
     timeline_url: str
     trace_url: str
 
@@ -73,6 +75,21 @@ class HumanReviewActionRequest(BaseModel):
     reviewer_comment: str | None = None
 
 
+class AgentRunResumeRequest(BaseModel):
+    """Server-trusted continuation options for an existing conversation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    goal: str | None = Field(default=None, min_length=1)
+    provider: AgentRunProvider = "deepseek"
+    tool_loop_mode: AgentRunToolLoopMode | None = None
+    tool_scope: AgentRunToolScope | None = None
+    max_tool_rounds: int = Field(default=4, ge=0, le=10)
+    model: str | None = None
+    base_url: str | None = None
+    subject: dict[str, Any] = Field(default_factory=dict)
+
+
 def set_agent_runtime_for_tests(runtime: GlobalAgentRuntime | None) -> None:
     """Override the runtime used by ``start_agent_run``. Test-only helper."""
     global _agent_runtime
@@ -82,6 +99,9 @@ def set_agent_runtime_for_tests(runtime: GlobalAgentRuntime | None) -> None:
 def reset_agent_run_store_for_tests() -> None:
     """Clear cached V21 agent-run store. Test-only helper."""
     get_agent_run_store.cache_clear()
+    from src.ai.store_factory import reset_agent_message_store_for_tests
+
+    reset_agent_message_store_for_tests()
     set_agent_runtime_for_tests(None)
 
 
@@ -92,6 +112,7 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
         user_goal=request.goal,
         workflow_kind=request.workflow_kind,
         status="queued",
+        runtime_mode=_current_agent_runtime_mode(),
     )
     await get_agent_run_store().update(state)
     if _background_enabled():
@@ -101,6 +122,7 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
     return AgentRunSummary(
         run_id=state.run_id,
         status=state.status,
+        runtime_mode=state.runtime_mode,
         timeline_url=f"/agent-runs/{state.run_id}/timeline",
         trace_url=f"/agent-runs/{state.run_id}/trace.json",
     )
@@ -114,6 +136,7 @@ async def list_agent_runs(limit: int = 20) -> list[AgentRunSummary]:
         AgentRunSummary(
             run_id=state.run_id,
             status=state.status,
+            runtime_mode=state.runtime_mode,
             timeline_url=f"/agent-runs/{state.run_id}/timeline",
             trace_url=f"/agent-runs/{state.run_id}/trace.json",
         )
@@ -153,6 +176,50 @@ async def get_agent_run_trace(run_id: str) -> dict:
     """Return the full redacted, downloadable agent trace."""
     state = await _require_run(run_id)
     return redact_obj(state.model_dump(mode="json"))
+
+
+@router.post(
+    "/{run_id}/resume",
+    response_model=AgentRunSummary,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def resume_agent_run(
+    run_id: str,
+    request: AgentRunResumeRequest,
+) -> AgentRunSummary:
+    """Resume trusted server-side history under a new run ID."""
+    parent = await _require_run(run_id)
+    state = AgentRunState(
+        user_goal=request.goal or parent.user_goal,
+        workflow_kind=parent.workflow_kind,
+        status="queued",
+        conversation_id=parent.conversation_id,
+        parent_run_id=parent.run_id,
+        runtime_mode=_current_agent_runtime_mode(),
+    )
+    await get_agent_run_store().update(state)
+    run_request = AgentRunRequest(
+        goal=state.user_goal,
+        workflow_kind=state.workflow_kind,
+        provider=request.provider,
+        tool_loop_mode=request.tool_loop_mode,
+        tool_scope=request.tool_scope,
+        max_tool_rounds=request.max_tool_rounds,
+        model=request.model,
+        base_url=request.base_url,
+        subject=request.subject,
+    )
+    if _background_enabled():
+        _schedule(_run_and_store_agent(run_request, state.run_id))
+    else:
+        await _run_and_store_agent(run_request, state.run_id)
+    return AgentRunSummary(
+        run_id=state.run_id,
+        status=state.status,
+        runtime_mode=state.runtime_mode,
+        timeline_url=f"/agent-runs/{state.run_id}/timeline",
+        trace_url=f"/agent-runs/{state.run_id}/trace.json",
+    )
 
 
 @router.post(
@@ -264,6 +331,12 @@ def _find_evidence_candidate(
 
 def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
     """Build the real V21 runtime used by the local agent-run API."""
+    from src.config import get_settings
+
+    settings = get_settings()
+    if settings.agent_runtime_mode == "pydantic_ai_primary":
+        return _build_pydantic_agent_runtime(request)
+
     from src.pipelines.llm_tool_research import build_runtime
 
     def factory(tool_scope: str, _subgoal) -> Any:
@@ -283,6 +356,96 @@ def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
     return GlobalAgentRuntime(subgoal_runtime_factory=factory)
 
 
+def _build_pydantic_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
+    """Build the primary Pydantic AI subgoal path behind the feature flag."""
+    from src.agents.llm_runtime import DEFAULT_SYSTEM_PROMPT
+    from src.agents.planner import AgentPlanner
+    from src.agents.state import AgentBudget
+    from src.ai.deps import (
+        AgentDeps,
+        AgentPermissions,
+        AgentServices,
+        AgentSubject,
+    )
+    from src.ai.model_factory import (
+        build_agent_model,
+        resolve_agent_model_config,
+    )
+    from src.ai.planner_adapter import PydanticAIPlanner
+    from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
+    from src.ai.store_factory import get_agent_run_recorder
+    from src.config import get_settings
+    from src.schemas.llm_config import LLMRunConfig
+    from src.tools.catalog import build_project_tool_catalog
+
+    settings = get_settings()
+    model = build_agent_model(
+        resolve_agent_model_config(
+            LLMRunConfig(
+                provider=request.provider,
+                base_url=request.base_url,
+                model=request.model,
+            ),
+            settings=settings,
+        )
+    )
+    recorder = get_agent_run_recorder()
+    planner_catalog = build_project_tool_catalog(scope=None)
+    planner = PydanticAIPlanner(
+        model=model,
+        settings=settings,
+        tool_catalog=planner_catalog,
+        services=AgentServices(
+            tool_catalog=planner_catalog,
+            message_recorder=recorder,
+        ),
+    )
+
+    def factory(
+        tool_scope: str,
+        subgoal: Any,
+        run_state: AgentRunState,
+    ) -> PydanticAIRuntimeAdapter:
+        selected_scope = request.tool_scope or _coerce_tool_scope(tool_scope)
+        catalog = build_project_tool_catalog(scope=selected_scope)
+        subject = request.subject
+        deps = AgentDeps(
+            run_id=f"{run_state.run_id}:{subgoal.subgoal_id}",
+            conversation_id=run_state.conversation_id,
+            load_message_history=True,
+            settings=settings,
+            subject=AgentSubject(
+                ticker=subject.get("ticker"),
+                company_name=subject.get("company_name"),
+                product_name=subject.get("product_name"),
+                metadata=subject,
+            ),
+            permissions=AgentPermissions(
+                tool_scopes=frozenset({selected_scope}),
+                allow_interactive=False,
+                allow_write=False,
+            ),
+            budget=AgentBudget(
+                max_subgoals=1,
+                max_tool_rounds_per_subgoal=request.max_tool_rounds,
+            ),
+            services=AgentServices(
+                tool_catalog=catalog,
+                message_recorder=recorder,
+            ),
+        )
+        return PydanticAIRuntimeAdapter(
+            model=model,
+            deps=deps,
+            system_prompt=DEFAULT_SYSTEM_PROMPT,
+        )
+
+    return GlobalAgentRuntime(
+        planner=AgentPlanner(llm_planner=planner),
+        subgoal_runtime_factory=factory,
+    )
+
+
 async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
     """Run the synchronous agent runtime off the FastAPI event loop."""
     store = get_agent_run_store()
@@ -294,14 +457,21 @@ async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
         state.updated_at = _now()
         await store.update(state)
         runtime = _agent_runtime or build_agent_runtime(request)
+        conversation_id = state.conversation_id
+        parent_run_id = state.parent_run_id
+        runtime_mode = state.runtime_mode
         state = await asyncio.to_thread(
             runtime.run,
             request.goal,
             workflow_kind=request.workflow_kind,
             subject=request.subject,
             run_id=run_id,
+            conversation_id=conversation_id,
         )
         state.run_id = run_id
+        state.conversation_id = conversation_id
+        state.parent_run_id = parent_run_id
+        state.runtime_mode = runtime_mode
     except Exception as exc:
         state = await store.get(run_id)
         if state is None:
@@ -309,6 +479,7 @@ async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
                 run_id=run_id,
                 user_goal=request.goal,
                 workflow_kind=request.workflow_kind,
+                runtime_mode=_current_agent_runtime_mode(),
             )
         state.status = "failed"
         state.fallback_events.append(f"agent_run failed: {type(exc).__name__}: {exc}")
@@ -324,6 +495,12 @@ def _schedule(coro) -> None:
 
 def _background_enabled() -> bool:
     return os.environ.get("FINRISK_SKIP_BACKGROUND") != "1"
+
+
+def _current_agent_runtime_mode() -> AgentRuntimeMode:
+    from src.config import get_settings
+
+    return get_settings().agent_runtime_mode
 
 
 def _coerce_tool_scope(tool_scope: str) -> AgentRunToolScope:
@@ -343,6 +520,7 @@ def _tool_choice_for_subgoal(subgoal: Any, tool_loop_mode: str | None) -> str:
 
 __all__ = [
     "AgentRunRequest",
+    "AgentRunResumeRequest",
     "AgentRunSummary",
     "AgentRunTimeline",
     "HumanReviewActionRequest",
@@ -352,6 +530,7 @@ __all__ = [
     "get_agent_run_trace",
     "list_agent_runs",
     "reset_agent_run_store_for_tests",
+    "resume_agent_run",
     "review_agent_evidence_candidate",
     "review_agent_run_item",
     "router",

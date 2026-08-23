@@ -11,6 +11,16 @@ import functools
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal, cast
+
+AgentRuntimeMode = Literal[
+    "legacy",
+    "pydantic_ai_shadow",
+    "pydantic_ai_primary",
+]
+_AGENT_RUNTIME_MODES = frozenset(
+    {"legacy", "pydantic_ai_shadow", "pydantic_ai_primary"}
+)
 
 
 def _env(name: str, default: str) -> str:
@@ -33,9 +43,26 @@ def _env_path(name: str, default: Path) -> Path:
     return Path(raw) if raw else default
 
 
+def _env_agent_runtime_mode() -> AgentRuntimeMode:
+    """Return and validate the incremental Agent runtime selection."""
+    value = _env("AGENT_RUNTIME_MODE", "legacy").strip().lower()
+    if value not in _AGENT_RUNTIME_MODES:
+        allowed = ", ".join(sorted(_AGENT_RUNTIME_MODES))
+        raise ValueError(
+            f"AGENT_RUNTIME_MODE must be one of {allowed}; got {value!r}"
+        )
+    return cast(AgentRuntimeMode, value)
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime configuration for FinRisk-Agent-Studio components."""
+
+    # Migration switch for the Pydantic AI runtime. The legacy path remains
+    # the default until shadow and primary acceptance gates have passed.
+    agent_runtime_mode: AgentRuntimeMode = field(
+        default_factory=_env_agent_runtime_mode
+    )
 
     sec_user_agent: str = field(
         default_factory=lambda: _env(
@@ -54,6 +81,28 @@ class Settings:
     )
     llm_model: str = field(
         default_factory=lambda: _env("LLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
+    )
+    sglang_base_url: str = field(
+        default_factory=lambda: _env(
+            "SGLANG_BASE_URL", "http://localhost:30000/v1"
+        )
+    )
+    sglang_model: str = field(
+        default_factory=lambda: _env(
+            "SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"
+        )
+    )
+    sglang_api_key: str = field(
+        default_factory=lambda: _env("SGLANG_API_KEY", "EMPTY")
+    )
+    vllm_base_url: str = field(
+        default_factory=lambda: _env("VLLM_BASE_URL", "http://localhost:8000/v1")
+    )
+    vllm_model: str = field(
+        default_factory=lambda: _env("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
+    )
+    vllm_api_key: str = field(
+        default_factory=lambda: _env("VLLM_API_KEY", "dummy")
     )
     # ---- DeepSeek (https://api-docs.deepseek.com) -------------------------
     deepseek_base_url: str = field(

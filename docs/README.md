@@ -9,6 +9,9 @@
 3. [系统架构](ARCHITECTURE.md)：产品域、服务、数据、工作流和安全边界。
 4. [v0.1 规格](specs/v0.1.md)：当前版本的功能与验收契约。
 5. [版本策略](VERSIONING.md)：文档小版本、包版本和 Git tag 的对应关系。
+6. [Pydantic AI Agent 重构方案](PYDANTIC_AI_MIGRATION.md)：v0.2 Agent 基础设施迁移的目标架构、分步执行、测试、验收和回滚规范。
+7. [Pydantic AI 混合运行时 ADR](ADR_PYDANTIC_AI_RUNTIME.md)：迁移期间的架构边界、开关策略和移除旧路径的前提。
+8. [Pydantic AI 切流与回滚 Runbook](guides/pydantic-ai-cutover.md)：live provider 合同、primary 观察门禁、默认切换和回滚命令。
 
 ## 使用指南
 

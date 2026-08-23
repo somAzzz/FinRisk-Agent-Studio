@@ -454,6 +454,33 @@ def _build_llm_client(
     :class:`LLMCall` row onto the workflow state.
     """
     config = llm_config or LLMRunConfig()
+    from src.config import get_settings
+
+    settings = get_settings()
+    if settings.agent_runtime_mode == "pydantic_ai_primary":
+        try:
+            from src.ai.deps import AgentServices
+            from src.ai.model_factory import (
+                build_agent_model,
+                resolve_agent_model_config,
+            )
+            from src.ai.store_factory import get_agent_run_recorder
+            from src.ai.structured_clients import (
+                PydanticAIFilingExtractionClient,
+            )
+
+            return PydanticAIFilingExtractionClient(
+                model=build_agent_model(
+                    resolve_agent_model_config(config, settings=settings)
+                ),
+                settings=settings,
+                services=AgentServices(
+                    message_recorder=get_agent_run_recorder()
+                ),
+                llm_call_sink=sink,
+            )
+        except Exception:
+            return None
     provider = config.provider
     try:
         if provider == "deepseek":

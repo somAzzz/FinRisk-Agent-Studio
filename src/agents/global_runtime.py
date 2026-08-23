@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import time
 from collections.abc import Callable
 from typing import Protocol
@@ -30,7 +31,7 @@ class SubgoalRuntime(Protocol):
         """Execute ``goal`` and return tool-loop results."""
 
 
-SubgoalRuntimeFactory = Callable[[str, AgentSubgoal], SubgoalRuntime]
+SubgoalRuntimeFactory = Callable[..., SubgoalRuntime]
 
 
 class GlobalAgentRuntime:
@@ -57,14 +58,20 @@ class GlobalAgentRuntime:
         budget: AgentBudget | None = None,
         subject: dict | None = None,
         run_id: str | None = None,
+        conversation_id: str | None = None,
     ) -> AgentRunState:
         """Run an agent task until stop, review, failure, or budget exhaustion."""
         state = self.planner.initialize(
             user_goal=user_goal,
             workflow_kind=workflow_kind,
         )
+        initialized_run_id = state.run_id
         if run_id is not None:
             state.run_id = run_id
+            if state.conversation_id == initialized_run_id:
+                state.conversation_id = run_id
+        if conversation_id is not None:
+            state.conversation_id = conversation_id
         if self.context_builder is not None:
             context_pack = self.context_builder.build(
                 run_id=state.run_id,
@@ -115,9 +122,13 @@ class GlobalAgentRuntime:
                 break
             subgoal.status = "running"
             try:
-                result = self.subgoal_runtime_factory(subgoal.tool_scope, subgoal).run(
-                    subgoal.objective
+                runtime = _create_subgoal_runtime(
+                    self.subgoal_runtime_factory,
+                    subgoal.tool_scope,
+                    subgoal,
+                    state,
                 )
+                result = runtime.run(subgoal.objective)
             except Exception as exc:
                 subgoal.status = "failed"
                 state.fallback_events.append(
@@ -256,6 +267,33 @@ class GlobalAgentRuntime:
         )
         if state.status == "running":
             state.status = "completed"
+
+
+def _create_subgoal_runtime(
+    factory: SubgoalRuntimeFactory,
+    tool_scope: str,
+    subgoal: AgentSubgoal,
+    state: AgentRunState,
+) -> SubgoalRuntime:
+    """Pass full run context to new factories while preserving old callables."""
+    try:
+        parameters = inspect.signature(factory).parameters.values()
+    except (TypeError, ValueError):
+        return factory(tool_scope, subgoal)
+    accepts_state = any(
+        parameter.kind is inspect.Parameter.VAR_POSITIONAL
+        for parameter in parameters
+    ) or sum(
+        parameter.kind
+        in {
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        }
+        for parameter in parameters
+    ) >= 3
+    if accepts_state:
+        return factory(tool_scope, subgoal, state)
+    return factory(tool_scope, subgoal)
 
 
 __all__ = [

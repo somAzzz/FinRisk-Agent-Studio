@@ -304,7 +304,7 @@ uv run ruff check src/workflows src/evaluation src/graph_reasoning src/reports s
 
 The immediate v0.1 release path is to merge the product-redesign branch into `main`, re-run CI, npm audit, and browser smoke on that merge candidate, and explicitly choose whether to create the first `v0.1.0` tag.
 
-v0.2 focuses on Agent memory, recovery, idempotency, integration coverage, and lint governance. v0.3 adds segment, consensus, FX, and industry depth; v0.4 covers external notifications and long-horizon calibration. See the [versioned roadmap](docs/ROADMAP.md).
+v0.2 focuses on the incremental [Pydantic AI Agent migration](docs/PYDANTIC_AI_MIGRATION.md), Agent memory, recovery, idempotency, integration coverage, and lint governance. v0.3 adds segment, consensus, FX, and industry depth; v0.4 covers external notifications and long-horizon calibration. See the [versioned roadmap](docs/ROADMAP.md).
 
 ## Non-Goals
 

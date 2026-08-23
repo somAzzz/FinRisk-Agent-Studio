@@ -143,6 +143,8 @@ Journal
 ## 存储
 
 - Workflow 与 Agent run 使用运行存储和 trace。
+- Pydantic AI message history 使用版本化 append-only batch；run ID 与
+  conversation ID 分离，resume 会生成新 run ID。
 - Research Snapshot 与 Journal 默认使用两个 SQLite 数据库。
 - 数据库通过 schema migration、事务、幂等升级和在线 backup API 管理。
 - Neo4j 是可选图后端；demo/CI 可使用 fixture 或兼容内存路径。
@@ -158,6 +160,17 @@ Journal
 | static frontend | 产品 fixture | GitHub Pages |
 
 trace 必须记录 fallback 原因。静态或 cached 结果不能标记为 live。
+
+### Agent 混合运行时
+
+Agent 基础设施采用渐进式混合架构：Pydantic AI 负责 provider/model、typed
+dependency、structured output、toolset、usage 和 message protocol；项目继续
+负责 evidence、预算、审批、run-store、quality gate、业务状态机和 API contract。
+FinRisk 与 Supply Chain 已有保持原 state contract 的 Pydantic Graph 顺序投影。
+
+`AGENT_RUNTIME_MODE` 支持 `legacy`、`pydantic_ai_shadow` 和
+`pydantic_ai_primary`。在 live provider 验收和发布观察期完成前，默认仍为
+`legacy`；切换与删除条件见 [迁移方案](PYDANTIC_AI_MIGRATION.md)。
 
 ## 安全与质量
 
