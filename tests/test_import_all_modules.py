@@ -58,6 +58,8 @@ def test_production_source_has_no_removed_agent_runtime() -> None:
         "src.llm",
         "chat.completions",
         "from openai import",
+        "build_graph_interpretation_agent",
+        "build_report_generation_agent",
     )
     matches: list[str] = []
     for path in sorted((root / "src").rglob("*.py")):

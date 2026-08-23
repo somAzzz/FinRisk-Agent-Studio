@@ -64,7 +64,11 @@ Pydantic AI 负责：
     Pydantic AI extraction client，未传入时保持离线模式。
 11. `/agent-runs` 的 planner/subgoal 外层循环已迁移到 Pydantic Graph；预算、
     evidence normalization、human review 与持久化合同保持不变。
-12. 以下实现及其专用测试已删除：
+12. 原占位 typed Agents 已完成收敛：generic extraction Agent 已接入
+    filing/transcript/web client；未被生产路径使用的 graph interpretation 与
+    report generation builders 已删除。图事实解释和最终安全报告继续使用可审计的
+    确定性实现。
+13. 以下实现及其专用测试已删除：
    - `src/agents/runtime.py`
    - `src/agents/llm_runtime.py`
    - `src/llm/client.py`
