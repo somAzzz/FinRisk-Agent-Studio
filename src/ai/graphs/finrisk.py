@@ -37,7 +37,9 @@ class FinRiskGraphDeps:
     quality_gated: bool = False
 
 
-def build_finrisk_graph() -> Graph[
+def build_finrisk_graph(
+    step_names: list[str] | None = None,
+) -> Graph[
     FinRiskGraphState,
     FinRiskGraphDeps,
     FinRiskWorkflowState,
@@ -63,7 +65,8 @@ def build_finrisk_graph() -> Graph[
 
     graph_steps = []
     for index, step_name in enumerate(
-        [
+        step_names
+        or [
             "company_resolver",
             "filing_risk_extractor",
             "market_explorer",
@@ -155,12 +158,15 @@ async def run_finrisk_graph(
         run_id=run_id or f"run-{uuid.uuid4().hex[:12]}",
         request=request,
     )
+    resolved_steps = steps or _build_default_steps(fixture_path)
     deps = FinRiskGraphDeps(
-        steps=steps or _build_default_steps(fixture_path),
+        steps=resolved_steps,
         quality_engine=quality_engine,
         quality_gated=quality_gated,
     )
-    return await build_finrisk_graph().run(
+    return await build_finrisk_graph(
+        [getattr(step, "name", f"step_{index}") for index, step in enumerate(resolved_steps)]
+    ).run(
         state=FinRiskGraphState(), deps=deps, inputs=state
     )
 

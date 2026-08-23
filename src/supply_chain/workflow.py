@@ -235,28 +235,21 @@ async def run_supply_chain_workflow(
     initial_state: SupplyChainExploreState | None = None,
     store: dict | None = None,
 ) -> SupplyChainExploreState:
-    """Execute the v18 workflow end-to-end and return the final state.
+    """Execute the canonical Pydantic Graph workflow.
 
     ``store`` accepts either a plain ``dict`` (legacy callers) or a
     :class:`~src.api.run_store.RunStoreBackend` instance. When
     ``None``, the shared supply-chain backend from
     :func:`src.api.store_factory.get_supply_chain_store` is used.
     """
-    target_store = _resolve_store(store)
-    if initial_state is not None:
-        state = initial_state
-    else:
-        state = SupplyChainExploreState(
-            run_id=f"sc-run-{uuid.uuid4().hex[:12]}",
-            request=request,
-        )
-    state.status = "running"
-    await _store_set(target_store, state)
-    pipeline = steps or _default_steps()
-    for step in pipeline:
-        state = await step(state)
-    await _store_set(target_store, state)
-    return state
+    from src.ai.graphs.supply_chain import run_supply_chain_graph
+
+    return await run_supply_chain_graph(
+        request,
+        steps=steps,
+        initial_state=initial_state,
+        store=store,
+    )
 
 
 async def expand_supply_chain_workflow(

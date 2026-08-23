@@ -43,3 +43,27 @@ async def test_supply_chain_graph_matches_sequential_demo_contract() -> None:
     assert graph.sankey == legacy.sankey
     assert graph.evaluation == legacy.evaluation
     SupplyChainExploreState.model_validate(graph.model_dump(mode="json"))
+
+
+async def test_public_supply_chain_entry_delegates_to_pydantic_graph(
+    monkeypatch,
+) -> None:
+    expected = SupplyChainExploreState(
+        run_id="graph-default", request=_request()
+    )
+    captured = {}
+
+    async def fake_run(request, **kwargs):
+        captured["request"] = request
+        captured.update(kwargs)
+        return expected
+
+    monkeypatch.setattr(
+        "src.ai.graphs.supply_chain.run_supply_chain_graph", fake_run
+    )
+
+    result = await run_supply_chain_workflow(_request(), store={})
+
+    assert result is expected
+    assert captured["request"].product_name == "ChatGPT"
+    assert captured["store"] == {}

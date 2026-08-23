@@ -64,3 +64,21 @@ async def test_finrisk_graph_matches_sequential_demo_contract() -> None:
     assert graph.report is not None and legacy.report is not None
     assert graph.report.markdown == legacy.report.markdown
     FinRiskWorkflowState.model_validate(graph.model_dump(mode="json"))
+
+
+async def test_public_finrisk_entry_delegates_to_pydantic_graph(monkeypatch) -> None:
+    expected = FinRiskWorkflowState(run_id="graph-default", request=_request())
+    captured = {}
+
+    async def fake_run(request, **kwargs):
+        captured["request"] = request
+        captured.update(kwargs)
+        return expected
+
+    monkeypatch.setattr("src.ai.graphs.finrisk.run_finrisk_graph", fake_run)
+
+    result = await run_finrisk_workflow(_request(), fixture_path=FIXTURE)
+
+    assert result is expected
+    assert captured["request"].ticker == "AAPL"
+    assert captured["fixture_path"] == FIXTURE

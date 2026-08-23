@@ -23,7 +23,9 @@ class SupplyChainGraphDeps:
     store: Any
 
 
-def build_supply_chain_graph() -> Graph[
+def build_supply_chain_graph(
+    step_names: list[str] | None = None,
+) -> Graph[
     SupplyChainGraphState,
     SupplyChainGraphDeps,
     SupplyChainExploreState,
@@ -52,7 +54,8 @@ def build_supply_chain_graph() -> Graph[
 
     graph_steps = []
     for index, step_name in enumerate(
-        [
+        step_names
+        or [
             "product_resolver",
             "requirement_decomposer",
             "supplier_discovery",
@@ -112,10 +115,13 @@ async def run_supply_chain_graph(
     state = initial_state or SupplyChainExploreState(
         run_id=f"sc-run-{uuid.uuid4().hex[:12]}", request=request
     )
-    return await build_supply_chain_graph().run(
+    resolved_steps = steps or _default_steps()
+    return await build_supply_chain_graph(
+        [getattr(step, "name", f"step_{index}") for index, step in enumerate(resolved_steps)]
+    ).run(
         state=SupplyChainGraphState(),
         deps=SupplyChainGraphDeps(
-            steps=steps or _default_steps(), store=target_store
+            steps=resolved_steps, store=target_store
         ),
         inputs=state,
     )

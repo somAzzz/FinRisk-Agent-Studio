@@ -36,15 +36,12 @@ import argparse
 import asyncio
 import logging
 import sys
-import uuid
 from pathlib import Path
 from typing import Any
 
 from src.workflows.state import (
     FinRiskRequest,
     FinRiskWorkflowState,
-    WorkflowTraceEvent,
-    utcnow,
 )
 from src.workflows.steps.company_resolver import CompanyResolverStep
 from src.workflows.steps.evaluator import EvaluatorStep
@@ -55,8 +52,6 @@ from src.workflows.steps.lifecycle_classifier import LifecycleClassifierStep
 from src.workflows.steps.market_explorer_step import MarketExplorerStep
 from src.workflows.steps.report_generator import ReportGeneratorStep
 from src.workflows.steps.risk_scorer import RiskScorerStep
-
-logger = logging.getLogger(__name__)
 
 DEFAULT_FIXTURE_DIR = Path("tests/fixtures/finrisk")
 
@@ -116,7 +111,7 @@ async def run_finrisk_workflow(
     quality_engine: Any | None = None,
     quality_gated: bool = False,
 ) -> FinRiskWorkflowState:
-    """Execute the workflow end-to-end and return the final state.
+    """Execute the canonical Pydantic Graph workflow.
 
     Args:
         request: The user-facing request.
@@ -137,63 +132,17 @@ async def run_finrisk_workflow(
             keeps the v15 behaviour so existing tests are not
             affected.
     """
-    fixture_path = fixture_path or DEFAULT_FIXTURE_DIR / "aapl_demo_workflow.json"
-    if initial_state is not None:
-        state = initial_state
-    else:
-        state = FinRiskWorkflowState(
-            run_id=run_id or f"run-{uuid.uuid4().hex[:12]}",
-            request=request,
-        )
-    state.status = "running"
-    steps = steps or _build_default_steps(fixture_path)
+    from src.ai.graphs.finrisk import run_finrisk_graph
 
-    if quality_gated and quality_engine is None:
-        raise ValueError(
-            "quality_gated=True requires a non-None quality_engine"
-        )
-
-    for step in steps:
-        if state.status == "failed":
-            # Mark remaining steps as skipped.
-            state.trace.append(
-                WorkflowTraceEvent(
-                    step_name=step.name,
-                    status="skipped",
-                    started_at=utcnow(),
-                    completed_at=utcnow(),
-                    error="workflow aborted by earlier failure",
-                )
-            )
-            continue
-
-        if quality_gated and quality_engine is not None:
-            from src.workflows.quality_gate import run_step_with_quality_gate
-
-            state = await run_step_with_quality_gate(
-                state,
-                step=step,
-                engine=quality_engine,
-            )
-            if _has_blocker(state):
-                if step.name in _CRITICAL_STEPS:
-                    state.status = "failed"
-                    logger.warning(
-                        "critical step %s produced a BLOCKER; aborting",
-                        step.name,
-                    )
-                else:
-                    state.status = "needs_review"
-                    logger.info(
-                        "non-critical step %s produced a BLOCKER; "
-                        "continuing with needs_review",
-                        step.name,
-                    )
-                    state.status = "running"  # keep going
-        else:
-            state = await step(state)
-
-    return state
+    return await run_finrisk_graph(
+        request,
+        fixture_path=fixture_path,
+        steps=steps,
+        run_id=run_id,
+        initial_state=initial_state,
+        quality_engine=quality_engine,
+        quality_gated=quality_gated,
+    )
 
 
 # ---------------------------------------------------------------------------

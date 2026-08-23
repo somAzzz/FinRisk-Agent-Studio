@@ -57,7 +57,9 @@ Pydantic AI 负责：
 7. 旧持久化记录的 `legacy`、`pydantic_ai_shadow`、
    `pydantic_ai_primary` 值仍可解析；新 run 统一写入 `pydantic_ai`。
 8. API 的 `tool_loop_mode` 字段仅为旧客户端 wire compatibility 保留并忽略。
-9. 以下实现及其专用测试已删除：
+9. FinRisk 与 Supply Chain 的 API、CLI 和后台任务已统一使用 Pydantic Graph
+   默认入口，旧的手写 step 循环已删除。
+10. 以下实现及其专用测试已删除：
    - `src/agents/runtime.py`
    - `src/agents/llm_runtime.py`
    - `src/llm/client.py`
