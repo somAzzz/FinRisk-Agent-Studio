@@ -185,6 +185,7 @@ By default, API routes require `X-API-Key` via `FINRISK_API_KEYS`. For local dev
 ```text
 src/
 ├── agents/            # planner, global runtime, tool-driven agent state
+├── ai/                # Pydantic AI agents, model factory, typed clients
 ├── api/               # FastAPI routes, auth, rate limit, run stores
 ├── browser/           # Playwright and agent-browser exploration backends
 ├── data/              # SEC, EDGAR, transcripts, XBRL, ticker resolution
@@ -192,7 +193,6 @@ src/
 ├── evidence/          # evidence candidate normalization
 ├── graph/             # Neo4j-compatible graph clients, queries, writers
 ├── graph_reasoning/   # path retrieval, scoring, binding, validation
-├── llm/               # non-Agent OpenAI-compatible client helpers
 ├── memory/            # evidence/graph memory and context guardrails
 ├── reports/           # report models and markdown renderer
 ├── research/          # snapshots, journal, peers, valuation, monitoring

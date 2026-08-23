@@ -18,7 +18,8 @@ Pydantic AI 负责：
 - provider/model 构建与 OpenAI-compatible 接入；
 - typed dependencies、structured output 和 toolset；
 - Agent 消息协议、usage 与模型调用记录；
-- 市场研究、通用研究、申报风险提取和供应链结构化分析。
+- 市场研究、Browser Explorer 页面摘要/动作选择、通用研究、申报风险提取和
+  供应链结构化分析。
 
 项目继续负责：
 
@@ -47,6 +48,8 @@ Pydantic AI 负责：
 1. `src.ai.runtime_types` 成为工作流与 Pydantic AI adapter 的共享结果合同。
 2. API、全局 Agent runtime 和通用研究 CLI 始终构建 Pydantic AI runtime。
 3. Market Explorer 始终先运行 Pydantic AI；失败后只走确定性搜索降级。
+   Browser Explorer 内部的页面摘要和下一步动作选择也已迁移为 typed Agent，
+   不再直接调用 OpenAI-compatible SDK。
 4. filing risk 与 supplier relation 使用 typed Pydantic AI output。
 5. requirement decomposition、supplier proposal、node profile 的 JSON 边界通过
    Pydantic AI typed dict output，不再直接构建旧聊天 client。
@@ -57,9 +60,15 @@ Pydantic AI 负责：
 9. 以下实现及其专用测试已删除：
    - `src/agents/runtime.py`
    - `src/agents/llm_runtime.py`
+   - `src/llm/client.py`
+   - `src/llm/deepseek_client.py`
+   - `src/llm/sglang_client.py`
    - `src/llm/tool_loop.py`
+   - `src/tools/router.py`
 
-仓库级回归测试会扫描 `src/`，阻止这些模块、类和旧 tool-loop 方法重新出现。
+`src/llm` 包和无生产调用方的独立 `ToolRouter` 已整体移除。仓库级回归测试会
+扫描 `src/`，阻止这些模块、类、直接 `chat.completions` 调用和旧 tool-loop
+方法重新出现。
 
 ## Docker 与部署边界
 
@@ -89,6 +98,9 @@ docker compose config --services
 - input tokens：1075
 - output tokens：183
 
+同日另行执行 Browser Explorer live smoke：typed `PageSummary` 返回 188 个字符，
+下一步返回经 `BrowserAction` 校验的 `search` 动作，结果通过。
+
 验收命令：
 
 ```bash
@@ -104,7 +116,7 @@ API key 仅从本地运行环境注入，不写入仓库或验收文档。
 
 迁移期间的定向回归覆盖配置、API、runtime adapter、structured clients、
 Market Explorer、Supply Chain、通用研究 CLI、旧模块缺失与全模块导入。
-最终验证为 `1007 passed, 8 deselected`；frontend 为 18 个测试文件、76 项测试
+最终验证为 `989 passed, 6 skipped`；frontend 为 18 个测试文件、76 项测试
 通过，production build 通过。
 
 ## 运行与故障处理

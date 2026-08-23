@@ -35,7 +35,7 @@ FinRisk Agent Studio 已形成可运行的 evidence-first 个人金融研究工�
 | FinRisk 风险工作流 | 完成 | 八步工作流、确定性评分、报告、质量门禁、人工复核 | 持续扩充真实回归样本 |
 | 图推理与供应链 | 核心完成 | 路径检索、证据绑定、递归供应链、Sankey、图写入边界 | 扩大真实供应链覆盖和 Neo4j 长期验证 |
 | LLM Tool Runtime | 完成 | Pydantic AI typed tools、预算、trace、provider-neutral model factory | provider 兼容性维护 |
-| Agent Runtime | 完成 | Pydantic AI 单一运行时、typed planner/filing/supply-chain、Pydantic Graph、conversation resume、SQLite 原子 deferred approval | 扩充 live provider 回归矩阵 |
+| Agent Runtime | 完成 | Pydantic AI 单一模型边界、typed planner/browser/filing/supply-chain、Pydantic Graph、conversation resume、SQLite 原子 deferred approval；旧 clients 与独立 ToolRouter 已删除 | 扩充 live provider 回归矩阵 |
 | 个人研究闭环 | 完成 | snapshot、change、Thesis、Watchlist、expectation、alert、复盘 | 维护 point-in-time 与幂等回归 |
 | 财务/同行/估值/监控 | 核心完成 | 六类行业模板、五公司勾稽、Peer Group、四类估值、调度模板 | consensus、自动 FX、分部 KPI、长期校准 |
 | 产品工作台 | 完成，待主线集成 | Today、Company、Runs、Journal 十条路由，桌面/移动 QA | 合入 `main` 后复跑浏览器门禁 |

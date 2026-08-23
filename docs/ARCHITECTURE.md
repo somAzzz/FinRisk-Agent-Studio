@@ -163,8 +163,9 @@ trace 必须记录 fallback 原因。静态或 cached 结果不能标记为 live
 
 ### Pydantic AI Agent 运行时
 
-Pydantic AI 是唯一 Agent 运行时，负责 provider/model、typed dependency、
-structured output、toolset、usage 和 message protocol；项目继续
+Pydantic AI 是唯一模型调用与 Agent 运行时，负责 provider/model、typed dependency、
+structured output、toolset、usage 和 message protocol。Browser Explorer 的页面摘要
+与动作选择同样使用 typed Agent；项目继续
 负责 evidence、预算、审批、run-store、quality gate、业务状态机和 API contract。
 FinRisk 与 Supply Chain 已有保持原 state contract 的 Pydantic Graph 顺序投影。
 
@@ -185,6 +186,7 @@ Compose 只包含 Neo4j。完成记录见 [迁移文档](PYDANTIC_AI_MIGRATION.m
 ```text
 src/
 ├── agents/
+├── ai/
 ├── api/
 ├── browser/
 ├── data/
@@ -192,7 +194,6 @@ src/
 ├── evidence/
 ├── graph/
 ├── graph_reasoning/
-├── llm/
 ├── memory/
 ├── reports/
 ├── research/
