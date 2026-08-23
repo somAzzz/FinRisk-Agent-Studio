@@ -19,12 +19,15 @@ class BrowserAgentClient(Protocol):
 
     async def summarize(self, content: str) -> str: ...
 
-    async def decide_action(
+    async def explore(
         self,
+        *,
         goal: str,
         visited_urls: list[str],
         recent_findings: list[tuple[str, str]],
-    ) -> BrowserAction | None: ...
+        session: Any,
+        max_steps: int,
+    ) -> Any: ...
 
 
 @dataclass
@@ -294,25 +297,6 @@ class MarketExplorer:
 
         return False
 
-    async def _llm_decide_action(self, state: ExplorationState) -> dict | None:
-        """Ask LLM what to do next. Returns action dict or None to stop."""
-        visited_list = list(state.visited_urls)[:5]
-        recent_findings = [(f.summary, f.url) for f in state.findings[-3:]]
-
-        action = await self.llm_client.decide_action(
-            state.goal, visited_list, recent_findings
-        )
-        if action is None:
-            return None
-
-        return {
-            "thought": action.thought,
-            "action": action.action,
-            "query": action.query,
-            "url": action.url,
-            "selector": action.selector,
-        }
-
     def _is_blocked_url(self, url: str) -> bool:
         """Check if URL is in the blocked list."""
         url_lower = url.lower()
@@ -392,42 +376,110 @@ class MarketExplorer:
             if await self._process_page(state):
                 state.last_discovery = datetime.now()
 
-        # Main exploration loop
-        while state.current_step < self.browser_config.max_steps:
-            state.current_step += 1
-            total_ops += 1
-
-            action = await self._llm_decide_action(state)
-            if not action:
-                break
-
-            if action.get("action") == "stop":
-                break
-
-            success = await self._execute_action(action)
-            if not success:
-                error_count += 1
-
-            await asyncio.sleep(random.uniform(1, 3))
-
-            await self._handle_consent_page()
-            await asyncio.sleep(0.5)
-
-            if action.get("action") in ["navigate", "click", "scroll"] and await self._process_page(state):
-                state.last_discovery = datetime.now()
-
-            if total_ops >= 5 and error_count / total_ops > self.exploration_config.error_rate_threshold:
-                break
-
-            steps_since_discovery = state.current_step - len(state.findings)
-            if steps_since_discovery >= self.exploration_config.no_new_findings_limit:
-                break
-
-            if (
-                checkpoint_callback
-                and state.current_step % self.browser_config.checkpoint_interval == 0
-                and not checkpoint_callback(state)
-            ):
-                break
+        # Pydantic AI owns the remaining decide -> tool -> observe loop. The
+        # session keeps browser safety and project stop policies deterministic.
+        remaining_steps = self.browser_config.max_steps - state.current_step
+        if remaining_steps > 0:
+            session = _ExplorerToolSession(
+                explorer=self,
+                state=state,
+                checkpoint_callback=checkpoint_callback,
+                total_ops=total_ops,
+                error_count=error_count,
+            )
+            await self.llm_client.explore(
+                goal=state.goal,
+                visited_urls=list(state.visited_urls)[:5],
+                recent_findings=[
+                    (finding.summary, finding.url)
+                    for finding in state.findings[-3:]
+                ],
+                session=session,
+                max_steps=remaining_steps,
+            )
 
         return state
+
+
+@dataclass(slots=True)
+class _ExplorerToolSession:
+    """Apply Pydantic AI tool calls through existing browser guardrails."""
+
+    explorer: MarketExplorer
+    state: ExplorationState
+    checkpoint_callback: Callable[[ExplorationState], bool] | None
+    total_ops: int = 0
+    error_count: int = 0
+    stopped_reason: str | None = None
+
+    async def execute(self, action: BrowserAction) -> dict[str, Any]:
+        if self.stopped_reason is not None:
+            return self._observation(success=False)
+        if action.action == "stop":
+            self.stopped_reason = "model_finished"
+            return self._observation(success=True)
+        if self.state.current_step >= self.explorer.browser_config.max_steps:
+            self.stopped_reason = "step_limit"
+            return self._observation(success=False)
+
+        self.state.current_step += 1
+        self.total_ops += 1
+        success = await self.explorer._execute_action(
+            action.model_dump(mode="python")
+        )
+        if not success:
+            self.error_count += 1
+
+        await asyncio.sleep(random.uniform(1, 3))
+        await self.explorer._handle_consent_page()
+        await asyncio.sleep(0.5)
+
+        if action.action in {
+            "navigate",
+            "click",
+            "scroll",
+        } and await self.explorer._process_page(self.state):
+            self.state.last_discovery = datetime.now()
+
+        self._apply_stop_policies()
+        return self._observation(success=success)
+
+    def _apply_stop_policies(self) -> None:
+        if self.state.current_step >= self.explorer.browser_config.max_steps:
+            self.stopped_reason = "step_limit"
+            return
+        if (
+            self.total_ops >= 5
+            and self.error_count / self.total_ops
+            > self.explorer.exploration_config.error_rate_threshold
+        ):
+            self.stopped_reason = "blocked"
+            return
+        steps_since_discovery = self.state.current_step - len(self.state.findings)
+        if (
+            steps_since_discovery
+            >= self.explorer.exploration_config.no_new_findings_limit
+        ):
+            self.stopped_reason = "enough_evidence"
+            return
+        if (
+            self.checkpoint_callback
+            and self.state.current_step
+            % self.explorer.browser_config.checkpoint_interval
+            == 0
+            and not self.checkpoint_callback(self.state)
+        ):
+            self.stopped_reason = "checkpoint"
+
+    def _observation(self, *, success: bool) -> dict[str, Any]:
+        return {
+            "success": success,
+            "current_step": self.state.current_step,
+            "visited_urls": sorted(self.state.visited_urls)[-5:],
+            "recent_findings": [
+                {"url": finding.url, "summary": finding.summary}
+                for finding in self.state.findings[-3:]
+            ],
+            "stop_recommended": self.stopped_reason is not None,
+            "stop_reason": self.stopped_reason,
+        }

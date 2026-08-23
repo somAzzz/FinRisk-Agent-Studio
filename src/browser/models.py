@@ -39,4 +39,22 @@ class PageSummary(BaseModel):
     summary: str = Field(min_length=1, description="A 2-3 sentence summary")
 
 
-__all__ = ["BrowserAction", "PageSummary"]
+class BrowserExplorationOutcome(BaseModel):
+    """Typed final response from the browser tool-calling Agent."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    summary: str = Field(
+        min_length=1,
+        description="Concise description of what the exploration established",
+    )
+    stop_reason: Literal[
+        "enough_evidence",
+        "step_limit",
+        "blocked",
+        "checkpoint",
+        "model_finished",
+    ] = "model_finished"
+
+
+__all__ = ["BrowserAction", "BrowserExplorationOutcome", "PageSummary"]

@@ -10,7 +10,7 @@ class FakeBrowserClient:
     async def summarize(self, content: str) -> str:
         return content[:200]
 
-    async def decide_action(self, goal, visited_urls, recent_findings):
+    async def explore(self, **kwargs):
         return None
 
 

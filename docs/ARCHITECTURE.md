@@ -165,7 +165,7 @@ trace 必须记录 fallback 原因。静态或 cached 结果不能标记为 live
 
 Pydantic AI 是唯一模型调用与 Agent 运行时，负责 provider/model、typed dependency、
 structured output、toolset、usage 和 message protocol。Browser Explorer 的页面摘要
-与动作选择同样使用 typed Agent；项目继续
+与有界浏览器动作循环同样使用 typed Agent/tool；项目继续
 负责 evidence、预算、审批、run-store、quality gate、业务状态机和 API contract。
 FinRisk 与 Supply Chain 默认通过保持原 state contract 的 Pydantic Graph 执行；
 API、CLI 与后台任务共用同一 Graph 入口，不再维护重复的手写 step 循环。

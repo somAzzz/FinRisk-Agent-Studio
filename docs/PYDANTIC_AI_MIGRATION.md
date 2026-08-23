@@ -48,8 +48,8 @@ Pydantic AI 负责：
 1. `src.ai.runtime_types` 成为工作流与 Pydantic AI adapter 的共享结果合同。
 2. API、全局 Agent runtime 和通用研究 CLI 始终构建 Pydantic AI runtime。
 3. Market Explorer 始终先运行 Pydantic AI；失败后只走确定性搜索降级。
-   Browser Explorer 内部的页面摘要和下一步动作选择也已迁移为 typed Agent，
-   不再直接调用 OpenAI-compatible SDK。
+   Browser Explorer 内部的页面摘要和有界动作循环也已迁移为 typed Agent/tool，
+   不再直接调用 OpenAI-compatible SDK，也不再由项目手写模型决策循环。
 4. filing risk 与 supplier relation 使用 typed Pydantic AI output。
 5. requirement decomposition、supplier proposal、node profile 的 JSON 边界通过
    Pydantic AI typed dict output，不再直接构建旧聊天 client。

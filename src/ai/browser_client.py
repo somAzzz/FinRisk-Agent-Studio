@@ -4,17 +4,33 @@ from __future__ import annotations
 
 import logging
 import uuid
+from dataclasses import dataclass
+from typing import Any, Protocol
 
-from pydantic_ai import Agent
+from pydantic_ai import Agent, RunContext, UsageLimits
 from pydantic_ai.models import Model
 
 from src.ai.deps import AgentDeps, AgentServices
 from src.ai.model_factory import build_agent_model, resolve_agent_model_config
-from src.browser.models import BrowserAction, PageSummary
+from src.browser.models import BrowserAction, BrowserExplorationOutcome, PageSummary
 from src.config import Settings, get_settings
 from src.schemas.llm_config import LLMRunConfig
 
 logger = logging.getLogger(__name__)
+
+
+class BrowserToolSession(Protocol):
+    """Guarded browser operations exposed to the Pydantic AI tool loop."""
+
+    async def execute(self, action: BrowserAction) -> dict[str, Any]: ...
+
+
+@dataclass(slots=True)
+class BrowserToolDeps:
+    """Typed dependencies for one browser tool-calling run."""
+
+    agent_deps: AgentDeps
+    session: BrowserToolSession
 
 
 class PydanticAIBrowserClient:
@@ -47,16 +63,27 @@ class PydanticAIBrowserClient:
             ),
             name="browser_page_summarizer",
         )
-        self.action_agent: Agent[AgentDeps, BrowserAction] = Agent(
+        self.exploration_agent: Agent[
+            BrowserToolDeps, BrowserExplorationOutcome
+        ] = Agent(
             model,
-            output_type=BrowserAction,
-            deps_type=AgentDeps,
+            output_type=BrowserExplorationOutcome,
+            deps_type=BrowserToolDeps,
             instructions=(
                 "You are a web browsing assistant exploring financial news. "
-                "Select exactly one typed browser action and do not invent URLs."
+                "Use the browser_action tool to gather evidence. Respect any "
+                "stop recommendation returned by the tool and then provide one "
+                "typed final outcome. Do not invent URLs or findings."
             ),
-            name="browser_action_selector",
+            name="browser_explorer",
         )
+
+        @self.exploration_agent.tool
+        async def browser_action(
+            ctx: RunContext[BrowserToolDeps], action: BrowserAction
+        ) -> dict[str, Any]:
+            """Execute one bounded, policy-checked browser operation."""
+            return await ctx.deps.session.execute(action)
 
     def _deps(self, run_id: str) -> AgentDeps:
         return AgentDeps(
@@ -96,13 +123,21 @@ class PydanticAIBrowserClient:
             logger.info("Browser page summarization failed: %s", exc)
             return content[:200]
 
-    async def decide_action(
+    async def explore(
         self,
+        *,
         goal: str,
         visited_urls: list[str],
         recent_findings: list[tuple[str, str]],
-    ) -> BrowserAction | None:
-        """Select the next browser action as validated Pydantic output."""
+        session: BrowserToolSession,
+        max_steps: int,
+    ) -> BrowserExplorationOutcome | None:
+        """Let a Pydantic AI Agent own the bounded browser action loop."""
+        if max_steps <= 0:
+            return BrowserExplorationOutcome(
+                summary="The browser step limit was reached.",
+                stop_reason="step_limit",
+            )
         visited = ", ".join(visited_urls[:5]) or "none"
         findings = "; ".join(
             f"{summary} ({url})" for summary, url in recent_findings[-3:]
@@ -114,25 +149,33 @@ Visited URLs: {visited}
 Recent findings: {findings}
 Avoid these verification URLs: {blocked}
 
-Use search to discover relevant pages, navigate or click to inspect them, scroll
-when more content is needed, and stop when enough evidence has been gathered.
-Prefer CNBC and Reuters search pages and skip CAPTCHA or verification pages."""
-        run_id = f"browser-action-{uuid.uuid4().hex[:12]}"
+You have at most {max_steps} browser operations. Use browser_action with one of
+search, navigate, click, scroll, or stop. Start with search when no useful page
+has been found. Prefer CNBC and Reuters and skip CAPTCHA or verification pages.
+When the tool reports stop_recommended=true, return the final outcome."""
+        run_id = f"browser-explore-{uuid.uuid4().hex[:12]}"
         try:
-            result = await self.action_agent.run(
+            result = await self.exploration_agent.run(
                 prompt,
-                deps=self._deps(run_id),
+                deps=BrowserToolDeps(
+                    agent_deps=self._deps(run_id),
+                    session=session,
+                ),
+                usage_limits=UsageLimits(
+                    request_limit=max_steps + 1,
+                    tool_calls_limit=max_steps,
+                ),
                 run_id=run_id,
                 conversation_id=self.conversation_id,
             )
             await self._record(
                 run_id=run_id,
-                agent_name=self.action_agent.name or "browser_action_selector",
+                agent_name=self.exploration_agent.name or "browser_explorer",
                 result=result,
             )
             return result.output
         except Exception as exc:
-            logger.info("Browser action selection failed: %s", exc)
+            logger.info("Browser exploration tool loop failed: %s", exc)
             return None
 
 
@@ -158,4 +201,9 @@ def build_browser_client(
     )
 
 
-__all__ = ["PydanticAIBrowserClient", "build_browser_client"]
+__all__ = [
+    "BrowserToolDeps",
+    "BrowserToolSession",
+    "PydanticAIBrowserClient",
+    "build_browser_client",
+]

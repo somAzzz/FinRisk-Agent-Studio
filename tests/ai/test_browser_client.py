@@ -1,11 +1,13 @@
 """Typed Pydantic AI Browser Explorer client tests."""
 
 import pytest
+from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from src.ai.browser_client import PydanticAIBrowserClient, build_browser_client
 from src.ai.deps import AgentServices
-from src.browser.models import BrowserAction
+from src.browser.models import BrowserAction, BrowserExplorationOutcome
 from src.config import Settings
 
 
@@ -46,24 +48,69 @@ async def test_browser_client_records_agent_messages() -> None:
 
 
 @pytest.mark.asyncio
-async def test_browser_client_returns_validated_action() -> None:
+async def test_browser_client_runs_validated_action_as_agent_tool() -> None:
+    request_count = 0
+
+    def respond(_messages, info):
+        nonlocal request_count
+        request_count += 1
+        if request_count == 1:
+            return ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="browser_action",
+                        args={
+                            "action": {
+                                "thought": "Search for current evidence.",
+                                "action": "search",
+                                "query": "issuer latest earnings",
+                                "url": None,
+                                "selector": None,
+                            }
+                        },
+                        tool_call_id="browser-1",
+                    )
+                ]
+            )
+        return ModelResponse(
+            parts=[
+                ToolCallPart(
+                    tool_name=info.output_tools[0].name,
+                    args={
+                        "summary": "Search results were inspected.",
+                        "stop_reason": "enough_evidence",
+                    },
+                    tool_call_id="browser-output-1",
+                )
+            ]
+        )
+
+    class Session:
+        def __init__(self) -> None:
+            self.actions = []
+
+        async def execute(self, action: BrowserAction):
+            self.actions.append(action)
+            return {"success": True, "stop_recommended": True}
+
+    session = Session()
     client = PydanticAIBrowserClient(
-        model=TestModel(
-            custom_output_args={
-                "thought": "Search for current evidence.",
-                "action": "search",
-                "query": "issuer latest earnings",
-                "url": None,
-                "selector": None,
-            }
-        ),
+        model=FunctionModel(respond),
         settings=Settings(),
     )
 
-    action = await client.decide_action("Research issuer", [], [])
+    outcome = await client.explore(
+        goal="Research issuer",
+        visited_urls=[],
+        recent_findings=[],
+        session=session,
+        max_steps=2,
+    )
 
-    assert isinstance(action, BrowserAction)
-    assert action.query == "issuer latest earnings"
+    assert isinstance(outcome, BrowserExplorationOutcome)
+    assert outcome.stop_reason == "enough_evidence"
+    assert session.actions[0].query == "issuer latest earnings"
+    assert request_count == 2
 
 
 def test_browser_client_factory_uses_central_model_factory(monkeypatch) -> None:
