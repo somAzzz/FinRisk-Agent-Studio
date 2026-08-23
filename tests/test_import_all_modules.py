@@ -36,7 +36,11 @@ def test_production_source_has_no_removed_agent_runtime() -> None:
     removed = [
         root / "src/agents/llm_runtime.py",
         root / "src/agents/runtime.py",
+        root / "src/llm/client.py",
+        root / "src/llm/deepseek_client.py",
+        root / "src/llm/sglang_client.py",
         root / "src/llm/tool_loop.py",
+        root / "src/tools/router.py",
     ]
     assert not any(path.exists() for path in removed)
 
@@ -47,6 +51,13 @@ def test_production_source_has_no_removed_agent_runtime() -> None:
         "src.llm.tool_loop",
         "complete_with_tools",
         "chat_with_tools",
+        "EdgarLLMClient",
+        "DeepSeekClient",
+        "SGLangClient",
+        "ToolRouter",
+        "src.llm",
+        "chat.completions",
+        "from openai import",
     )
     matches: list[str] = []
     for path in sorted((root / "src").rglob("*.py")):

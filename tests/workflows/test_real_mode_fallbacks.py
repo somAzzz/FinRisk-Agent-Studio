@@ -291,13 +291,10 @@ def test_risk_section_text_uses_full_text_when_parser_hits_toc() -> None:
 
 async def test_filing_extractor_llm_falls_back_to_keywords() -> None:
     """When the LLM extractor returns ``[]`` we fall back to keywords."""
-    from src.llm.deepseek_client import DeepSeekClient
     from src.workflows.steps.filing_risk_extractor import _llm_extract
 
-    class StubClient(DeepSeekClient):
-        configured = True
-
-        def extract_risks(self, section_1a, company_name="x", year=0):  # type: ignore[override]
+    class StubClient:
+        def extract_risks(self, section_1a, company_name="x", year=0):
             return {"risks": []}
 
     monkeypatch = pytest.MonkeyPatch()
@@ -305,7 +302,7 @@ async def test_filing_extractor_llm_falls_back_to_keywords() -> None:
         from src.workflows.steps import filing_risk_extractor as mod
 
         def _factory(_config=None):
-            return StubClient(api_key="sk-test")
+            return StubClient()
 
         monkeypatch.setattr(mod, "_build_llm_client", _factory)
         llm_result = _llm_extract("section text")
