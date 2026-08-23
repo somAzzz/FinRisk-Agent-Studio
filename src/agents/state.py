@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from src.config import AgentRuntimeMode
 from src.schemas.claims import Claim
 from src.schemas.entities import Entity
 from src.schemas.evidence import Evidence
@@ -218,6 +219,9 @@ class AgentRunState(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     run_id: str = Field(default_factory=lambda: f"agent-{uuid.uuid4().hex[:12]}")
+    conversation_id: str | None = None
+    parent_run_id: str | None = None
+    runtime_mode: AgentRuntimeMode = "legacy"
     user_goal: str
     workflow_kind: AgentWorkflowKind = "generic_research"
     status: AgentRunStatus = "queued"
@@ -233,6 +237,12 @@ class AgentRunState(BaseModel):
     trace: list[AgentRunTrace] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
+
+    @model_validator(mode="after")
+    def _default_conversation_id(self) -> AgentRunState:
+        if self.conversation_id is None:
+            self.conversation_id = self.run_id
+        return self
 
     def append_decision(self, decision: AgentDecision) -> None:
         """Record a planner decision and merge any newly proposed subgoals."""

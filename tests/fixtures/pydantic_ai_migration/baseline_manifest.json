@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-23",
+  "runtime_mode": "legacy",
+  "test_baseline": {
+    "command": "python -m pytest -m 'not integration' -q --maxfail=1",
+    "passed": 970,
+    "skipped": 1,
+    "deselected": 8,
+    "failed": 0
+  },
+  "representative_cases": {
+    "finrisk": "tests/fixtures/finrisk/aapl_demo_workflow.json",
+    "supply_chain": "tests/fixtures/agent_golden_cases/finrisk_apple_supply_chain.json",
+    "generic_research": "tests/fixtures/agent_golden_cases/insufficient_evidence_review.json"
+  },
+  "contract_snapshots": {
+    "graph_payload": "tests/fixtures/finrisk/graph_payload_contract.json",
+    "report_payload": "tests/fixtures/finrisk/report_payload_contract.json",
+    "tool_catalog": "tests/fixtures/pydantic_ai_migration/tool_catalog_baseline.json"
+  }
+}

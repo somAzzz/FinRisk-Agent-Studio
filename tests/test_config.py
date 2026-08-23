@@ -25,12 +25,29 @@ def _clear_env() -> None:
         "SEC_RATE_LIMIT_PER_SECOND",
         "OPENAI_BASE_URL",
         "OPENAI_API_KEY",
+        "OPENAI_MODEL",
         "LLM_MODEL",
+        "LLM_PROVIDER",
+        "AGENT_RUNTIME_MODE",
+        "SGLANG_BASE_URL",
+        "SGLANG_MODEL",
+        "SGLANG_API_KEY",
+        "VLLM_BASE_URL",
+        "VLLM_MODEL",
+        "VLLM_API_KEY",
+        "DEEPSEEK_BASE_URL",
+        "DEEPSEEK_MODEL",
+        "DEEPSEEK_API_KEY",
+        "DEEPSEEK_TEMPERATURE",
+        "DEEPSEEK_MAX_TOKENS",
+        "DEEPSEEK_TIMEOUT_S",
         "HF_EDGAR_DATASET",
         "NEO4J_URI",
         "NEO4J_USER",
         "NEO4J_PASSWORD",
         "CACHE_DIR",
+        "SEARCH_PROVIDER_ORDER",
+        "FINRISK_API_KEYS",
     ):
         os.environ.pop(key, None)
 
@@ -43,7 +60,10 @@ class TestDefaults:
             "SEC_RATE_LIMIT_PER_SECOND",
             "OPENAI_BASE_URL",
             "OPENAI_API_KEY",
+            "OPENAI_MODEL",
             "LLM_MODEL",
+            "LLM_PROVIDER",
+            "AGENT_RUNTIME_MODE",
             "HF_EDGAR_DATASET",
             "NEO4J_URI",
             "NEO4J_USER",
@@ -55,10 +75,13 @@ class TestDefaults:
         settings = Settings()
 
         assert settings.sec_user_agent == "FinRisk-Agent-Studio contact@example.com"
+        assert settings.agent_runtime_mode == "legacy"
         assert settings.sec_rate_limit_per_second == 8.0
         assert settings.openai_base_url == "http://localhost:30000/v1"
         assert settings.openai_api_key == "EMPTY"
         assert settings.llm_model == "Qwen/Qwen3.5-35B-A3B"
+        assert settings.sglang_base_url == "http://localhost:30000/v1"
+        assert settings.vllm_base_url == "http://localhost:8000/v1"
         assert settings.hf_edgar_dataset == "eloukas/edgar-corpus"
         assert settings.neo4j_uri == "bolt://localhost:7687"
         assert settings.neo4j_user == "neo4j"
@@ -99,6 +122,27 @@ class TestEnvOverrides:
         monkeypatch.setenv("NEO4J_PASSWORD", "s3cr3t")
         settings = Settings()
         assert settings.neo4j_password == "s3cr3t"
+
+    @pytest.mark.parametrize(
+        "mode",
+        ["legacy", "pydantic_ai_shadow", "pydantic_ai_primary"],
+    )
+    def test_agent_runtime_mode_accepts_supported_values(
+        self, monkeypatch: pytest.MonkeyPatch, mode: str
+    ) -> None:
+        _clear_env()
+        monkeypatch.setenv("AGENT_RUNTIME_MODE", mode)
+
+        assert Settings().agent_runtime_mode == mode
+
+    def test_agent_runtime_mode_rejects_unknown_value(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _clear_env()
+        monkeypatch.setenv("AGENT_RUNTIME_MODE", "experimental")
+
+        with pytest.raises(ValueError, match="AGENT_RUNTIME_MODE"):
+            Settings()
 
 
 class TestGetSettings:
