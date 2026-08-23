@@ -48,6 +48,7 @@
 
 工作包：
 
+- 按 [Pydantic AI Agent 重构与迁移执行方案](PYDANTIC_AI_MIGRATION.md) 收敛自研 Agent runtime、tool loop、结构化输出和工作流编排。
 - Context Pack 的相关性、时效性、冲突和 token budget 评估。
 - Evidence/graph/episodic memory 的失效、撤回和反馈闭环。
 - Agent run checkpoint、跨进程恢复、幂等重试和取消。

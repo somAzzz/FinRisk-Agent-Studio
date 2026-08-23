@@ -1,6 +1,6 @@
 # FinRisk Agent Studio v0.1 项目状态
 
-最后更新：2026-07-25
+最后更新：2026-08-23
 
 代码基线：`dc1646e`（`codex/product-design-redesign`）
 
@@ -35,7 +35,7 @@ FinRisk Agent Studio 已形成可运行的 evidence-first 个人金融研究工�
 | FinRisk 风险工作流 | 完成 | 八步工作流、确定性评分、报告、质量门禁、人工复核 | 持续扩充真实回归样本 |
 | 图推理与供应链 | 核心完成 | 路径检索、证据绑定、递归供应链、Sankey、图写入边界 | 扩大真实供应链覆盖和 Neo4j 长期验证 |
 | LLM Tool Loop | 完成 | provider-neutral 工具调用、预算、JSON fallback、trace | provider 兼容性维护 |
-| Agent Runtime | 进行中 | planner、subgoal、候选证据、review、脱敏 trace、基础 memory guardrail | 跨任务长期记忆、恢复和无人值守 SLO |
+| Agent Runtime | 进行中 | Pydantic AI typed provider/deps/tools/output、typed planner/filing/supply-chain primary、Pydantic Graph、服务端 conversation resume、SQLite 原子 deferred approval、legacy/primary 开关 | 有效 live provider 验收、发布观察期、默认切换与 legacy 退役 |
 | 个人研究闭环 | 完成 | snapshot、change、Thesis、Watchlist、expectation、alert、复盘 | 维护 point-in-time 与幂等回归 |
 | 财务/同行/估值/监控 | 核心完成 | 六类行业模板、五公司勾稽、Peer Group、四类估值、调度模板 | consensus、自动 FX、分部 KPI、长期校准 |
 | 产品工作台 | 完成，待主线集成 | Today、Company、Runs、Journal 十条路由，桌面/移动 QA | 合入 `main` 后复跑浏览器门禁 |
@@ -84,6 +84,14 @@ SEC / Transcript / Market / Graph
 
 - `/agent-runs` 提供运行、timeline、trace、候选证据和人工复核接口。
 - Tool Loop 支持 OpenAI-compatible provider、native tool calling、JSON fallback 和预算限制。
+- Pydantic AI primary 已在 feature flag 后接入，13 个工具具有 typed schema、
+  权限过滤和 legacy contract parity；FinRisk/Supply Chain 顺序图已通过 demo parity。
+- typed planner、filing risk chunk 与 supplier relation extraction 已接入 primary；
+  graph/report 保持既有确定性计算，避免为迁移新增非确定性模型调用。
+- Agent message batch、服务端 conversation resume、usage recorder 和 deferred
+  approval 已有 SQLite/in-memory 合同、重启恢复、并发单次领取与 replay protection。
+- 每个 Agent run 记录实际 runtime mode；live provider 合同和 20-run/168-hour
+  primary observation gate 已提供机器可读报告与 fail-closed 退出码。
 - evidence memory、graph-edge memory 和 active/candidate lifecycle 已有工程实现。
 - 长期记忆检索质量、过期策略、跨进程恢复和长时间无人值守仍属于 v0.2 范围。
 
@@ -98,7 +106,7 @@ SEC / Transcript / Market / Graph
 
 | 检查 | 最近结果 | 日期 |
 | --- | --- | --- |
-| 后端全量测试 | `972 passed, 7 skipped` | 2026-07-25 |
+| 后端非集成测试 | `1036 passed, 1 skipped, 8 deselected` | 2026-08-23 |
 | 前端测试 | 18 files，`76 passed` | 2026-07-25 |
 | TypeScript + Vite production build | 通过 | 2026-07-25 |
 | 三视口 Chromium 与交互 | 通过 | 2026-07-12 |
@@ -114,6 +122,7 @@ SEC / Transcript / Market / Graph
 - [前端验收](validation/frontend-acceptance.md)
 - [Research Journal 本地 LLM 验收](validation/research-journal-live.md)
 - [真实数据验收方法](testing/real-data-acceptance.md)
+- [Pydantic AI PAI-7 切换准备](validation/pydantic-ai-pai-7-readiness.md)
 
 ## 已知限制
 
