@@ -23,7 +23,8 @@ context length is 262144 tokens; set `LLM_MAX_MODEL_LEN` only when you want to
 trade context length for more concurrent requests.
 
 ```bash
-docker compose up -d neo4j vllm
+docker compose up -d neo4j
+# LLM endpoint must already be running outside this repository.
 curl http://127.0.0.1:30000/v1/models
 ```
 
