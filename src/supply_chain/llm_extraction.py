@@ -73,9 +73,30 @@ class SupplierRelationExtraction(BaseModel):
 
 def build_supply_chain_llm_client(
     llm_config: LLMRunConfig | None,
-) -> SupplyChainLLMClient:
+) -> Any:
     """Build the selected per-run LLM client for supply-chain extraction."""
     config = llm_config or LLMRunConfig()
+    from src.config import get_settings
+
+    settings = get_settings()
+    if settings.agent_runtime_mode == "pydantic_ai_primary":
+        from src.ai.deps import AgentServices
+        from src.ai.model_factory import (
+            build_agent_model,
+            resolve_agent_model_config,
+        )
+        from src.ai.store_factory import get_agent_run_recorder
+        from src.ai.structured_clients import PydanticAISupplierRelationClient
+
+        return PydanticAISupplierRelationClient(
+            model=build_agent_model(
+                resolve_agent_model_config(config, settings=settings)
+            ),
+            settings=settings,
+            services=AgentServices(
+                message_recorder=get_agent_run_recorder()
+            ),
+        )
     provider = config.provider
     if provider == "deepseek":
         from src.llm.deepseek_client import DeepSeekClient
@@ -135,6 +156,14 @@ def extract_supplier_relations(
         search_results=search_results,
         max_suppliers=max_suppliers,
     )
+    typed_extract = getattr(client, "extract_supplier_relations", None)
+    if callable(typed_extract):
+        return typed_extract(
+            prompt=prompt,
+            company_name=company_name,
+            product_name=product_name,
+            max_suppliers=max_suppliers,
+        )
     content = client.complete(
         prompt,
         system=(

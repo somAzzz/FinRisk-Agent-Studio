@@ -12,12 +12,14 @@ from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.state import AgentRunState
 from src.api.agent_runs import (
     AgentRunRequest,
+    AgentRunResumeRequest,
     HumanReviewActionRequest,
     build_agent_runtime,
     get_agent_run,
     get_agent_run_timeline,
     list_agent_runs,
     reset_agent_run_store_for_tests,
+    resume_agent_run,
     review_agent_evidence_candidate,
     review_agent_run_item,
     set_agent_runtime_for_tests,
@@ -129,6 +131,7 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
 
     assert summary.run_id.startswith("agent-")
     assert summary.status == "queued"
+    assert summary.runtime_mode == "legacy"
     state = await _wait_for_terminal(summary.run_id)
     assert state.status == "needs_review"
 
@@ -153,6 +156,29 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
     assert reviewed.status == "approved"
     assert reviewed.object_id in state.accepted_evidence_ids
     assert state.status == "completed"
+
+
+async def test_agent_run_persists_actual_runtime_mode(monkeypatch) -> None:
+    from src.config import get_settings
+
+    class Runtime:
+        def run(self, goal: str) -> LLMToolRunResult:
+            return LLMToolRunResult(goal=goal, final_answer="done")
+
+    monkeypatch.setenv("AGENT_RUNTIME_MODE", "pydantic_ai_primary")
+    get_settings.cache_clear()
+    set_agent_runtime_for_tests(
+        GlobalAgentRuntime(
+            subgoal_runtime_factory=lambda _scope, _subgoal: Runtime()
+        )
+    )
+
+    summary = await start_agent_run(AgentRunRequest(goal="Observe runtime mode"))
+    state = await _wait_for_terminal(summary.run_id)
+
+    assert summary.runtime_mode == "pydantic_ai_primary"
+    assert state.runtime_mode == "pydantic_ai_primary"
+    get_settings.cache_clear()
 
 
 async def test_review_evidence_candidate_directly() -> None:
@@ -187,6 +213,37 @@ async def test_review_evidence_candidate_directly() -> None:
 
     assert reviewed["status"] == "accepted"
     assert candidate_id in state.accepted_evidence_ids
+
+
+async def test_resume_mints_new_run_and_preserves_conversation() -> None:
+    class Runtime:
+        def run(self, goal: str) -> LLMToolRunResult:
+            return LLMToolRunResult(
+                goal=goal,
+                final_answer="accepted",
+                tool_events=[_accepted_event()],
+            )
+
+    set_agent_runtime_for_tests(
+        GlobalAgentRuntime(
+            subgoal_runtime_factory=lambda _scope, _subgoal: Runtime()
+        )
+    )
+    original_summary = await start_agent_run(
+        AgentRunRequest(goal="Research Apple", workflow_kind="finrisk")
+    )
+    original = await _wait_for_terminal(original_summary.run_id)
+
+    resumed_summary = await resume_agent_run(
+        original.run_id,
+        AgentRunResumeRequest(goal="Continue with recent evidence"),
+    )
+    resumed = await _wait_for_terminal(resumed_summary.run_id)
+
+    assert resumed.run_id != original.run_id
+    assert resumed.parent_run_id == original.run_id
+    assert resumed.conversation_id == original.conversation_id
+    assert resumed.user_goal == "Continue with recent evidence"
 
 
 async def test_list_agent_runs_returns_recent_runs() -> None:
@@ -389,3 +446,32 @@ def test_tool_research_sglang_uses_local_defaults(
     assert captured["base_url"] == "http://localhost:30000/v1"
     assert captured["model"] == "Qwen/Qwen3.5-35B-A3B"
     assert captured["provider"] == "sglang"
+
+
+def test_build_agent_runtime_uses_pydantic_primary_without_live_request(
+    monkeypatch,
+) -> None:
+    from pydantic_ai.models.test import TestModel
+
+    from src.config import get_settings
+
+    monkeypatch.setenv("AGENT_RUNTIME_MODE", "pydantic_ai_primary")
+    get_settings.cache_clear()
+    monkeypatch.setattr(
+        "src.ai.model_factory.build_agent_model",
+        lambda _config: TestModel(call_tools=[]),
+    )
+
+    runtime = build_agent_runtime(
+        AgentRunRequest(
+            goal="Assess Apple supply chain risk",
+            workflow_kind="finrisk",
+            provider="sglang",
+            subject={"ticker": "AAPL", "company_name": "Apple Inc."},
+        )
+    )
+    state = runtime.run("Assess Apple supply chain risk", workflow_kind="finrisk")
+
+    assert state.status == "needs_review"
+    assert any("no tool evidence" in item for item in state.fallback_events)
+    get_settings.cache_clear()
