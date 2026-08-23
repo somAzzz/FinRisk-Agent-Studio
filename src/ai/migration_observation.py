@@ -46,7 +46,7 @@ def evaluate_primary_observation(
     primary = [
         state
         for state in states
-        if state.runtime_mode == "pydantic_ai_primary"
+        if state.runtime_mode in {"pydantic_ai_primary", "pydantic_ai"}
     ]
     terminal = [
         state

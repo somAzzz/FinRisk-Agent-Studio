@@ -9,15 +9,13 @@ top of the project schemas. It exposes:
 - ``CriticAgent`` (rule-based reviewer for claims/evidence)
 - ``Tool`` protocol and ``ToolRegistry`` (uniform tool dispatch with error
   capture)
-- ``AgentRuntime`` (the orchestrator that runs plans end-to-end)
-- ``LLMToolAgentRuntime`` (OpenAI-compatible LLM-selected tool loop)
+- ``GlobalAgentRuntime`` (the orchestrator that runs plans end-to-end)
 """
 
 from src.agents.base import Agent, AsyncAgent
 from src.agents.context import AgentContextBuilder
 from src.agents.critic import CriticAgent
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolAgentRuntime, LLMToolRunResult
 from src.agents.planner import (
     AgentPlan,
     AgentPlanner,
@@ -25,7 +23,6 @@ from src.agents.planner import (
     PlanStep,
     PlanStepAction,
 )
-from src.agents.runtime import AgentRuntime
 from src.agents.state import (
     AgentBudget,
     AgentDecision,
@@ -37,6 +34,7 @@ from src.agents.state import (
     ToolCall,
 )
 from src.agents.tools import Tool, ToolRegistry, ToolResult
+from src.ai.runtime_types import LLMToolRunResult
 
 __all__ = [
     "Agent",
@@ -47,14 +45,12 @@ __all__ = [
     "AgentPlanner",
     "AgentRunState",
     "AgentRunTrace",
-    "AgentRuntime",
     "AgentState",
     "AgentSubgoal",
     "AsyncAgent",
     "CriticAgent",
     "GlobalAgentRuntime",
     "HumanReviewItem",
-    "LLMToolAgentRuntime",
     "LLMToolRunResult",
     "PlanStep",
     "PlanStepAction",

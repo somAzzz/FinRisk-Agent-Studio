@@ -9,7 +9,6 @@ turns it into nodes and edges.
 from __future__ import annotations
 
 import json
-import os
 import re
 from typing import Any, Literal, Protocol
 
@@ -79,59 +78,17 @@ def build_supply_chain_llm_client(
     from src.config import get_settings
 
     settings = get_settings()
-    if settings.agent_runtime_mode == "pydantic_ai_primary":
-        from src.ai.deps import AgentServices
-        from src.ai.model_factory import (
-            build_agent_model,
-            resolve_agent_model_config,
-        )
-        from src.ai.store_factory import get_agent_run_recorder
-        from src.ai.structured_clients import PydanticAISupplierRelationClient
+    from src.ai.deps import AgentServices
+    from src.ai.model_factory import build_agent_model, resolve_agent_model_config
+    from src.ai.store_factory import get_agent_run_recorder
+    from src.ai.structured_clients import PydanticAISupplierRelationClient
 
-        return PydanticAISupplierRelationClient(
-            model=build_agent_model(
-                resolve_agent_model_config(config, settings=settings)
-            ),
-            settings=settings,
-            services=AgentServices(
-                message_recorder=get_agent_run_recorder()
-            ),
-        )
-    provider = config.provider
-    if provider == "deepseek":
-        from src.llm.deepseek_client import DeepSeekClient
-
-        return DeepSeekClient(
-            base_url=config.base_url,
-            api_key=os.environ.get("DEEPSEEK_API_KEY"),
-            model=os.environ.get("DEEPSEEK_MODEL", "deepseek-chat"),
-        )
-
-    from src.llm.client import EdgarLLMClient
-
-    defaults = {
-        "sglang": (
-            os.environ.get("SGLANG_BASE_URL", "http://localhost:30000/v1"),
-            os.environ.get("SGLANG_API_KEY", "EMPTY"),
-            os.environ.get("SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"),
+    return PydanticAISupplierRelationClient(
+        model=build_agent_model(
+            resolve_agent_model_config(config, settings=settings)
         ),
-        "vllm": (
-            os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1"),
-            os.environ.get("VLLM_API_KEY", "dummy"),
-            os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B"),
-        ),
-        "openai": (
-            os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-            os.environ.get("OPENAI_API_KEY", "REPLACE_ME"),
-            os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-        ),
-    }
-    base_url, api_key, model = defaults.get(provider, defaults["sglang"])
-    return EdgarLLMClient(
-        base_url=config.base_url or base_url,
-        api_key=api_key,
-        model=model,
-        provider=provider,
+        settings=settings,
+        services=AgentServices(message_recorder=get_agent_run_recorder()),
     )
 
 

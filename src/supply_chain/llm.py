@@ -3,51 +3,93 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
+import uuid
 from typing import Any
 
+from pydantic_ai import Agent
+from pydantic_ai.models import Model
+
+from src.ai.deps import AgentDeps, AgentServices, AgentSubject
+from src.ai.model_factory import build_agent_model, resolve_agent_model_config
+from src.ai.runtime_adapter import run_awaitable_sync
+from src.ai.store_factory import get_agent_run_recorder
+from src.config import Settings, get_settings
 from src.schemas.llm_config import LLMRunConfig
 from src.supply_chain.models import ProviderCall
 
 
+class PydanticAIJSONClient:
+    """Small typed JSON boundary for supply-chain analysis prompts."""
+
+    provider = "pydantic_ai"
+
+    def __init__(
+        self,
+        *,
+        model: Model,
+        settings: Settings,
+        services: AgentServices | None = None,
+    ) -> None:
+        self._model = model
+        self.model = model.model_name
+        self.settings = settings
+        self.services = services or AgentServices()
+
+    def complete(
+        self,
+        prompt: str,
+        system: str | None = None,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> str:
+        model_settings: dict[str, Any] = {}
+        if max_tokens is not None:
+            model_settings["max_tokens"] = max_tokens
+        if temperature is not None:
+            model_settings["temperature"] = temperature
+        agent: Agent[AgentDeps, dict[str, Any]] = Agent(
+            self._model,
+            output_type=dict[str, Any],
+            deps_type=AgentDeps,
+            instructions=system or "Return one valid JSON object.",
+            model_settings=model_settings or None,
+            name="supply_chain_json_analysis",
+        )
+        run_id = f"supply-json-{uuid.uuid4().hex[:12]}"
+        deps = AgentDeps(
+            run_id=run_id,
+            conversation_id=run_id,
+            settings=self.settings,
+            subject=AgentSubject(),
+            services=self.services,
+        )
+        result = agent.run_sync(prompt, deps=deps, run_id=run_id)
+        recorder = self.services.message_recorder
+        if recorder is not None:
+            run_awaitable_sync(
+                recorder.record_result(
+                    run_id=run_id,
+                    conversation_id=run_id,
+                    agent_name=agent.name or "supply_chain_json_analysis",
+                    result=result,
+                )
+            )
+        return json.dumps(result.output, ensure_ascii=False)
+
+
 def build_supply_chain_llm_client(config: LLMRunConfig | None) -> Any | None:
-    """Return a configured chat client for supply-chain LLM steps."""
+    """Return a Pydantic AI client for supply-chain LLM steps."""
     resolved = config or LLMRunConfig()
     try:
-        if resolved.provider == "deepseek":
-            from src.llm.deepseek_client import DeepSeekClient
-
-            return DeepSeekClient(
-                base_url=resolved.base_url,
-                model=resolved.model,
-            )
-        from src.llm.client import EdgarLLMClient
-
-        defaults: dict[str, tuple[str, str, str]] = {
-            "sglang": (
-                os.environ.get("SGLANG_BASE_URL", "http://localhost:30000/v1"),
-                os.environ.get("SGLANG_API_KEY", "EMPTY"),
-                os.environ.get("SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"),
+        settings = get_settings()
+        return PydanticAIJSONClient(
+            model=build_agent_model(
+                resolve_agent_model_config(resolved, settings=settings)
             ),
-            "vllm": (
-                os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1"),
-                os.environ.get("VLLM_API_KEY", "dummy"),
-                os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B"),
-            ),
-            "openai": (
-                os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-                os.environ.get("OPENAI_API_KEY", "REPLACE_ME"),
-                os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-            ),
-        }
-        base_url, api_key, model = defaults.get(resolved.provider, defaults["sglang"])
-        return EdgarLLMClient(
-            base_url=resolved.base_url or base_url,
-            api_key=api_key,
-            model=resolved.model or model,
-            provider=resolved.provider,
+            settings=settings,
+            services=AgentServices(message_recorder=get_agent_run_recorder()),
         )
     except Exception:
         return None
@@ -141,6 +183,7 @@ def extract_json(content: str) -> Any | None:
 
 
 __all__ = [
+    "PydanticAIJSONClient",
     "build_supply_chain_llm_client",
     "complete_json_with_trace",
     "extract_json",

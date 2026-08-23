@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from src.config import AgentRuntimeMode
+from src.config import StoredAgentRuntimeMode
 from src.schemas.claims import Claim
 from src.schemas.entities import Entity
 from src.schemas.evidence import Evidence
@@ -221,7 +221,8 @@ class AgentRunState(BaseModel):
     run_id: str = Field(default_factory=lambda: f"agent-{uuid.uuid4().hex[:12]}")
     conversation_id: str | None = None
     parent_run_id: str | None = None
-    runtime_mode: AgentRuntimeMode = "legacy"
+    # Old persisted states remain readable after the runtime cutover.
+    runtime_mode: StoredAgentRuntimeMode = "legacy"
     user_goal: str
     workflow_kind: AgentWorkflowKind = "generic_research"
     status: AgentRunStatus = "queued"

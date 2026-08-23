@@ -1,4 +1,4 @@
-"""CLI runner for real-case LLM tool-loop research.
+"""CLI runner for real-case Pydantic AI tool-enabled research.
 
 Example:
 
@@ -12,15 +12,21 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import uuid
 from contextlib import suppress
 from pathlib import Path
 from typing import Any, Literal
 
-from src.agents.llm_runtime import LLMToolAgentRuntime, LLMToolRunResult
+from src.agents.state import AgentBudget
+from src.ai import model_factory
+from src.ai.deps import AgentDeps, AgentPermissions, AgentServices, AgentSubject
+from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
+from src.ai.runtime_types import DEFAULT_SYSTEM_PROMPT, LLMToolRunResult
+from src.config import get_settings
+from src.schemas.llm_config import LLMRunConfig
 from src.tools.catalog import build_project_tool_catalog
 
-ProviderChoice = Literal["deepseek", "vllm", "sglang"]
+ProviderChoice = Literal["deepseek", "openai", "sglang", "vllm"]
 ToolScope = Literal["company_research", "finrisk_market", "supply_chain"]
 
 
@@ -31,40 +37,41 @@ def build_runtime(
     max_tool_rounds: int,
     model: str | None = None,
     base_url: str | None = None,
-    tool_loop_mode: str | None = None,
-    tool_choice: str | dict[str, Any] = "auto",
-) -> LLMToolAgentRuntime:
-    """Build a runtime for the requested OpenAI-compatible provider."""
-    if provider == "deepseek":
-        from src.llm.deepseek_client import build_client_from_settings
-
-        llm_client = build_client_from_settings()
-    else:
-        from src.llm.client import EdgarLLMClient
-
-        if provider == "sglang":
-            base_url = base_url or os.environ.get(
-                "SGLANG_BASE_URL", "http://localhost:30000/v1"
-            )
-            model = model or os.environ.get(
-                "SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"
-            )
-        elif provider == "vllm":
-            base_url = base_url or os.environ.get(
-                "VLLM_BASE_URL", "http://localhost:8000/v1"
-            )
-            model = model or os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B")
-        llm_client = EdgarLLMClient(
-            base_url=base_url,
-            model=model,
-            provider=provider,
-            tool_loop_mode=tool_loop_mode,
+) -> PydanticAIRuntimeAdapter:
+    """Build a Pydantic AI runtime for the requested OpenAI-compatible provider."""
+    settings = get_settings()
+    agent_model = model_factory.build_agent_model(
+        model_factory.resolve_agent_model_config(
+            LLMRunConfig(
+                provider=provider,
+                base_url=base_url,
+                model=model,
+            ),
+            settings=settings,
         )
-    return LLMToolAgentRuntime(
-        llm_client=llm_client,
-        tool_catalog=build_project_tool_catalog(scope=tools_scope),
-        max_tool_rounds=max_tool_rounds,
-        tool_choice=tool_choice,
+    )
+    run_id = f"llm-tool-research-{uuid.uuid4().hex[:12]}"
+    deps = AgentDeps(
+        run_id=run_id,
+        conversation_id=run_id,
+        settings=settings,
+        subject=AgentSubject(),
+        permissions=AgentPermissions(
+            tool_scopes=frozenset({tools_scope}),
+            allow_interactive=False,
+            allow_write=False,
+        ),
+        budget=AgentBudget(
+            max_tool_rounds_per_subgoal=max_tool_rounds,
+        ),
+        services=AgentServices(
+            tool_catalog=build_project_tool_catalog(scope=tools_scope),
+        ),
+    )
+    return PydanticAIRuntimeAdapter(
+        model=agent_model,
+        deps=deps,
+        system_prompt=DEFAULT_SYSTEM_PROMPT,
     )
 
 
@@ -77,17 +84,15 @@ def run_research(
     json_trace_output: str | Path | None = None,
     model: str | None = None,
     base_url: str | None = None,
-    tool_loop_mode: str | None = None,
-    runtime: LLMToolAgentRuntime | None = None,
+    runtime: PydanticAIRuntimeAdapter | None = None,
 ) -> dict[str, Any]:
-    """Run one tool-loop research query and return a JSON-ready payload."""
+    """Run one tool-enabled research query and return a JSON-ready payload."""
     active_runtime = runtime or build_runtime(
         provider=provider,
         tools_scope=tools_scope,
         max_tool_rounds=max_tool_rounds,
         model=model,
         base_url=base_url,
-        tool_loop_mode=tool_loop_mode,
     )
     result = active_runtime.run(query)
     payload = result_to_payload(
@@ -131,11 +136,11 @@ def result_to_payload(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run LLM tool-loop research.")
+    parser = argparse.ArgumentParser(description="Run Pydantic AI research.")
     parser.add_argument("--query", required=True)
     parser.add_argument(
         "--provider",
-        choices=["deepseek", "vllm", "sglang"],
+        choices=["deepseek", "openai", "sglang", "vllm"],
         default="deepseek",
     )
     parser.add_argument(
@@ -148,11 +153,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json-trace-output", default=None)
     parser.add_argument("--model", default=None)
     parser.add_argument("--base-url", default=None)
-    parser.add_argument(
-        "--tool-loop-mode",
-        choices=["native", "json_fallback", "auto"],
-        default=None,
-    )
     return parser
 
 
@@ -166,7 +166,6 @@ def main(argv: list[str] | None = None) -> int:
         json_trace_output=args.json_trace_output,
         model=args.model,
         base_url=args.base_url,
-        tool_loop_mode=args.tool_loop_mode,
     )
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0

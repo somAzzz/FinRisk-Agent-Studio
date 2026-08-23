@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from src.agents.llm_runtime import LLMToolRunResult
+from src.ai.runtime_types import LLMToolRunResult
 from src.schemas.finrisk import (
     CompanyProfile,
     ExtractedRisk,
@@ -127,7 +127,6 @@ async def test_market_explorer_llm_primary_uses_tool_events_as_evidence() -> Non
     step = MarketExplorerStep(
         search_router=Router,
         llm_runtime_factory=Runtime,
-        llm_mode="primary",
     )
 
     new_state = await step.run(state)
@@ -154,7 +153,6 @@ async def test_market_explorer_llm_primary_falls_back_on_runtime_error() -> None
     step = MarketExplorerStep(
         search_router=Router,
         llm_runtime_factory=Runtime,
-        llm_mode="primary",
     )
 
     new_state = await step.run(state)
@@ -202,7 +200,6 @@ async def test_market_explorer_llm_primary_falls_back_on_low_quality_evidence() 
     step = MarketExplorerStep(
         search_router=Router,
         llm_runtime_factory=Runtime,
-        llm_mode="primary",
     )
 
     new_state = await step.run(state)

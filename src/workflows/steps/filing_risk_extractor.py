@@ -25,7 +25,6 @@ client is unavailable.
 from __future__ import annotations
 
 import logging
-import os
 import re
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -362,11 +361,10 @@ class FilingRiskExtractorStep(WorkflowStep):
     ) -> tuple[list[ExtractedRisk], list[ChunkValidation], list[LLMCall]]:
         """Dispatch to the canonical chunked extractor if available.
 
-        Both :class:`EdgarLLMClient` and :class:`DeepSeekClient` now
-        expose ``extract_risks_chunked`` (the v18.1 refactor). When the
-        client does not implement it, we fall back to the legacy
-        single-shot ``extract_risks`` and synthesise a single
-        ChunkValidation row from the dict result.
+        The production Pydantic AI client exposes ``extract_risks_chunked``.
+        Test doubles and third-party adapters may implement only the
+        single-shot ``extract_risks`` protocol, in which case this method
+        synthesises one ChunkValidation row from the validated dict result.
         """
         if hasattr(client_obj, "extract_risks_chunked"):
             return client_obj.extract_risks_chunked(
@@ -446,80 +444,24 @@ def _build_llm_client(
     llm_config: LLMRunConfig | None,
     sink: Callable[[LLMCall], None] | None = None,
 ) -> Any | None:
-    """Return a configured LLM client, or ``None`` on failure.
-
-    Extracted into a top-level function so unit tests can monkey patch
-    it. ``sink`` is forwarded to both :class:`EdgarLLMClient` and
-    :class:`DeepSeekClient` so every chat call emits an
-    :class:`LLMCall` row onto the workflow state.
-    """
+    """Return the configured Pydantic AI extraction client, or ``None``."""
     config = llm_config or LLMRunConfig()
     from src.config import get_settings
 
     settings = get_settings()
-    if settings.agent_runtime_mode == "pydantic_ai_primary":
-        try:
-            from src.ai.deps import AgentServices
-            from src.ai.model_factory import (
-                build_agent_model,
-                resolve_agent_model_config,
-            )
-            from src.ai.store_factory import get_agent_run_recorder
-            from src.ai.structured_clients import (
-                PydanticAIFilingExtractionClient,
-            )
-
-            return PydanticAIFilingExtractionClient(
-                model=build_agent_model(
-                    resolve_agent_model_config(config, settings=settings)
-                ),
-                settings=settings,
-                services=AgentServices(
-                    message_recorder=get_agent_run_recorder()
-                ),
-                llm_call_sink=sink,
-            )
-        except Exception:
-            return None
-    provider = config.provider
     try:
-        if provider == "deepseek":
-            from src.llm.deepseek_client import DeepSeekClient
+        from src.ai.deps import AgentServices
+        from src.ai.model_factory import build_agent_model, resolve_agent_model_config
+        from src.ai.store_factory import get_agent_run_recorder
+        from src.ai.structured_clients import PydanticAIFilingExtractionClient
 
-            return DeepSeekClient(
-                base_url=config.base_url,
-                model=config.model,
-                llm_call_sink=sink,
-            )
-        from src.llm.client import EdgarLLMClient
-
-        defaults: dict[str, tuple[str, str, str]] = {
-            "sglang": (
-                os.environ.get("SGLANG_BASE_URL", "http://localhost:30000/v1"),
-                os.environ.get("SGLANG_API_KEY", "EMPTY"),
-                os.environ.get("SGLANG_MODEL", "Qwen/Qwen3.5-35B-A3B"),
+        return PydanticAIFilingExtractionClient(
+            model=build_agent_model(
+                resolve_agent_model_config(config, settings=settings)
             ),
-            "vllm": (
-                os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1"),
-                os.environ.get("VLLM_API_KEY", "dummy"),
-                os.environ.get("VLLM_MODEL", "Qwen/Qwen3.5-35B-A3B"),
-            ),
-            "openai": (
-                os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-                os.environ.get("OPENAI_API_KEY", "REPLACE_ME"),
-                os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
-            ),
-        }
-        if provider in defaults:
-            base_url, api_key, model = defaults[provider]
-        else:
-            base_url, api_key, model = defaults["sglang"]
-        return EdgarLLMClient(
-            base_url=config.base_url or base_url,
-            api_key=api_key,
-            model=config.model or model,
+            settings=settings,
+            services=AgentServices(message_recorder=get_agent_run_recorder()),
             llm_call_sink=sink,
-            provider=provider,
         )
     except Exception:
         return None

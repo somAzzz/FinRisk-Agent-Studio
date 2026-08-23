@@ -75,7 +75,7 @@ class TestDefaults:
         settings = Settings()
 
         assert settings.sec_user_agent == "FinRisk-Agent-Studio contact@example.com"
-        assert settings.agent_runtime_mode == "legacy"
+        assert settings.agent_runtime_mode == "pydantic_ai"
         assert settings.sec_rate_limit_per_second == 8.0
         assert settings.openai_base_url == "http://localhost:30000/v1"
         assert settings.openai_api_key == "EMPTY"
@@ -123,26 +123,14 @@ class TestEnvOverrides:
         settings = Settings()
         assert settings.neo4j_password == "s3cr3t"
 
-    @pytest.mark.parametrize(
-        "mode",
-        ["legacy", "pydantic_ai_shadow", "pydantic_ai_primary"],
-    )
-    def test_agent_runtime_mode_accepts_supported_values(
+    @pytest.mark.parametrize("mode", ["legacy", "pydantic_ai_shadow", "experimental"])
+    def test_agent_runtime_mode_env_cannot_reactivate_removed_runtime(
         self, monkeypatch: pytest.MonkeyPatch, mode: str
     ) -> None:
         _clear_env()
         monkeypatch.setenv("AGENT_RUNTIME_MODE", mode)
 
-        assert Settings().agent_runtime_mode == mode
-
-    def test_agent_runtime_mode_rejects_unknown_value(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        _clear_env()
-        monkeypatch.setenv("AGENT_RUNTIME_MODE", "experimental")
-
-        with pytest.raises(ValueError, match="AGENT_RUNTIME_MODE"):
-            Settings()
+        assert Settings().agent_runtime_mode == "pydantic_ai"
 
 
 class TestGetSettings:

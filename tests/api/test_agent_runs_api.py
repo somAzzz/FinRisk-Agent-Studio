@@ -8,8 +8,8 @@ import json
 import pytest
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.state import AgentRunState
+from src.ai.runtime_types import LLMToolRunResult
 from src.api.agent_runs import (
     AgentRunRequest,
     AgentRunResumeRequest,
@@ -131,7 +131,7 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
 
     assert summary.run_id.startswith("agent-")
     assert summary.status == "queued"
-    assert summary.runtime_mode == "legacy"
+    assert summary.runtime_mode == "pydantic_ai"
     state = await _wait_for_terminal(summary.run_id)
     assert state.status == "needs_review"
 
@@ -158,14 +158,14 @@ async def test_start_agent_run_get_timeline_and_review_item() -> None:
     assert state.status == "completed"
 
 
-async def test_agent_run_persists_actual_runtime_mode(monkeypatch) -> None:
+async def test_agent_run_persists_pydantic_ai_runtime_mode(monkeypatch) -> None:
     from src.config import get_settings
 
     class Runtime:
         def run(self, goal: str) -> LLMToolRunResult:
             return LLMToolRunResult(goal=goal, final_answer="done")
 
-    monkeypatch.setenv("AGENT_RUNTIME_MODE", "pydantic_ai_primary")
+    monkeypatch.setenv("AGENT_RUNTIME_MODE", "legacy")
     get_settings.cache_clear()
     set_agent_runtime_for_tests(
         GlobalAgentRuntime(
@@ -176,8 +176,8 @@ async def test_agent_run_persists_actual_runtime_mode(monkeypatch) -> None:
     summary = await start_agent_run(AgentRunRequest(goal="Observe runtime mode"))
     state = await _wait_for_terminal(summary.run_id)
 
-    assert summary.runtime_mode == "pydantic_ai_primary"
-    assert state.runtime_mode == "pydantic_ai_primary"
+    assert summary.runtime_mode == "pydantic_ai"
+    assert state.runtime_mode == "pydantic_ai"
     get_settings.cache_clear()
 
 
@@ -328,124 +328,17 @@ async def test_start_agent_run_uses_default_runtime_factory(monkeypatch) -> None
     assert state.status == "completed"
 
 
-def test_build_agent_runtime_passes_request_options_to_tool_runtime(
-    monkeypatch,
-) -> None:
-    captured: dict[str, object] = {}
-
-    class Runtime:
-        def run(self, goal: str) -> LLMToolRunResult:
-            return LLMToolRunResult(
-                goal=goal,
-                final_answer="done",
-                tool_events=[_accepted_event()],
-            )
-
-    def fake_build_runtime(**kwargs) -> Runtime:
-        captured.update(kwargs)
-        return Runtime()
-
-    monkeypatch.setattr(
-        "src.pipelines.llm_tool_research.build_runtime",
-        fake_build_runtime,
+def test_agent_run_state_defaults_missing_runtime_mode_to_legacy() -> None:
+    state = AgentRunState.model_validate(
+        {
+            "run_id": "agent-historical",
+            "user_goal": "Historical run without runtime_mode",
+            "workflow_kind": "finrisk",
+            "status": "completed",
+        }
     )
 
-    runtime = build_agent_runtime(
-        AgentRunRequest(
-            goal="Assess Apple supply chain risk",
-            workflow_kind="finrisk",
-            provider="vllm",
-            tool_loop_mode="auto",
-            tool_scope="supply_chain",
-            max_tool_rounds=2,
-            model="local-model",
-            base_url="http://localhost:8000/v1",
-        )
-    )
-    state = runtime.run("Assess Apple supply chain risk", workflow_kind="finrisk")
-
-    assert state.status == "completed"
-    assert captured == {
-        "provider": "vllm",
-        "tools_scope": "supply_chain",
-        "max_tool_rounds": 2,
-        "model": "local-model",
-        "base_url": "http://localhost:8000/v1",
-        "tool_loop_mode": "auto",
-        "tool_choice": "required",
-    }
-
-
-def test_build_agent_runtime_does_not_force_json_fallback_tool_choice(
-    monkeypatch,
-) -> None:
-    captured: dict[str, object] = {}
-
-    class Runtime:
-        def run(self, goal: str) -> LLMToolRunResult:
-            return LLMToolRunResult(
-                goal=goal,
-                final_answer="done",
-                tool_events=[_accepted_event()],
-            )
-
-    def fake_build_runtime(**kwargs) -> Runtime:
-        captured.update(kwargs)
-        return Runtime()
-
-    monkeypatch.setattr(
-        "src.pipelines.llm_tool_research.build_runtime",
-        fake_build_runtime,
-    )
-
-    runtime = build_agent_runtime(
-        AgentRunRequest(
-            goal="Assess Apple supply chain risk",
-            workflow_kind="finrisk",
-            provider="sglang",
-            tool_loop_mode="json_fallback",
-        )
-    )
-    state = runtime.run("Assess Apple supply chain risk", workflow_kind="finrisk")
-
-    assert state.status == "completed"
-    assert captured["tool_choice"] == "auto"
-
-
-def test_tool_research_sglang_uses_local_defaults(
-    monkeypatch,
-) -> None:
-    captured: dict[str, object] = {}
-
-    class Client:
-        def __init__(self, **kwargs) -> None:
-            captured.update(kwargs)
-
-    class Catalog:
-        pass
-
-    def build_catalog(*, scope):
-        return Catalog()
-
-    monkeypatch.delenv("SGLANG_BASE_URL", raising=False)
-    monkeypatch.delenv("SGLANG_MODEL", raising=False)
-    monkeypatch.setattr("src.llm.client.EdgarLLMClient", Client)
-    monkeypatch.setattr(
-        "src.pipelines.llm_tool_research.build_project_tool_catalog",
-        build_catalog,
-    )
-
-    from src.pipelines.llm_tool_research import build_runtime
-
-    build_runtime(
-        provider="sglang",
-        tools_scope="company_research",
-        max_tool_rounds=1,
-    )
-
-    assert captured["base_url"] == "http://localhost:30000/v1"
-    assert captured["model"] == "Qwen/Qwen3.5-35B-A3B"
-    assert captured["provider"] == "sglang"
+    assert state.runtime_mode == "legacy"
 
 
 def test_build_agent_runtime_uses_pydantic_primary_without_live_request(
@@ -455,7 +348,7 @@ def test_build_agent_runtime_uses_pydantic_primary_without_live_request(
 
     from src.config import get_settings
 
-    monkeypatch.setenv("AGENT_RUNTIME_MODE", "pydantic_ai_primary")
+    monkeypatch.delenv("AGENT_RUNTIME_MODE", raising=False)
     get_settings.cache_clear()
     monkeypatch.setattr(
         "src.ai.model_factory.build_agent_model",

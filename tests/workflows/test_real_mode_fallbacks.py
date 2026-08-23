@@ -18,16 +18,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.agents.llm_runtime import LLMToolRunResult
 from src.schemas.finrisk import (
     CompanyProfile,
     ExtractedRisk,
     FinRiskRequest,
     FinRiskWorkflowState,
-    LLMCall,
     utcnow,
 )
-from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent
 from src.tools.providers.base import SearchResponse, SearchResult
 from src.workflows.steps.filing_risk_extractor import FilingRiskExtractorStep
 from src.workflows.steps.market_explorer_step import MarketExplorerStep
@@ -114,12 +111,16 @@ async def test_market_explorer_real_mode_records_fallback_when_no_router() -> No
     )
     new_state = await step.run(state)
     assert not new_state.market_evidence  # no real data
-    fallback = next(
-        (e for e in new_state.fallback_events if e.step_name == "market_explorer"),
-        None,
+    fallbacks = [
+        event
+        for event in new_state.fallback_events
+        if event.step_name == "market_explorer"
+    ]
+    assert any(
+        event.from_mode == "llm_primary" and event.to_mode == "deterministic"
+        for event in fallbacks
     )
-    assert fallback is not None
-    assert fallback.to_mode == "cached"
+    assert any(event.to_mode == "cached" for event in fallbacks)
 
 
 async def test_market_explorer_real_mode_swallows_router_exception() -> None:
@@ -186,126 +187,6 @@ async def test_market_explorer_respects_browser_budget_and_prioritizes_severity(
 
     assert router.queries == ["severity 5", "severity 4"]
     assert len(result.market_evidence) == 2
-
-
-async def test_market_explorer_llm_shadow_records_trace_without_changing_evidence() -> None:
-    state = _state(demo_mode=False)
-
-    class Router:
-        def search(self, *_args, **_kwargs):
-            return SearchResponse(
-                provider="fake",
-                query="Apple supply chain",
-                retrieved_at=utcnow(),
-                results=[
-                    SearchResult(
-                        title="Apple supplier risk",
-                        url="https://example.com/apple-risk",
-                        snippet="Supplier pressure increased.",
-                        rank=1,
-                    )
-                ],
-            )
-
-    class Runtime:
-        def run(self, goal: str) -> LLMToolRunResult:
-            now = utcnow()
-            return LLMToolRunResult(
-                goal=goal,
-                final_answer="shadow answer",
-                tool_events=[
-                    ToolExecutionEvent(
-                        event_id="event-1",
-                        round_id="round-0",
-                        tool_call_id="tool-1",
-                        tool_name="web_search",
-                        arguments={"query": "Apple supply chain"},
-                        status="success",
-                        result_summary="Supplier pressure increased.",
-                        latency_ms=1,
-                        result_chars=28,
-                        created_at=now,
-                    )
-                ],
-                llm_calls=[
-                    LLMCall(
-                        call_id="llm-1",
-                        step_name="local_tool_calling",
-                        chunk_id="round-0",
-                        provider="fake",
-                        model="fake-model",
-                        messages=[{"role": "user", "content": goal}],
-                        prompt_text=goal,
-                        response_text="shadow answer",
-                        response_structured={"tool_calls": []},
-                        latency_ms=1,
-                        started_at=now,
-                        completed_at=now,
-                    )
-                ],
-                budget_usage=ToolBudgetUsage(
-                    max_tool_result_chars=12000,
-                    max_total_tool_result_chars=40000,
-                    used_tool_result_chars=28,
-                ),
-            )
-
-    step = MarketExplorerStep(
-        fixture_path=FIXTURE_PATH,
-        search_router=Router,
-        llm_runtime_factory=Runtime,
-        llm_shadow_mode=True,
-    )
-
-    new_state = await step.run(state)
-
-    assert len(new_state.market_evidence) == 1
-    assert new_state.market_evidence[0].evidence_summary == "Supplier pressure increased."
-    assert len(new_state.llm_log) == 1
-    assert len(new_state.tool_traces) == 1
-    assert new_state.tool_traces[0].tool_events[0].tool_name == "web_search"
-    assert "pydantic_ai_market_shadow" in new_state.artifacts
-    assert not new_state.fallback_events
-
-
-async def test_market_explorer_llm_shadow_failure_records_fallback_only() -> None:
-    state = _state(demo_mode=False)
-
-    class Router:
-        def search(self, *_args, **_kwargs):
-            return SearchResponse(
-                provider="fake",
-                query="Apple supply chain",
-                retrieved_at=utcnow(),
-                results=[
-                    SearchResult(
-                        title="Apple supplier risk",
-                        url="https://example.com/apple-risk",
-                        snippet="Supplier pressure increased.",
-                        rank=1,
-                    )
-                ],
-            )
-
-    class BrokenRuntime:
-        def run(self, _goal: str) -> LLMToolRunResult:
-            raise RuntimeError("llm unavailable")
-
-    step = MarketExplorerStep(
-        fixture_path=FIXTURE_PATH,
-        search_router=Router,
-        llm_runtime_factory=BrokenRuntime,
-        llm_shadow_mode=True,
-    )
-
-    new_state = await step.run(state)
-
-    assert len(new_state.market_evidence) == 1
-    assert not new_state.llm_log
-    assert any(
-        event.from_mode == "llm_shadow" and event.to_mode == "deterministic"
-        for event in new_state.fallback_events
-    )
 
 
 # ---------------------------------------------------------------------------

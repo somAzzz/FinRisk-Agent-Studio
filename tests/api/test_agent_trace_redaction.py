@@ -7,7 +7,7 @@ import json
 import pytest
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolRunResult
+from src.ai.runtime_types import LLMToolRunResult
 from src.api.agent_runs import (
     AgentRunRequest,
     get_agent_run_trace,

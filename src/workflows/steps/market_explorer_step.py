@@ -47,19 +47,12 @@ class MarketExplorerStep(WorkflowStep):
         fixture_loader=None,
         search_router=None,
         llm_runtime_factory=None,
-        llm_mode: str | None = None,
-        llm_shadow_mode: bool = False,
         fixture_path: Path | None = None,
     ) -> None:
         super().__init__()
         self._load_fixture = fixture_loader or _default_fixture_loader
         self._router_factory = search_router
         self._llm_runtime_factory = llm_runtime_factory
-        self._llm_mode = (
-            "shadow"
-            if llm_shadow_mode
-            else llm_mode or _market_mode_from_runtime_setting()
-        )
         self._fixture_path = fixture_path or DEMO_FIXTURE_PATH
 
     async def run(self, state: FinRiskWorkflowState) -> FinRiskWorkflowState:
@@ -70,7 +63,7 @@ class MarketExplorerStep(WorkflowStep):
                 MarketEvidence.model_validate(item)
                 for item in data.get("market_evidence", [])
             ]
-        elif self._llm_mode == "primary":
+        else:
             evidence, fallback = self._explore_llm_primary(state)
             if fallback is not None:
                 state.fallback_events.append(fallback)
@@ -78,14 +71,6 @@ class MarketExplorerStep(WorkflowStep):
                 evidence, deterministic_fallback = await self._explore_live(state)
                 if deterministic_fallback is not None:
                     state.fallback_events.append(deterministic_fallback)
-        else:
-            evidence, fallback = await self._explore_live(state)
-            if fallback is not None:
-                state.fallback_events.append(fallback)
-            if self._llm_mode == "shadow":
-                shadow_fallback = self._run_llm_shadow(state, evidence)
-                if shadow_fallback is not None:
-                    state.fallback_events.append(shadow_fallback)
 
         # Only attach evidence relevant to a known risk_id (or general).
         valid_ids = {r.risk_id for r in state.filing_risks}
@@ -160,84 +145,24 @@ class MarketExplorerStep(WorkflowStep):
                 occurred_at=utcnow(),
             )
 
-    def _run_llm_shadow(
-        self,
-        state: FinRiskWorkflowState,
-        deterministic_evidence: list[MarketEvidence],
-    ) -> FallbackEvent | None:
-        """Run LLM-driven market exploration in shadow mode.
-
-        Shadow mode records LLM/tool traces but never changes
-        ``state.market_evidence``. This lets us compare the new tool loop
-        against the deterministic SearchRouter path before making it primary.
-        """
-        runtime = self._default_llm_runtime(state)
-        if runtime is None:
-            return FallbackEvent(
-                step_name=self.name,
-                from_mode="llm_shadow",
-                to_mode="deterministic",
-                reason="no LLMToolAgentRuntime available for market shadow mode",
-                occurred_at=utcnow(),
-            )
-        try:
-            shadow_evidence: list[MarketEvidence] = []
-            total_latency_ms = 0
-            for risk in state.filing_risks:
-                goal = _shadow_goal(state, risk)
-                result = runtime.run(goal)
-                state.llm_log.extend(result.llm_calls)
-                state.tool_traces.append(
-                    ToolLoopTrace(
-                        mode=result.mode,
-                        tool_events=result.tool_events,
-                        budget_usage=result.budget_usage,
-                    )
-                )
-                shadow_evidence.extend(
-                    _market_evidence_from_tool_events(risk, result)
-                )
-                total_latency_ms += sum(
-                    event.latency_ms for event in result.tool_events
-                )
-            state.artifacts["pydantic_ai_market_shadow"] = json.dumps(
-                _shadow_comparison(
-                    deterministic_evidence,
-                    shadow_evidence,
-                    total_latency_ms=total_latency_ms,
-                ),
-                ensure_ascii=False,
-                sort_keys=True,
-            )
-            return None
-        except Exception as exc:
-            logger.info("MarketExplorer LLM shadow failed: %s", exc)
-            return FallbackEvent(
-                step_name=self.name,
-                from_mode="llm_shadow",
-                to_mode="deterministic",
-                reason=f"LLM shadow raised {type(exc).__name__}: {exc}",
-                occurred_at=utcnow(),
-            )
-
     def _explore_llm_primary(
         self, state: FinRiskWorkflowState
     ) -> tuple[list[MarketEvidence], FallbackEvent | None]:
-        """Use the LLM tool loop as the primary market evidence collector."""
+        """Use Pydantic AI as the primary market evidence collector."""
         runtime = self._default_llm_runtime(state)
         if runtime is None:
             return [], FallbackEvent(
                 step_name=self.name,
                 from_mode="llm_primary",
                 to_mode="deterministic",
-                reason="no LLMToolAgentRuntime available for market primary mode",
+                reason="Pydantic AI runtime unavailable for market exploration",
                 occurred_at=utcnow(),
             )
 
         collected: list[MarketEvidence] = []
         try:
             for risk in state.filing_risks:
-                result = runtime.run(_shadow_goal(state, risk))
+                result = runtime.run(_market_goal(state, risk))
                 state.llm_log.extend(result.llm_calls)
                 state.tool_traces.append(
                     ToolLoopTrace(
@@ -300,94 +225,51 @@ class MarketExplorerStep(WorkflowStep):
             from src.tools.catalog import build_project_tool_catalog
 
             catalog = build_project_tool_catalog(scope="finrisk_market")
-            if settings.agent_runtime_mode != "legacy":
-                from src.agents.state import AgentBudget
-                from src.ai.agents.research import build_market_research_agent
-                from src.ai.deps import (
-                    AgentDeps,
-                    AgentPermissions,
-                    AgentServices,
-                    AgentSubject,
-                )
-                from src.ai.model_factory import (
-                    build_agent_model,
-                    resolve_agent_model_config,
-                )
-                from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
-                from src.ai.toolsets import build_scoped_toolset
-
-                deps = AgentDeps(
-                    run_id=state.run_id,
-                    settings=settings,
-                    subject=AgentSubject(
-                        ticker=state.request.ticker,
-                        company_name=(
-                            state.company.company_name if state.company else None
-                        ),
-                    ),
-                    permissions=AgentPermissions(
-                        tool_scopes=frozenset({"finrisk_market"})
-                    ),
-                    budget=AgentBudget(
-                        max_subgoals=max(1, len(state.filing_risks)),
-                        max_tool_rounds_per_subgoal=4,
-                    ),
-                    services=AgentServices(tool_catalog=catalog),
-                )
-                model = build_agent_model(
-                    resolve_agent_model_config(
-                        state.request.llm_config, settings=settings
-                    )
-                )
-                agent = build_market_research_agent(
-                    model,
-                    toolset=build_scoped_toolset(catalog),
-                )
-                return PydanticAIRuntimeAdapter.from_agent(
-                    agent=agent,
-                    deps=deps,
-                )
-
-            from src.agents.llm_runtime import LLMToolAgentRuntime
-            from src.llm.deepseek_client import build_client_from_settings
-
-            return LLMToolAgentRuntime(
-                llm_client=build_client_from_settings(),
-                tool_catalog=catalog,
+            from src.agents.state import AgentBudget
+            from src.ai.agents.research import build_market_research_agent
+            from src.ai.deps import (
+                AgentDeps,
+                AgentPermissions,
+                AgentServices,
+                AgentSubject,
             )
+            from src.ai.model_factory import (
+                build_agent_model,
+                resolve_agent_model_config,
+            )
+            from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
+            from src.ai.toolsets import build_scoped_toolset
+
+            deps = AgentDeps(
+                run_id=state.run_id,
+                settings=settings,
+                subject=AgentSubject(
+                    ticker=state.request.ticker,
+                    company_name=(
+                        state.company.company_name if state.company else None
+                    ),
+                ),
+                permissions=AgentPermissions(
+                    tool_scopes=frozenset({"finrisk_market"})
+                ),
+                budget=AgentBudget(
+                    max_subgoals=max(1, len(state.filing_risks)),
+                    max_tool_rounds_per_subgoal=4,
+                ),
+                services=AgentServices(tool_catalog=catalog),
+            )
+            model = build_agent_model(
+                resolve_agent_model_config(
+                    state.request.llm_config, settings=settings
+                )
+            )
+            agent = build_market_research_agent(
+                model,
+                toolset=build_scoped_toolset(catalog),
+            )
+            return PydanticAIRuntimeAdapter.from_agent(agent=agent, deps=deps)
         except Exception:
             return None
-
-
-def _market_mode_from_runtime_setting() -> str:
-    mode = get_settings().agent_runtime_mode
-    if mode == "pydantic_ai_shadow":
-        return "shadow"
-    if mode == "pydantic_ai_primary":
-        return "primary"
-    return "deterministic"
-
-
-def _shadow_comparison(
-    deterministic: list[MarketEvidence],
-    shadow: list[MarketEvidence],
-    *,
-    total_latency_ms: int,
-) -> dict[str, Any]:
-    deterministic_urls = sorted({str(item.source_url) for item in deterministic})
-    shadow_urls = sorted({str(item.source_url) for item in shadow})
-    return {
-        "schema_version": 1,
-        "legacy_source_urls": deterministic_urls,
-        "shadow_source_urls": shadow_urls,
-        "legacy_evidence_count": len(deterministic),
-        "shadow_evidence_count": len(shadow),
-        "shared_source_urls": sorted(set(deterministic_urls) & set(shadow_urls)),
-        "shadow_only_source_urls": sorted(
-            set(shadow_urls) - set(deterministic_urls)
-        ),
-        "shadow_tool_latency_ms": total_latency_ms,
-    }
 
 
 def _default_fixture_loader(path: Path) -> dict:
@@ -396,7 +278,7 @@ def _default_fixture_loader(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _shadow_goal(state: FinRiskWorkflowState, risk: Any) -> str:
+def _market_goal(state: FinRiskWorkflowState, risk: Any) -> str:
     ticker = state.request.ticker
     company = state.company.company_name if state.company else state.request.company_name
     company_part = f"{company} ({ticker})" if company else ticker

@@ -6,7 +6,7 @@ import json
 
 from src.agents.context import AgentContextBuilder
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolRunResult
+from src.ai.runtime_types import LLMToolRunResult
 from src.memory import ContextManager, MemoryItem, MemoryStore
 from src.schemas.tool_trace import ToolExecutionEvent
 from src.workflows.state import utcnow

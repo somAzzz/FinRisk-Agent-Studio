@@ -1,4 +1,4 @@
-"""Compatibility adapter exposing a Pydantic AI Agent as SubgoalRuntime."""
+"""Adapter exposing a Pydantic AI Agent through the workflow runtime contract."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.messages import ToolCallPart
 from pydantic_ai.models import Model
 
-from src.agents.llm_runtime import LLMToolCallRecord, LLMToolRunResult
 from src.ai.deps import AgentDeps
+from src.ai.runtime_types import LLMToolCallRecord, LLMToolRunResult
 from src.ai.toolsets import build_scoped_toolset
 from src.schemas.tool_trace import ToolBudgetUsage
 
@@ -59,7 +59,7 @@ class PydanticAIRuntimeAdapter:
         deps: AgentDeps,
         max_tool_result_chars: int = 12000,
     ) -> PydanticAIRuntimeAdapter:
-        """Wrap a domain-specific typed Agent in the legacy runtime contract."""
+        """Wrap a domain-specific typed Agent in the workflow contract."""
         instance = cls.__new__(cls)
         instance.agent = agent
         instance.deps = deps

@@ -83,12 +83,11 @@ def test_supplier_client_returns_validated_relation_batch() -> None:
     assert '"relations"' in raw
 
 
-def test_primary_flag_selects_typed_production_clients(monkeypatch) -> None:
+def test_production_builders_select_typed_clients(monkeypatch) -> None:
     from src.config import get_settings
     from src.supply_chain.llm_extraction import build_supply_chain_llm_client
     from src.workflows.steps.filing_risk_extractor import _build_llm_client
 
-    monkeypatch.setenv("AGENT_RUNTIME_MODE", "pydantic_ai_primary")
     get_settings.cache_clear()
     monkeypatch.setattr(
         "src.ai.model_factory.build_agent_model",

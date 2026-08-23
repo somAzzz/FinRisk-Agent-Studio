@@ -8,7 +8,6 @@ from collections.abc import Callable
 from typing import Protocol
 
 from src.agents.context import AgentContextBuilder
-from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.planner import AgentPlanner
 from src.agents.state import (
     AgentBudget,
@@ -20,6 +19,7 @@ from src.agents.state import (
     AgentWorkflowKind,
     HumanReviewItem,
 )
+from src.ai.runtime_types import LLMToolRunResult
 from src.evidence import EvidenceCandidateNormalizer
 from src.schemas.tool_trace import ToolLoopTrace
 
@@ -28,7 +28,7 @@ class SubgoalRuntime(Protocol):
     """Runtime capable of executing one subgoal objective."""
 
     def run(self, goal: str) -> LLMToolRunResult:
-        """Execute ``goal`` and return tool-loop results."""
+        """Execute ``goal`` and return typed Agent results."""
 
 
 SubgoalRuntimeFactory = Callable[..., SubgoalRuntime]

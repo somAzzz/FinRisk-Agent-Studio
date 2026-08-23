@@ -11,8 +11,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.global_runtime import GlobalAgentRuntime
 from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
+from src.ai.runtime_types import DEFAULT_SYSTEM_PROMPT
 from src.api.store_factory import get_agent_run_store
-from src.config import AgentRuntimeMode
+from src.config import AgentRuntimeMode, StoredAgentRuntimeMode
 from src.security.redaction import redact_obj
 
 router = APIRouter(prefix="/agent-runs")
@@ -34,6 +35,7 @@ class AgentRunRequest(BaseModel):
     goal: str = Field(min_length=1)
     workflow_kind: AgentWorkflowKind = "generic_research"
     provider: AgentRunProvider = "deepseek"
+    # Deprecated: kept for backwards compatibility, ignored by the runtime.
     tool_loop_mode: AgentRunToolLoopMode | None = None
     tool_scope: AgentRunToolScope | None = None
     max_tool_rounds: int = Field(default=4, ge=0, le=10)
@@ -49,7 +51,7 @@ class AgentRunSummary(BaseModel):
 
     run_id: str
     status: str
-    runtime_mode: AgentRuntimeMode
+    runtime_mode: StoredAgentRuntimeMode
     timeline_url: str
     trace_url: str
 
@@ -82,6 +84,7 @@ class AgentRunResumeRequest(BaseModel):
 
     goal: str | None = Field(default=None, min_length=1)
     provider: AgentRunProvider = "deepseek"
+    # Deprecated: kept for backwards compatibility, ignored by the runtime.
     tool_loop_mode: AgentRunToolLoopMode | None = None
     tool_scope: AgentRunToolScope | None = None
     max_tool_rounds: int = Field(default=4, ge=0, le=10)
@@ -331,34 +334,11 @@ def _find_evidence_candidate(
 
 def build_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
     """Build the real V21 runtime used by the local agent-run API."""
-    from src.config import get_settings
-
-    settings = get_settings()
-    if settings.agent_runtime_mode == "pydantic_ai_primary":
-        return _build_pydantic_agent_runtime(request)
-
-    from src.pipelines.llm_tool_research import build_runtime
-
-    def factory(tool_scope: str, _subgoal) -> Any:
-        selected_scope = request.tool_scope or _coerce_tool_scope(tool_scope)
-        tool_loop_mode = request.tool_loop_mode
-        tool_choice = _tool_choice_for_subgoal(_subgoal, tool_loop_mode)
-        return build_runtime(
-            provider=request.provider,
-            tools_scope=selected_scope,
-            max_tool_rounds=request.max_tool_rounds,
-            model=request.model,
-            base_url=request.base_url,
-            tool_loop_mode=tool_loop_mode,
-            tool_choice=tool_choice,
-        )
-
-    return GlobalAgentRuntime(subgoal_runtime_factory=factory)
+    return _build_pydantic_agent_runtime(request)
 
 
 def _build_pydantic_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntime:
     """Build the primary Pydantic AI subgoal path behind the feature flag."""
-    from src.agents.llm_runtime import DEFAULT_SYSTEM_PROMPT
     from src.agents.planner import AgentPlanner
     from src.agents.state import AgentBudget
     from src.ai.deps import (
@@ -507,15 +487,6 @@ def _coerce_tool_scope(tool_scope: str) -> AgentRunToolScope:
     if tool_scope in {"company_research", "finrisk_market", "supply_chain"}:
         return tool_scope  # type: ignore[return-value]
     return "company_research"
-
-
-def _tool_choice_for_subgoal(subgoal: Any, tool_loop_mode: str | None) -> str:
-    if tool_loop_mode == "json_fallback":
-        return "auto"
-    evidence_types = set(getattr(subgoal, "required_evidence_types", []) or [])
-    if evidence_types:
-        return "required"
-    return "auto"
 
 
 __all__ = [

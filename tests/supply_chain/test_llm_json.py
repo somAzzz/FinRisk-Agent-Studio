@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from src.supply_chain.llm import extract_json
+from pydantic_ai.models.test import TestModel
+
+from src.config import Settings
+from src.supply_chain.llm import (
+    PydanticAIJSONClient,
+    complete_json_with_trace,
+    extract_json,
+)
 from src.supply_chain.steps.requirement_decomposer import _coerce_requirements
 from src.supply_chain.steps.supplier_discovery import _coerce_supplier_rows
 
@@ -17,6 +24,24 @@ def test_extract_json_accepts_prefixed_complete_json() -> None:
     content = 'Result: {"ok": true, "items": ["TSMC"]}'
 
     assert extract_json(content) == {"ok": True, "items": ["TSMC"]}
+
+
+def test_pydantic_ai_json_client_returns_typed_payload() -> None:
+    client = PydanticAIJSONClient(
+        model=TestModel(custom_output_args={"items": ["TSMC"]}),
+        settings=Settings(),
+    )
+
+    payload, call = complete_json_with_trace(
+        client=client,
+        provider="sglang",
+        operation="test_json",
+        prompt="Return the supplier list.",
+        system="Return JSON.",
+    )
+
+    assert payload == {"items": ["TSMC"]}
+    assert call.status == "success"
 
 
 def test_coerce_requirements_accepts_common_alias_keys() -> None:

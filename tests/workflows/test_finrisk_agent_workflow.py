@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolRunResult
+from src.ai.runtime_types import LLMToolRunResult
 from src.schemas.tool_trace import ToolExecutionEvent
 from src.workflows.finrisk_agent_workflow import run_finrisk_agent_workflow
 from src.workflows.state import FinRiskRequest, utcnow

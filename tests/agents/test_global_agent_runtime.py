@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.llm_runtime import LLMToolRunResult
 from src.agents.state import AgentBudget, AgentSubgoal
+from src.ai.runtime_types import LLMToolRunResult
 from src.schemas.tool_trace import ToolExecutionEvent
 from src.workflows.state import utcnow
 
