@@ -5,13 +5,26 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Protocol
 
 import numpy as np
 
 from src.browser.config import BrowserConfig, ExplorationConfig
 from src.browser.factory import build_browser_wrapper
-from src.llm.sglang_client import SGLangClient
+from src.browser.models import BrowserAction
+
+
+class BrowserAgentClient(Protocol):
+    """Async model boundary required by the browser state machine."""
+
+    async def summarize(self, content: str) -> str: ...
+
+    async def decide_action(
+        self,
+        goal: str,
+        visited_urls: list[str],
+        recent_findings: list[tuple[str, str]],
+    ) -> BrowserAction | None: ...
 
 
 @dataclass
@@ -88,12 +101,16 @@ class MarketExplorer:
 
     def __init__(
         self,
-        llm_client: SGLangClient | None = None,
+        llm_client: BrowserAgentClient | None = None,
         wrapper: Any | None = None,
         browser_config: BrowserConfig | None = None,
         exploration_config: ExplorationConfig | None = None,
     ):
-        self.llm_client = llm_client or SGLangClient()
+        if llm_client is None:
+            from src.ai.browser_client import build_browser_client
+
+            llm_client = build_browser_client()
+        self.llm_client = llm_client
         self.browser_config = browser_config or BrowserConfig()
         self.wrapper = wrapper or build_browser_wrapper(browser_config=self.browser_config)
         self.exploration_config = exploration_config or ExplorationConfig()
@@ -246,7 +263,7 @@ class MarketExplorer:
             return False
 
         # Generate summary using structured output
-        summary_text = self.llm_client.summarize(content)
+        summary_text = await self.llm_client.summarize(content)
 
         # Check novelty via embedding (use sentence-transformers directly)
         try:
@@ -282,7 +299,9 @@ class MarketExplorer:
         visited_list = list(state.visited_urls)[:5]
         recent_findings = [(f.summary, f.url) for f in state.findings[-3:]]
 
-        action = self.llm_client.decide_action(state.goal, visited_list, recent_findings)
+        action = await self.llm_client.decide_action(
+            state.goal, visited_list, recent_findings
+        )
         if action is None:
             return None
 

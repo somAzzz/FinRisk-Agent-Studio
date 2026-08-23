@@ -14,6 +14,7 @@ import threading
 from datetime import date
 from typing import Any, Literal
 
+from src.schemas.llm_config import LLMRunConfig
 from src.tools.contracts import ProjectTool, ToolCatalog, ToolSchema, jsonable
 from src.tools.search_router import SearchRouter
 
@@ -60,6 +61,7 @@ def build_project_tool_catalog(
     company_facts_fetcher: Any | None = None,
     graph_backend: Any | None = None,
     browser_explorer: Any | None = None,
+    llm_config: LLMRunConfig | None = None,
     scope: str | None = "default",
 ) -> ToolCatalog:
     """Build the default read-only project tools for LLM tool calling."""
@@ -383,7 +385,10 @@ def build_project_tool_catalog(
     ) -> dict[str, Any]:
         bounded_steps = _clamp(max_steps, 1, 10)
         bounded_timeout = _clamp_float(timeout_seconds, 0.1, 120.0)
-        explorer = browser_explorer or _default_browser_explorer(max_steps=bounded_steps)
+        explorer = browser_explorer or _default_browser_explorer(
+            max_steps=bounded_steps,
+            llm_config=llm_config,
+        )
         backend = _browser_backend_name(explorer)
         state, timed_out, error = _run_browser_explore_with_timeout(
             explorer,
@@ -1060,11 +1065,17 @@ def _default_company_facts_fetcher() -> Any:
     return client.get_company_facts
 
 
-def _default_browser_explorer(*, max_steps: int) -> Any:
+def _default_browser_explorer(
+    *, max_steps: int, llm_config: LLMRunConfig | None = None
+) -> Any:
+    from src.ai.browser_client import build_browser_client
     from src.browser.config import BrowserConfig
     from src.browser.explorer import MarketExplorer
 
-    return MarketExplorer(browser_config=BrowserConfig(max_steps=_clamp(max_steps, 1, 10)))
+    return MarketExplorer(
+        llm_client=build_browser_client(llm_config),
+        browser_config=BrowserConfig(max_steps=_clamp(max_steps, 1, 10)),
+    )
 
 
 def _graph_context(

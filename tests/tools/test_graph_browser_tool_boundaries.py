@@ -6,6 +6,7 @@ import time
 from types import SimpleNamespace
 from typing import Any
 
+from src.schemas.llm_config import LLMRunConfig
 from src.tools.catalog import build_project_tool_catalog
 
 
@@ -118,6 +119,44 @@ def test_browser_explore_exposes_only_bounded_explorer() -> None:
     assert result["status"] == "success"
     assert result["data"]["current_step"] == 1
     assert result["data"]["findings"][0]["summary"] == "example finding"
+
+
+def test_default_browser_explorer_receives_per_run_model_config(monkeypatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeExplorer:
+        async def explore(self, goal: str, initial_urls=None):
+            return SimpleNamespace(
+                goal=goal,
+                current_step=0,
+                findings=[],
+                visited_urls=set(),
+            )
+
+    def fake_factory(*, max_steps, llm_config):
+        captured["max_steps"] = max_steps
+        captured["llm_config"] = llm_config
+        return FakeExplorer()
+
+    monkeypatch.setattr("src.tools.catalog._default_browser_explorer", fake_factory)
+    run_config = LLMRunConfig(
+        provider="vllm",
+        model="browser-model",
+        base_url="http://127.0.0.1:8000/v1",
+    )
+    catalog = build_project_tool_catalog(
+        llm_config=run_config,
+        scope="finrisk_market",
+    )
+
+    result = catalog.tool_map["browser_explore"](
+        goal="inspect source",
+        max_steps=2,
+        timeout_seconds=1,
+    )
+
+    assert result["status"] == "success"
+    assert captured == {"max_steps": 2, "llm_config": run_config}
     assert result["data"]["timed_out"] is False
     assert result["data"]["max_steps"] == 2
     assert result["evidence_kind"] == "browser"

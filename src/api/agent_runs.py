@@ -359,18 +359,19 @@ def _build_pydantic_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntim
     from src.tools.catalog import build_project_tool_catalog
 
     settings = get_settings()
+    run_config = LLMRunConfig(
+        provider=request.provider,
+        base_url=request.base_url,
+        model=request.model,
+    )
     model = build_agent_model(
         resolve_agent_model_config(
-            LLMRunConfig(
-                provider=request.provider,
-                base_url=request.base_url,
-                model=request.model,
-            ),
+            run_config,
             settings=settings,
         )
     )
     recorder = get_agent_run_recorder()
-    planner_catalog = build_project_tool_catalog(scope=None)
+    planner_catalog = build_project_tool_catalog(llm_config=run_config, scope=None)
     planner = PydanticAIPlanner(
         model=model,
         settings=settings,
@@ -387,7 +388,10 @@ def _build_pydantic_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntim
         run_state: AgentRunState,
     ) -> PydanticAIRuntimeAdapter:
         selected_scope = request.tool_scope or _coerce_tool_scope(tool_scope)
-        catalog = build_project_tool_catalog(scope=selected_scope)
+        catalog = build_project_tool_catalog(
+            llm_config=run_config,
+            scope=selected_scope,
+        )
         subject = request.subject
         deps = AgentDeps(
             run_id=f"{run_state.run_id}:{subgoal.subgoal_id}",

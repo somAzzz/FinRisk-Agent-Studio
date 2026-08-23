@@ -224,7 +224,10 @@ class MarketExplorerStep(WorkflowStep):
             settings = get_settings()
             from src.tools.catalog import build_project_tool_catalog
 
-            catalog = build_project_tool_catalog(scope="finrisk_market")
+            catalog = build_project_tool_catalog(
+                llm_config=state.request.llm_config,
+                scope="finrisk_market",
+            )
             from src.agents.state import AgentBudget
             from src.ai.agents.research import build_market_research_agent
             from src.ai.deps import (

@@ -1,10 +1,8 @@
-import asyncio
 import shutil
 
 import pytest
 
 from src.browser import BrowserWrapper, MarketExplorer
-from src.llm.client import EdgarLLMClient
 
 
 def _check_agent_browser():
@@ -16,8 +14,7 @@ def _check_agent_browser():
 async def test_end_to_end_exploration():
     """End-to-end test requires agent-browser CLI installed."""
     wrapper = BrowserWrapper()
-    client = EdgarLLMClient()
-    explorer = MarketExplorer(client, wrapper)
+    explorer = MarketExplorer(wrapper=wrapper)
 
     checkpoint_calls = []
 

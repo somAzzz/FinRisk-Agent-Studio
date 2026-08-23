@@ -40,13 +40,14 @@ def build_runtime(
 ) -> PydanticAIRuntimeAdapter:
     """Build a Pydantic AI runtime for the requested OpenAI-compatible provider."""
     settings = get_settings()
+    run_config = LLMRunConfig(
+        provider=provider,
+        base_url=base_url,
+        model=model,
+    )
     agent_model = model_factory.build_agent_model(
         model_factory.resolve_agent_model_config(
-            LLMRunConfig(
-                provider=provider,
-                base_url=base_url,
-                model=model,
-            ),
+            run_config,
             settings=settings,
         )
     )
@@ -65,7 +66,10 @@ def build_runtime(
             max_tool_rounds_per_subgoal=max_tool_rounds,
         ),
         services=AgentServices(
-            tool_catalog=build_project_tool_catalog(scope=tools_scope),
+            tool_catalog=build_project_tool_catalog(
+                llm_config=run_config,
+                scope=tools_scope,
+            ),
         ),
     )
     return PydanticAIRuntimeAdapter(
