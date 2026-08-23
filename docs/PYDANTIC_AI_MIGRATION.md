@@ -62,7 +62,9 @@ Pydantic AI 负责：
 10. filing/transcript/web 通用 extraction 已删除任意 `parse`/`complete` client
     兼容和手工 JSON 恢复逻辑；显式传入 `LLMRunConfig` 时统一构建 typed
     Pydantic AI extraction client，未传入时保持离线模式。
-11. 以下实现及其专用测试已删除：
+11. `/agent-runs` 的 planner/subgoal 外层循环已迁移到 Pydantic Graph；预算、
+    evidence normalization、human review 与持久化合同保持不变。
+12. 以下实现及其专用测试已删除：
    - `src/agents/runtime.py`
    - `src/agents/llm_runtime.py`
    - `src/llm/client.py`

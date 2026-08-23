@@ -169,6 +169,8 @@ structured output、toolset、usage 和 message protocol。Browser Explorer 的�
 负责 evidence、预算、审批、run-store、quality gate、业务状态机和 API contract。
 FinRisk 与 Supply Chain 默认通过保持原 state contract 的 Pydantic Graph 执行；
 API、CLI 与后台任务共用同一 Graph 入口，不再维护重复的手写 step 循环。
+`/agent-runs` 的 planner → subgoal → planner 控制流也由独立 Pydantic Graph
+执行，项目预算、evidence normalization 和 human-review 策略作为 Graph deps 保留。
 
 `AGENT_RUNTIME_MODE` 已退役；新 run 统一记录 `pydantic_ai`。旧持久化记录的
 runtime mode 仍可解析，但不能恢复已删除实现。LLM 服务由外部系统管理，本仓库
