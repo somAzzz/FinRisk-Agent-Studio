@@ -9,7 +9,7 @@ from typing import Any
 from src.supply_chain.evidence import build_evidence_from_search
 from src.supply_chain.llm import (
     build_supply_chain_llm_client,
-    complete_json_with_trace,
+    call_with_trace,
 )
 from src.supply_chain.llm_extraction import extract_supplier_relations
 from src.supply_chain.models import (
@@ -199,21 +199,16 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 "supplier_discovery:llm unavailable; used search-only discovery"
             )
             return
-        payload, call = complete_json_with_trace(
-            client=client,
+        output, call = call_with_trace(
             provider=provider,
             operation="propose_suppliers",
-            system=(
-                "You are a supply-chain analyst. Return compact JSON only. "
-                "Treat suppliers as hypotheses unless source-backed evidence exists."
+            call=lambda: client.propose_suppliers(
+                _supplier_prompt(state, requirement_nodes)
             ),
-            prompt=_supplier_prompt(state, requirement_nodes),
-            max_tokens=3200,
-            temperature=0.1,
             retries=1,
         )
         self._record_provider_call(state, call)
-        rows = _coerce_supplier_rows(payload)
+        rows = output.suppliers if output is not None else []
         if not rows:
             state.fallback_events.append(
                 "supplier_discovery:llm returned no supplier candidates"
@@ -228,12 +223,12 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
         added_edges = 0
         for row in rows[: state.request.max_suppliers_per_node * len(requirement_nodes)]:
             requirement = (
-                requirement_by_id.get(row["requirement_node_id"])
-                or requirement_by_label.get(row["requirement_label"].lower())
+                requirement_by_id.get(row.requirement_node_id)
+                or requirement_by_label.get(row.requirement_label.lower())
             )
             if requirement is None:
                 continue
-            supplier_name = row["supplier_name"]
+            supplier_name = row.supplier_name
             supplier_id = f"company:{_slug(supplier_name)}"
             if _is_seed_company(state, supplier_name, supplier_id):
                 _increment_metric(state, "self_supplier_candidate_count")
@@ -245,10 +240,10 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                         node_type="company",
                         label=supplier_name,
                         normalized_name=_slug(supplier_name),
-                        ticker=row["ticker"],
+                        ticker=row.ticker,
                         depth=requirement.depth + 1,
                         parent_node_id=requirement.node_id,
-                        confidence=row["confidence"],
+                        confidence=row.confidence,
                         evidence_ids=[],
                         metadata={
                             "method": "llm_supplier_discovery",
@@ -259,12 +254,12 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                 existing_nodes.add(supplier_id)
             candidate = SupplierCandidate(
                 supplier_name=supplier_name,
-                ticker=row["ticker"],
+                ticker=row.ticker,
                 relation_type="hypothesized",
-                product_or_service=row["product_or_service"] or requirement.label,
+                product_or_service=row.product_or_service or requirement.label,
                 evidence_ids=[],
-                confidence=row["confidence"],
-                uncertainty=row["uncertainty"]
+                confidence=row.confidence,
+                uncertainty=row.uncertainty
                 or "LLM hypothesis pending evidence confirmation",
                 source_requirement_node_id=requirement.node_id,
             )
@@ -279,12 +274,12 @@ class SupplyChainSupplierDiscoveryStep(SupplyChainStep):
                     target_node_id=supplier_id,
                     relation_type="hypothesized",
                     value=0.45,
-                    confidence=row["confidence"],
+                    confidence=row.confidence,
                     evidence_ids=[],
                     metadata={
                         "method": "llm_supplier_discovery",
                         "provider": provider,
-                        "reason": row["uncertainty"]
+                        "reason": row.uncertainty
                         or "LLM-proposed supplier candidate pending evidence",
                     },
                 )
@@ -591,64 +586,6 @@ def _supplier_prompt(
     )
 
 
-def _coerce_supplier_rows(payload: Any) -> list[dict[str, Any]]:
-    rows = None
-    if isinstance(payload, dict):
-        for key in (
-            "suppliers",
-            "supplier_candidates",
-            "candidates",
-            "dependencies",
-            "upstream_suppliers",
-        ):
-            if isinstance(payload.get(key), list):
-                rows = payload[key]
-                break
-        if rows is None and (
-            payload.get("supplier_name") or payload.get("name") or payload.get("company")
-        ):
-            rows = [payload]
-    else:
-        rows = payload
-    if not isinstance(rows, list):
-        return []
-    out: list[dict[str, Any]] = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        supplier_name = str(row.get("supplier_name") or "").strip()
-        if not supplier_name:
-            supplier_name = str(row.get("name") or row.get("company") or "").strip()
-        if not supplier_name:
-            continue
-        out.append(
-            {
-                "requirement_node_id": str(row.get("requirement_node_id") or "").strip(),
-                "requirement_label": str(
-                    row.get("requirement_label")
-                    or row.get("requirement")
-                    or row.get("component")
-                    or ""
-                ).strip(),
-                "supplier_name": supplier_name[:120],
-                "ticker": _clean_ticker(row.get("ticker")),
-                "product_or_service": str(row.get("product_or_service") or "").strip()[:160],
-                "confidence": _clamp_float(row.get("confidence"), default=0.55),
-                "uncertainty": str(row.get("uncertainty") or "").strip()[:240],
-            }
-        )
-    return out
-
-
-def _clean_ticker(value: Any) -> str | None:
-    if value is None:
-        return None
-    ticker = str(value).strip().upper()
-    if not ticker or ticker in {"N/A", "NA", "NONE", "NULL"}:
-        return None
-    return ticker[:16]
-
-
 def _is_seed_company(
     state: SupplyChainExploreState,
     supplier_name: str,
@@ -695,14 +632,6 @@ def _upgrade_existing_edge_with_evidence(
             }
         )
         return
-
-
-def _clamp_float(value: Any, *, default: float) -> float:
-    try:
-        parsed = float(value)
-    except (TypeError, ValueError):
-        return default
-    return min(1.0, max(0.0, parsed))
 
 
 def _append_unique_evidence(

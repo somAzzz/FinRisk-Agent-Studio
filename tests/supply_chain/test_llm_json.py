@@ -1,77 +1,109 @@
-"""LLM JSON parsing and coercion robustness tests."""
+"""Typed Pydantic AI contracts for supply-chain analysis."""
 
 from __future__ import annotations
 
 from pydantic_ai.models.test import TestModel
 
+from src.ai.structured_clients import PydanticAISupplyChainClient
 from src.config import Settings
-from src.supply_chain.llm import (
-    PydanticAIJSONClient,
-    complete_json_with_trace,
-    extract_json,
-)
-from src.supply_chain.steps.requirement_decomposer import _coerce_requirements
-from src.supply_chain.steps.supplier_discovery import _coerce_supplier_rows
+from src.supply_chain.llm import call_with_trace
 
 
-def test_extract_json_rejects_truncated_top_level_object() -> None:
-    content = '{"suppliers":[{"supplier_name":"TSMC"}'
-
-    assert extract_json(content) is None
-
-
-def test_extract_json_accepts_prefixed_complete_json() -> None:
-    content = 'Result: {"ok": true, "items": ["TSMC"]}'
-
-    assert extract_json(content) == {"ok": True, "items": ["TSMC"]}
-
-
-def test_pydantic_ai_json_client_returns_typed_payload() -> None:
-    client = PydanticAIJSONClient(
-        model=TestModel(custom_output_args={"items": ["TSMC"]}),
+def test_supply_chain_client_returns_typed_requirement_output() -> None:
+    client = PydanticAISupplyChainClient(
+        model=TestModel(
+            custom_output_args={
+                "requirements": [
+                    {
+                        "label": "Advanced packaging",
+                        "node_type": "infrastructure",
+                        "importance": 0.8,
+                        "confidence": 0.7,
+                        "reason": "Needed for accelerator integration.",
+                    }
+                ]
+            }
+        ),
         settings=Settings(),
     )
 
-    payload, call = complete_json_with_trace(
-        client=client,
+    output, call = call_with_trace(
         provider="sglang",
-        operation="test_json",
-        prompt="Return the supplier list.",
-        system="Return JSON.",
+        operation="decompose_requirements",
+        call=lambda: client.decompose_requirements("Decompose the product."),
     )
 
-    assert payload == {"items": ["TSMC"]}
+    assert output is not None
+    assert output.requirements[0].label == "Advanced packaging"
+    assert output.requirements[0].node_type == "infrastructure"
     assert call.status == "success"
 
 
-def test_coerce_requirements_accepts_common_alias_keys() -> None:
-    rows = _coerce_requirements(
-        {
-            "product_requirements": [
-                {
-                    "name": "Advanced packaging",
-                    "node_type": "infrastructure",
-                    "importance": 0.8,
-                    "confidence": 0.7,
-                }
-            ]
-        }
+def test_supply_chain_client_returns_typed_supplier_output() -> None:
+    client = PydanticAISupplyChainClient(
+        model=TestModel(
+            custom_output_args={
+                "suppliers": [
+                    {
+                        "requirement_node_id": "component:hbm-memory",
+                        "requirement_label": "HBM memory",
+                        "supplier_name": "SK hynix",
+                        "ticker": None,
+                        "product_or_service": "HBM3",
+                        "confidence": 0.86,
+                        "uncertainty": "Requires source confirmation.",
+                    }
+                ]
+            }
+        ),
+        settings=Settings(),
     )
 
-    assert rows[0]["label"] == "Advanced packaging"
-    assert rows[0]["node_type"] == "infrastructure"
+    output = client.propose_suppliers("Propose suppliers.")
+
+    assert output.suppliers[0].supplier_name == "SK hynix"
+    assert output.suppliers[0].requirement_label == "HBM memory"
 
 
-def test_coerce_supplier_rows_accepts_single_candidate_dict() -> None:
-    rows = _coerce_supplier_rows(
-        {
-            "requirement": "HBM memory",
-            "company": "SK hynix",
-            "ticker": None,
-            "product_or_service": "HBM3",
-            "confidence": 0.86,
-        }
+def test_supply_chain_client_returns_typed_profile_output() -> None:
+    client = PydanticAISupplyChainClient(
+        model=TestModel(
+            custom_output_args={
+                "profiles": [
+                    {
+                        "node_id": "commodity:rare-earth-minerals",
+                        "summary": "Rare earth inputs support power electronics.",
+                        "key_items": ["Neodymium"],
+                        "applications": ["Permanent magnets"],
+                        "risk_factors": ["Export controls"],
+                        "comparable_entities": ["Lithium"],
+                        "confidence": 0.82,
+                    }
+                ]
+            }
+        ),
+        settings=Settings(),
     )
 
-    assert rows[0]["supplier_name"] == "SK hynix"
-    assert rows[0]["requirement_label"] == "HBM memory"
+    output = client.profile_nodes("Profile the nodes.")
+
+    assert output.profiles[0].node_id == "commodity:rare-earth-minerals"
+    assert output.profiles[0].key_items == ["Neodymium"]
+
+
+def test_typed_trace_records_validation_failure() -> None:
+    client = PydanticAISupplyChainClient(
+        model=TestModel(custom_output_args={"requirements": [{"label": ""}]}),
+        settings=Settings(),
+    )
+
+    output, call = call_with_trace(
+        provider="sglang",
+        operation="decompose_requirements",
+        call=lambda: client.decompose_requirements("Decompose the product."),
+        retries=0,
+    )
+
+    assert output is None
+    assert call.status == "failed"
+    assert call.error

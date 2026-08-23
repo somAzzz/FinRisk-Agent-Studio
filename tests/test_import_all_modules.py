@@ -60,6 +60,10 @@ def test_production_source_has_no_removed_agent_runtime() -> None:
         "from openai import",
         "build_graph_interpretation_agent",
         "build_report_generation_agent",
+        "PydanticAIJSONClient",
+        "complete_json_with_trace",
+        "extract_json",
+        ".complete(",
     )
     matches: list[str] = []
     for path in sorted((root / "src").rglob("*.py")):

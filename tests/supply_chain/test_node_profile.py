@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from src.supply_chain.llm_models import NodeIntelligenceProfile, NodeProfileBatch
 from src.supply_chain.models import (
     SupplyChainExploreRequest,
     SupplyChainExploreState,
@@ -13,30 +14,22 @@ from src.supply_chain.workflow import run_supply_chain_workflow
 
 
 class _FakeProfileClient:
-    def complete(
-        self,
-        _prompt: str,
-        *,
-        system: str | None = None,
-        max_tokens: int | None = None,
-        temperature: float | None = None,
-    ) -> str:
-        _ = (system, max_tokens, temperature)
-        return """
-        {
-          "profiles": [
-            {
-              "node_id": "commodity:rare-earth-minerals",
-              "summary": "Rare earth minerals support magnets and power electronics.",
-              "key_items": ["Neodymium", "Dysprosium"],
-              "applications": ["Permanent magnets"],
-              "risk_factors": ["Export controls"],
-              "comparable_entities": ["Lithium"],
-              "confidence": 0.82
-            }
-          ]
-        }
-        """
+    def profile_nodes(self, _prompt: str) -> NodeProfileBatch:
+        return NodeProfileBatch(
+            profiles=[
+                NodeIntelligenceProfile(
+                    node_id="commodity:rare-earth-minerals",
+                    summary=(
+                        "Rare earth minerals support magnets and power electronics."
+                    ),
+                    key_items=["Neodymium", "Dysprosium"],
+                    applications=["Permanent magnets"],
+                    risk_factors=["Export controls"],
+                    comparable_entities=["Lithium"],
+                    confidence=0.82,
+                )
+            ]
+        )
 
 
 async def test_demo_workflow_adds_taxonomy_node_profiles() -> None:

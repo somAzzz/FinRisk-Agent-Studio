@@ -1,90 +1,45 @@
-"""LLM helpers for real supply-chain investigation steps."""
+"""Typed Pydantic AI boundary for real supply-chain investigation steps."""
 
 from __future__ import annotations
 
-import json
-import re
 import time
-import uuid
-from typing import Any
+from collections.abc import Callable
+from typing import Protocol
 
-from pydantic_ai import Agent
-from pydantic_ai.models import Model
-
-from src.ai.deps import AgentDeps, AgentServices, AgentSubject
+from src.ai.deps import AgentServices
 from src.ai.model_factory import build_agent_model, resolve_agent_model_config
-from src.ai.runtime_adapter import run_awaitable_sync
 from src.ai.store_factory import get_agent_run_recorder
-from src.config import Settings, get_settings
+from src.ai.structured_clients import PydanticAISupplyChainClient
+from src.config import get_settings
 from src.schemas.llm_config import LLMRunConfig
+from src.supply_chain.llm_models import (
+    NodeProfileBatch,
+    RequirementDecomposition,
+    SupplierProposalBatch,
+)
 from src.supply_chain.models import ProviderCall
 
 
-class PydanticAIJSONClient:
-    """Small typed JSON boundary for supply-chain analysis prompts."""
+class SupplyChainAnalysisClient(Protocol):
+    """Dedicated operations required by the supply-chain workflow."""
 
-    provider = "pydantic_ai"
+    provider: str
 
-    def __init__(
-        self,
-        *,
-        model: Model,
-        settings: Settings,
-        services: AgentServices | None = None,
-    ) -> None:
-        self._model = model
-        self.model = model.model_name
-        self.settings = settings
-        self.services = services or AgentServices()
+    def decompose_requirements(self, prompt: str) -> RequirementDecomposition: ...
 
-    def complete(
-        self,
-        prompt: str,
-        system: str | None = None,
-        max_tokens: int | None = None,
-        temperature: float | None = None,
-    ) -> str:
-        model_settings: dict[str, Any] = {}
-        if max_tokens is not None:
-            model_settings["max_tokens"] = max_tokens
-        if temperature is not None:
-            model_settings["temperature"] = temperature
-        agent: Agent[AgentDeps, dict[str, Any]] = Agent(
-            self._model,
-            output_type=dict[str, Any],
-            deps_type=AgentDeps,
-            instructions=system or "Return one valid JSON object.",
-            model_settings=model_settings or None,
-            name="supply_chain_json_analysis",
-        )
-        run_id = f"supply-json-{uuid.uuid4().hex[:12]}"
-        deps = AgentDeps(
-            run_id=run_id,
-            conversation_id=run_id,
-            settings=self.settings,
-            subject=AgentSubject(),
-            services=self.services,
-        )
-        result = agent.run_sync(prompt, deps=deps, run_id=run_id)
-        recorder = self.services.message_recorder
-        if recorder is not None:
-            run_awaitable_sync(
-                recorder.record_result(
-                    run_id=run_id,
-                    conversation_id=run_id,
-                    agent_name=agent.name or "supply_chain_json_analysis",
-                    result=result,
-                )
-            )
-        return json.dumps(result.output, ensure_ascii=False)
+    def propose_suppliers(self, prompt: str) -> SupplierProposalBatch: ...
+
+    def profile_nodes(self, prompt: str) -> NodeProfileBatch: ...
 
 
-def build_supply_chain_llm_client(config: LLMRunConfig | None) -> Any | None:
-    """Return a Pydantic AI client for supply-chain LLM steps."""
+def build_supply_chain_llm_client(
+    config: LLMRunConfig | None,
+) -> PydanticAISupplyChainClient | None:
+    """Build the single typed client used by supply-chain model operations."""
     resolved = config or LLMRunConfig()
     try:
         settings = get_settings()
-        return PydanticAIJSONClient(
+        return PydanticAISupplyChainClient(
             model=build_agent_model(
                 resolve_agent_model_config(resolved, settings=settings)
             ),
@@ -95,96 +50,42 @@ def build_supply_chain_llm_client(config: LLMRunConfig | None) -> Any | None:
         return None
 
 
-def complete_json_with_trace(
+def call_with_trace[OutputT](
     *,
-    client: Any,
     provider: str,
     operation: str,
-    prompt: str,
-    system: str,
-    max_tokens: int = 1400,
-    temperature: float = 0.1,
+    call: Callable[[], OutputT],
     retries: int = 1,
-) -> tuple[Any | None, ProviderCall]:
-    """Call an LLM and parse a JSON object/array from the response."""
+) -> tuple[OutputT | None, ProviderCall]:
+    """Execute one typed model operation and capture its provider trace."""
     started = time.perf_counter()
-    try:
-        content = ""
-        for attempt in range(max(1, retries + 1)):
-            content = client.complete(
-                prompt,
-                system=system,
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
-            if content:
-                break
-            if attempt >= retries:
-                break
-        latency_ms = int((time.perf_counter() - started) * 1000)
-        if not content:
-            return None, ProviderCall(
+    last_error: Exception | None = None
+    for _attempt in range(max(1, retries + 1)):
+        try:
+            output = call()
+            return output, ProviderCall(
                 provider=provider,
                 operation=operation,
-                status="failed",
-                latency_ms=latency_ms,
-                error="empty LLM response",
+                status="success",
+                latency_ms=int((time.perf_counter() - started) * 1000),
             )
-        parsed = extract_json(content)
-        if parsed is None:
-            return None, ProviderCall(
-                provider=provider,
-                operation=operation,
-                status="failed",
-                latency_ms=latency_ms,
-                error="LLM response did not contain complete JSON",
-            )
-        return parsed, ProviderCall(
-            provider=provider,
-            operation=operation,
-            status="success",
-            latency_ms=latency_ms,
-        )
-    except Exception as exc:
-        return None, ProviderCall(
-            provider=provider,
-            operation=operation,
-            status="failed",
-            latency_ms=int((time.perf_counter() - started) * 1000),
-            error=f"{type(exc).__name__}: {exc}",
-        )
-
-
-def extract_json(content: str) -> Any | None:
-    """Extract the first JSON object or array from an LLM response."""
-    stripped = content.strip()
-    try:
-        return json.loads(stripped)
-    except json.JSONDecodeError:
-        pass
-    fenced = re.search(r"```(?:json)?\s*(.*?)```", stripped, flags=re.DOTALL | re.I)
-    if fenced:
-        try:
-            return json.loads(fenced.group(1).strip())
-        except json.JSONDecodeError:
-            pass
-    if stripped[0] in "[{":
-        return None
-    decoder = json.JSONDecoder()
-    for index, char in enumerate(stripped):
-        if char not in "[{":
-            continue
-        try:
-            parsed, _end = decoder.raw_decode(stripped[index:])
-            return parsed
-        except json.JSONDecodeError:
-            continue
-    return None
+        except Exception as exc:
+            last_error = exc
+    return None, ProviderCall(
+        provider=provider,
+        operation=operation,
+        status="failed",
+        latency_ms=int((time.perf_counter() - started) * 1000),
+        error=(
+            f"{type(last_error).__name__}: {last_error}"
+            if last_error is not None
+            else "typed LLM operation failed"
+        ),
+    )
 
 
 __all__ = [
-    "PydanticAIJSONClient",
+    "SupplyChainAnalysisClient",
     "build_supply_chain_llm_client",
-    "complete_json_with_trace",
-    "extract_json",
+    "call_with_trace",
 ]

@@ -51,8 +51,10 @@ Pydantic AI 负责：
    Browser Explorer 内部的页面摘要和有界动作循环也已迁移为 typed Agent/tool，
    不再直接调用 OpenAI-compatible SDK，也不再由项目手写模型决策循环。
 4. filing risk 与 supplier relation 使用 typed Pydantic AI output。
-5. requirement decomposition、supplier proposal、node profile 的 JSON 边界通过
-   Pydantic AI typed dict output，不再直接构建旧聊天 client。
+5. requirement decomposition、supplier proposal、node profile 分别使用专用的
+   `RequirementDecomposition`、`SupplierProposalBatch`、`NodeProfileBatch`
+   Pydantic AI output；supplier relation 也只接受 typed client。通用 JSON Agent、
+   字符串 completion 兼容和手工 JSON 恢复逻辑已删除。
 6. `AGENT_RUNTIME_MODE` 已退役；旧环境值被忽略，不能恢复已删除代码。
 7. 旧持久化记录的 `legacy`、`pydantic_ai_shadow`、
    `pydantic_ai_primary` 值仍可解析；新 run 统一写入 `pydantic_ai`。
@@ -128,8 +130,8 @@ API key 仅从本地运行环境注入，不写入仓库或验收文档。
 
 迁移期间的定向回归覆盖配置、API、runtime adapter、structured clients、
 Market Explorer、Supply Chain、通用研究 CLI、旧模块缺失与全模块导入。
-最终验证为 `992 passed, 6 skipped`；frontend 为 18 个测试文件、76 项测试
-通过，production build 通过。
+P0 typed supply-chain 收敛后的全量后端回归为 `991 passed, 6 skipped`；frontend
+最近一次验证为 18 个测试文件、76 项测试通过，production build 通过。
 
 ## 运行与故障处理
 

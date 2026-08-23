@@ -7,15 +7,19 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, TypeVar
 
+from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
 from src.agents.extraction_agent import ExtractionResult, chunk_text
 from src.ai.agents.structured import (
     build_filing_extraction_agent,
     build_generic_extraction_agent,
+    build_node_profile_agent,
     build_relation_extraction_agent,
+    build_requirement_decomposition_agent,
+    build_supplier_proposal_agent,
 )
 from src.ai.deps import AgentDeps, AgentServices, AgentSubject
 from src.ai.runtime_adapter import run_awaitable_sync
@@ -23,6 +27,18 @@ from src.config import Settings
 from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
 from src.schemas.llm_config import LLMRunConfig
 from src.supply_chain.llm_extraction import SupplierRelationExtraction
+from src.supply_chain.llm_models import (
+    NodeProfileBatch,
+    RequirementDecomposition,
+    SupplierProposalBatch,
+)
+
+SupplyChainOutput = TypeVar(
+    "SupplyChainOutput",
+    RequirementDecomposition,
+    SupplierProposalBatch,
+    NodeProfileBatch,
+)
 
 
 class PydanticAIFilingExtractionClient:
@@ -210,6 +226,72 @@ class PydanticAISupplierRelationClient:
         return output.relations[:max_suppliers], output.model_dump_json()
 
 
+class PydanticAISupplyChainClient(PydanticAISupplierRelationClient):
+    """Typed boundary for every model-backed supply-chain analysis step."""
+
+    def __init__(
+        self,
+        *,
+        model: Model,
+        settings: Settings,
+        services: AgentServices | None = None,
+    ) -> None:
+        super().__init__(model=model, settings=settings, services=services)
+        self.requirement_agent = build_requirement_decomposition_agent(model)
+        self.supplier_proposal_agent = build_supplier_proposal_agent(model)
+        self.node_profile_agent = build_node_profile_agent(model)
+
+    def decompose_requirements(self, prompt: str) -> RequirementDecomposition:
+        return self._run_supply_chain_agent(
+            self.requirement_agent,
+            prompt,
+            run_prefix="requirements",
+        )
+
+    def propose_suppliers(self, prompt: str) -> SupplierProposalBatch:
+        return self._run_supply_chain_agent(
+            self.supplier_proposal_agent,
+            prompt,
+            run_prefix="suppliers",
+        )
+
+    def profile_nodes(self, prompt: str) -> NodeProfileBatch:
+        return self._run_supply_chain_agent(
+            self.node_profile_agent,
+            prompt,
+            run_prefix="profiles",
+        )
+
+    def _run_supply_chain_agent(
+        self,
+        agent: Agent[AgentDeps, SupplyChainOutput],
+        prompt: str,
+        *,
+        run_prefix: str,
+    ) -> SupplyChainOutput:
+        run_id = f"supply-{run_prefix}-{uuid.uuid4().hex[:12]}"
+        deps = AgentDeps(
+            run_id=run_id,
+            conversation_id=run_id,
+            settings=self.settings,
+            services=self.services,
+        )
+        result = run_awaitable_sync(
+            agent.run(prompt, deps=deps, run_id=run_id)
+        )
+        recorder = self.services.message_recorder
+        if recorder is not None:
+            run_awaitable_sync(
+                recorder.record_result(
+                    run_id=run_id,
+                    conversation_id=run_id,
+                    agent_name=agent.name or f"supply_chain_{run_prefix}",
+                    result=result,
+                )
+            )
+        return result.output
+
+
 class PydanticAIGenericExtractionClient:
     """Typed extraction boundary for filing, transcript, and web agents."""
 
@@ -275,5 +357,6 @@ __all__ = [
     "PydanticAIFilingExtractionClient",
     "PydanticAIGenericExtractionClient",
     "PydanticAISupplierRelationClient",
+    "PydanticAISupplyChainClient",
     "build_generic_extraction_client",
 ]

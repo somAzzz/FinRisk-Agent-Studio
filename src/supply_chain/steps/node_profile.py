@@ -7,7 +7,7 @@ from typing import Any
 
 from src.supply_chain.llm import (
     build_supply_chain_llm_client,
-    complete_json_with_trace,
+    call_with_trace,
 )
 from src.supply_chain.models import (
     ProviderCall,
@@ -74,20 +74,21 @@ class SupplyChainNodeProfileStep(SupplyChainStep):
                 ),
             )
             return {}
-        payload, call = complete_json_with_trace(
-            client=client,
+        output, call = call_with_trace(
             provider=provider,
             operation="profile_supply_chain_nodes",
-            system=(
-                "You are a supply-chain analyst. Return compact JSON only. "
-                "Do not include markdown or commentary."
-            ),
-            prompt=_profile_prompt(state, targets),
-            max_tokens=3200,
-            temperature=0.1,
+            call=lambda: client.profile_nodes(_profile_prompt(state, targets)),
         )
         self._record_provider_call(state, call)
-        return _coerce_llm_profiles(payload)
+        if output is None:
+            return {}
+        return {
+            profile.node_id: {
+                **profile.model_dump(mode="python"),
+                "generated_by": "llm",
+            }
+            for profile in output.profiles
+        }
 
     def _build_llm_client(self, state: SupplyChainExploreState) -> Any | None:
         if self._llm_client_factory is not None:
@@ -172,21 +173,6 @@ def _profile_prompt(
         "Keep each list to 3-6 short items. Use plain business language.\n"
         f"Nodes: {rows}"
     )
-
-
-def _coerce_llm_profiles(payload: Any) -> dict[str, dict[str, Any]]:
-    rows = payload.get("profiles") if isinstance(payload, dict) else payload
-    if not isinstance(rows, list):
-        return {}
-    profiles: dict[str, dict[str, Any]] = {}
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        node_id = str(row.get("node_id") or "").strip()
-        if not node_id:
-            continue
-        profiles[node_id] = row
-    return profiles
 
 
 def _coerce_profile(profile: dict[str, Any], node: SupplyChainNode) -> dict[str, Any]:

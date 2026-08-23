@@ -11,6 +11,11 @@ from src.agents.state import AgentDecision
 from src.ai.deps import AgentDeps
 from src.schemas.finrisk import ExtractedRisk
 from src.supply_chain.llm_extraction import SupplierRelationExtraction
+from src.supply_chain.llm_models import (
+    NodeProfileBatch,
+    RequirementDecomposition,
+    SupplierProposalBatch,
+)
 
 
 class SupplierRelationBatch(BaseModel):
@@ -67,6 +72,51 @@ def build_relation_extraction_agent(
             "must include an HTTP(S) source_url and a verbatim quote."
         ),
         name="supply_chain_relation_extractor",
+    )
+
+
+def build_requirement_decomposition_agent(
+    model: Model,
+) -> Agent[AgentDeps, RequirementDecomposition]:
+    return Agent(
+        model,
+        output_type=RequirementDecomposition,
+        deps_type=AgentDeps,
+        instructions=(
+            "Decompose the product into concrete upstream requirements using "
+            "the supplied typed schema. Do not invent unsupported precision."
+        ),
+        name="supply_chain_requirement_decomposer",
+    )
+
+
+def build_supplier_proposal_agent(
+    model: Model,
+) -> Agent[AgentDeps, SupplierProposalBatch]:
+    return Agent(
+        model,
+        output_type=SupplierProposalBatch,
+        deps_type=AgentDeps,
+        instructions=(
+            "Propose plausible upstream suppliers as hypotheses using the supplied "
+            "typed schema. Never treat an unsupported proposal as confirmed."
+        ),
+        name="supply_chain_supplier_proposer",
+    )
+
+
+def build_node_profile_agent(
+    model: Model,
+) -> Agent[AgentDeps, NodeProfileBatch]:
+    return Agent(
+        model,
+        output_type=NodeProfileBatch,
+        deps_type=AgentDeps,
+        instructions=(
+            "Create concise supply-chain node intelligence cards using the supplied "
+            "typed schema and only the graph context in the prompt."
+        ),
+        name="supply_chain_node_profiler",
     )
 
 
@@ -157,6 +207,9 @@ __all__ = [
     "SupplierRelationBatch",
     "build_filing_extraction_agent",
     "build_generic_extraction_agent",
+    "build_node_profile_agent",
     "build_planner_agent",
     "build_relation_extraction_agent",
+    "build_requirement_decomposition_agent",
+    "build_supplier_proposal_agent",
 ]

@@ -7,7 +7,7 @@ from typing import Any
 from src.supply_chain.fixtures import build_default_fixture
 from src.supply_chain.llm import (
     build_supply_chain_llm_client,
-    complete_json_with_trace,
+    call_with_trace,
 )
 from src.supply_chain.models import (
     ProviderCall,
@@ -98,21 +98,14 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                 ),
             )
             return False
-        payload, call = complete_json_with_trace(
-            client=client,
+        output, call = call_with_trace(
             provider=provider,
             operation="decompose_requirements",
-            system=(
-                "You are a supply-chain analyst. Return compact JSON only. "
-                "Do not include markdown or commentary."
-            ),
-            prompt=_requirement_prompt(state),
-            max_tokens=1800,
-            temperature=0.1,
+            call=lambda: client.decompose_requirements(_requirement_prompt(state)),
             retries=1,
         )
         self._record_provider_call(state, call)
-        requirements = _coerce_requirements(payload)
+        requirements = output.requirements if output is not None else []
         if not requirements:
             return False
         product_id = f"product:{state.request.product_name.strip().lower().replace(' ', '-')}"
@@ -124,11 +117,11 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
         existing_edges = {e.edge_id for e in state.links}
         added = 0
         for index, item in enumerate(requirements[:10]):
-            label = item["label"]
-            node_type = item["node_type"]
+            label = item.label
+            node_type = item.node_type
             node_id = f"{node_type}:{_slug(label)}"
-            confidence = item["confidence"]
-            importance = item["importance"]
+            confidence = item.confidence
+            importance = item.importance
             if node_id not in existing_nodes:
                 state.nodes.append(
                     SupplyChainNode(
@@ -142,7 +135,7 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                         metadata={
                             "method": "llm_requirement_decomposer",
                             "provider": provider,
-                            **({"reason": item["reason"]} if item.get("reason") else {}),
+                            **({"reason": item.reason} if item.reason else {}),
                         },
                     )
                 )
@@ -162,7 +155,7 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
                     metadata={
                         "method": "llm_requirement_decomposer",
                         "provider": provider,
-                        "reason": item.get("reason")
+                        "reason": item.reason
                         or "LLM product architecture decomposition",
                     },
                 )
@@ -259,66 +252,6 @@ def _requirement_prompt(state: SupplyChainExploreState) -> str:
         "only emit finer child materials when they are materially distinct. "
         "Return 4 to 8 concrete requirements."
     )
-
-
-def _coerce_requirements(payload: Any) -> list[dict[str, Any]]:
-    rows = None
-    if isinstance(payload, dict):
-        for key in (
-            "requirements",
-            "product_requirements",
-            "upstream_requirements",
-            "components",
-            "dependencies",
-        ):
-            if isinstance(payload.get(key), list):
-                rows = payload[key]
-                break
-        if rows is None and payload.get("label"):
-            rows = [payload]
-    else:
-        rows = payload
-    if not isinstance(rows, list):
-        return []
-    allowed = {
-        "component",
-        "service",
-        "infrastructure",
-        "energy",
-        "commodity",
-        "region",
-        "unknown",
-    }
-    out: list[dict[str, Any]] = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        label = str(row.get("label") or "").strip()
-        if not label:
-            label = str(row.get("name") or row.get("requirement") or "").strip()
-        if not label:
-            continue
-        node_type = str(row.get("node_type") or "unknown").strip().lower()
-        if node_type not in allowed:
-            node_type = "unknown"
-        out.append(
-            {
-                "label": label[:120],
-                "node_type": node_type,
-                "importance": _clamp_float(row.get("importance"), default=0.6),
-                "confidence": _clamp_float(row.get("confidence"), default=0.65),
-                "reason": str(row.get("reason") or "").strip()[:240],
-            }
-        )
-    return out
-
-
-def _clamp_float(value: Any, *, default: float) -> float:
-    try:
-        parsed = float(value)
-    except (TypeError, ValueError):
-        return default
-    return min(1.0, max(0.0, parsed))
 
 
 def _slug(value: str) -> str:

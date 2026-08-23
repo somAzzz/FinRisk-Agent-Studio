@@ -3,6 +3,12 @@
 from __future__ import annotations
 
 from src.schemas.llm_config import LLMRunConfig
+from src.supply_chain.llm_models import (
+    RequirementDecomposition,
+    RequirementItem,
+    SupplierProposal,
+    SupplierProposalBatch,
+)
 from src.supply_chain.models import SupplyChainExploreRequest
 from src.supply_chain.steps.product_resolver import SupplyChainProductResolverStep
 from src.supply_chain.steps.requirement_decomposer import (
@@ -15,36 +21,36 @@ from src.workflows.state import utcnow
 
 
 class FakeLLMClient:
-    def complete(self, prompt: str, **_kwargs) -> str:
-        if "Decompose the product" in prompt:
-            return """
-            {
-              "requirements": [
-                {
-                  "label": "GPU accelerator",
-                  "node_type": "component",
-                  "importance": 0.92,
-                  "confidence": 0.81,
-                  "reason": "Large AI workloads depend on GPU acceleration."
-                }
-              ]
-            }
-            """
-        return """
-        {
-          "suppliers": [
-            {
-              "requirement_node_id": "component:gpu-accelerator",
-              "requirement_label": "GPU accelerator",
-              "supplier_name": "NVIDIA",
-              "ticker": "NVDA",
-              "product_or_service": "AI GPUs",
-              "confidence": 0.74,
-              "uncertainty": "Candidate requires source confirmation."
-            }
-          ]
-        }
-        """
+    def decompose_requirements(self, _prompt: str) -> RequirementDecomposition:
+        return RequirementDecomposition(
+            requirements=[
+                RequirementItem(
+                    label="GPU accelerator",
+                    node_type="component",
+                    importance=0.92,
+                    confidence=0.81,
+                    reason="Large AI workloads depend on GPU acceleration.",
+                )
+            ]
+        )
+
+    def propose_suppliers(self, _prompt: str) -> SupplierProposalBatch:
+        return SupplierProposalBatch(
+            suppliers=[
+                SupplierProposal(
+                    requirement_node_id="component:gpu-accelerator",
+                    requirement_label="GPU accelerator",
+                    supplier_name="NVIDIA",
+                    ticker="NVDA",
+                    product_or_service="AI GPUs",
+                    confidence=0.74,
+                    uncertainty="Candidate requires source confirmation.",
+                )
+            ]
+        )
+
+    def extract_supplier_relations(self, **_kwargs):
+        return [], '{"relations":[]}'
 
 
 class EmptyRouter:

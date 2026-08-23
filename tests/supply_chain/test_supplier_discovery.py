@@ -174,14 +174,25 @@ async def test_real_supplier_discovery_uses_llm_to_extract_search_evidence() -> 
         provider = "vllm"
         model = "test-model"
 
-        def complete(self, prompt, **_kwargs):
-            if "Search query:" not in prompt:
-                return '{"suppliers":[]}'
-            return (
-                '{"relations":[{"supplier_name":"TSMC","ticker":"TSM",'
-                '"relation_type":"manufactured_by","component":"advanced chips",'
-                f'"source_index":1,"quote":"{quote}","confidence":0.9}}]}}'
+        def propose_suppliers(self, _prompt):
+            from src.supply_chain.llm_models import SupplierProposalBatch
+
+            return SupplierProposalBatch()
+
+        def extract_supplier_relations(self, **_kwargs):
+            from src.supply_chain.llm_extraction import SupplierRelationExtraction
+
+            relation = SupplierRelationExtraction(
+                supplier_name="TSMC",
+                ticker="TSM",
+                relation_type="manufactured_by",
+                component="advanced chips",
+                source_index=1,
+                source_url="https://example.com/tsmc-foundry",
+                quote=quote,
+                confidence=0.9,
             )
+            return [relation], relation.model_dump_json()
 
     state = await run_supply_chain_workflow(
         SupplyChainExploreRequest(

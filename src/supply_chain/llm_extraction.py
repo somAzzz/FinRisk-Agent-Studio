@@ -8,13 +8,9 @@ turns it into nodes and edges.
 
 from __future__ import annotations
 
-import json
-import re
 from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from src.schemas.llm_config import LLMRunConfig
 
 SupplyChainLLMRelationType = Literal[
     "supplied_by",
@@ -27,26 +23,10 @@ SupplyChainLLMRelationType = Literal[
 ]
 
 
-class SupplyChainLLMClient(Protocol):
-    """Small protocol shared by OpenAI-compatible and test clients."""
-
-    provider: str
-    model: str
-
-    def complete(
-        self,
-        prompt: str,
-        system: str | None = None,
-        max_tokens: int | None = None,
-        temperature: float | None = None,
-    ) -> str:
-        """Return a plain-text chat completion."""
-
-
 class SupplierRelationExtraction(BaseModel):
     """One Pydantic-validated supplier relation emitted by the LLM."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid")
 
     supplier_name: str = Field(min_length=1)
     ticker: str | None = None
@@ -70,30 +50,21 @@ class SupplierRelationExtraction(BaseModel):
         return text or None
 
 
-def build_supply_chain_llm_client(
-    llm_config: LLMRunConfig | None,
-) -> Any:
-    """Build the selected per-run LLM client for supply-chain extraction."""
-    config = llm_config or LLMRunConfig()
-    from src.config import get_settings
+class SupplyChainRelationClient(Protocol):
+    """Typed relation extraction operation required by supplier discovery."""
 
-    settings = get_settings()
-    from src.ai.deps import AgentServices
-    from src.ai.model_factory import build_agent_model, resolve_agent_model_config
-    from src.ai.store_factory import get_agent_run_recorder
-    from src.ai.structured_clients import PydanticAISupplierRelationClient
-
-    return PydanticAISupplierRelationClient(
-        model=build_agent_model(
-            resolve_agent_model_config(config, settings=settings)
-        ),
-        settings=settings,
-        services=AgentServices(message_recorder=get_agent_run_recorder()),
-    )
+    def extract_supplier_relations(
+        self,
+        *,
+        prompt: str,
+        company_name: str | None,
+        product_name: str,
+        max_suppliers: int,
+    ) -> tuple[list[SupplierRelationExtraction], str]: ...
 
 
 def extract_supplier_relations(
-    client: SupplyChainLLMClient,
+    client: SupplyChainRelationClient,
     *,
     company_name: str | None,
     product_name: str,
@@ -113,37 +84,12 @@ def extract_supplier_relations(
         search_results=search_results,
         max_suppliers=max_suppliers,
     )
-    typed_extract = getattr(client, "extract_supplier_relations", None)
-    if callable(typed_extract):
-        return typed_extract(
-            prompt=prompt,
-            company_name=company_name,
-            product_name=product_name,
-            max_suppliers=max_suppliers,
-        )
-    content = client.complete(
-        prompt,
-        system=(
-            "You extract evidence-backed supply-chain relationships from web "
-            "search snippets. Use only the provided snippets. Return JSON only."
-        ),
-        max_tokens=1800,
-        temperature=0.0,
+    return client.extract_supplier_relations(
+        prompt=prompt,
+        company_name=company_name,
+        product_name=product_name,
+        max_suppliers=max_suppliers,
     )
-    payload = _extract_json(content)
-    raw_relations = _raw_relations(payload)
-    relations: list[SupplierRelationExtraction] = []
-    for raw in raw_relations:
-        if not isinstance(raw, dict):
-            continue
-        try:
-            relation = SupplierRelationExtraction.model_validate(raw)
-        except Exception:
-            continue
-        relations.append(relation)
-        if len(relations) >= max_suppliers:
-            break
-    return relations, content
 
 
 def _build_prompt(
@@ -203,44 +149,8 @@ Snippets:
 """
 
 
-def _raw_relations(payload: Any) -> list[Any]:
-    if isinstance(payload, list):
-        return payload
-    if not isinstance(payload, dict):
-        return []
-    raw = payload.get("relations") or payload.get("suppliers") or payload.get("edges")
-    return raw if isinstance(raw, list) else []
-
-
-def _extract_json(content: str) -> Any:
-    text = (content or "").strip()
-    if not text:
-        return None
-    fenced = re.search(r"```(?:json)?\s*(.*?)```", text, flags=re.DOTALL | re.I)
-    if fenced:
-        text = fenced.group(1).strip()
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-    start = min(
-        [idx for idx in (text.find("{"), text.find("[")) if idx >= 0],
-        default=-1,
-    )
-    if start < 0:
-        return None
-    end = max(text.rfind("}"), text.rfind("]"))
-    if end <= start:
-        return None
-    try:
-        return json.loads(text[start : end + 1])
-    except json.JSONDecodeError:
-        return None
-
-
 __all__ = [
     "SupplierRelationExtraction",
-    "SupplyChainLLMClient",
-    "build_supply_chain_llm_client",
+    "SupplyChainRelationClient",
     "extract_supplier_relations",
 ]

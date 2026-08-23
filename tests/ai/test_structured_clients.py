@@ -7,6 +7,7 @@ from src.ai.structured_clients import (
     PydanticAIFilingExtractionClient,
     PydanticAIGenericExtractionClient,
     PydanticAISupplierRelationClient,
+    PydanticAISupplyChainClient,
 )
 from src.config import Settings
 
@@ -108,7 +109,7 @@ async def test_generic_extraction_client_returns_typed_result_in_async_context()
 
 def test_production_builders_select_typed_clients(monkeypatch) -> None:
     from src.config import get_settings
-    from src.supply_chain.llm_extraction import build_supply_chain_llm_client
+    from src.supply_chain.llm import build_supply_chain_llm_client
     from src.workflows.steps.filing_risk_extractor import _build_llm_client
 
     get_settings.cache_clear()
@@ -120,6 +121,6 @@ def test_production_builders_select_typed_clients(monkeypatch) -> None:
     supply_client = build_supply_chain_llm_client(None)
     filing_client = _build_llm_client(None)
 
-    assert isinstance(supply_client, PydanticAISupplierRelationClient)
+    assert isinstance(supply_client, PydanticAISupplyChainClient)
     assert isinstance(filing_client, PydanticAIFilingExtractionClient)
     get_settings.cache_clear()
