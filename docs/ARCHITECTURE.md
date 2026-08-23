@@ -51,7 +51,7 @@ FastAPI
         ▼
 Application Services
 ├── workflows        编排、状态、质量门禁
-├── agents / llm     planner、tool loop、provider adapter
+├── agents / ai      planner、Pydantic AI runtime、provider adapter
 ├── research         财务、变化、Thesis、估值、监控
 ├── supply_chain     供应链发现、递归扩展、Sankey
 ├── graph_reasoning  路径检索、评分、证据绑定、解释验证
@@ -161,16 +161,16 @@ Journal
 
 trace 必须记录 fallback 原因。静态或 cached 结果不能标记为 live。
 
-### Agent 混合运行时
+### Pydantic AI Agent 运行时
 
-Agent 基础设施采用渐进式混合架构：Pydantic AI 负责 provider/model、typed
-dependency、structured output、toolset、usage 和 message protocol；项目继续
+Pydantic AI 是唯一 Agent 运行时，负责 provider/model、typed dependency、
+structured output、toolset、usage 和 message protocol；项目继续
 负责 evidence、预算、审批、run-store、quality gate、业务状态机和 API contract。
 FinRisk 与 Supply Chain 已有保持原 state contract 的 Pydantic Graph 顺序投影。
 
-`AGENT_RUNTIME_MODE` 支持 `legacy`、`pydantic_ai_shadow` 和
-`pydantic_ai_primary`。在 live provider 验收和发布观察期完成前，默认仍为
-`legacy`；切换与删除条件见 [迁移方案](PYDANTIC_AI_MIGRATION.md)。
+`AGENT_RUNTIME_MODE` 已退役；新 run 统一记录 `pydantic_ai`。旧持久化记录的
+runtime mode 仍可解析，但不能恢复已删除实现。LLM 服务由外部系统管理，本仓库
+Compose 只包含 Neo4j。完成记录见 [迁移文档](PYDANTIC_AI_MIGRATION.md)。
 
 ## 安全与质量
 

@@ -21,8 +21,8 @@ The hosted GitHub Pages version is a static dashboard backed by offline fixtures
 - **Graph reasoning subsystem**: context building, candidate path retrieval, path scoring, evidence binding, safe path interpretation, and graph insight validation.
 - **React workflow console**: launcher, run history, process monitor, timeline, risk report, score breakdown, evidence graph, evaluation panel, claim/evidence matrix, supply-chain explorer, and agent-run trace UI.
 - **Product supply-chain explorer**: evidence-backed product dependency discovery, recursive expansion, Sankey visualization, graph writer path, observability metrics, and quality verdicts.
-- **LLM-driven agent runs**: `/agent-runs` API with provider/tool-loop settings, tool traces, evidence candidates, redacted trace download, and human review actions.
-- **Provider-neutral tool loop**: OpenAI-compatible structured outputs, native tool calling where supported, JSON fallback, budget controls, and no-tool finalization.
+- **LLM-driven agent runs**: `/agent-runs` API with Pydantic AI provider settings, tool traces, evidence candidates, redacted trace download, and human review actions.
+- **Provider-neutral Agent runtime**: Pydantic AI structured outputs and typed tools with budget controls, usage accounting, and audited finalization.
 - **Evidence and data tools**: SEC EDGAR, filing sections, transcripts, XBRL/financial metrics, web search/fetch, browser exploration, search routing, caching, and provider fallbacks.
 - **Memory/context guardrails**: evidence-memory adapters, graph-edge memory, active/candidate lifecycle rules, and write guardrails for hypothesis or untrusted evidence.
 - **Personal research cycle**: immutable company snapshots, thesis/watchlist journal, expectations, material-change review, alerts, post-earnings review, and direct FinRisk-to-snapshot orchestration.
@@ -192,7 +192,7 @@ src/
 ├── evidence/          # evidence candidate normalization
 ├── graph/             # Neo4j-compatible graph clients, queries, writers
 ├── graph_reasoning/   # path retrieval, scoring, binding, validation
-├── llm/               # OpenAI-compatible clients and tool-loop runtime
+├── llm/               # non-Agent OpenAI-compatible client helpers
 ├── memory/            # evidence/graph memory and context guardrails
 ├── reports/           # report models and markdown renderer
 ├── research/          # snapshots, journal, peers, valuation, monitoring
@@ -211,7 +211,7 @@ tests/
 
 ## Local LLM and Providers
 
-The LLM layer is OpenAI-compatible across local and hosted providers. In practice, most code paths vary only by `base_url`, API key, model, and tool-calling support.
+Pydantic AI provides the sole Agent runtime across external and hosted OpenAI-compatible providers. Provider selection varies by `base_url`, API key, and model.
 
 | Provider | `LLM_PROVIDER` | Base URL | Auth env var | Example model |
 |---|---|---|---|---|
@@ -220,10 +220,10 @@ The LLM layer is OpenAI-compatible across local and hosted providers. In practic
 | OpenAI | `openai` | `https://api.openai.com/v1` | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | DeepSeek | `deepseek` | `https://api.deepseek.com` | `DEEPSEEK_API_KEY` | `deepseek-v4-flash` |
 
-Local stack:
+The repository does not define an LLM Docker service. Point `.env` at an already-running endpoint; Compose owns only Neo4j:
 
 ```bash
-docker compose up -d
+docker compose up -d neo4j
 ```
 
 For public APIs, copy `.env.example` to `.env` and fill only the providers you intend to use. Demo and CI paths are designed not to require real API keys.
