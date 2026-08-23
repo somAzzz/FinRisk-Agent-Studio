@@ -11,15 +11,17 @@ from typing import Any
 
 from pydantic_ai.models import Model
 
-from src.agents.extraction_agent import chunk_text
+from src.agents.extraction_agent import ExtractionResult, chunk_text
 from src.ai.agents.structured import (
     build_filing_extraction_agent,
+    build_generic_extraction_agent,
     build_relation_extraction_agent,
 )
 from src.ai.deps import AgentDeps, AgentServices, AgentSubject
 from src.ai.runtime_adapter import run_awaitable_sync
 from src.config import Settings
 from src.schemas.finrisk import ChunkValidation, ExtractedRisk, LLMCall
+from src.schemas.llm_config import LLMRunConfig
 from src.supply_chain.llm_extraction import SupplierRelationExtraction
 
 
@@ -204,7 +206,68 @@ class PydanticAISupplierRelationClient:
         return output.relations[:max_suppliers], output.model_dump_json()
 
 
+class PydanticAIGenericExtractionClient:
+    """Typed extraction boundary for filing, transcript, and web agents."""
+
+    provider = "pydantic_ai"
+
+    def __init__(
+        self,
+        *,
+        model: Model,
+        settings: Settings,
+        services: AgentServices | None = None,
+    ) -> None:
+        self.model = model
+        self.model_name = model.model_name
+        self.settings = settings
+        self.services = services or AgentServices()
+        self.agent = build_generic_extraction_agent(model)
+
+    def extract(self, prompt: str) -> ExtractionResult:
+        """Return one validated ``ExtractionResult`` from source text."""
+        run_id = f"extraction-{uuid.uuid4().hex[:12]}"
+        deps = AgentDeps(
+            run_id=run_id,
+            conversation_id=run_id,
+            settings=self.settings,
+            services=self.services,
+        )
+        result = self.agent.run_sync(prompt, deps=deps, run_id=run_id)
+        recorder = self.services.message_recorder
+        if recorder is not None:
+            run_awaitable_sync(
+                recorder.record_result(
+                    run_id=run_id,
+                    conversation_id=run_id,
+                    agent_name=self.agent.name or "generic_structured_extractor",
+                    result=result,
+                )
+            )
+        return result.output
+
+
+def build_generic_extraction_client(
+    llm_config: LLMRunConfig | None = None,
+) -> PydanticAIGenericExtractionClient:
+    """Build the typed generic extractor through the central model factory."""
+    from src.ai.model_factory import build_agent_model, resolve_agent_model_config
+    from src.ai.store_factory import get_agent_run_recorder
+    from src.config import get_settings
+
+    settings = get_settings()
+    return PydanticAIGenericExtractionClient(
+        model=build_agent_model(
+            resolve_agent_model_config(llm_config, settings=settings)
+        ),
+        settings=settings,
+        services=AgentServices(message_recorder=get_agent_run_recorder()),
+    )
+
+
 __all__ = [
     "PydanticAIFilingExtractionClient",
+    "PydanticAIGenericExtractionClient",
     "PydanticAISupplierRelationClient",
+    "build_generic_extraction_client",
 ]

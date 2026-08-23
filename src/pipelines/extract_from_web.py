@@ -5,6 +5,7 @@ from __future__ import annotations
 from src.agents.extraction_agent import ExtractionResult
 from src.agents.web_agent import WebExtractionAgent
 from src.schemas.evidence import Evidence
+from src.schemas.llm_config import LLMRunConfig
 
 
 def _drop_orphan_relations(result: ExtractionResult) -> ExtractionResult:
@@ -20,8 +21,16 @@ def _drop_orphan_relations(result: ExtractionResult) -> ExtractionResult:
 def extract_from_web(
     web_evidence: list[Evidence],
     extraction_agent: WebExtractionAgent | None = None,
+    llm_config: LLMRunConfig | None = None,
 ) -> ExtractionResult:
     """Run a batch of web :class:`Evidence` rows through the web agent."""
-    agent = extraction_agent or WebExtractionAgent()
+    agent = extraction_agent
+    if agent is None:
+        client = None
+        if llm_config is not None:
+            from src.ai.structured_clients import build_generic_extraction_client
+
+            client = build_generic_extraction_client(llm_config)
+        agent = WebExtractionAgent(llm_client=client)
     result = agent.extract(web_evidence)
     return _drop_orphan_relations(result)

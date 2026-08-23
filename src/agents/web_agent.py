@@ -9,12 +9,14 @@ and recent events with explicit URLs.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from src.agents.base import Agent
 from src.agents.extraction_agent import (
     ExtractionResult,
+    StructuredExtractionClient,
     TextChunk,
+    _call_llm,
+    _empty_result,
     chunk_text,
 )
 from src.agents.state import AgentState
@@ -83,28 +85,18 @@ def _is_web_evidence(evidence: Evidence) -> bool:
     return evidence.source_type in {"web", "browser"}
 
 
-def _call(llm_client: Any, prompt: str) -> Any:
-    parse = getattr(llm_client, "parse", None)
-    if callable(parse):
-        return parse(prompt, ExtractionResult)
-    complete = getattr(llm_client, "complete", None)
-    if callable(complete):
-        return complete(prompt)
-    return None
-
-
 class WebExtractionAgent:
     """Agent that extracts contracts/events/partnerships from web evidence."""
 
     name: str = "web_extraction"
 
-    def __init__(self, llm_client: object | None = None) -> None:
+    def __init__(
+        self, llm_client: StructuredExtractionClient | None = None
+    ) -> None:
         self.llm_client = llm_client
 
     def extract(self, web_evidence: list[Evidence]) -> ExtractionResult:
         """Run a batch of web evidence through the extraction loop."""
-        from src.agents.extraction_agent import _coerce_result, _empty_result
-
         accumulator = _empty_result()
         for evidence in web_evidence:
             if not _is_web_evidence(evidence):
@@ -123,8 +115,7 @@ class WebExtractionAgent:
                 if self.llm_client is None:
                     continue
                 prompt = _build_web_prompt(evidence.url, evidence.title, chunk)
-                response = _call(self.llm_client, prompt)
-                result = _coerce_result(response)
+                result = _call_llm(self.llm_client, prompt)
                 accumulator.entities.extend(result.entities)
                 accumulator.relations.extend(result.relations)
                 accumulator.claims.extend(result.claims)

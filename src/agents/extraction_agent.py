@@ -8,9 +8,7 @@ source-agnostic.
 
 from __future__ import annotations
 
-import json
-from collections.abc import Callable
-from typing import Any, Protocol
+from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,12 +61,12 @@ class ExtractionResult(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
-class StructuredLLMClient(Protocol):
-    """Minimal contract for LLM clients used by extraction agents."""
+class StructuredExtractionClient(Protocol):
+    """Typed model boundary used by source extraction agents."""
 
-    def parse(
-        self, prompt: str, response_model: type[BaseModel]
-    ) -> BaseModel | None: ...
+    def extract(self, prompt: str) -> ExtractionResult:
+        """Return one Pydantic-validated extraction result."""
+        ...
 
 
 def chunk_text(
@@ -126,142 +124,6 @@ def chunk_text(
     return chunks
 
 
-def _extract_json(payload: str) -> dict[str, Any] | None:
-    """Best-effort JSON extractor that tolerates markdown code fences."""
-    if not payload:
-        return None
-    fence = _find_fenced_json(payload)
-    if fence is not None:
-        return fence
-    try:
-        result = json.loads(payload)
-    except json.JSONDecodeError:
-        return None
-    return result if isinstance(result, dict) else None
-
-
-def _find_fenced_json(payload: str) -> dict[str, Any] | None:
-    """Return the first valid JSON object found in a markdown code fence."""
-    start = payload.find("```")
-    while start != -1:
-        line_end = payload.find("\n", start)
-        if line_end == -1:
-            return None
-        end = payload.find("```", line_end)
-        if end == -1:
-            return None
-        body = payload[line_end + 1 : end].strip()
-        try:
-            result = json.loads(body)
-        except json.JSONDecodeError:
-            start = payload.find("```", end)
-            continue
-        if isinstance(result, dict):
-            return result
-        start = payload.find("```", end)
-    return None
-
-
-def _coerce_evidence(item: Any) -> Evidence | None:
-    """Try to coerce ``item`` (dict, str, or ``Evidence``) into Evidence."""
-    if isinstance(item, Evidence):
-        return item
-    if isinstance(item, str):
-        return None
-    if not isinstance(item, dict):
-        return None
-    required = {"source_type", "source_id", "quote"}
-    if not required.issubset(item.keys()):
-        return None
-    try:
-        return Evidence.model_validate(item)
-    except Exception:
-        return None
-
-
-def _coerce_entity(item: Any) -> Entity | None:
-    if isinstance(item, Entity):
-        return item
-    if not isinstance(item, dict):
-        return None
-    try:
-        return Entity.model_validate(item)
-    except Exception:
-        return None
-
-
-def _coerce_relation(item: Any) -> Relation | None:
-    if isinstance(item, Relation):
-        return item
-    if not isinstance(item, dict):
-        return None
-    try:
-        return Relation.model_validate(item)
-    except Exception:
-        return None
-
-
-def _coerce_claim(item: Any) -> Claim | None:
-    if isinstance(item, Claim):
-        return item
-    if not isinstance(item, dict):
-        return None
-    try:
-        return Claim.model_validate(item)
-    except Exception:
-        return None
-
-
-def _coerce_result(payload: Any) -> ExtractionResult:
-    """Tolerantly parse a raw LLM payload into an ``ExtractionResult``."""
-    if isinstance(payload, ExtractionResult):
-        return payload
-    if isinstance(payload, BaseModel):
-        try:
-            return ExtractionResult.model_validate(payload.model_dump())
-        except Exception:
-            return ExtractionResult()
-    if isinstance(payload, str):
-        data = _extract_json(payload) or {}
-    elif isinstance(payload, dict):
-        data = payload
-    else:
-        return ExtractionResult()
-
-    entities: list[Entity] = []
-    for raw in data.get("entities", []) or []:
-        coerced = _coerce_entity(raw)
-        if coerced is not None:
-            entities.append(coerced)
-
-    relations: list[Relation] = []
-    for raw in data.get("relations", []) or []:
-        coerced = _coerce_relation(raw)
-        if coerced is not None:
-            relations.append(coerced)
-
-    claims: list[Claim] = []
-    for raw in data.get("claims", []) or []:
-        coerced = _coerce_claim(raw)
-        if coerced is not None:
-            claims.append(coerced)
-
-    evidence: list[Evidence] = []
-    for raw in data.get("evidence", []) or []:
-        coerced = _coerce_evidence(raw)
-        if coerced is not None:
-            evidence.append(coerced)
-
-    warnings = [str(w) for w in (data.get("warnings") or [])]
-    return ExtractionResult(
-        entities=entities,
-        relations=relations,
-        claims=claims,
-        evidence=evidence,
-        warnings=warnings,
-    )
-
-
 def _empty_result() -> ExtractionResult:
     return ExtractionResult()
 
@@ -285,30 +147,21 @@ def _merge_into_state(state: AgentState, result: ExtractionResult) -> None:
 
 
 def _call_llm(
-    llm_client: Any,
+    llm_client: StructuredExtractionClient,
     prompt: str,
-    parser: Callable[[Any], ExtractionResult],
 ) -> ExtractionResult:
-    """Call the configured LLM client and normalize its output."""
-    parse = getattr(llm_client, "parse", None)
-    if callable(parse):
-        try:
-            response = parse(prompt, ExtractionResult)
-        except Exception as exc:
-            return _empty_result().model_copy(
-                update={"warnings": [f"llm parse failed: {exc}"]}
-            )
-        return parser(response)
-    complete = getattr(llm_client, "complete", None)
-    if callable(complete):
-        try:
-            raw = complete(prompt)
-        except Exception as exc:
-            return _empty_result().model_copy(
-                update={"warnings": [f"llm complete failed: {exc}"]}
-            )
-        return parser(raw)
-    return _empty_result()
+    """Call the typed extraction boundary and preserve failure metadata."""
+    try:
+        result = llm_client.extract(prompt)
+    except Exception as exc:
+        return _empty_result().model_copy(
+            update={"warnings": [f"typed extraction failed: {exc}"]}
+        )
+    if not isinstance(result, ExtractionResult):
+        return _empty_result().model_copy(
+            update={"warnings": ["typed extraction returned an invalid result"]}
+        )
+    return result
 
 
 class ExtractionAgent:
@@ -325,7 +178,9 @@ class ExtractionAgent:
 
     name: str = "extraction"
 
-    def __init__(self, llm_client: object | None = None) -> None:
+    def __init__(
+        self, llm_client: StructuredExtractionClient | None = None
+    ) -> None:
         self.llm_client = llm_client
 
     def run(self, state: AgentState) -> AgentState:
@@ -342,7 +197,7 @@ class ExtractionAgent:
             )
             for chunk in chunks:
                 prompt = _build_prompt(chunk)
-                result = _call_llm(self.llm_client, prompt, _coerce_result)
+                result = _call_llm(self.llm_client, prompt)
                 _merge_into_state(state, result)
 
         return state

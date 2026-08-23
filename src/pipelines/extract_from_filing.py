@@ -5,6 +5,7 @@ from __future__ import annotations
 from src.agents.extraction_agent import ExtractionResult
 from src.agents.filing_agent import FilingExtractionAgent
 from src.schemas.filings import FilingRecord
+from src.schemas.llm_config import LLMRunConfig
 
 
 def _drop_orphan_relations(result: ExtractionResult) -> ExtractionResult:
@@ -20,13 +21,20 @@ def _drop_orphan_relations(result: ExtractionResult) -> ExtractionResult:
 def extract_from_filing(
     filing: FilingRecord,
     extraction_agent: FilingExtractionAgent | None = None,
+    llm_config: LLMRunConfig | None = None,
 ) -> ExtractionResult:
     """Run a :class:`FilingRecord` through the filing extraction agent.
 
-    A default :class:`FilingExtractionAgent` (with no LLM client) is
-    instantiated if none is supplied, which still produces the chunk
-    evidence row but no entities, relations, or claims.
+    Passing ``llm_config`` builds the typed Pydantic AI extraction client.
+    Omitting it preserves the explicit offline extraction mode.
     """
-    agent = extraction_agent or FilingExtractionAgent()
+    agent = extraction_agent
+    if agent is None:
+        client = None
+        if llm_config is not None:
+            from src.ai.structured_clients import build_generic_extraction_client
+
+            client = build_generic_extraction_client(llm_config)
+        agent = FilingExtractionAgent(llm_client=client)
     result = agent.extract(filing)
     return _drop_orphan_relations(result)

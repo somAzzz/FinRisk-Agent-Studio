@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.agents.extraction_agent import ExtractionResult
 from src.agents.filing_agent import FilingExtractionAgent
@@ -11,6 +11,7 @@ from src.schemas.claims import Claim
 from src.schemas.entities import Entity
 from src.schemas.evidence import Evidence
 from src.schemas.filings import FilingRecord
+from src.schemas.llm_config import LLMRunConfig
 from src.schemas.relations import Relation
 
 
@@ -34,7 +35,7 @@ def _evidence(eid: str = "ev1") -> Evidence:
         source_type="sec_filing",
         source_id="src",
         quote="Some quote from the filing.",
-        retrieved_at=datetime(2026, 6, 20, tzinfo=timezone.utc),
+        retrieved_at=datetime(2026, 6, 20, tzinfo=UTC),
         confidence=0.9,
     )
 
@@ -128,3 +129,27 @@ def test_extract_from_filing_handles_empty_sections() -> None:
     assert out.relations == []
     assert out.claims == []
     assert out.evidence == []
+
+
+def test_extract_from_filing_builds_typed_client_when_configured(
+    monkeypatch,
+) -> None:
+    calls = []
+
+    class Client:
+        def extract(self, prompt: str) -> ExtractionResult:
+            calls.append(prompt)
+            return ExtractionResult(warnings=["typed"])
+
+    monkeypatch.setattr(
+        "src.ai.structured_clients.build_generic_extraction_client",
+        lambda config: Client(),
+    )
+
+    out = extract_from_filing(
+        _filing(),
+        llm_config=LLMRunConfig(provider="sglang"),
+    )
+
+    assert calls
+    assert out.warnings == ["typed"]

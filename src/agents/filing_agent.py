@@ -10,13 +10,15 @@ shared :mod:`src.agents.extraction_agent` module.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from src.agents.base import Agent
 from src.agents.extraction_agent import (
     ExtractionAgent,
     ExtractionResult,
+    StructuredExtractionClient,
     TextChunk,
+    _call_llm,
+    _empty_result,
     chunk_text,
 )
 from src.agents.state import AgentState
@@ -109,14 +111,14 @@ class FilingExtractionAgent:
 
     name: str = "filing_extraction"
 
-    def __init__(self, llm_client: object | None = None) -> None:
+    def __init__(
+        self, llm_client: StructuredExtractionClient | None = None
+    ) -> None:
         self.llm_client = llm_client
         self._generic = ExtractionAgent(llm_client=llm_client)
 
     def extract(self, filing: FilingRecord) -> ExtractionResult:
         """Run a single filing through the extraction loop."""
-        from src.agents.extraction_agent import _coerce_result, _empty_result
-
         sections = _select_filing_sections(filing)
         if not sections:
             return _empty_result()
@@ -138,8 +140,7 @@ class FilingExtractionAgent:
                     _evidence_from_chunk(filing, section_name, chunk)
                 )
                 prompt = _build_filing_prompt(section_name, chunk)
-                response = _call(self.llm_client, prompt)
-                result = _coerce_result(response)
+                result = _call_llm(self.llm_client, prompt)
                 accumulator.entities.extend(result.entities)
                 accumulator.relations.extend(result.relations)
                 accumulator.claims.extend(result.claims)
@@ -152,18 +153,6 @@ class FilingExtractionAgent:
             state.notes.append("filing_extraction: no llm_client provided, skipping")
             return state
         return self._generic.run(state)
-
-
-def _call(llm_client: Any, prompt: str) -> Any:
-    """Dispatch to whichever LLM method the client exposes."""
-    parse = getattr(llm_client, "parse", None)
-    if callable(parse):
-        return parse(prompt, ExtractionResult)
-    complete = getattr(llm_client, "complete", None)
-    if callable(complete):
-        return complete(prompt)
-    return None
-
 
 def is_filing_agent(obj: object) -> bool:
     """Runtime helper for ``isinstance``-free protocol checks."""

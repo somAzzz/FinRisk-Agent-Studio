@@ -4,6 +4,7 @@ from pydantic_ai.models.test import TestModel
 
 from src.ai.structured_clients import (
     PydanticAIFilingExtractionClient,
+    PydanticAIGenericExtractionClient,
     PydanticAISupplierRelationClient,
 )
 from src.config import Settings
@@ -81,6 +82,26 @@ def test_supplier_client_returns_validated_relation_batch() -> None:
     assert relations[0].supplier_name == "Supplier A"
     assert relations[0].source_url == "https://example.com/supplier-a"
     assert '"relations"' in raw
+
+
+def test_generic_extraction_client_returns_typed_result() -> None:
+    client = PydanticAIGenericExtractionClient(
+        model=TestModel(
+            custom_output_args={
+                "entities": [],
+                "relations": [],
+                "claims": [],
+                "evidence": [],
+                "warnings": ["no supported facts"],
+            }
+        ),
+        settings=Settings(),
+    )
+
+    result = client.extract("Extract only source-backed facts.")
+
+    assert result.warnings == ["no supported facts"]
+    assert result.entities == []
 
 
 def test_production_builders_select_typed_clients(monkeypatch) -> None:

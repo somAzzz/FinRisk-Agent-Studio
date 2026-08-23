@@ -9,12 +9,14 @@ Analyst questions are kept only when management provides an answer.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from src.agents.base import Agent
 from src.agents.extraction_agent import (
     ExtractionResult,
+    StructuredExtractionClient,
     TextChunk,
+    _call_llm,
+    _empty_result,
     chunk_text,
 )
 from src.agents.state import AgentState
@@ -115,28 +117,18 @@ def _evidence_for_turn(
     )
 
 
-def _call(llm_client: Any, prompt: str) -> Any:
-    parse = getattr(llm_client, "parse", None)
-    if callable(parse):
-        return parse(prompt, ExtractionResult)
-    complete = getattr(llm_client, "complete", None)
-    if callable(complete):
-        return complete(prompt)
-    return None
-
-
 class TranscriptExtractionAgent:
     """Agent that extracts earnings-call signals from a transcript."""
 
     name: str = "transcript_extraction"
 
-    def __init__(self, llm_client: object | None = None) -> None:
+    def __init__(
+        self, llm_client: StructuredExtractionClient | None = None
+    ) -> None:
         self.llm_client = llm_client
 
     def extract(self, transcript: Transcript) -> ExtractionResult:
         """Run a single transcript through the extraction loop."""
-        from src.agents.extraction_agent import _coerce_result, _empty_result
-
         prepared = [t for t in transcript.turns if t.section == "prepared_remarks"]
         qa_pairs = _pair_qa_turns(
             [t for t in transcript.turns if t.section == "qa"]
@@ -173,8 +165,7 @@ class TranscriptExtractionAgent:
                     if self.llm_client is None:
                         continue
                     prompt = _build_transcript_prompt(section_name, chunk)
-                    response = _call(self.llm_client, prompt)
-                    result = _coerce_result(response)
+                    result = _call_llm(self.llm_client, prompt)
                     accumulator.entities.extend(result.entities)
                     accumulator.relations.extend(result.relations)
                     accumulator.claims.extend(result.claims)

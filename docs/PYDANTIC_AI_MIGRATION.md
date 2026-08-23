@@ -59,7 +59,10 @@ Pydantic AI 负责：
 8. API 的 `tool_loop_mode` 字段仅为旧客户端 wire compatibility 保留并忽略。
 9. FinRisk 与 Supply Chain 的 API、CLI 和后台任务已统一使用 Pydantic Graph
    默认入口，旧的手写 step 循环已删除。
-10. 以下实现及其专用测试已删除：
+10. filing/transcript/web 通用 extraction 已删除任意 `parse`/`complete` client
+    兼容和手工 JSON 恢复逻辑；显式传入 `LLMRunConfig` 时统一构建 typed
+    Pydantic AI extraction client，未传入时保持离线模式。
+11. 以下实现及其专用测试已删除：
    - `src/agents/runtime.py`
    - `src/agents/llm_runtime.py`
    - `src/llm/client.py`
