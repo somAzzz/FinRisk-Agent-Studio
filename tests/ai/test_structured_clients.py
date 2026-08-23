@@ -1,5 +1,6 @@
 """Production-protocol tests for typed filing and relation clients."""
 
+import pytest
 from pydantic_ai.models.test import TestModel
 
 from src.ai.structured_clients import (
@@ -84,7 +85,8 @@ def test_supplier_client_returns_validated_relation_batch() -> None:
     assert '"relations"' in raw
 
 
-def test_generic_extraction_client_returns_typed_result() -> None:
+@pytest.mark.asyncio
+async def test_generic_extraction_client_returns_typed_result_in_async_context() -> None:
     client = PydanticAIGenericExtractionClient(
         model=TestModel(
             custom_output_args={

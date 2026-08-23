@@ -87,7 +87,9 @@ class PydanticAIFilingExtractionClient:
             )
             started_at = datetime.now(UTC)
             started = time.perf_counter()
-            result = self.agent.run_sync(prompt, deps=deps, run_id=run_id)
+            result = run_awaitable_sync(
+                self.agent.run(prompt, deps=deps, run_id=run_id)
+            )
             completed_at = datetime.now(UTC)
             output = result.output
             risks.extend(output.risks)
@@ -191,7 +193,9 @@ class PydanticAISupplierRelationClient:
             ),
             services=self.services,
         )
-        result = self.agent.run_sync(prompt, deps=deps, run_id=run_id)
+        result = run_awaitable_sync(
+            self.agent.run(prompt, deps=deps, run_id=run_id)
+        )
         output = result.output
         recorder = self.services.message_recorder
         if recorder is not None:
@@ -233,7 +237,9 @@ class PydanticAIGenericExtractionClient:
             settings=self.settings,
             services=self.services,
         )
-        result = self.agent.run_sync(prompt, deps=deps, run_id=run_id)
+        result = run_awaitable_sync(
+            self.agent.run(prompt, deps=deps, run_id=run_id)
+        )
         recorder = self.services.message_recorder
         if recorder is not None:
             run_awaitable_sync(

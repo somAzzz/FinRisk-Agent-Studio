@@ -109,8 +109,9 @@ docker compose config --services
 - input tokens：1075
 - output tokens：183
 
-同日另行执行 Browser Explorer live smoke：typed `PageSummary` 返回 188 个字符，
-下一步返回经 `BrowserAction` 校验的 `search` 动作，结果通过。
+同日另行执行 Browser Explorer 与 generic extraction live smoke：Browser Agent
+实际调用 1 次 `browser_action` tool，并返回经 `BrowserAction` 校验的 `search`
+动作；generic extractor 返回 typed `ExtractionResult`，结果通过。
 
 验收命令：
 
@@ -127,7 +128,7 @@ API key 仅从本地运行环境注入，不写入仓库或验收文档。
 
 迁移期间的定向回归覆盖配置、API、runtime adapter、structured clients、
 Market Explorer、Supply Chain、通用研究 CLI、旧模块缺失与全模块导入。
-最终验证为 `989 passed, 6 skipped`；frontend 为 18 个测试文件、76 项测试
+最终验证为 `992 passed, 6 skipped`；frontend 为 18 个测试文件、76 项测试
 通过，production build 通过。
 
 ## 运行与故障处理
