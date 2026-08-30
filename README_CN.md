@@ -4,9 +4,10 @@
 
 FinRisk Agent Studio 是一个面向金融研究的 evidence-first agent workflow 开源参考实现。它不是通用的 "chat with filings" 演示,而是强调可审计执行:结构化输入、工具 trace、证据候选、确定性打分、图路径、质量门禁与人工复核。
 
-> 学习分支 `tutorial/pydantic-ai-harness` 提供一套不含答案代码的
-> [Pydantic AI / Harness Chapter 6–9 实践教程](tutorials/README.md)，并通过
-> [完整学习指南](tutorials/COMPLETE_GUIDE.md)连接 `frequency_analyzer` 的 Chapter 0–5。
+> 学习分支 `tutorial/pydantic-ai-harness` 提供一套不含答案代码、从迁移前提交开始实际
+> 切换并删除旧 runtime 的 [Pydantic AI / Harness Chapter 6–9 重构教程](tutorials/README.md)，
+> [完整学习指南](tutorials/COMPLETE_GUIDE.md)负责连接 `frequency_analyzer` 的 Chapter 0–5，
+> [迁移总图](tutorials/MIGRATION_MAP.md)说明每类新文件接替的旧职责。
 
 > 英文 `README.md` 是主文档。本中文版同步核心结构、运行方式与最新进展;终端命令、API 路径、环境变量和模型名保持英文。
 
