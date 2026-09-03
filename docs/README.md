@@ -33,6 +33,7 @@
 ## 历史归档
 
 - [Pydantic AI 与气候披露迁移教程](archive/tutorials/README.md)：历史学习与架构推演材料，不属于当前产品路线。
+- [Pydantic AI 迁移与阶段验收](archive/pydantic-ai-migration/README.md)：已完成迁移的过程、基线和 PAI-0～PAI-7 证据。
 - [TCFD 气候披露能力合并方案](archive/tcfd-integration-plan.md)：已退出当前路线的方案记录。
 
 ## 维护规则
