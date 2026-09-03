@@ -33,16 +33,16 @@ blocklist. Out of scope.
 
 ## Browser redirect re-validation
 
-`src/browser/wrapper.py` validates the URL once at the entry
-point of `navigate()`. The underlying `agent-browser` CLI follows
-redirects freely; there is no hook to re-validate after each hop.
+The default Playwright backend validates the requested URL and validates the final
+URL again after navigation. That final check happens after the request, however,
+and neither browser backend pins DNS or blocks every redirect before it is followed.
+The optional `agent-browser` CLI backend has no redirect hook at all.
 
-**Mitigation today**: validate pre-navigation; document the
-residual risk here.
+**Mitigation today**: validate before navigation; on Playwright, also reject an
+unsafe final URL before returning page content.
 
-**Future fix**: switch to a Playwright backend where the
-`page.on("response")` hook can re-validate every redirect. Out
-of scope for the audit pass.
+**Future fix**: intercept navigation requests and pin or validate every resolved
+redirect target before the browser connects.
 
 ## Rate-limit memory growth (R1 supplement)
 

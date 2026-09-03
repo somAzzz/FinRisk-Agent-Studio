@@ -4,13 +4,6 @@
 
 FinRisk Agent Studio 是一个面向金融研究的 evidence-first agent workflow 开源参考实现。它不是通用的 "chat with filings" 演示,而是强调可审计执行:结构化输入、工具 trace、证据候选、确定性打分、图路径、质量门禁与人工复核。
 
-> 学习分支 `tutorial/pydantic-ai-harness` 提供一套不含答案代码的
-> [Pydantic AI 与气候披露迁移教程](tutorials/README.md)：Chapter 6–9 重演 FinRisk runtime
-> 切换，Chapter 10–16 把 `llm_tcfd` 研究能力迁成气候披露领域；
-> [完整学习指南](tutorials/COMPLETE_GUIDE.md)连接 `frequency_analyzer` 的 Chapter 0–5，
-> 两张迁移总图分别说明 [runtime 职责替换](tutorials/MIGRATION_MAP.md)和
-> [跨仓库气候能力映射](tutorials/CLIMATE_MIGRATION_MAP.md)。
-
 > 英文 `README.md` 是主文档。本中文版同步核心结构、运行方式与最新进展;终端命令、API 路径、环境变量和模型名保持英文。
 
 当前文档版本：**v0.1 release candidate**；Python 与前端包版本：`0.1.0`。
@@ -30,8 +23,8 @@ GitHub Pages 托管版是基于离线 fixtures 的静态 dashboard。它展示 F
 - **Graph reasoning subsystem**: context building、candidate path retrieval、path scoring、evidence binding、safe path interpretation 与 graph insight validation。
 - **React workflow console**: launcher、run history、process monitor、timeline、risk report、score breakdown、evidence graph、evaluation panel、claim/evidence matrix、supply-chain explorer 与 agent-run trace UI。
 - **Product supply-chain explorer**: evidence-backed product dependency discovery、recursive expansion、Sankey visualization、graph writer path、observability metrics 与 quality verdicts。
-- **LLM-driven agent runs**: `/agent-runs` API,支持 provider/tool-loop 设置、tool traces、evidence candidates、redacted trace download 与 human review actions。
-- **Provider-neutral tool loop**: OpenAI-compatible structured outputs、native tool calling、JSON fallback、budget controls 与 no-tool finalization。
+- **LLM-driven agent runs**: `/agent-runs` API,支持 Pydantic AI provider 设置、tool traces、evidence candidates、redacted trace download 与 human review actions。
+- **Provider-neutral Agent runtime**: Pydantic AI structured outputs、typed tools、budget controls、usage accounting 与可审计终态。
 - **Evidence and data tools**: SEC EDGAR、filing sections、transcripts、XBRL/financial metrics、web search/fetch、browser exploration、search routing、caching 与 provider fallback。
 - **Memory/context guardrails**: evidence-memory adapters、graph-edge memory、active/candidate lifecycle rules 与 memory write guardrails。
 - **个人研究闭环**：不可变快照、Thesis/Watchlist、预期、重大变化复核、提醒、财报后复盘，以及 FinRisk 直接关联研究快照。
@@ -48,6 +41,7 @@ Company Resolver
 → Market Evidence Collection
 → Evidence Normalization
 → Risk Scoring
+→ Risk Lifecycle Classification
 → Graph Reasoning
 → Structured Report Generation
 → Quality Layer / Human Review Gate
@@ -156,6 +150,7 @@ POST /agent-runs
 GET  /agent-runs/{run_id}
 GET  /agent-runs/{run_id}/timeline
 GET  /agent-runs/{run_id}/trace.json
+POST /agent-runs/{run_id}/resume
 POST /agent-runs/{run_id}/review-items/{item_id}
 POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
 
@@ -194,7 +189,7 @@ src/
 ├── evidence/          # evidence candidate normalization
 ├── graph/             # Neo4j-compatible graph clients, queries, writers
 ├── graph_reasoning/   # path retrieval, scoring, binding, validation
-├── llm/               # OpenAI-compatible clients and tool-loop runtime
+├── ai/                # Pydantic AI agents、model factory 与 typed clients
 ├── memory/            # evidence/graph memory and context guardrails
 ├── reports/           # report models and markdown renderer
 ├── research/          # 快照、研究日志、同行、估值与监控
@@ -230,13 +225,14 @@ Demo 和 CI 路径设计为不需要真实 API keys。
 
 - **已完成**：带质量门禁的 FinRisk 风险工作流和 point-in-time 个人研究闭环。
 - **核心完成**：证据/数据基础、图与供应链研究、财务事实、同行分析、估值、监控和部署路径。
-- **进行中**：长期 context/memory 质量、可恢复的无人值守 Agent、全仓 lint 治理和候选版本集成。
-- **产品重设计已在当前分支完成**：Today/Company/Runs/Journal 十条路由通过桌面/移动 QA、前端测试与生产构建，但仍比 `main` 多 1 个提交。
+- **进行中**：长期 context/memory 质量、可恢复的无人值守 Agent、全仓 lint 治理和候选版本验证。
+- **产品工作台已完成**：Today/Company/Runs/Journal 十条路由通过桌面/移动 QA、前端测试与生产构建。
 - **v0.1 候选尚未发布**：仓库没有产品 tag，不能把代码候选描述成已发布的 `v0.1.0`。
 
 当前文档：
 
 - [文档中心](docs/README.md)
+- [项目全景与面试讲法](docs/PROJECT_OVERVIEW_INTERVIEW_CN.md)
 - [v0.1 项目状态](docs/STATUS.md)
 - [路线图](docs/ROADMAP.md)
 - [系统架构](docs/ARCHITECTURE.md)
@@ -257,11 +253,11 @@ npm test
 npm run build
 ```
 
-2026-07-25 本地复核：后端 `972 passed, 7 skipped`；前端 18 个测试文件、76 tests；生产构建通过。三视口 Chromium、真实 vLLM、30/30 guardrail cases 与 `npm audit` 0 vulnerabilities 的最近记录日期为 2026-07-12。
+2026-09-03 本地复核：后端非集成测试 `976 passed, 8 deselected`；前端 18 个测试文件、76 tests；生产构建通过。三视口 Chromium、真实 vLLM、30/30 guardrail cases 与 `npm audit` 0 vulnerabilities 的最近记录日期为 2026-07-12。
 
 ## Roadmap(路线图)
 
-v0.1 的近期发布路径是：把产品重设计分支合入 `main`，在合并候选上重跑 CI、npm audit 和浏览器 smoke，并明确是否创建首个 `v0.1.0` tag。
+v0.1 的近期发布路径是：在当前候选上重跑 CI、npm audit、浏览器 smoke 和真实模式验收，并明确是否创建首个 `v0.1.0` tag。
 
 v0.2 聚焦 Agent memory、恢复、幂等、集成覆盖和 lint 治理；v0.3 增加分部、consensus、FX 和行业深度；v0.4 处理外部通知和长期校准。详见[版本化路线图](docs/ROADMAP.md)。
 

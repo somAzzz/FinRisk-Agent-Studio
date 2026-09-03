@@ -39,6 +39,7 @@ Company Resolver
 → Market Evidence Collection
 → Evidence Normalization
 → Risk Scoring
+→ Risk Lifecycle Classification
 → Graph Reasoning
 → Structured Report Generation
 → Quality Layer / Human Review Gate
@@ -154,6 +155,7 @@ POST /agent-runs
 GET  /agent-runs/{run_id}
 GET  /agent-runs/{run_id}/timeline
 GET  /agent-runs/{run_id}/trace.json
+POST /agent-runs/{run_id}/resume
 POST /agent-runs/{run_id}/review-items/{item_id}
 POST /agent-runs/{run_id}/evidence-candidates/{candidate_id}
 
@@ -255,13 +257,14 @@ The canonical status is maintained in the [v0.1 project status](docs/STATUS.md).
 
 - **Completed**: quality-gated FinRisk workflow and the point-in-time personal research cycle.
 - **Core complete**: evidence/data foundation, graph and supply-chain research, financial facts, peer analysis, valuation, monitoring, and deployment paths.
-- **In progress**: long-horizon context/memory quality, resilient unattended agent execution, full-repository lint cleanup, and release integration.
-- **Product redesign complete on its branch**: the ten-route Today/Company/Runs/Journal workbench passed desktop/mobile QA, frontend tests, and production build; it is still one commit ahead of `main`.
+- **In progress**: long-horizon context/memory quality, resilient unattended agent execution, full-repository lint cleanup, and release-candidate validation.
+- **Product workbench completed**: the ten-route Today/Company/Runs/Journal workbench passed desktop/mobile QA, frontend tests, and production build.
 - **Unreleased v0.1 candidate**: the repository has no product tag. A code candidate must not be described as a released `v0.1.0`.
 
 Current documentation:
 
 - [Documentation hub](docs/README.md)
+- [Project overview and interview guide (Chinese)](docs/PROJECT_OVERVIEW_INTERVIEW_CN.md)
 - [v0.1 status](docs/STATUS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
@@ -290,7 +293,7 @@ cd ..
 uv run python scripts/research_journal_live_acceptance.py
 ```
 
-Latest local verification on 2026-07-25: `972 passed, 7 skipped` on the backend; 18 frontend test files with 76 passing tests; production build passed. The latest recorded three-viewport Chromium, real-mode vLLM, 30/30 guardrail, and zero-vulnerability npm audit evidence is dated 2026-07-12.
+Latest local verification on 2026-09-03: `976 passed, 8 deselected` for the non-integration backend suite; 18 frontend test files with 76 passing tests; production build passed. The latest recorded three-viewport Chromium, real-mode vLLM, 30/30 guardrail, and zero-vulnerability npm audit evidence is dated 2026-07-12.
 
 Focused checks used during recent development include:
 
@@ -302,9 +305,9 @@ uv run ruff check src/workflows src/evaluation src/graph_reasoning src/reports s
 
 ## Roadmap
 
-The immediate v0.1 release path is to merge the product-redesign branch into `main`, re-run CI, npm audit, and browser smoke on that merge candidate, and explicitly choose whether to create the first `v0.1.0` tag.
+The immediate v0.1 release path is to re-run CI, npm audit, browser smoke, and a live-mode acceptance on the current candidate, then explicitly choose whether to create the first `v0.1.0` tag.
 
-v0.2 focuses on the incremental [Pydantic AI Agent migration](docs/PYDANTIC_AI_MIGRATION.md), Agent memory, recovery, idempotency, integration coverage, and lint governance. v0.3 adds segment, consensus, FX, and industry depth; v0.4 covers external notifications and long-horizon calibration. See the [versioned roadmap](docs/ROADMAP.md).
+v0.2 focuses on Agent memory, recovery, idempotency, live-provider integration coverage, and lint governance. v0.3 adds segment, consensus, FX, and industry depth; v0.4 covers external notifications and long-horizon calibration. See the [versioned roadmap](docs/ROADMAP.md).
 
 ## Non-Goals
 

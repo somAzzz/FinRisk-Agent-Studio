@@ -76,6 +76,7 @@ Company Resolver
 → Market Evidence Collection
 → Evidence Normalization
 → Risk Scoring
+→ Risk Lifecycle Classification
 → Graph Reasoning
 → Structured Report
 → Quality Layer / Human Review Gate
@@ -174,7 +175,8 @@ API、CLI 与后台任务共用同一 Graph 入口，不再维护重复的手写
 
 `AGENT_RUNTIME_MODE` 已退役；新 run 统一记录 `pydantic_ai`。旧持久化记录的
 runtime mode 仍可解析，但不能恢复已删除实现。LLM 服务由外部系统管理，本仓库
-Compose 只包含 Neo4j。完成记录见 [迁移文档](PYDANTIC_AI_MIGRATION.md)。
+Compose 只包含 Neo4j。运行时边界见 [Pydantic AI ADR](ADR_PYDANTIC_AI_RUNTIME.md)，
+外部模型接入见 [LLM Provider 配置与验收](guides/llm-provider-validation.md)。
 
 ## 安全与质量
 

@@ -2,7 +2,8 @@
 
 - 状态：Accepted，迁移已完成
 - 日期：2026-08-23
-- 详细记录：[Pydantic AI 迁移完成记录](PYDANTIC_AI_MIGRATION.md)
+- 当前架构：[系统架构](ARCHITECTURE.md)
+- 运维验收：[LLM Provider 配置与验收](guides/llm-provider-validation.md)
 
 ## 决策
 

@@ -1,6 +1,6 @@
 """FinRisk Agent Studio workflow orchestrator + CLI entry point.
 
-The orchestrator runs the eight steps in order and updates
+The orchestrator runs the nine steps in order and updates
 ``FinRiskWorkflowState`` between each. The state itself is the only
 mutable object passed between steps; the orchestrator never reads loose
 dicts.
