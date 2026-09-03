@@ -1,5 +1,8 @@
 # 迁移总图：从旧 tool loop 到 Pydantic AI 架构
 
+> 本文只描述 Chapter 6–9 的 Agent runtime 迁移。TCFD 研究能力进入 FinRisk 的 Chapter
+> 10–16 文件映射、证据链和切换门见[气候披露迁移总图](CLIMATE_MIGRATION_MAP.md)。
+
 ## 为什么需要这张图
 
 原教程把 Chapter 6–9 设计成多个隔离练习，虽然安全，却无法训练真正重构中最重要的

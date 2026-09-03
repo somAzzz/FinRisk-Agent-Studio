@@ -9,9 +9,11 @@
 3. [系统架构](ARCHITECTURE.md)：产品域、服务、数据、工作流和安全边界。
 4. [v0.1 规格](specs/v0.1.md)：当前版本的功能与验收契约。
 5. [版本策略](VERSIONING.md)：文档小版本、包版本和 Git tag 的对应关系。
-6. [Pydantic AI Agent 重构方案](PYDANTIC_AI_MIGRATION.md)：v0.2 Agent 基础设施迁移的目标架构、分步执行、测试、验收和回滚规范。
-7. [Pydantic AI 混合运行时 ADR](ADR_PYDANTIC_AI_RUNTIME.md)：迁移期间的架构边界、开关策略和移除旧路径的前提。
-8. [Pydantic AI 切流与回滚 Runbook](guides/pydantic-ai-cutover.md)：live provider 合同、primary 观察门禁、默认切换和回滚命令。
+6. [Pydantic AI 迁移完成记录](PYDANTIC_AI_MIGRATION.md)：单一生产 Agent runtime、已删除旧路径、验收证据和维护约束。
+7. [Pydantic AI 单一运行时 ADR](ADR_PYDANTIC_AI_RUNTIME.md)：模型边界、项目侧治理职责和部署回滚决策。
+8. [Pydantic AI 切流与回滚 Runbook](guides/pydantic-ai-cutover.md)：live provider 合同、切换与回滚操作记录。
+9. [TCFD 气候披露能力合并方案](migration/tcfd-integration-plan.md)：FinRisk 与 `llm_tcfd` 的职责边界、可复用能力、重构范围、分步门禁和切换策略。
+10. [Pydantic AI 与气候披露迁移教程](../tutorials/README.md)：Chapter 6–9 runtime 重构和 Chapter 10–16 气候领域合并实践。
 
 ## 使用指南
 

@@ -2,9 +2,9 @@
 
 ## 学习目标
 
-这是一条跨两个真实项目的十章路线。Chapter 0–5 在较小的文本分析项目里掌握 Core；
-Chapter 6–9 在 FinRisk 代码库里完成真实架构切换、删除旧 runtime，并用 Harness 实验和
-生产治理收尾。
+这是一条跨两个真实项目的三阶段十七章路线。Chapter 0–5 在较小的文本分析项目里掌握
+Core；Chapter 6–9 在 FinRisk 中完成真实架构切换、删除旧 runtime，并用 Harness 实验和
+生产治理收尾；Chapter 10–16 再把 TCFD 研究资产迁成 FinRisk 的气候披露领域能力。
 
 目标不是“尽量不动旧 pipeline”，也不是把 Pydantic AI 藏在兼容 adapter 后面。目标是：
 
@@ -52,7 +52,25 @@ uv run pytest -q
 这一安排让你真实经历：新边界与旧 runtime 暂时并存 → 逐路径切换 → 删除旧 runtime →
 用 source/import gate 防止回归。短暂并存是迁移步骤，不是最终兼容目标。
 
-## 十章知识地图
+### Chapter 10–16：气候披露领域合并
+
+这部分不再练习 SDK/runtime 切换，而是在已经统一的 Pydantic AI 基础设施上实现新领域：
+
+```text
+10. repository boundary, licensing and provenance
+11. document/evidence/requirement contracts
+12. traceable multi-market ingestion
+13. reviewed registry and hybrid retrieval
+14. typed evidence extraction and verification
+15. deterministic assessment and product integration
+16. layered eval, shadow run and cutover
+```
+
+参考起点是 FinRisk `145e34b2...` 与 TCFD `4ef1c0f4...`。完整 SHA、源/目标文件映射和
+不迁移项见[气候披露迁移总图](CLIMATE_MIGRATION_MAP.md)。领域实现目前是教程目标，不能把
+合并方案误写成现成功能。
+
+## 十七章知识地图
 
 | 章 | 主要问题 | 最终产物 |
 | --- | --- | --- |
@@ -66,6 +84,13 @@ uv run pytest -q
 | 7 | 如何完成真实 cutover？ | typed specialists + Pydantic Graph + 删除旧 runtime |
 | 8 | Harness 哪些能力值得采用？ | Core/Harness 对比 + selected capability profile |
 | 9 | 如何进入可审计生产系统？ | layered guardrails + HITL + memory policy + trace + release gates |
+| 10 | 如何在两个仓库之间保持单一所有权？ | provenance + license/data gate + architecture test |
+| 11 | 如何区分候选、证据、映射与最终状态？ | versioned climate contracts + independent state |
+| 12 | 如何让中英文报告片段精确回源？ | disclosure adapters + blocks/locators/issues |
+| 13 | 如何从标准要求而不是词袋出发召回？ | registry + multi-channel retrieval |
+| 14 | Pydantic AI 在气候评审中负责什么？ | typed extractor + verifier，确定性 locator/metric gate |
+| 15 | 如何把证据变成可审计产品结果？ | deterministic assessment + report/API/UI/HITL |
+| 16 | 如何证明迁移质量并安全切换？ | layered eval + shadow + release/rollback |
 
 ## 目标架构
 
@@ -114,7 +139,7 @@ User / API / CLI
 “保留”不是无条件兼容。如果新设计需要改变这些合同，应写 ADR、迁移调用方/数据并测试，
 而不是在新架构内部偷偷接受所有旧输入。
 
-## 四章之间如何累计
+## 三个阶段如何累计
 
 ### Chapter 6：建立新边界
 
@@ -136,6 +161,22 @@ DynamicWorkflow；只保留通过质量、成本、权限和 trace gate 的 capa
 
 完成 guardrail 分层、server-side approval、memory promotion policy、trace adapter、30-case
 eval、live acceptance、ADR 和 runbook。发布失败时回滚部署 revision，不恢复旧代码分支。
+
+### Chapter 10–11：先固定迁移边界和新合同
+
+先解决 source/license/data policy 和跨仓库依赖，再定义 document、evidence、requirement、mapping、
+metric、assessment 与独立 workflow state。此时不搬词表、不调用模型。
+
+### Chapter 12–14：建立证据生产链
+
+统一 SEC/TXT/A 股/PDF 文档块和 locator，以经过审核的 registry 驱动混合 retrieval，再用两个
+typed Agent 完成 evidence proposal 和逐 mapping verification。quote/hash/metric 仍由确定性代码
+校验。
+
+### Chapter 15–16：产品闭环与切换
+
+用纯规则聚合五状态，接入报告、API、人工审核和前端，然后建立分层 eval 与旧流程 shadow。
+通过机械追溯门、质量阈值、数据审核和回滚演练后，才切换默认入口。
 
 ## 三种编排不要混淆
 
@@ -213,3 +254,7 @@ Harness 的 `0.x` minor release 允许 breaking changes。实现 Chapter 8 前�
 6. 为什么 Harness memory 不能直接成为 evidence；
 7. 为什么 deferred approval 不能替代 authorization；
 8. 如何用测试、eval、live acceptance 和 source gate 共同证明迁移完成。
+9. 为什么 `EvidenceCandidate.accepted` 不能直接成为 `ClimateEvidence` 或 `present`；
+10. 为什么 policy/market/technology/reputation 不是 TCFD 四支柱；
+11. 为什么 Agent 负责 evidence/verdict，而最终 requirement 状态必须确定性聚合；
+12. 如何用 provenance、shadow 和 rollback 证明跨仓库合并可审计。
