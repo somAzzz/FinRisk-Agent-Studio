@@ -30,6 +30,11 @@
 - [Docker 镜像固定](operations/deployment/docker-image-pinning.md)
 - [安全限制与已知边界](operations/security/known-limitations.md)
 
+## 历史归档
+
+- [Pydantic AI 与气候披露迁移教程](archive/tutorials/README.md)：历史学习与架构推演材料，不属于当前产品路线。
+- [TCFD 气候披露能力合并方案](archive/tcfd-integration-plan.md)：已退出当前路线的方案记录。
+
 ## 维护规则
 
 - 当前完成状态只在 `STATUS.md` 更新。
