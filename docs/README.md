@@ -10,7 +10,8 @@
 4. [系统架构](ARCHITECTURE.md)：产品域、服务、数据、工作流和安全边界。
 5. [v0.1 规格](specs/v0.1.md)：当前版本的功能与验收契约。
 6. [Pydantic AI 单一运行时 ADR](ADR_PYDANTIC_AI_RUNTIME.md)：模型边界、项目侧治理职责和部署回滚决策。
-7. [版本策略](VERSIONING.md)：文档小版本、包版本和 Git tag 的对应关系。
+7. [TCFD Tutorial 0–5 与 FinRisk 实现对照](TCFD_TUTORIAL_0_5_FINRISK_COMPARISON_CN.md)：逐章说明对应脚本、核心类型、调用链、实现差异和未对齐项。
+8. [版本策略](VERSIONING.md)：文档小版本、包版本和 Git tag 的对应关系。
 
 ## 使用指南
 
