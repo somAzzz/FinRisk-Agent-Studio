@@ -46,7 +46,7 @@ run 注入 typed dependencies、由 typed Python 函数生成工具 schema，并
 
 | 文件 | 修改内容 | 原因 |
 | --- | --- | --- |
-| `pyproject.toml`、`uv.lock` | 添加并锁定 `pydantic-ai-slim[openai]` | 依赖必须可复现 |
+| `pyproject.toml`、`uv.lock` | 添加并锁定 `pydantic-ai` | 依赖必须可复现 |
 | `src/config.py` | 增加 discriminated provider config 或等价的严格配置 | 禁止业务层拼 base URL、model、key |
 | `src/agents/state.py` | 只在现有 `AgentBudget` 缺少 request/tool/token 上限时补充字段 | 业务预算与框架 usage limit 需要明确映射 |
 | `.env.example` | 记录各 provider 所需变量，不填真实密钥 | 配置合同可发现且不泄露凭据 |
