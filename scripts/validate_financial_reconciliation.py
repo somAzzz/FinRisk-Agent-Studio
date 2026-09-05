@@ -4,12 +4,23 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict
+from pathlib import Path
 
-from src.data.sec_client import SECClient
-from src.data.ticker_resolver import TickerResolver
-from src.research.financial_reconciliation import reconcile_financial_snapshot
-from src.research.financial_snapshot import FinancialSnapshotBuilder, merge_company_facts
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+from src.data.sec_client import SECClient  # noqa: E402
+from src.data.ticker_resolver import TickerResolver  # noqa: E402
+from src.research.financial_reconciliation import (  # noqa: E402
+    reconcile_financial_snapshot,
+)
+from src.research.financial_snapshot import (  # noqa: E402
+    FinancialSnapshotBuilder,
+    merge_company_facts,
+)
 
 CORE_METRICS = (
     "revenue",
