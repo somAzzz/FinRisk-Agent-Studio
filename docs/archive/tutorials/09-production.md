@@ -4,6 +4,9 @@
 > guardrails、完整 approval authorization、统一 trace adapter 和 release gate 写成同一批待建
 > 文件，与当前仓库并不一致。
 
+> 迁移视角：历史 cutover 的分层验收和回滚原则见
+> [Runtime Cutover Playbook](migration/runtime/cutover-playbook.md#phase-4用多层证据结束迁移)。
+
 ## 本章结果
 
 完成本章后，你应能用现有代码和测试证明：

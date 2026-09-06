@@ -1,5 +1,8 @@
 # Chapter 15：确定性 Assessment、报告与产品接入
 
+> 路线状态：条件式迁移实验，尚未在 FinRisk 实施。API、存储与前端路径
+> 都是待批准工作包，不应出现在当前能力或发布承诺中。
+
 ## 本章结果
 
 本章将已验证证据按 registry rubric 聚合成五状态 requirement assessment，生成可审计报告，并接入

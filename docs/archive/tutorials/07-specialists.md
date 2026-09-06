@@ -3,6 +3,9 @@
 > 当前实现导读。本章描述已经完成的 Pydantic AI 单一运行时，不再把 adapter 或
 > `GlobalAgentRuntime` 的薄 facade 误判成第二套 LLM runtime。
 
+> 迁移视角：调用方切换、旧 runtime 删除和 source gate 的历史练习见
+> [Runtime Cutover Playbook](migration/runtime/cutover-playbook.md#phase-2按调用方切换)。
+
 ## 本章结果
 
 完成本章后，你应能解释：

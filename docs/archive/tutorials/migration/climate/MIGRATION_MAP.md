@@ -1,12 +1,15 @@
 # 气候披露迁移总图：从 TCFD 研究管线到 FinRisk 领域能力
 
+> 路线状态：未进入当前产品路线。本图只在
+> [Chapter 10 重启门](10-integration-boundaries.md)通过后才变成可执行计划。
+
 ## 这张图解决什么问题
 
-Chapter 6–9 的 [runtime 迁移总图](MIGRATION_MAP.md)说明 FinRisk 如何从自定义 tool loop 切换到
+Chapter 6–9 的 [runtime 迁移总图](../runtime/MIGRATION_MAP.md)说明 FinRisk 如何从自定义 tool loop 切换到
 Pydantic AI。本图说明另一个问题：如何把 `llm_tcfd` 的研究资产选择性迁入已经完成 runtime
 重构的 FinRisk，而不复制第二套基础设施或沿用错误业务语义。
 
-权威架构边界见 [TCFD 合并方案](../tcfd-integration-plan.md)。本图只负责把源资产、
+权威架构边界见 [TCFD 合并方案](../../../tcfd-integration-plan.md)。本图只负责把源资产、
 目标文件、教程章节和审核门对应起来。
 
 ## 起点与终点

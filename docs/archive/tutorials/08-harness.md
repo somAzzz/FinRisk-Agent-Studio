@@ -4,6 +4,9 @@
 > ToolOutputLimits 和 DynamicWorkflow 写成待实施迁移，但当前代码和路线图没有采用证据。
 > 本章因此改为讲解仓库实际使用的 Pydantic AI Core 边界，以及未来评估 Harness 的门槛。
 
+> 迁移视角：如果未来出现 Core/Graph 的可重复缺口，使用
+> [Harness 决策实验](migration/runtime/harness-evaluation.md)，而不是直接恢复旧版安装指令。
+
 ## 本章结果
 
 完成本章后，你应能解释：

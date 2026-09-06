@@ -1,5 +1,8 @@
 # Chapter 10：气候披露方案的仓库边界与重启条件
 
+> 路线状态：未进入当前产品路线。本章是
+> [气候迁移实验](README.md)的启动门，不是对当前 `main` 的实施指令。
+
 > 当前状态：本章属于归档架构推演，不是 FinRisk 当前产品路线。`docs/README.md` 已将
 > TCFD 气候披露合并方案标记为“已退出当前路线”，当前仓库也没有
 > `src/domains/climate/`、`src/retrieval/climate/` 或 climate workflow。

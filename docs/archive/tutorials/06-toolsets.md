@@ -3,6 +3,9 @@
 > 当前实现导读。本文按 `main` 的 `558e276f7880b081f64c4fecabdadc7212e3db59`
 > 复核，描述已经存在的代码，而不是要求重新创建另一套 `src/ai/tools/`。
 
+> 迁移视角：如需学习如何从旧 tool loop 建立这些边界，参考
+> [Runtime Cutover Playbook](migration/runtime/cutover-playbook.md#phase-1先建立新边界)。
+
 ## 本章结果
 
 完成本章后，你应能沿着当前代码回答四个问题：

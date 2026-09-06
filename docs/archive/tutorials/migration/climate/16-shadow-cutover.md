@@ -1,5 +1,8 @@
 # Chapter 16：分层 Eval、Shadow Run 与受控切换
 
+> 路线状态：条件式迁移实验，尚未在 FinRisk 实施。只有前置章节的
+> 机械门和人工审核均通过后，本章的 shadow/cutover 才有意义。
+
 ## 本章结果
 
 本章用冻结数据分别评估 ingestion、retrieval、evidence、verification 和 assessment，随后让旧 TCFD

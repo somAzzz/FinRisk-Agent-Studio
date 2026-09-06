@@ -1,5 +1,8 @@
 # Chapter 11：建立披露文档、证据与评估合同
 
+> 路线状态：条件式迁移实验，尚未在 FinRisk 实施。只有通过
+> [Chapter 10 重启门](10-integration-boundaries.md)后才能将本章当作施工指南。
+
 ## 本章结果
 
 本章先实现不依赖 PDF 库、retriever 或模型的气候披露合同。完成后，文档、候选、已验证证据、

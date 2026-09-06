@@ -1,13 +1,14 @@
 # 迁移总图：从旧 tool loop 到 Pydantic AI 架构
 
-> 本文只描述 Chapter 6–9 的 Agent runtime 迁移。TCFD 研究能力进入 FinRisk 的 Chapter
-> 10–16 文件映射、证据链和切换门见[气候披露迁移总图](CLIMATE_MIGRATION_MAP.md)。
+> 历史迁移复盘。本文只描述 Chapter 6–9 对应的 Agent runtime cutover，
+> 不是要求在当前 `main` 重新引入旧 runtime。气候披露的条件式迁移见
+> [气候迁移总图](../climate/MIGRATION_MAP.md)。
 
 ## 为什么需要这张图
 
-原教程把 Chapter 6–9 设计成多个隔离练习，虽然安全，却无法训练真正重构中最重要的
-三件事：确定新合同、切换生产调用方、删除旧实现。本教程改为在同一学习分支上累计
-完成这三步。
+只看当前完成态，很难训练真实重构中最重要的三件事：确定新合同、
+切换生产调用方、删除旧实现。因此这张图保留累计迁移视角，并与
+[当前 Chapter 6–9](../../README.md)形成“过程—结果”对照。
 
 ## 起点与终点
 
@@ -78,8 +79,8 @@ API / CLI
 
 ### Gate C：Harness 有测量依据（Chapter 8）
 
-先保留 Core/Pydantic Graph baseline，再逐项验证 Planning、SubAgents、
-ToolOutputLimits 和可选 DynamicWorkflow。没有收益的 capability 不进入生产组合。
+当前结论是保留 Core/Pydantic Graph，不安装 Harness。未来只能在有可重复缺口时，
+按 [Harness 决策实验](harness-evaluation.md)逐项对比；没有净收益的 capability 不进入生产组合。
 
 ### Gate D：生产治理闭环（Chapter 9）
 
@@ -108,4 +109,5 @@ src/ 中不存在旧 runtime 文件；
 所有生产 toolset 都经过 scope 与 execution-time permission check。
 ```
 
-Chapter 9 再以全量测试、live acceptance 和 Core/Harness 对比报告作为最终证据。
+Chapter 9 再以全量测试、live acceptance 和 source gate 作为最终证据。只有实际运行了
+Harness 实验时，才增加 Core/Harness 对比报告。

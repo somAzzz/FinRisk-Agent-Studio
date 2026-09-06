@@ -1,5 +1,8 @@
 # Chapter 14：Typed Climate Evidence Agent 与验证链
 
+> 路线状态：条件式迁移实验，尚未在 FinRisk 实施。本章的 Agent 和
+> workflow 路径是目标设计，不是当前能力清单。
+
 ## 本章结果
 
 本章复用 Chapter 6–9 已完成的 FinRisk Pydantic AI runtime，只新增两个专用 Agent：证据抽取器和

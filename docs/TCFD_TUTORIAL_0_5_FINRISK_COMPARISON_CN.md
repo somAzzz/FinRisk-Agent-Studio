@@ -6,8 +6,9 @@
 
 - TCFD / `frequency_analyzer`：分支 `tutorial/pydantic-ai`，提交
   `4ef1c0f49853d2821dbf1ead73259d65475ca8d3`；
-- FinRisk / `fintext_llm`：分支 `tutorial/pydantic-ai-harness`，基线提交
-  `a6115a75f56655492603bc63dabe0ce46dcbd7b0`。
+- FinRisk / `fintext_llm`：历史对照提交
+  `a6115a75f56655492603bc63dabe0ce46dcbd7b0`（已进入 `main`）。当前本地教程入口见
+  [`docs/archive/tutorials/README.md`](archive/tutorials/README.md)。
 
 TCFD Tutorial 0–5 是一个较小、边界清楚的教学项目。它围绕 TCFD 关键词抽取，逐步引入
 模型工厂、typed Agent、typed dependencies、语义校验、程序化工作流和 eval。
