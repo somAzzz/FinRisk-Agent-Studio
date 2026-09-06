@@ -1,229 +1,224 @@
-# Chapter 6：建立新的 Model、Deps 与 Typed Toolsets 边界
+# Chapter 6：理解当前 Model、Deps 与 Typed Toolsets 边界
+
+> 当前实现导读。本文按 `main` 的 `558e276f7880b081f64c4fecabdadc7212e3db59`
+> 复核，描述已经存在的代码，而不是要求重新创建另一套 `src/ai/tools/`。
 
 ## 本章结果
 
-本章先建立一条不依赖旧 tool loop 的 Pydantic AI 最小运行路径：集中构造模型、每次
-run 注入 typed dependencies、由 typed Python 函数生成工具 schema，并在可见性和执行
-两个阶段实施权限。
+完成本章后，你应能沿着当前代码回答四个问题：
 
-旧 runtime 在本章末暂时还存在，只用于让尚未迁移的调用方继续工作；Chapter 7 必须
-完成切换并删除它。不要添加 feature flag，也不要写新旧 runtime adapter。
+1. 一次请求如何从 `LLMRunConfig` 解析为 Pydantic AI `Model`；
+2. run identity、权限、预算和服务如何进入 `AgentDeps`；
+3. 13 个项目工具怎样由 typed Python 函数生成 schema；
+4. 为什么工具在“模型可见性”和“真正执行”两个位置都要检查权限。
 
-前置条件：已按教程首页从 `023c02f91be43ecf6428d12e5dac3272569a62b3`
-创建学习分支，并记录迁移前全量测试结果。
+当前仓库已经完成 Pydantic AI cutover。不要再创建 legacy/shadow/primary runtime，也不要按
+旧版教程拆出尚不存在的 `src/ai/tools/{market,filing,...}.py`。
 
-## 设计决定
+## 当前文件地图
 
-1. Python 类型签名是工具输入 schema 的真相源；不复制旧 `ProjectTool.parameters`。
-2. `AgentDeps` 是单次 run 的对象图，不是全局 service locator。
-3. 工具返回统一 envelope，但业务数据保留结构，不拼成自由文本。
-4. scope filtering 控制模型“看见什么”；执行时 permission check 控制“实际能做什么”。
-5. provider 只在 model factory 中解析；Agent 和业务 workflow 不读取 provider 环境变量。
-
-## 文件变更总览
-
-### 新建文件
-
-| 文件 | 必须实现的职责 | 接替的旧职责 |
-| --- | --- | --- |
-| `src/ai/__init__.py` | 只导出稳定公共边界，不在 import 时构造模型 | 消除业务模块从多个 `src/llm/*` 猜入口 |
-| `src/ai/model_factory.py` | 校验 provider 配置并返回 Pydantic AI `Model` | 替代 `client.py`、`deepseek_client.py`、`sglang_client.py` 中分散的 client 构造 |
-| `src/ai/deps.py` | 定义 subject、permissions、services、budget 与 `AgentDeps` | 替代全局对象和闭包中隐式传递的运行时状态 |
-| `src/ai/runtime_types.py` | 定义 workflow 与 Agent 边界共享的最小结果类型 | 替代 workflow 对旧 tool-loop 内部 result 类型的依赖 |
-| `src/ai/tools/__init__.py` | 导出 tool envelope 和各领域 toolset builder | 新的 typed tools 包入口 |
-| `src/ai/tools/models.py` | 定义 `ToolResultEnvelope` 与稳定失败语义 | 替代每个旧工具各自返回 dict/string/exception |
-| `src/ai/tools/invoke.py` | 执行权限复核、sync-to-thread、异常转换、截断和 trace | 接替 `tool_loop.py` 中工具执行与错误处理职责 |
-| `src/ai/tools/market.py` | typed `web_search`、`web_fetch`、`search_and_fetch` | 替代旧 JSON tool schema 与动态参数分派 |
-| `src/ai/tools/filing.py` | typed SEC filing、transcript tools | 同上，限定 filing/transcript 参数 |
-| `src/ai/tools/financial.py` | typed metrics、XBRL、snapshot tools | 同上，限定数值/period 参数 |
-| `src/ai/tools/graph.py` | typed graph query/path tools | 同上，限制 hop 与 edge type |
-| `src/ai/tools/browser.py` | typed interactive browser tool | 从普通 read tool 中分离高风险 capability |
-| `src/ai/toolsets.py` | 组合 domain toolsets，并按 run 动态过滤 | 替代旧 loop 向所有 Agent 暴露统一工具表 |
-| `src/ai/usage.py` | 把 `AgentBudget` 映射为 `UsageLimits` | 替代手写循环中的分散计数/停止判断 |
-| `src/ai/smoke.py` | 最小 typed Agent smoke；禁止导入旧 runtime | 提供新边界独立可运行的证据 |
-
-### 修改文件
-
-| 文件 | 修改内容 | 原因 |
-| --- | --- | --- |
-| `pyproject.toml`、`uv.lock` | 添加并锁定 `pydantic-ai` | 依赖必须可复现 |
-| `src/config.py` | 增加 discriminated provider config 或等价的严格配置 | 禁止业务层拼 base URL、model、key |
-| `src/agents/state.py` | 只在现有 `AgentBudget` 缺少 request/tool/token 上限时补充字段 | 业务预算与框架 usage limit 需要明确映射 |
-| `.env.example` | 记录各 provider 所需变量，不填真实密钥 | 配置合同可发现且不泄露凭据 |
-| `tests/conftest.py` | 默认禁止真实模型请求 | 单元测试不能因漏 mock 访问网络 |
-
-### 新建测试
-
-```text
-tests/ai/
-  __init__.py
-  test_model_factory.py
-  test_deps.py
-  test_tool_models.py
-  test_tool_execution.py
-  test_toolsets.py
-  test_usage.py
-  test_smoke.py
-```
-
-本章不删除旧文件；删除清单在 Chapter 7。
-
-## 6.1：集中式 model factory
-
-`src/ai/model_factory.py` 至少提供两个公共合同：
-
-```text
-resolve_agent_model_config(settings, run_config=None) -> AgentModelConfig
-build_agent_model(config) -> Model
-```
-
-配置需表达 `sglang`、`vllm`、`deepseek`、`openai` 四种 provider，并校验：
-
-- base URL 只能是 `http` / `https` 且非空；
-- model name 非空；
-- timeout、temperature、max tokens 有合理边界；
-- API key 不进入 repr、日志和异常；
-- OpenAI-compatible provider 使用 Pydantic AI provider/model 对象，不返回裸 SDK client；
-- 未知 provider 立即失败，不静默回落到默认模型。
-
-`tests/ai/test_model_factory.py` 必须覆盖每个 provider、非法 URL、空 model、缺失 key 的
-策略以及 secret redaction。测试只检查构造和配置，不发网络请求。
-
-## 6.2：设计单次 run 的 typed dependencies
-
-`src/ai/deps.py` 建议分为四层：
-
-```text
-AgentSubject       本次研究对象，不含全局状态
-AgentPermissions   scope、interactive、write 权限
-AgentServices      tool backend、evidence sink、trace sink、message store
-AgentDeps          run_id、conversation_id、subject、permissions、budget、services
-```
-
-服务用 `Protocol` 描述最小行为。不要把 FastAPI request、完整 Settings、数据库连接池和
-所有仓库对象无差别塞进 deps；Agent 只获得完成任务所需的最小 capability。
-
-必须写清以下所有权：
-
-- `run_id` 由 application layer 创建；
-- `conversation_id` 只能从受信任的服务端状态恢复；
-- permissions 由认证后的 principal/tenant policy 生成，不能由 prompt 生成；
-- services 由 composition root 注入；
-- model 不是 deps 的一部分，由 Agent 构造阶段选择；
-- mutable event collection 是 per-run，禁止作为 dataclass 的共享默认值。
-
-## 6.3：统一工具返回与失败语义
-
-`ToolResultEnvelope` 至少包含：
-
-```text
-tool, status, data, evidence_kind, warnings, truncated, error
-```
-
-要求 `extra="forbid"`。`status` 至少区分 `success` 与 `failed`；如果你还需要
-`denied`、`timeout`，应在本章确定并贯穿 trace/eval，不能靠解析 error string 判断。
-
-`invoke.py` 的执行次序必须固定：
-
-```text
-解析 tool spec
-  -> execution-time permission check
-  -> 校验/接收 typed arguments
-  -> sync backend 放入 worker thread，async backend 直接 await
-  -> 转成 JSON-safe data
-  -> 按 max_result_chars 处理上下文返回
-  -> 记录 success/failure event
-  -> 返回 envelope
-```
-
-异常对模型只暴露稳定类型和安全消息；完整 traceback 留在受控日志，不进入 prompt。
-权限拒绝、backend 失败和结果截断都必须产生 trace event。
-
-## 6.4：按领域编写 typed tools
-
-每个工具函数必须：
-
-- 显式声明参数类型、范围和 `RunContext[AgentDeps]`；
-- docstring 说明模型何时应该调用，而不是描述内部实现；
-- 只通过 `ctx.deps.services` 访问 backend；
-- 返回 `ToolResultEnvelope`；
-- 不读取环境变量、不创建数据库连接、不自己选择 provider；
-- 不接受 `**kwargs` 或任意 dict 逃逸 typed schema。
-
-参数约束示例：搜索结果 1–10、filing 数量 1–20、quarter 1–4、graph hops 1–4、
-browser steps 1–10。具体值可以调整，但必须由业务风险和上下文预算解释。
-
-旧 `ProjectTool.parameters` 可以在过渡期继续服务尚未迁移的旧 loop，但新 tool schema
-不得从它生成，也不写 parity test。Chapter 7 删除旧 loop 后，再判断 `ProjectTool`
-是否仍被非 LLM 调用方需要；无调用方就删除其 schema 部分。
-
-## 6.5：静态分域与动态权限
-
-`src/ai/toolsets.py` 负责两个不同问题：
-
-1. 静态分域：filing、market、financial、graph、browser 各自有哪些工具；
-2. 动态权限：这一次 run 的 principal 是否可见、可交互、可写。
-
-建议公开：
-
-```text
-build_domain_toolset(domain) -> AbstractToolset[AgentDeps]
-build_scoped_toolset(domains) -> AbstractToolset[AgentDeps]
-```
-
-不得让 coordinator 默认获得 browser/write 工具。browser 必须同时满足 domain 被选择和
-`allow_interactive=True`。未来写工具还必须满足 `allow_write=True` 与 Chapter 9 审批。
-
-模型可见性过滤不是安全边界。`invoke.py` 必须再次检查相同权限，以抵御旧 schema 缓存、
-直接 `call_tool`、错误组合 toolset 或未来重构造成的绕过。
-
-## 6.6：预算映射
-
-`src/ai/usage.py` 只负责把框架能执行的限制映射到 `UsageLimits`：requests、tool calls、
-input/output/total tokens。公司数量、来源数量、graph path 数量和 wall-clock deadline 是
-领域预算，继续留在 application/workflow state。
-
-测试必须证明：
-
-- `None` 保持不限，不被错误映射成 0；
-- 负数或 0 的策略明确；
-- framework limit 与 domain budget 不共享同一个含义模糊的 `max_steps`；
-- 超限是可识别的运行失败，不伪装成 provider error。
-
-## 6.7：测试矩阵
-
-| 测试文件 | 最低覆盖 |
+| 文件 | 当前职责 |
 | --- | --- |
-| `test_model_factory.py` | provider 解析、非法配置、secret redaction、无网络构造 |
-| `test_deps.py` | 默认值隔离、scope 组合、interactive/write 拒绝、缺失 service |
-| `test_tool_models.py` | extra fields、JSON-safe data、稳定 failure contract |
-| `test_tool_execution.py` | sync/async backend、异常、timeout、truncate、success/failure trace |
-| `test_toolsets.py` | 每个 specialist 只看允许工具；直接绕过仍拒绝；duplicate name 失败 |
-| `test_usage.py` | 所有 limit 映射和边界值 |
-| `test_smoke.py` | `TestModel` 下 typed output + 一次工具调用；不导入 `src.llm` |
+| `src/ai/model_factory.py` | 解析 `sglang`、`vllm`、`deepseek`、`openai`，构造 `OpenAIChatModel` |
+| `src/schemas/llm_config.py` | 定义单次请求可覆盖的 provider、base URL 和 model |
+| `src/ai/deps.py` | 定义 subject、permissions、services、budget 和 conversation identity |
+| `src/tools/contracts.py` | 保留项目 tool catalog 的 callable、scope、risk 和旧 OpenAI schema 合同 |
+| `src/tools/catalog.py` | 组装当前 13 个业务工具及 backend callable |
+| `src/ai/toolsets.py` | 为 catalog 中的工具选择 typed wrapper，过滤权限并记录执行事件 |
+| `src/ai/usage.py` | 把现有 `AgentBudget` 映射为 request/tool-call limits |
+| `src/ai/runtime_types.py` | 保存 workflow 消费的 tool-run result 合同 |
+| `src/ai/smoke.py` | 用 typed output 验证最小 Agent 边界 |
 
-使用 `TestModel` 检查工具曝光和 schema；使用 `FunctionModel` 精确控制调用路径。不要用
-`TestModel` 评价金融答案质量，也不要在单元测试中连接 SEC、Neo4j、浏览器或模型服务。
+本章最重要的现实约束是：当前实现仍保留 `ProjectTool.parameters`，供项目 catalog 和历史测试
+使用；Pydantic AI 的实际 tool schema 则来自 `src/ai/toolsets.py` 中的函数签名。
+`tests/ai/test_toolsets.py` 还会检查两者的字段 parity。它是当前兼容约束，不应被描述成已经删除。
 
-## 本章验收
+## 6.1：从请求配置到 Model
+
+当前公共调用形式是：
+
+```python
+config = resolve_agent_model_config(run_config, settings=settings)
+model = build_agent_model(config)
+```
+
+`resolve_agent_model_config` 的实际签名是：
+
+```text
+resolve_agent_model_config(
+    run_config: LLMRunConfig | None = None,
+    *,
+    settings: Settings | None = None,
+) -> AgentModelConfig
+```
+
+学习时重点检查：
+
+- `_OpenAICompatibleConfig` 使用 `extra="forbid"` 和 `frozen=True`；
+- base URL 会去掉尾部 `/`，并拒绝非 HTTP(S) 或无 host 的地址；
+- API key 使用 `SecretStr`，避免普通 `repr` 泄漏；
+- DeepSeek 会拒绝空值和 placeholder key；
+- 未知 `LLM_PROVIDER` 立即失败；
+- 四个 provider 最终都通过 `OpenAIProvider` 和 `OpenAIChatModel` 接入；
+- 非 OpenAI endpoint 使用保守的 `OpenAIModelProfile`，关闭未确认支持的 strict schema/tool choice。
+
+当前 `temperature`、`max_tokens` 主要由具体 Agent/client 的 `model_settings` 管理，而不是统一
+放进 `AgentModelConfig`。修改这一点会影响多个调用方，应作为单独设计变更，不要在教程练习中
+顺手迁移。
+
+对应测试：
 
 ```bash
-uv run ruff check src/ai tests/ai
-uv run pytest -q tests/ai
-uv run python -m src.ai.smoke
+uv run python -m pytest -q tests/ai/test_model_factory.py tests/test_config.py
 ```
 
-然后人工确认：
+## 6.2：单次 run 的 typed dependencies
 
-- [ ] 新 smoke 在不导入旧 runtime 的情况下完成一次 typed run。
-- [ ] typed 函数签名而非旧 JSON schema 是工具合同真相源。
-- [ ] 可见性过滤与执行时权限都生效。
-- [ ] provider、deps、tool execution、usage 职责没有混在一个类中。
-- [ ] 没有新增 legacy/shadow/primary feature flag。
-- [ ] 已记录 Chapter 7 必须迁移和删除的剩余旧调用方。
-
-本章建议提交：
+当前 `AgentDeps` 包含：
 
 ```text
-ch06: establish typed model deps and tool boundaries
+run_id
+conversation_id
+load_message_history
+settings
+subject
+permissions
+budget
+services
 ```
+
+其中：
+
+- `AgentSubject` 保存 ticker、company、product 和少量 metadata；
+- `AgentPermissions` 根据 `ProjectTool.scopes` 与 `risk_level` 判断是否允许；
+- `AgentServices` 注入 catalog、search router、trace/evidence sink、message recorder；
+- `tool_events` 使用 `default_factory=list`，确保不同 run 不共享事件；
+- `AgentBudget` 仍是项目业务状态的一部分；
+- `Settings` 当前确实位于 deps 中，这是当前实现事实，不能按理想化设计写成“不存在”。
+
+所有权规则仍然必须成立：
+
+- `run_id` 由 API/workflow 创建；
+- `conversation_id` 从服务端 run state 恢复；
+- permission 由 composition root 构造，不能由 prompt 自报；
+- model 在 Agent 构造时选择，不放进 deps；
+- service 实例由 API、pipeline 或测试注入。
+
+`visible_tool_catalog()` 是便捷的确定性过滤入口。无 catalog 时返回空 catalog，而不是隐式构造
+网络服务。
+
+## 6.3：当前 typed toolset 的真实结构
+
+`src/ai/toolsets.py` 集中定义 13 个 typed wrapper：
+
+```text
+market:     web_search, web_fetch, search_and_fetch
+filing:     sec_list_filings, sec_fetch_filing, transcript_lookup,
+            management_snapshot_lookup
+financial:  financial_metrics_lookup, xbrl_fact_lookup,
+            financial_snapshot_lookup
+graph:      graph_query, graph_path_search
+browser:    browser_explore
+```
+
+参数范围通过 `Annotated` 和 `Field` 表达，例如：
+
+```python
+ResultsLimit = Annotated[int, Field(ge=1, le=10)]
+Quarter = Annotated[int, Field(ge=1, le=4)]
+HopLimit = Annotated[int, Field(ge=1, le=4)]
+BrowserSteps = Annotated[int, Field(ge=1, le=10)]
+```
+
+`build_project_function_toolset(catalog)` 做三件事：
+
+1. 按工具名从 `_TYPED_TOOLS` 找 typed wrapper；
+2. 由函数签名生成 Pydantic AI schema；
+3. 把 catalog 的 scopes、risk、evidence kind、result limit 放入 metadata。
+
+如果 catalog 出现没有 typed wrapper 的工具，构造立即失败。这样新增工具时必须同时补 typed
+边界，不能悄悄退化为任意参数调用。
+
+## 6.4：可见性与执行时权限
+
+当前权限链是：
+
+```text
+ToolCatalog.for_scope(scope)
+  -> build_project_function_toolset
+  -> FilteredToolset 根据 ctx.deps.permissions 隐藏工具
+  -> _invoke_project_tool 再次检查 permissions.allows(project_tool)
+```
+
+两次检查承担不同职责：
+
+- filtering 减少模型可以看到和选择的工具；
+- execution-time check 是真正的安全边界，防止直接 `call_tool` 或错误组合绕过。
+
+`interactive` 工具要求 `allow_interactive=True`；`write_gated` 工具要求
+`allow_write=True`。当前 API 构造普通 Agent run 时两者都为 `False`。
+
+## 6.5：执行、envelope、截断与 trace
+
+`_invoke_project_tool` 当前按以下顺序工作：
+
+```text
+从注入 catalog 查找 ProjectTool
+→ 再次检查权限
+→ asyncio.to_thread(project_tool.executable(), **arguments)
+→ 校验 ToolResultEnvelope
+→ 生成 ToolExecutionEvent
+→ 追加到 deps.services.tool_events
+→ 可选发送 trace_sink
+```
+
+当前 `ToolResultEnvelope.status` 只有 `success | failed`。权限拒绝和 backend 异常会成为
+`failed`，具体类型保留在 `error` 字符串中。不要在文档中宣称已经存在 `denied` 或 `timeout`
+枚举。
+
+截断由 `ProjectTool.executable()` 调用 `truncate_jsonable()` 完成。工具执行事件记录 latency、
+result chars 和 truncated 状态。当前 wrapper 始终把 catalog callable 放入 worker thread；它主要
+面向现有同步业务 backend。
+
+## 6.6：预算的当前映射
+
+`build_usage_limits()` 当前只映射：
+
+```text
+request_limit = max_subgoals * (max_tool_rounds_per_subgoal + 1)
+tool_calls_limit = max_total_tool_calls
+```
+
+token limit 尚未进入 `AgentBudget`。`max_total_fetch_pages`、wall-clock 和总结果字符仍由领域层或
+runtime 管理。这是当前能力边界，不要把旧教程中“input/output/total token 均已映射”当成事实。
+
+## 6.7：练习与验收
+
+推荐先阅读测试，再手写一个最小同构 wrapper：
+
+1. 给函数写明确参数类型；
+2. 把它加入 `_TYPED_TOOLS`；
+3. 在 catalog 中加入 callable 与 governance metadata；
+4. 验证 schema、可见性、直接绕过拒绝和 trace；
+5. 不连接真实 SEC、Neo4j、浏览器或模型服务。
+
+运行当前章节相关检查：
+
+```bash
+uv run ruff check \
+  src/ai/model_factory.py src/ai/deps.py src/ai/toolsets.py \
+  src/ai/usage.py src/ai/smoke.py
+uv run python -m pytest -q \
+  tests/ai/test_model_factory.py \
+  tests/ai/test_deps.py \
+  tests/ai/test_toolsets.py \
+  tests/ai/test_usage.py \
+  tests/ai/test_smoke.py
+```
+
+- [ ] 能解释 catalog schema 与 typed wrapper schema 为什么暂时共存。
+- [ ] 能证明浏览器工具在可见性和执行阶段都会被拒绝。
+- [ ] 能指出当前 envelope 和 usage mapping 尚未表达哪些状态。
+- [ ] 没有新建第二套 tool package 或 runtime。
+
+下一章继续沿真实调用链学习 typed Agents、兼容 adapters 和 Pydantic Graph。

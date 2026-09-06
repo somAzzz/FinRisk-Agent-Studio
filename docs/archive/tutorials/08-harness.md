@@ -1,249 +1,206 @@
-# Chapter 8：用实验选择 Harness Capabilities
+# Chapter 8：Core Runtime 适配、消息恢复与编排取舍
+
+> 当前状态：仓库没有安装或使用 `pydantic-ai-harness`。旧版教程把 Planning、SubAgents、
+> ToolOutputLimits 和 DynamicWorkflow 写成待实施迁移，但当前代码和路线图没有采用证据。
+> 本章因此改为讲解仓库实际使用的 Pydantic AI Core 边界，以及未来评估 Harness 的门槛。
 
 ## 本章结果
 
-本章不是“把 Core 换成 Harness”。Harness 通过 Pydantic AI 的 capabilities/hooks 扩展
-同一个 Agent。你将以 Chapter 7 的 Core/Pydantic Graph 为 baseline，逐项测试
-Planning、SubAgents、ToolOutputLimits，以及可选的 DynamicWorkflow，最后只接入有明确
-收益且不破坏领域边界的 capability。
+完成本章后，你应能解释：
 
-截至 2026-08-31，本仓库锁定 `pydantic-ai-slim 2.33.0`；本章使用
-`pydantic-ai-harness 0.27.0`。Harness 仍为 `0.x`，minor release 可能破坏 API。
+- Pydantic AI Agent 如何接入现有同步 workflow；
+- message batch 怎样幂等保存并恢复为框架消息；
+- run identity 与 conversation identity 为什么不能混为一谈；
+- 当前项目为什么选择 Core Agent + Pydantic Graph，而没有再引入 Harness；
+- 什么证据足以支持未来增加新的 orchestration capability。
 
-前置条件：Chapter 7 已完成 cutover，source/import gate 能证明旧 runtime 已删除，且
-Core/Pydantic Graph 全量回归通过。
+## 版本与事实基线
 
-## 文件变更总览
-
-### 修改依赖
-
-| 文件 | 修改内容 | 意义 |
-| --- | --- | --- |
-| `pyproject.toml` | 在独立 dependency group 中精确加入 `pydantic-ai-harness==0.27.0` | 避免实验依赖无意成为所有部署的隐式依赖 |
-| `uv.lock` | 提交解析后的完整 lock | 固定 capability API 与传递依赖 |
-
-建议命令：
-
-```bash
-uv add --group harness "pydantic-ai-harness==0.27.0"
-uv lock --check
-```
-
-若你选择不同版本，必须在本章文档顶部记录版本、原因和官方 release notes 链接，并按
-实际签名更新测试，不能复制旧示例后用 `Any` 绕过类型问题。
-
-### 新建文件
-
-| 文件 | 必须实现的职责 | 可能替代的职责 |
-| --- | --- | --- |
-| `src/ai/harness/__init__.py` | 只导出项目采用的 capability profile | 避免业务模块直接拼 capability 列表 |
-| `src/ai/harness/config.py` | typed `HarnessProfile`，表达 enabled capability 与 limits | 替代散落 bool flags；不是双 runtime 开关 |
-| `src/ai/harness/capabilities.py` | 根据 profile 构造 Planning/SubAgents/ToolOutputLimits | 替代重复的 Agent capability 组装代码 |
-| `src/ai/harness/events.py` | 把 plan/delegation/spill 事件投影到项目 trace | 替代 capability 事件只留在模型上下文/日志 |
-| `src/ai/harness/overflow_store.py` | 项目控制的 overflow 存储与保留策略 | 替代不可审计的静默字符串截断 |
-| `src/ai/harness/orchestration.py` | Core delegation、SubAgents、DynamicWorkflow 的可比较入口 | 只替代经测量证明冗余的 delegation boilerplate |
-| `scripts/pydantic_ai_harness_smoke.py` | 当前锁定版本的 import + 最小 capability smoke | 尽早发现 API/version 不匹配 |
-| `scripts/compare_core_harness.py` | 同 fixtures 运行 Core 与 Harness 并输出 JSON 报告 | 替代人工观察“感觉更好” |
-| `tests/fixtures/harness/cases.json` | 固定任务与 fake tool responses | 保证两种路径输入一致 |
-
-### 新建测试
+当前 `uv.lock` 安装：
 
 ```text
-tests/ai/harness/
-  __init__.py
-  test_config.py
-  test_capabilities.py
-  test_planning.py
-  test_subagents.py
-  test_tool_output_limits.py
-  test_dynamic_workflow.py
-  test_events.py
-  test_orchestration_comparison.py
+pydantic-ai       2.27.1
+pydantic-ai-slim  2.27.1
+pydantic-ai-harness 未安装
 ```
 
-如果最终不采用 DynamicWorkflow，保留对比报告和拒绝理由，但不必把
-`test_dynamic_workflow.py` 作为生产回归测试长期维护。
+`pyproject.toml` 使用 `pydantic-ai>=2.0.0,<3.0.0`，没有 `harness` dependency group。不要运行
+旧教程中的 `uv run --group harness ...`，也不要创建一个没有调用方的 `src/ai/harness/` 目录。
 
-### 修改文件
+## 当前文件地图
 
-| 文件 | 修改内容 | 限制 |
-| --- | --- | --- |
-| `src/ai/agents/research.py` | 允许 composition root 注入 capabilities | output/deps/toolsets 合同保持不变 |
-| `src/api/agent_runs.py` 或你的 composition root | 选择已批准的 profile | 不允许用户 prompt 任意开启 capability |
-| `src/agents/state.py` | 如有需要增加 plan/delegation/spill trace 类型 | plan 不得成为 evidence |
-
-本章不删除 Pydantic Graph，也不恢复 Chapter 7 已删除的旧 runtime。
-
-## 8.1：先建立不可变的 Core baseline
-
-在加 Harness 前固定至少 12 个离线 case：
-
-- 3 个简单单工具任务；
-- 3 个多来源 filing/market 任务；
-- 2 个可并行 specialist 任务；
-- 2 个超长 tool output；
-- 1 个 child failure；
-- 1 个 missing evidence。
-
-每个 case 固定 prompt、deps/permissions、fake tool responses、预算和预期领域结果。记录：
-
-```text
-status
-model_requests
-tool_calls and duplicate calls
-input/output/total tokens
-accepted evidence IDs
-unsupported claims
-human-review items
-latency
-trace event completeness
-```
-
-Core baseline 必须使用 Chapter 7 的正式 Agent 和 validators，不另写一个简化 Agent。
-
-## 8.2：Planning 实验
-
-当前 `Planning` 提供模型可维护的结构化 task list，并可使用内存或持久 store；它能表达
-subtasks/dependencies，也会产生 plan events。它解决长任务漂移，不是业务 workflow
-状态机。
-
-先只加入 `Planning()`，验证：
-
-- 简单任务是否产生无意义计划和额外请求；
-- 三步以上任务是否减少遗漏/重复工具调用；
-- 失败后 plan 是否更新；
-- 同一时刻是否只保持一个 `in_progress` task；
-- plan event 是否带项目 run/subgoal correlation；
-- plan 是否从不进入 evidence/claim store；
-- store 失败是 fail-closed 还是有明确的项目 fallback policy。
-
-只有开放式长任务从中获益时才采用。固定 FinRisk 主 workflow 的步骤、quality gate 和
-checkpoint 继续由 Pydantic Graph 管理；不要用模型计划替换它们。
-
-若采用持久 plan store，namespace/session 必须由服务端 deps 解析，不能由模型提供。
-
-## 8.3：SubAgents 实验
-
-把 Chapter 7 的 specialists 包装成 child Agents，但不要改变它们的 typed output 和
-tool isolation。
-
-必须验证：
-
-- parent 给 child 的 task 是自包含文本，不引用模糊的“上面的内容”；
-- child 具有独立 message context；
-- deps 中 principal/tenant/permissions 的继承规则明确；
-- child 的 request/tool/token/deadline 上限可执行；
-- parent 能区分 completed、needs_review、timeout、failed；
-- child usage 能归集到整个 run；
-- child output 仍经过 evidence normalization 和 quality gate；
-- parent 无法借 delegation 获得自己没有的 tool permission。
-
-比较 Chapter 7 的 Core delegation 与 Harness SubAgents：样板代码、模型轮次、上下文占用、
-usage 归集和失败隔离。SubAgents 只在这些维度有实际优势时替换 delegation tools。
-
-## 8.4：ToolOutputLimits 实验
-
-当前 capability 可按阈值 passthrough、truncate、summarize 或 spill，并支持 fallback chain。
-默认行为可能随版本变化，所以在 `capabilities.py` 中显式配置阈值、action、store 与
-serializer，不依赖隐式默认。
-
-用 filing tool 返回三类超大数据：长文本、结构化 records、binary。测试：
-
-- 模型上下文中的返回有界；
-- structured output spill 后仍可按记录/行分页读取；
-- 原始 payload 写入项目控制的 store，handle 不暴露绝对路径；
-- store 写失败执行明确 fallback，不静默丢失；
-- spill/truncate/summarize 进入 trace；
-- retention/cleanup policy 可执行；
-- citation 不能引用模型从未看见且系统无法重新读取的片段；
-- summarization 产生的额外 model usage 被计入预算。
-
-Chapter 6 已有领域级 `max_result_chars` 时，必须指定唯一主责：
-
-- 领域层负责 backend payload 的业务上限与 evidence retention；
-- Harness 负责进入模型 context 的最后一道通用限制。
-
-不要在两层各自静默截断，否则无法解释内容在哪里丢失。原始证据与模型上下文副本是两个
-不同对象，分别有 retention 与 size policy。
-
-## 8.5：可选 DynamicWorkflow 实验
-
-DynamicWorkflow 让模型在一次受控脚本调用中组织 sub-agent fan-out/chaining，可能减少
-coordinator 的模型往返和中间上下文污染，也扩大了模型控制的编排范围。
-
-只对“多个独立研究子问题并行，最后汇总”的 case 测试。必须限制：
-
-- 可调用的 agent allowlist；
-- `max_agent_calls` 或锁定版本提供的等价限制；
-- 并发上限与 deadline；
-- 输入/输出大小；
-- 禁止 file/shell/network capability，除非该任务明确需要且另有 policy；
-- child 输出仍是 typed result，或在进入领域层前有强校验边界。
-
-不要把 DynamicWorkflow 用于要求严格固定顺序、可恢复 checkpoint 或关键资金/写操作的
-主流程。若它只让 trace 更难解释或提高 unsupported claim rate，应拒绝采用。
-
-## 8.6：四层预算模型
-
-在 `HarnessProfile` 与项目 state 中分别表达：
-
-| 层 | 示例 | 执行者 |
-| --- | --- | --- |
-| Core usage | requests、tool calls、tokens | Pydantic AI `UsageLimits` |
-| Harness capability | child calls、summarizer requests、spill/read limits | 对应 capability |
-| Domain | companies、sources、graph paths、review items | workflow/domain state |
-| Wall clock/cost | deadline、provider cost ceiling | application infrastructure |
-
-不允许多个层对同一计数各自维护不同值。整个 parent/child tree 的 usage 归集语义必须通过
-锁定版本的测试确认，而不是依据旧文档猜测。
-
-## 8.7：选择，而不是全装
-
-`scripts/compare_core_harness.py` 输出每个 case 的 baseline 与 variant diff。最低 gate：
-
-| 指标 | 通过条件 |
+| 文件 | 当前职责 |
 | --- | --- |
-| unsupported claim rate | 不得恶化 |
-| permission violations | 必须为 0 |
-| deterministic score parity | 必须保持 |
-| accepted evidence | 不低于 baseline，或有书面解释 |
-| duplicate tool calls | 长任务应下降或至少不显著增加 |
-| request/token/latency | 增量必须与质量收益匹配 |
-| trace completeness | plan/child/spill 均可关联 |
-| failure classification | capability failure 不得伪装成 provider/domain success |
+| `src/ai/runtime_adapter.py` | Agent 的同步 workflow adapter、history、usage 和 tool trace 投影 |
+| `src/ai/runtime_types.py` | `LLMToolRunResult` 与 `LLMToolCallRecord` |
+| `src/ai/message_store.py` | versioned message batch、memory/SQLite store、框架消息编解码 |
+| `src/ai/recorder.py` | 只追加本次 run 的 new messages 和 usage |
+| `src/ai/store_factory.py` | 根据 `RUN_STORE_BACKEND` 选择 memory 或 SQLite |
+| `src/ai/stream_events.py` | 把框架 stream event 投影为脱敏的项目内部事件 |
+| `src/ai/graphs/parallel_policy.py` | 在启用并行前检查 state read/write 冲突 |
+| `src/api/agent_runs.py` | composition root：model、catalog、deps、planner、runtime 和 recorder |
 
-最终在 `HarnessProfile` 只保留通过 gate 的 capability。Core baseline 用于评估和回归，
-不是生产时自动 fallback 的第二套 runtime。
+## 8.1：同步业务边界接入 async Agent
 
-## 本章验收
-
-```bash
-uv run --group harness python scripts/pydantic_ai_harness_smoke.py
-uv run --group harness pytest -q tests/ai/harness
-uv run --group harness python scripts/compare_core_harness.py \
-  --cases tests/fixtures/harness/cases.json
-uv run ruff check src/ai/harness tests/ai/harness scripts/pydantic_ai_harness_smoke.py
-```
-
-- [ ] Harness 与 Pydantic AI 版本精确锁定且 smoke 通过。
-- [ ] Core baseline 与每个 capability variant 使用相同 fixtures。
-- [ ] Planning、SubAgents、ToolOutputLimits 分别测试后才组合。
-- [ ] DynamicWorkflow 有采用或拒绝的测量依据。
-- [ ] Pydantic Graph、domain validators 与 permission checks 未被替换。
-- [ ] 原始 evidence retention 与模型 context limits 已分离。
-- [ ] 生产 profile 只包含通过 gate 的 capabilities。
-
-本章建议提交：
+当前 workflow 和 API 的部分核心合同仍是同步调用，例如 `SubgoalRuntime.run(goal)`。真正的模型
+调用则是异步 `Agent.run()`。`run_awaitable_sync()` 处理两种场景：
 
 ```text
-ch08: evaluate and integrate selected harness capabilities
+当前线程没有 event loop -> asyncio.run(awaitable)
+当前线程已有 event loop -> 新线程内 asyncio.run(awaitable)，join 后传播结果/异常
 ```
 
-## 官方资料
+这避免在运行中的 loop 内再次调用 `asyncio.run()`。它也有明确成本：调用线程会等待，取消和
+context propagation 比全 async 调用链更弱。因此应把它限制在 adapter 边界，不应散落到工具和
+领域模块。
 
-- [Harness README](https://github.com/pydantic/pydantic-ai-harness)
-- [Harness releases](https://github.com/pydantic/pydantic-ai-harness/releases)
-- [Planning](https://pydantic.dev/docs/ai/harness/planning/)
-- [Subagents](https://pydantic.dev/docs/ai/harness/subagents/)
-- [Dynamic Workflow](https://pydantic.dev/docs/ai/harness/dynamic-workflow/)
-- [Tool Output Limits](https://pydantic.dev/docs/ai/harness/tool-output-limits/)
+练习时追踪以下路径：
+
+```text
+src/api/agent_runs.py::_build_pydantic_agent_runtime
+  -> PydanticAIPlanner
+  -> GlobalAgentRuntime
+  -> Global Agent Graph
+  -> PydanticAIRuntimeAdapter.run
+  -> Agent.run
+```
+
+## 8.2：run 与 conversation 是两个 identity
+
+当前约定：
+
+- `run_id` 标识一次具体执行；
+- `conversation_id` 把多次执行关联为可恢复对话；
+- resume 创建新 run ID，但沿用可信的 conversation ID；
+- prompt 不能自行指定或覆盖别的 conversation history。
+
+`PydanticAIRuntimeAdapter._run_and_record()` 只有在
+`deps.load_message_history=True` 且注入 recorder 时才加载历史。随后它把 history 传给
+`Agent.run()`，成功后只记录 `result.new_messages()`。
+
+这一设计避免每次续跑重复保存全部历史，也避免客户端提交一段伪造的模型消息冒充服务端历史。
+
+## 8.3：versioned、append-only message batches
+
+`StoredMessageBatch` 的关键字段是：
+
+```text
+schema_version
+operation_id
+conversation_id
+run_id
+agent_name
+messages[]
+usage{}
+created_at
+```
+
+`operation_id = f"{run_id}:{agent_name}"` 是幂等键：
+
+- 相同 operation、相同语义内容再次 append 返回 `False`；
+- 相同 operation、不同内容抛出 `MessageReplayError`；
+- `created_at` 不参与语义相等比较；
+- `ModelMessagesTypeAdapter` 负责框架消息的序列化与恢复，不能用任意 dict 手工猜消息结构。
+
+SQLite store 新建独立 `agent_message_batches` 表，不修改既有 run tables。测试明确证明旧
+`FinRiskSQLiteRunStore` 数据在增加 message table 后仍可读取。
+
+## 8.4：Store factory 与持久化范围
+
+`get_agent_message_store()` 和 `get_deferred_approval_store()` 共用：
+
+```text
+RUN_STORE_BACKEND=memory | sqlite
+RUN_STORE_DB=.cache/finrisk_agent_studio/runs.sqlite3
+```
+
+memory 适合测试和 demo；SQLite 支持进程重启后的 message/approval 恢复。工厂使用
+`lru_cache` 提供进程内单例，测试通过 `reset_agent_message_store_for_tests()` 清理工厂缓存。
+
+不要把这个工厂误解为全局 Agent deps：run-specific permissions、subject、budget 和 identity
+仍需每次构造。
+
+## 8.5：框架事件不是直接的 API contract
+
+`project_stream_event()` 接受 dataclass、Pydantic model 或普通框架对象，投影为：
+
+```text
+event_id
+sequence
+event_type
+payload
+created_at
+```
+
+payload 会经过 `src.security.redaction.redact_obj()`。API 不应直接序列化未知 Pydantic AI 内部
+对象，因为框架升级可能改变字段，也可能意外包含 secret。
+
+当前这是一个轻量 stream projection，不是覆盖 model、tool、Graph、approval、memory 的统一
+事件总线。旧版教程中所述完整 `trace_adapter.py` 尚不存在。
+
+## 8.6：当前上下文与结果大小策略
+
+当前没有 Harness `ToolOutputLimits`。工具结果限制分为：
+
+1. `ProjectTool.max_result_chars`：单次工具返回进入 envelope 前截断；
+2. `AgentBudget.max_total_tool_result_chars`：runtime 结果中用于记录总预算口径；
+3. browser summary 输入：最多取页面内容前 5000 字符；
+4. memory context：由 `ContextManager` 的 token budget 选择。
+
+这里尚没有通用 spill/summarize store。不要在教程中宣称超长原始 payload 已自动持久化并可分页
+读取；如未来实现，应先区分原始 evidence retention 与模型 context copy。
+
+## 8.7：为什么当前不采用 Harness
+
+当前 Core 已覆盖 v0.1 必需能力：
+
+- typed output 和 output validator；
+- typed tools 与权限过滤；
+- Pydantic Graph 状态机；
+- message history/resume；
+- usage limits；
+- project-owned trace、approval、memory 和 quality gate。
+
+增加 Harness 会引入另一组 planning/delegation/store/trace 语义。目前没有固定 fixtures 对比报告
+证明它能降低遗漏、重复调用、token 或延迟，也没有路线图工作包要求它。因此“不采用”是当前
+合理选择，不是能力缺失。
+
+未来只有在以下条件满足时才重新评估：
+
+- 使用同一组 fake tools 和预算比较 Core 与候选 capability；
+- unsupported claim 和 permission violation 不恶化；
+- child usage、failure 和 trace 可归集到 parent run；
+- 不替换 deterministic workflow、quality gate 或 authorization；
+- 精确锁定并验证实际安装版本；
+- 有删除或简化现有代码的明确收益，而非只增加抽象层。
+
+## 8.8：测试与验收
+
+```bash
+uv run python -m pytest -q \
+  tests/ai/test_runtime_adapter.py \
+  tests/ai/test_message_store.py \
+  tests/ai/test_recorder.py \
+  tests/ai/test_stream_events.py \
+  tests/ai/graphs/test_parallel_policy.py \
+  tests/api/test_agent_runs_api.py
+```
+
+确认依赖事实：
+
+```bash
+uv run python -c \
+  "import importlib.metadata as m; print(m.version('pydantic-ai'))"
+rg -n "pydantic-ai-harness|src/ai/harness" pyproject.toml uv.lock src tests
+```
+
+第二条当前应无生产命中。
+
+- [ ] resume 使用新 run ID 和旧 conversation ID。
+- [ ] message append 幂等，冲突 replay 明确失败。
+- [ ] SQLite message table 不破坏旧 run data。
+- [ ] stream payload 在暴露前经过集中脱敏。
+- [ ] adapter 没有实现第二套模型 loop。
+- [ ] 没有把未采用的 Harness capability 写成当前功能。
+
+下一章在这些真实边界之上检查权限、审批、memory、离线评估和 live provider 验收。
