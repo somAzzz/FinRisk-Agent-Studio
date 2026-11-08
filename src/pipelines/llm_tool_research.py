@@ -20,10 +20,11 @@ from typing import Any, Literal
 from src.agents.state import AgentBudget
 from src.ai import model_factory
 from src.ai.deps import AgentDeps, AgentPermissions, AgentServices, AgentSubject
+from src.ai.model_settings import resolve_model_settings
 from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
 from src.ai.runtime_types import DEFAULT_SYSTEM_PROMPT, LLMToolRunResult
 from src.config import get_settings
-from src.schemas.llm_config import LLMRunConfig
+from src.schemas.llm_config import AgentGenerationConfig, LLMRunConfig
 from src.tools.catalog import build_project_tool_catalog
 
 ProviderChoice = Literal["deepseek", "openai", "sglang", "vllm"]
@@ -37,8 +38,9 @@ def build_runtime(
     max_tool_rounds: int,
     model: str | None = None,
     base_url: str | None = None,
+    generation_config: AgentGenerationConfig | None = None,
 ) -> PydanticAIRuntimeAdapter:
-    """Build a Pydantic AI runtime for the requested OpenAI-compatible provider."""
+    """Build a runtime with explicit deployment and generation policy."""
     settings = get_settings()
     run_config = LLMRunConfig(
         provider=provider,
@@ -50,6 +52,10 @@ def build_runtime(
             run_config,
             settings=settings,
         )
+    )
+    model_settings = resolve_model_settings(
+        settings=settings,
+        run_override=generation_config,
     )
     run_id = f"llm-tool-research-{uuid.uuid4().hex[:12]}"
     deps = AgentDeps(
@@ -76,6 +82,7 @@ def build_runtime(
         model=agent_model,
         deps=deps,
         system_prompt=DEFAULT_SYSTEM_PROMPT,
+        model_settings=model_settings,
     )
 
 
@@ -88,6 +95,7 @@ def run_research(
     json_trace_output: str | Path | None = None,
     model: str | None = None,
     base_url: str | None = None,
+    generation_config: AgentGenerationConfig | None = None,
     runtime: PydanticAIRuntimeAdapter | None = None,
 ) -> dict[str, Any]:
     """Run one tool-enabled research query and return a JSON-ready payload."""
@@ -97,6 +105,7 @@ def run_research(
         max_tool_rounds=max_tool_rounds,
         model=model,
         base_url=base_url,
+        generation_config=generation_config,
     )
     result = active_runtime.run(query)
     payload = result_to_payload(
@@ -131,10 +140,7 @@ def result_to_payload(
         "tool_events": tool_events,
         "source_urls": sorted(_collect_urls(tool_events)),
         "uncertainty": _extract_uncertainty(result.final_answer),
-        "budget_usage": (
-            result.budget_usage.model_dump(mode="json")
-            if result.budget_usage is not None else None
-        ),
+        "budget_usage": (result.budget_usage.model_dump(mode="json") if result.budget_usage is not None else None),
         "trace_path": trace_path,
     }
 
@@ -157,11 +163,25 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json-trace-output", default=None)
     parser.add_argument("--model", default=None)
     parser.add_argument("--base-url", default=None)
+    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--max-tokens", type=int, default=None)
+    parser.add_argument("--timeout-seconds", type=float, default=None)
+    parser.add_argument(
+        "--thinking",
+        choices=("minimal", "low", "medium", "high", "xhigh"),
+        default=None,
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+    generation_config = AgentGenerationConfig(
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        timeout_seconds=args.timeout_seconds,
+        thinking=args.thinking,
+    )
     payload = run_research(
         args.query,
         provider=args.provider,
@@ -170,6 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         json_trace_output=args.json_trace_output,
         model=args.model,
         base_url=args.base_url,
+        generation_config=generation_config,
     )
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0
@@ -199,7 +220,7 @@ def _extract_uncertainty(text: str) -> str | None:
     if marker not in lowered:
         return None
     index = lowered.index(marker)
-    return text[index:index + 500].strip()
+    return text[index : index + 500].strip()
 
 
 if __name__ == "__main__":

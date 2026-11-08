@@ -83,3 +83,38 @@ def test_adapter_continues_from_server_side_conversation_history() -> None:
     run("run-2", "second turn")
 
     assert observed_message_counts == [1, 3]
+
+
+def test_adapter_passes_resolved_model_settings_to_run() -> None:
+    observed_settings: list[dict | None] = []
+
+    def respond(_messages, info):
+        observed_settings.append(info.model_settings)
+        return ModelResponse(parts=[TextPart(content="completed")])
+
+    catalog = ToolCatalog(project_tools=())
+    deps = AgentDeps(
+        run_id="settings-1",
+        settings=Settings(),
+        services=AgentServices(tool_catalog=catalog),
+    )
+    runtime = PydanticAIRuntimeAdapter(
+        model=FunctionModel(respond),
+        deps=deps,
+        system_prompt="Complete the task.",
+        model_settings={
+            "temperature": 0,
+            "max_tokens": 500,
+            "timeout": 15,
+        },
+    )
+
+    runtime.run("Run with explicit settings")
+
+    assert observed_settings == [
+        {
+            "temperature": 0,
+            "max_tokens": 500,
+            "timeout": 15,
+        }
+    ]

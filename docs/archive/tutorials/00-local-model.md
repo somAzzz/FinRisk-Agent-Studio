@@ -1,8 +1,8 @@
 # Chapter 0：让唯一模型边界只负责 Deployment Policy
 
-> 本章以当前 `main` 的 `558e276f7880b081f64c4fecabdadc7212e3db59` 为起点，先解释
-> 已有 model factory，再给出适合 FinRisk 的下一步职责分离。目标不是减少项目自己的 factory，
-> 而是让它只处理 Pydantic AI 不知道、也不应该知道的部署策略。
+> 本章以当前 `main` 为准，解释已落地的 model factory 与 generation policy
+> 职责分离。项目保留自己的 factory，但它只处理 Pydantic AI 不知道、也不应该
+> 知道的部署策略。
 
 ## 本章结果
 
@@ -18,16 +18,16 @@ UsageLimits/Graph   how much work is allowed
 并能解释：
 
 - 为什么 request-level provider override 不应修改 `os.environ`；
-- 为什么 `timeout_s` 只存在于 config、却没有传入模型并不算完成；
-- 何时应使用 `DeepSeekProvider`，何时必须保留自定义 endpoint 能力；
+- 为什么 timeout 必须可以证明真正到达 `ModelSettings`；
+- 为什么当前 DeepSeek 只支持官方 endpoint，并显式拒绝自定义地址；
 - 为什么官方 OpenAI 与 local OpenAI-compatible endpoint 不应共享含混默认值；
 - live capability acceptance 与金融质量 eval 为什么是两套证据。
 
 ## 当前评价
 
-当前 Chapter 0 对应的代码约为 **8/10**，主体架构是合理的。
+当前 Chapter 0 的核心职责分离已落地。
 
-值得保留：
+已完成：
 
 - `Settings -> LLMRunConfig -> discriminated AgentModelConfig -> model factory`；
 - 不通过 request 修改全局环境变量；
@@ -38,24 +38,30 @@ UsageLimits/Graph   how much work is allowed
 - 默认 `ALLOW_MODEL_REQUESTS=False`；
 - `FunctionModel` 离线验收和独立 live acceptance；
 - CLI 错误脱敏和非零失败退出码。
+- generation semantics 已从 provider config/factory 移入独立 `AgentGenerationConfig`；
+- application、Agent 和 run 三层设置通过 `merge_model_settings()` 按优先级合并；
+- timeout 已在 `PydanticAIRuntimeAdapter` 的 run boundary 传入模型；
+- OpenAI 默认 endpoint 已改为官方 URL，云端占位 key 会在联网前失败；
+- DeepSeek 官方 endpoint 使用 `DeepSeekProvider`，自定义 endpoint 显式拒绝；
+- 未使用的 `llm_model` 和 provider-specific generation 字段已删除。
 
-需要调整：
+后续可选改进：
 
-1. generation semantics 从 provider config/factory 中独立出来；
-2. `timeout_s` 必须真正传入 `ModelSettings` 或 HTTP client，否则删除；
-3. 官方 DeepSeek 优先使用 `DeepSeekProvider`，但保留自定义 base URL 策略；
-4. `OPENAI_BASE_URL` 不再默认指向本地 SGLang；
-5. 删除未使用的 `llm_model`，谨慎迁移仍在使用的 `llm_provider`；
-6. 将来确需 OpenAI native capability 时，再引入 `OpenAIResponsesModel`；
-7. `pydantic-settings` 可以减少环境解析样板，但不是本章前提。
+1. 在 Chapter 1 为不同 typed Agent 定义 task-specific defaults；
+2. 若产品确实需要 DeepSeek 代理，增加独立的 custom-endpoint provider 类型和 trace 证据；
+3. 只在 capability test 证明需求时引入 `OpenAIResponsesModel`；
+4. 将 live acceptance 从合成 smoke 扩展为独立 capability probes；
+5. `pydantic-settings` 可以减少环境解析样板，但不是本章前提。
 
 ## 当前文件地图
 
-| 文件 | 当前职责 | 本章目标 |
+| 文件 | 当前职责 | 实现状态 |
 | --- | --- | --- |
-| `src/config.py` | 环境变量和 provider 默认值 | 清理含混/未使用字段，保留部署默认值 |
-| `src/schemas/llm_config.py` | per-run provider、model、base URL | 与 generation override 分开 |
+| `src/config.py` | 环境变量、provider 与 application generation 默认值 | 已分离部署与生成语义 |
+| `src/schemas/llm_config.py` | per-run deployment 与独立 generation schema | 已分离 |
+| `src/ai/model_settings.py` | application/Agent/run 设置映射与合并 | 已实现 |
 | `src/ai/model_factory.py` | 解析配置并构造 `OpenAIChatModel` | 只负责 provider/model/endpoint/profile |
+| `src/ai/runtime_adapter.py` | 在 run boundary 汇合 `ModelSettings` 和 `UsageLimits` | 已实现 |
 | `src/ai/live_acceptance.py` | typed output + local tool 合成验收 | 扩展成可定位的 capability report |
 | `scripts/pydantic_ai_live_acceptance.py` | 真实 provider CLI | 保持显式运行和错误脱敏 |
 | `tests/conftest.py` | 禁止默认真实请求 | 保持不变 |
@@ -215,17 +221,11 @@ Pydantic AI 2.27.1 已提供 `DeepSeekProvider`，它自带 DeepSeek model profi
 OpenAIChatModel(model_name, provider=DeepSeekProvider(api_key=...))
 ```
 
-但当前版本的 `DeepSeekProvider` 构造参数没有 `base_url`，默认固定
-`https://api.deepseek.com`。FinRisk 当前允许 `DEEPSEEK_BASE_URL`/run config 覆盖，因此不能
-无条件替换。
+当前版本的 `DeepSeekProvider` 构造参数没有 `base_url`，默认固定
+`https://api.deepseek.com`。FinRisk 因此选择只支持官方 DeepSeek endpoint：环境中不再配置
+`DEEPSEEK_BASE_URL`，run-level 自定义 DeepSeek URL 会在联网前显式失败。
 
-合理策略二选一：
-
-1. 明确只支持官方 DeepSeek endpoint，删除 DeepSeek base URL override；
-2. 官方 URL 使用 `DeepSeekProvider`，自定义代理使用显式 `AsyncOpenAI` client 注入
-   `DeepSeekProvider(openai_client=...)`，并为两条路径分别测试。
-
-不要根据 URL 悄悄切成另一种 provider 而没有 trace/config 证据。
+如果未来需要代理，应建立独立、可追踪的 provider 变体，不要根据 URL 悄悄切换语义。
 
 ### OpenAI
 
@@ -280,15 +280,15 @@ defaults，但仍复用同一个 model factory。业务 Agent 不读取 provider
 
 ## 0.7：配置清理策略
 
-### 可以删除的字段
+### 已删除的字段
 
-`Settings.llm_model` 当前没有生产调用方，只在配置测试中出现。删除前先更新测试和 `.env.example`，
-并用 `rg` 确认部署脚本没有引用。
+`Settings.llm_model` 没有生产调用方，已从 `Settings`、测试和 `.env.example` 删除。
+DeepSeek 专用的 temperature/max-tokens/timeout 也已由通用 generation policy 取代。
 
 ### 不能直接删除的字段
 
-`Settings.llm_provider` 当前由 `resolve_agent_model_config(None, settings=...)` 用作默认 provider。
-它不是完全未使用的 legacy 字段。可以：
+`Settings.llm_provider` 仍由 `resolve_agent_model_config(None, settings=...)` 用作默认 provider。
+它不是 legacy 字段。未来可以：
 
 - 保留；或
 - 重命名为语义更清楚的 `default_llm_provider`，同步环境变量和兼容期；或
@@ -325,10 +325,10 @@ safe error type/message
 最低 smoke。若要判断 OpenAI Responses、DeepSeek reasoning 或 local strict schema 等能力，应增加
 分项 probe，而不是从一次成功推断所有 capability。
 
-## 0.9：手写实践稿
+## 0.9：实现对照
 
-> 本节是“目标实现”，不是对当前代码已经完成的陈述。请按文末顺序逐步手写、测试和提交，
-> 不要一次覆盖整个 `.env.example` 或所有 Agent 调用点。
+> 本节展示当前已落地的关键代码。学习者可以按文末顺序在隔离分支重演，
+> 但不应再把这些作为当前 `main` 的待实施清单。
 
 ### 0.9.1：只替换 `.env.example` 的 LLM 区域
 
@@ -346,15 +346,14 @@ LLM_TIMEOUT_SECONDS=60
 
 # Local OpenAI-compatible deployments
 SGLANG_BASE_URL=http://localhost:30000/v1
-SGLANG_MODEL=Qwen/Qwen3.8-27B
+SGLANG_MODEL=qwen3.8-27b
 SGLANG_API_KEY=EMPTY
 
 VLLM_BASE_URL=http://localhost:8000/v1
-VLLM_MODEL=Qwen/Qwen3.8-27B
+VLLM_MODEL=nvidia/Qwen3.6-27B-NVFP4
 VLLM_API_KEY=dummy
 
 # DeepSeek
-DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
 DEEPSEEK_API_KEY=REPLACE_ME
 
@@ -512,35 +511,30 @@ def resolve_model_settings(
 ### 0.9.5：让 factory 回归 deployment policy
 
 从 `_OpenAICompatibleConfig` 删除 `timeout_s`。SGLang 和 vLLM 继续使用 `OpenAIProvider` 和保守
-profile；OpenAI 使用官方默认 URL；DeepSeek 分为官方与自定义 endpoint 两条明确路径：
+profile；OpenAI 使用官方默认 URL；DeepSeek 只使用官方 provider：
 
 ```python
-from openai import AsyncOpenAI
 from pydantic_ai.providers.deepseek import DeepSeekProvider
 
 OFFICIAL_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-
-
-def _build_deepseek_provider(
-    config: DeepSeekModelConfig,
-) -> DeepSeekProvider:
-    api_key = config.api_key.get_secret_value()
-    if config.base_url == OFFICIAL_DEEPSEEK_BASE_URL:
-        return DeepSeekProvider(api_key=api_key)
-
-    client = AsyncOpenAI(base_url=config.base_url, api_key=api_key)
-    return DeepSeekProvider(openai_client=client)
 
 
 def build_agent_model(config: AgentModelConfig) -> Model:
     if isinstance(config, DeepSeekModelConfig):
         return OpenAIChatModel(
             config.model,
-            provider=_build_deepseek_provider(config),
+            provider=DeepSeekProvider(
+                api_key=config.api_key.get_secret_value()
+            ),
         )
 
     provider = OpenAIProvider(
-        base_url=config.base_url,
+        base_url=(
+            None
+            if isinstance(config, OpenAIModelConfig)
+            and config.base_url == OFFICIAL_OPENAI_BASE_URL
+            else config.base_url
+        ),
         api_key=config.api_key.get_secret_value(),
     )
     if isinstance(config, (SGLangModelConfig, VLLMModelConfig)):
@@ -552,8 +546,8 @@ def build_agent_model(config: AgentModelConfig) -> Model:
     return OpenAIChatModel(config.model, provider=provider)
 ```
 
-因为项目此时直接 import `openai.AsyncOpenAI`，应将 `openai` 写入 `pyproject.toml` 的直接依赖，
-不要长期依赖 `pydantic-ai` 的传递安装。
+由于没有直接 import `openai.AsyncOpenAI`，本章不需要新增 `openai` 直接依赖。
+自定义 DeepSeek URL 在 `resolve_agent_model_config()` 阶段被拒绝。
 
 ### 0.9.6：在 run 边界汇合
 
@@ -634,21 +628,22 @@ def test_resolution_precedence() -> None:
     }
 ```
 
-factory 测试还应断言 OpenAI 默认 URL、云端占位 key 在网络前失败、`SecretStr` 不出现在
-`repr(config)`，以及官方与自定义 DeepSeek endpoint 均保留对应 provider 语义。
+factory 测试断言 OpenAI 默认 URL、云端占位 key 在网络前失败、`SecretStr` 不出现在
+`repr(config)`、官方 DeepSeek 使用专用 profile，以及自定义 DeepSeek endpoint 被显式拒绝。
 
-## 0.10：推荐实施顺序
+## 0.10：实施结果与后续顺序
 
-如果把本章目标真正落地，建议拆成可回滚的小步：
+本章已按以下顺序落地：
 
-1. 为 generation config 和 `build_model_settings()` 写离线测试；
-2. 让一个 Agent 显式接收 default `ModelSettings`，验证 run override 优先级；
-3. 把 `timeout_s` 接入并测试实际 model settings/HTTP client；
-4. 修正 OpenAI 默认 endpoint；
-5. 为官方 DeepSeek 与自定义 endpoint 分别选择并测试 provider 路径；
-6. 删除未使用 `llm_model`，再决定 `llm_provider` 的迁移策略；
-7. 最后扩展 live capability report；
-8. 每一步运行全部 model/Agent/provider tests，不同时改 toolsets 或 workflow。
+1. 增加 generation config、映射和合并测试；
+2. 让 `llm_tool_research` 路径显式接收并传递 `ModelSettings`；
+3. 证明 timeout 真正到达 Pydantic AI run boundary；
+4. 修正 OpenAI 默认 endpoint 与占位 key 校验；
+5. 将 DeepSeek 收紧为官方 provider，拒绝未定义的代理语义；
+6. 删除未使用的 `llm_model` 和 provider-specific generation 字段。
+
+后续应在 Chapter 1 中为具体 typed Agent 添加 task-specific defaults，再根据实际需求决定是否
+扩展 API generation override 和分项 live capability probes。
 
 ## 0.11：验收
 
@@ -670,7 +665,7 @@ None/zero override semantics
 Agent default vs run override precedence
 timeout reaches ModelSettings or HTTP client
 official DeepSeek provider/profile
-custom DeepSeek endpoint preservation
+custom DeepSeek endpoint rejection
 official OpenAI endpoint default
 OpenAI Chat vs Responses capability selection
 removed config has no production reference
@@ -683,16 +678,16 @@ secret redaction for every provider path
 uv run python scripts/pydantic_ai_live_acceptance.py \
   --provider sglang \
   --base-url http://localhost:30000/v1 \
-  --model Qwen/Qwen3.8-27B
+  --model qwen3.8-27b
 ```
 
-- [ ] factory 只决定 endpoint、provider、model class 和 profile。
-- [ ] generation semantics 由 `ModelSettings` 管理并支持 run override。
-- [ ] `max_tokens` 没有冒充 total token budget。
-- [ ] timeout 配置可以证明真正生效。
-- [ ] DeepSeek 官方和自定义 endpoint 策略明确。
-- [ ] `provider="openai"` 不再默认连接 SGLang。
-- [ ] 未使用配置已删除，仍在使用的默认 provider 没有误删。
-- [ ] 默认测试离线，live acceptance 显式运行且错误脱敏。
+- [x] factory 只决定 endpoint、provider、model class 和 profile。
+- [x] generation semantics 由 `ModelSettings` 管理并支持 run override。
+- [x] `max_tokens` 没有冒充 total token budget。
+- [x] timeout 配置可以证明真正生效。
+- [x] DeepSeek 官方 endpoint 和自定义 endpoint 拒绝策略明确。
+- [x] `provider="openai"` 不再默认连接 SGLang。
+- [x] 未使用配置已删除，仍在使用的默认 provider 没有误删。
+- [x] 默认测试离线，live acceptance 显式运行且错误脱敏。
 
 完成本章后，Chapter 1 再把 model、generation settings 与具体 typed Agent 任务组合起来。

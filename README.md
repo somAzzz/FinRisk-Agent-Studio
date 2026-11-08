@@ -217,7 +217,7 @@ Pydantic AI provides the sole Agent runtime across external and hosted OpenAI-co
 
 | Provider | `LLM_PROVIDER` | Base URL | Auth env var | Example model |
 |---|---|---|---|---|
-| SGLang | `sglang` | `http://localhost:30000/v1` | `SGLANG_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
+| SGLang | `sglang` | `http://localhost:30000/v1` | `SGLANG_API_KEY` | `qwen3.8-27b` |
 | vLLM | `vllm` | `http://localhost:8000/v1` | `VLLM_API_KEY` | `Qwen/Qwen3.5-35B-A3B` |
 | OpenAI | `openai` | `https://api.openai.com/v1` | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | DeepSeek | `deepseek` | `https://api.deepseek.com` | `DEEPSEEK_API_KEY` | `deepseek-v4-flash` |
