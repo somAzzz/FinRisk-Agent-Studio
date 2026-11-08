@@ -34,7 +34,7 @@ describe("WorkflowLauncher", () => {
     const ticker = screen.getByTestId("ticker-input") as HTMLInputElement;
     expect(ticker.value).toBe("AAPL");
     expect(screen.getByTestId("demo-mode")).not.toBeChecked();
-    expect(screen.getByTestId("llm-provider-select")).toHaveValue("vllm");
+    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
   });
 
   it("submits the request and invokes onStarted", async () => {
@@ -50,7 +50,7 @@ describe("WorkflowLauncher", () => {
       expect.objectContaining({
         ticker: "AAPL",
         demo_mode: false,
-        llm_config: expect.objectContaining({ provider: "vllm" }),
+        llm_config: expect.objectContaining({ provider: "sglang" }),
       }),
     );
   });

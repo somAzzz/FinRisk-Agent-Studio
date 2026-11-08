@@ -147,9 +147,7 @@ describe("ResearchCyclePanel", () => {
     await waitFor(() => expect(api.startWorkflow).toHaveBeenCalledWith(
       expect.objectContaining({
         llm_config: {
-          provider: "vllm",
-          base_url: "http://localhost:30000/v1",
-          model: "nvidia/Qwen3.6-27B-NVFP4",
+          provider: "sglang",
         },
       }),
     ));

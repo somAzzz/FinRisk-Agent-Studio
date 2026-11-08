@@ -184,7 +184,7 @@ describe("SupplyChainExplorer", () => {
     expect(screen.getByTestId("sc-company-input")).toHaveValue("OpenAI");
     expect(screen.getByTestId("sc-product-input")).toHaveValue("ChatGPT");
     expect(screen.queryByTestId("sc-demo-mode")).not.toBeInTheDocument();
-    expect(screen.getByTestId("llm-provider-select")).toHaveValue("vllm");
+    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
   });
 
   it("clicking Run calls the API and renders the Sankey", async () => {
@@ -198,7 +198,7 @@ describe("SupplyChainExplorer", () => {
       expect.objectContaining({
         demo_mode: false,
         cached_mode: false,
-        llm_config: expect.objectContaining({ provider: "vllm" }),
+        llm_config: expect.objectContaining({ provider: "sglang" }),
       }),
     );
     expect(sankeyMock).toHaveBeenCalledWith("sc-run-1");

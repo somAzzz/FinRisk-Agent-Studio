@@ -14,9 +14,7 @@ const DEFAULT_REQUEST: FinRiskRequest = {
   demo_mode: false,
   cached_mode: false,
   llm_config: {
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
+    provider: "sglang",
   },
 };
 

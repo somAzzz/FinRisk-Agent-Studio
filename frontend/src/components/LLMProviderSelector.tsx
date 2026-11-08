@@ -15,12 +15,12 @@ const PROVIDERS: Array<{
     value: "sglang",
     label: "Local SGLang",
     baseUrl: "http://localhost:30000/v1",
-    model: "Qwen/Qwen3.5-35B-A3B",
+    model: "qwen3.8-27b",
   },
   {
     value: "vllm",
     label: "Local vLLM",
-    baseUrl: "http://localhost:30000/v1",
+    baseUrl: "http://localhost:8000/v1",
     model: "nvidia/Qwen3.6-27B-NVFP4",
   },
   {
@@ -47,7 +47,7 @@ export function LLMProviderSelector({ value, onChange }: Props) {
     <details className="runtime-disclosure">
       <summary>
         <span>Advanced runtime</span>
-        <small>{selected.label} · {value.model ?? selected.model}</small>
+        <small>{selected.label} · {value.model ?? "server default"}</small>
       </summary>
       <fieldset className="llm-selector" data-testid="llm-selector">
         <legend>LLM provider</legend>
@@ -60,11 +60,11 @@ export function LLMProviderSelector({ value, onChange }: Props) {
           onChange={(e) => {
             const provider = e.target.value as LLMProvider;
             const defaults = defaultsFor(provider);
-            onChange({
-              provider,
-              base_url: defaults.baseUrl,
-              model: defaults.model,
-            });
+            onChange(
+              provider === "sglang"
+                ? { provider }
+                : { provider, base_url: defaults.baseUrl, model: defaults.model },
+            );
           }}
         >
           {PROVIDERS.map((provider) => (
@@ -79,7 +79,8 @@ export function LLMProviderSelector({ value, onChange }: Props) {
         <input
           id="llm-base-url"
           data-testid="llm-base-url-input"
-          value={value.base_url ?? selected.baseUrl}
+          placeholder={selected.baseUrl}
+          value={value.base_url ?? ""}
           onChange={(e) =>
             onChange({ ...value, base_url: e.target.value || null })
           }
@@ -90,7 +91,8 @@ export function LLMProviderSelector({ value, onChange }: Props) {
         <input
           id="llm-model"
           data-testid="llm-model-input"
-          value={value.model ?? selected.model}
+          placeholder={selected.model}
+          value={value.model ?? ""}
           onChange={(e) =>
             onChange({ ...value, model: e.target.value || null })
           }

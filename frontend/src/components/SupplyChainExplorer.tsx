@@ -23,9 +23,7 @@ const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   max_depth: 3,
   max_suppliers_per_node: 5,
   llm_config: {
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
+    provider: "sglang",
   },
 };
 

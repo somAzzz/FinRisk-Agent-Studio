@@ -64,9 +64,7 @@ export function ResearchCyclePanel({
   const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
   const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
   const [llmConfig, setLlmConfig] = useState<LLMRunConfig>({
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
+    provider: "sglang",
   });
 
   const refreshGlobal = async () => {
