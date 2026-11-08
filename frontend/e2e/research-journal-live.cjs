@@ -50,7 +50,7 @@ async function screenshot(page, name) {
 }
 
 async function openJournal(page, task = "cycle") {
-  await page.goto(`${APP_URL}?view=journal&task=${task}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${APP_URL}?task=${task}#/journal`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("research-journal").waitFor({ timeout });
 }
 
@@ -63,7 +63,8 @@ async function createThesisAndWatchlist(page) {
   await fill(page, "Key drivers", primary.key_drivers);
   await fill(page, "Metrics to monitor", primary.monitoring_metrics);
   await clickAndWaitForResponse(page, "Save active thesis", "/research/theses");
-  await page.locator(".thesis-card", { hasText: primary.thesis }).waitFor({ timeout });
+  await page.getByText("Thesis archive", { exact: true }).click();
+  await page.locator(".thesis-focus-statement", { hasText: primary.thesis }).waitFor({ timeout });
   await fill(page, `Next review date for ${primary.ticker}`, futureDate(primary.next_review_days_from_now));
   await clickAndWaitForResponse(page, "Add to watchlist", "/research/watchlist", "PUT");
   await page.locator(".watchlist-ledger article", { hasText: primary.ticker }).waitFor({ timeout });
@@ -89,9 +90,14 @@ async function runLinkedFinRisk(page) {
   await setCyclePeriod(page, primary.ticker, primary.current_year, primary.quarter);
   await fill(page, "FinRisk analysis goal", primary.analysis_goal);
   await page.getByText("Research LLM", { exact: true }).click();
+  await page.locator(".cycle-llm-config .runtime-disclosure > summary").click();
   await page.getByTestId("llm-provider-select").selectOption(config.llm.provider);
-  await page.getByTestId("llm-base-url-input").fill(config.llm.base_url);
-  await page.getByTestId("llm-model-input").fill(config.llm.model);
+  if (config.llm.base_url) {
+    await page.getByTestId("llm-base-url-input").fill(config.llm.base_url);
+  }
+  if (config.llm.model) {
+    await page.getByTestId("llm-model-input").fill(config.llm.model);
+  }
 
   let workflowPayload;
   page.on("request", (request) => {

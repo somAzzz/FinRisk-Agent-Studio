@@ -24,6 +24,14 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import httpx  # noqa: E402
+
+from src.ai.model_factory import resolve_agent_model_config  # noqa: E402
+from src.schemas.llm_config import LLMRunConfig  # noqa: E402
+
 DEFAULT_CONFIG = ROOT / "config/acceptance/research_journal_live.json"
 
 
@@ -168,20 +176,23 @@ def validate_config(config: dict[str, Any]) -> None:
     missing = sorted(required - config.keys())
     if missing:
         raise AcceptanceError(f"scenario config is missing: {', '.join(missing)}")
-    for key in ("provider", "base_url", "model"):
-        if not str(config["llm"].get(key, "")).strip():
-            raise AcceptanceError(f"llm.{key} must not be empty")
+    if config["llm"].get("provider") not in {"sglang", "vllm"}:
+        raise AcceptanceError("Live journal acceptance requires a local LLM provider")
+    resolve_agent_model_config(LLMRunConfig.model_validate(config["llm"]))
 
 
 def check_local_llm(config: dict[str, Any], report: dict[str, Any]) -> None:
-    base = str(config["llm"]["base_url"]).rstrip("/")
+    deployment = resolve_agent_model_config(LLMRunConfig.model_validate(config["llm"]))
+    base = deployment.base_url.rstrip("/")
+    headers = {"Authorization": "Bearer " + deployment.api_key.get_secret_value()}
     try:
-        with urlopen(f"{base}/models", timeout=10) as response:
-            payload = json.loads(response.read().decode())
-    except (URLError, TimeoutError) as exc:
-        raise AcceptanceError(f"local LLM is unavailable at {base}: {exc}") from exc
+        response = httpx.get(f"{base}/models", headers=headers, timeout=10, follow_redirects=False)
+        response.raise_for_status()
+        payload = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise AcceptanceError(f"Could not verify models at {base}") from exc
     models = payload.get("data") or []
-    expected = str(config["llm"]["model"])
+    expected = deployment.model
     match = next((item for item in models if item.get("id") == expected), None)
     if match is None:
         raise AcceptanceError(f"local LLM model {expected!r} is not served: {models}")
@@ -217,8 +228,8 @@ def start_isolated_services(
     )
     api = subprocess.Popen(
         [
-            "uv",
-            "run",
+            sys.executable,
+            "-m",
             "uvicorn",
             "src.api.main:app",
             "--host",

@@ -5,14 +5,14 @@
 ## 前置条件
 
 - 已执行 `uv sync`、`cd frontend && npm ci`，并安装 Playwright Chromium。
-- 本地 LLM 的 `/v1/models` 可访问；配置中的 model ID 必须与服务返回值完全一致。
+- 本地 LLM 的 `/v1/models` 可访问；解析后的 model ID 必须与服务返回值完全一致。
 - SEC、transcript、web 和 Neo4j 使用项目现有环境配置。外部来源不可用可形成 partial snapshot，但本地 LLM 调用必须真实成功。
 - 配置中的 API/Vite 端口未被占用。
 
 ## 直接运行
 
 ```bash
-uv run python scripts/research_journal_live_acceptance.py
+uv run --env-file .env python scripts/research_journal_live_acceptance.py
 ```
 
 默认场景为 `config/acceptance/research_journal_live.json`。输出保存在：
@@ -39,12 +39,12 @@ artifacts/research-journal-live/<scenario>-<UTC timestamp>/
 - `peer` 的 ticker 和组名；
 - 历史 expectation。`observed_at`/`as_of` 必须早于相应实际财报公开时间；
 - 显式估值假设；
-- `llm.provider`、`base_url`、`model`。
+- `llm.provider`。默认沿用后端的地址和模型；可选字段 `llm.base_url`、`llm.model` 用于显式覆盖。服务端凭据仅用于对应的已配置端点。
 
 运行新文件：
 
 ```bash
-uv run python scripts/research_journal_live_acceptance.py \
+uv run --env-file .env python scripts/research_journal_live_acceptance.py \
   --config config/acceptance/my_company.json
 ```
 
@@ -69,13 +69,13 @@ uv run python scripts/research_journal_live_acceptance.py \
 
 ```bash
 # 显示真实浏览器
-uv run python scripts/research_journal_live_acceptance.py --headed
+uv run --env-file .env python scripts/research_journal_live_acceptance.py --headed
 
 # 指定输出目录
-uv run python scripts/research_journal_live_acceptance.py --output-dir /tmp/journal-run
+uv run --env-file .env python scripts/research_journal_live_acceptance.py --output-dir /tmp/journal-run
 
 # 调试时保留隔离服务
-uv run python scripts/research_journal_live_acceptance.py --keep-services
+uv run --env-file .env python scripts/research_journal_live_acceptance.py --keep-services
 ```
 
 `--reuse-services` 只用于已经按场景端口、API key 和隔离数据库启动服务的调试环境；常规验收不要使用。
