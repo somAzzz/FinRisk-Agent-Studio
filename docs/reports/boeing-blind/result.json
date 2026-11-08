@@ -1,0 +1,441 @@
+{
+  "issuer": "The Boeing Company",
+  "as_of": "2026-11-08",
+  "seed_sha256": "9072b195b12ddcd33e587d5709753605d60bbadffffd9688864960fea06fad65",
+  "page_count": 169,
+  "sample_pages": [
+    9,
+    55,
+    68,
+    40,
+    45,
+    17,
+    24,
+    18
+  ],
+  "edges": [
+    {
+      "subject": "The Boeing Company",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Commercial Airplanes",
+      "object_kind": "Segment",
+      "page": 9,
+      "quote": "We operate in three reportable segments: • Commercial Airplanes (BCA); • Defense, Space & Security (BDS); • Global Services (BGS).",
+      "status": "supported",
+      "review": "The source text explicitly states that the Company operates in three reportable segments, listing 'Commercial Airplanes' as the first one."
+    },
+    {
+      "subject": "The Boeing Company",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Defense, Space & Security",
+      "object_kind": "Segment",
+      "page": 9,
+      "quote": "We operate in three reportable segments: • Commercial Airplanes (BCA); • Defense, Space & Security (BDS); • Global Services (BGS).",
+      "status": "supported",
+      "review": "The source text explicitly states that the Company operates in three reportable segments, listing 'Defense, Space & Security' as the second one."
+    },
+    {
+      "subject": "The Boeing Company",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Global Services",
+      "object_kind": "Segment",
+      "page": 9,
+      "quote": "We operate in three reportable segments: • Commercial Airplanes (BCA); • Defense, Space & Security (BDS); • Global Services (BGS).",
+      "status": "supported",
+      "review": "The source text explicitly states that the Company operates in three reportable segments, listing 'Global Services' as the third one."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "737",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This family of commercial jet aircraft in production includes the 737 narrow-body model and the 767, 777 and 787 wide-body models.",
+      "status": "supported",
+      "review": "The text under the 'Commercial Airplanes Segment' heading states that the segment 'develops, produces and markets' a family of aircraft that 'includes the 737 narrow-body model'."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "767",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This family of commercial jet aircraft in production includes the 737 narrow-body model and the 767, 777 and 787 wide-body models.",
+      "status": "supported",
+      "review": "The text under the 'Commercial Airplanes Segment' heading states that the segment 'develops, produces and markets' a family of aircraft that 'includes... the 767... wide-body models'."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "777",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This family of commercial jet aircraft in production includes the 737 narrow-body model and the 767, 777 and 787 wide-body models.",
+      "status": "supported",
+      "review": "The text under the 'Commercial Airplanes Segment' heading states that the segment 'develops, produces and markets' a family of aircraft that 'includes... the 777... wide-body models'."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "787",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This family of commercial jet aircraft in production includes the 737 narrow-body model and the 767, 777 and 787 wide-body models.",
+      "status": "supported",
+      "review": "The text under the 'Commercial Airplanes Segment' heading states that the segment 'develops, produces and markets' a family of aircraft that 'includes... and 787 wide-body models'."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "SERVES",
+      "object": "commercial airline industry",
+      "object_kind": "Customer class",
+      "page": 9,
+      "quote": "This segment develops, produces and markets commercial jet aircraft principally to the commercial airline industry worldwide.",
+      "status": "supported",
+      "review": "The text under the 'Commercial Airplanes Segment' heading states that the segment 'develops, produces and markets commercial jet aircraft principally to the commercial airline industry'."
+    },
+    {
+      "subject": "Defense, Space & Security",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "fighter and trainer aircraft",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This segment engages in the research, development, production and modification of manned and unmanned military aircraft and weapons systems for strike, surveillance and mobility, including fighter and trainer aircraft; vertical lift, including rotorcraft and tilt-rotor aircraft; and commercial derivative aircraft, including anti-submarine and tanker aircraft.",
+      "status": "supported",
+      "review": "The text under the 'Defense, Space & Security Segment' heading states that the segment engages in the 'production... of manned and unmanned military aircraft... including fighter and trainer aircraft'."
+    },
+    {
+      "subject": "Defense, Space & Security",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "rotorcraft and tilt-rotor aircraft",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "This segment engages in the research, development, production and modification of manned and unmanned military aircraft and weapons systems for strike, surveillance and mobility, including fighter and trainer aircraft; vertical lift, including rotorcraft and tilt-rotor aircraft; and commercial derivative aircraft, including anti-submarine and tanker aircraft.",
+      "status": "supported",
+      "review": "The text under the 'Defense, Space & Security Segment' heading states that the segment engages in the 'production... of manned and unmanned military aircraft... including... rotorcraft and tilt-rotor aircraft'."
+    },
+    {
+      "subject": "Defense, Space & Security",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "satellite systems",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "In addition, this segment engages in the research, development, production and modification of the following products and related services: strategic defense and intelligence systems, including strategic missile and defense systems, command, control, communications, computers, intelligence, surveillance and reconnaissance, cyber and information solutions, and intelligence systems, satellite systems, including government and commercial satellites and space exploration.",
+      "status": "supported",
+      "review": "The text under the 'Defense, Space & Security Segment' heading states that the segment engages in the 'production... of the following products... satellite systems'."
+    },
+    {
+      "subject": "Global Services",
+      "subject_kind": "Segment",
+      "relation": "SERVES",
+      "object": "commercial and defense customers",
+      "object_kind": "Customer class",
+      "page": 9,
+      "quote": "This segment provides services to our commercial and defense customers worldwide.",
+      "status": "supported",
+      "review": "The text under the 'Global Services Segment' heading states that 'This segment provides services to our commercial and defense customers'."
+    },
+    {
+      "subject": "Global Services",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "pilot and maintenance training systems and services",
+      "object_kind": "Product",
+      "page": 9,
+      "quote": "Global Services sustains aerospace platforms and systems with a full spectrum of products and services, including supply chain and logistics management, engineering, maintenance and modifications, upgrades and conversions, spare parts, pilot and maintenance training systems and services, technical and maintenance documents, and digital solutions and analytics.",
+      "status": "unknown",
+      "review": "The source text states that Global Services 'sustains aerospace platforms and systems with a full spectrum of products and services, including... pilot and maintenance training systems and services'. While it lists these as part of its offerings, the verb 'PRODUCES' is not explicitly used for this segment in the provided text (unlike the other segments which explicitly state 'production'). The text describes the segment as providing services and sustaining systems, rather than explicitly claiming production of these specific training systems in the same manner as the manufacturing segments. However, looking closely at the instruction to 'Reject unsupported precision', the text says it provides 'products and services'. 'Pilot and maintenance training systems' are listed as products. But does it 'produce' them? The text says 'Global Services sustains... with... products'. It does not explicitly say it produces them, only that it provides them as part of its service offering. In contrast, the BDS segment explicitly says 'engages in... production'. The Global Services section says 'provides services' and 'sustains... with... products'. It is safer to reject 'PRODUCES' as the specific relation when the text emphasizes 'provides' and 'sustains' for a services segment, unless 'production' is explicitly mentioned for that specific item. The text does not use the word 'produce' or 'production' in the Global Services paragraph provided."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "777-9",
+      "object_kind": "Product",
+      "page": 45,
+      "quote": "In the third quarter of 2025, we reassessed the anticipated timing to complete FAA certification flight testing and delayed first delivery of the 777-9 to 2027.",
+      "status": "unknown",
+      "review": "The source text on page 45 discusses the delay of the 777-9 delivery and production challenges. It does not explicitly state that the 'Commercial Airplanes' segment produces the 777-9 in this specific excerpt. While it is implied by context that Boeing produces it, the specific claim links the segment to the product. The text mentions 'we' (Boeing) reassessed timing. It does not explicitly attribute the production of the 777-9 to the 'Commercial Airplanes' segment in this specific quote. However, usually, segment attribution is derived from the whole document. But strictly based on the provided source text for index 13, the text says 'we reassessed...'. It does not mention the segment name 'Commercial Airplanes'. The claim asserts the subject is 'Commercial Airplanes'. The source text does not contain the string 'Commercial Airplanes' in the provided snippet for index 13. It only says 'we'. Without the segment name in the text, the link is not explicitly supported by the *supplied* text alone, although it is factually true. The prompt requires checking if the quoted clause clearly belongs to its section. The quote is from a section discussing 777X delays. It does not explicitly name the segment. Therefore, the specific edge 'Commercial Airplanes PRODUCES 777-9' is not directly supported by the *text provided* which lacks the segment identifier."
+    },
+    {
+      "subject": "Commercial Airplanes",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "777-8 Freighter",
+      "object_kind": "Product",
+      "page": 45,
+      "quote": "We continue to anticipate first delivery of the 777-8 Freighter to occur approximately two years after the first delivery of the 777-9.",
+      "status": "unknown",
+      "review": "The source text on page 45 discusses the 777-8 Freighter delivery timeline. It does not explicitly state that the 'Commercial Airplanes' segment produces the 777-8 Freighter in this specific excerpt. The text uses 'we' to refer to the company. The segment name 'Commercial Airplanes' is not present in the provided source text for this index. Therefore, the specific subject 'Commercial Airplanes' is not explicitly linked to the product in the supplied text."
+    }
+  ],
+  "tasks": [
+    {
+      "target": "Product/737",
+      "question": "What are the latest external developments or regulatory actions affecting the Boeing 737 MAX program?",
+      "web_query": "Boeing 737 MAX FAA regulatory update 2024",
+      "us_regulatory_relevance": true,
+      "registry_term": "Boeing 737"
+    },
+    {
+      "target": "Product/787",
+      "question": "What recent external developments or supply chain issues have affected the production or delivery of the Boeing 787 Dreamliner?",
+      "web_query": "Boeing 787 Dreamliner production delays supply chain news",
+      "us_regulatory_relevance": false,
+      "registry_term": ""
+    },
+    {
+      "target": "Product/777",
+      "question": "What are the current external market or regulatory developments impacting the Boeing 777X program?",
+      "web_query": "Boeing 777X certification status FAA 2024",
+      "us_regulatory_relevance": true,
+      "registry_term": "Boeing 777"
+    }
+  ],
+  "search": [
+    {
+      "provider": "register_hits",
+      "query": "Boeing 737",
+      "target": "Product/737",
+      "results": [
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21863.pdf",
+          "title": "Airworthiness Directives; The Boeing Company Airplanes",
+          "decision": "pinned original"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21862.pdf",
+          "title": "Airworthiness Directives; The Boeing Company Airplanes",
+          "decision": "pinned original"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21852.pdf",
+          "title": "Airworthiness Directives; CFM International, S.A. Engines",
+          "decision": "pinned original"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21840.pdf",
+          "title": "Order Renewing Order Temporarily Denying Export Privileges",
+          "decision": "pinned original"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Boeing 737 MAX FAA regulatory update 2024",
+      "target": "Product/737",
+      "results": [
+        {
+          "url": "https://www.npr.org/2024/01/19/1225466035/boeing-737-max-faa-door-plug-alaska-crashes-ntsb",
+          "title": "Cozy ties between Boeing and U.S. regulators draw scrutiny : NPR",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://samolets.com/boeing-737-max-8-flydubai/",
+          "title": "Два салона Boeing 737 MAX 8 flydubai: MAX 8 на 166 мест...",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://grokipedia.com/page/Reactions_to_the_Boeing_737_MAX_groundings",
+          "title": "Reactions to the Boeing 737 MAX groundings — Grokipedia",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://www.paulharrowux.com/rampart/the-boeing-737-max-amp-normalization-of-deviance",
+          "title": "THE BOEING 737 MAX & NORMALIZATION OF... — Paul Harrow UX",
+          "decision": "Independent primary publisher not established"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Boeing 787 Dreamliner production delays supply chain news",
+      "target": "Product/787",
+      "results": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Boeing_787_Dreamliner",
+          "title": "Boeing 787 Dreamliner - Wikipedia",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://simpleflying.com/boeing-spend-1-billion-expand-787-facility-south-carolina/",
+          "title": "Boeing Will Spend $1 Billion To Expand 787 Facility In South Carolina",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://www.npr.org/2014/02/25/282431939/boeings-787-dreamliner-can-t-shake-major-malfunction-issues",
+          "title": "Problems Linger For Boeing's Flagship 787 Airliner : NPR",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://www.nytimes.com/2019/04/20/business/boeing-dreamliner-production-problems.html",
+          "title": "Claims of Shoddy Production Draw Scrutiny to a Second Boeing Jet...",
+          "decision": "Independent primary publisher not established"
+        }
+      ]
+    },
+    {
+      "provider": "register_hits",
+      "query": "Boeing 777",
+      "target": "Product/777",
+      "results": [
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21840.pdf",
+          "title": "Order Renewing Order Temporarily Denying Export Privileges",
+          "decision": "already evaluated"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-09-28/pdf/2026-19751.pdf",
+          "title": "Airworthiness Directives; The Boeing Company Airplanes",
+          "decision": "pinned original"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-07-31/pdf/2026-15585.pdf",
+          "title": "Requirements for Interference-Tolerant Radio Altimeter Systems",
+          "decision": "pinned original"
+        },
+        {
+          "url": "https://www.govinfo.gov/content/pkg/FR-2026-07-28/pdf/2026-15239.pdf",
+          "title": "Airworthiness Directives; The Boeing Company Airplanes",
+          "decision": "pinned original"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Boeing 777X certification status FAA 2024",
+      "target": "Product/777",
+      "results": [
+        {
+          "url": "https://www.aerotelegraph.com/tags/boeing-777-9",
+          "title": "Boeing 777-9 | aeroTELEGRAPH",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://simpleflying.com/why-boeing-needs-5-prototypes-777x/",
+          "title": "Why Boeing Needs 5 Prototypes To Test The 777X | Simple Flying",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://www.tiktok.com/discover/when-was-boeing-777-9-released",
+          "title": "When Was Boeing 777 9 Released | TikTok",
+          "decision": "Independent primary publisher not established"
+        },
+        {
+          "url": "https://www.stern.de/reise/service/boeing-777x--flugkabine-reisst-bei-belastungstest-des-prototyps-9023572.html",
+          "title": "Boeing 777X: Flugkabine reißt bei Belastungstest des... | STERN.de",
+          "decision": "Independent primary publisher not established"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "target": "Product/737",
+      "page": 1,
+      "quote": "The FAA is adopting a new airworthiness directive (AD) for certain The Boeing Company Model 737–8, 737–9, and 737–8200 airplanes.",
+      "status": "supported",
+      "review": "The decisive span explicitly states that the FAA is adopting a new airworthiness directive for specific Boeing 737 models, which constitutes a concrete regulatory development affecting the issuer's product.",
+      "fact": "The FAA is adopting a new airworthiness directive (AD) for certain The Boeing Company Model 737–8, 737–9, and 737–8200 airplanes.",
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21863.pdf",
+      "published": "2026-10-27",
+      "digest": "aa27809a14907f7bf6c1ebca38308c7ad47fd2185589a664c462606e5086cc2c",
+      "title": "Airworthiness Directives; The Boeing Company Airplanes",
+      "segments": [
+        "Commercial Airplanes"
+      ],
+      "realized_impact": "unknown",
+      "attributable_amount": "unknown",
+      "fulfillment": "unknown"
+    },
+    {
+      "target": "Product/737",
+      "page": 1,
+      "quote": "The FAA is adopting a new airworthiness directive (AD) for certain The Boeing Company Model 737–700, –700C, –800, and –900ER series airplanes. This AD was prompted by a leak through the form-in-place (FiP) gasket at the engine fuel shutoff valve access panel found during a leak check. This AD requires a detailed inspection of the left- and right-side FiP gasket at the engine fuel shutoff valve access panel for correct sealant installation, a fluid leak test of the engine fuel shutoff valve access panels for any leak, and applicable on-condition actions.",
+      "status": "supported",
+      "review": "The decisive span explicitly identifies 'The Boeing Company Model 737–700, –700C, –800, and –900ER series airplanes' as the subject of the new airworthiness directive. It confirms a concrete development (the adoption of a new AD) for this specific issuer and product, detailing the required inspections and tests. This is not a generic match or a mere product identifier, but a specific regulatory action affecting the named product.",
+      "fact": "The FAA is adopting a new airworthiness directive (AD) for certain The Boeing Company Model 737–700, –700C, –800, and –900ER series airplanes. This AD was prompted by a leak through the form-in-place (FiP) gasket at the engine fuel shutoff valve access panel found during a leak check. This AD requires a detailed inspection of the left- and right-side FiP gasket at the engine fuel shutoff valve access panel for correct sealant installation, a fluid leak test of the engine fuel shutoff valve access panels for any leak, and applicable on-condition actions.",
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21862.pdf",
+      "published": "2026-10-27",
+      "digest": "e6817ceb16b17437c4467c471350f67950a3976f9b5ed82bdd98333d6b90d639",
+      "title": "Airworthiness Directives; The Boeing Company Airplanes",
+      "segments": [
+        "Commercial Airplanes"
+      ],
+      "realized_impact": "unknown",
+      "attributable_amount": "unknown",
+      "fulfillment": "unknown"
+    },
+    {
+      "target": "Product/777",
+      "page": 1,
+      "quote": "The FAA is adopting a new airworthiness directive (AD) for all The Boeing Company Model 777–200, –200LR, –300, –300ER, and 777F series airplanes. This AD was prompted by a report of an overheated alternating current motor pump (ACMP) that caused a fire in the main landing gear (MLG) wheel well. This AD requires a records check or inspection for any installed ACMP with a certain part number and applicable on-condition actions. This AD also prohibits the installation of affected parts.",
+      "status": "supported",
+      "review": "The decisive span explicitly states that the FAA is adopting a new airworthiness directive for The Boeing Company Model 777 series airplanes, which establishes a concrete regulatory development for the specified issuer and product.",
+      "fact": "The FAA is adopting a new airworthiness directive (AD) for all The Boeing Company Model 777–200, –200LR, –300, –300ER, and 777F series airplanes. This AD was prompted by a report of an overheated alternating current motor pump (ACMP) that caused a fire in the main landing gear (MLG) wheel well. This AD requires a records check or inspection for any installed ACMP with a certain part number and applicable on-condition actions. This AD also prohibits the installation of affected parts.",
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-09-28/pdf/2026-19751.pdf",
+      "published": "2026-09-28",
+      "digest": "6f0f75b521b1da8f841aa94559a072ec89a03cdc7b241893cd81494c85d10720",
+      "title": "Airworthiness Directives; The Boeing Company Airplanes",
+      "segments": [
+        "Commercial Airplanes"
+      ],
+      "realized_impact": "unknown",
+      "attributable_amount": "unknown",
+      "fulfillment": "unknown"
+    }
+  ],
+  "unresolved_external": [
+    {
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21852.pdf",
+      "status": "unknown",
+      "reason": "No audited target-specific event"
+    },
+    {
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-10-27/pdf/2026-21840.pdf",
+      "status": "unknown",
+      "reason": "No audited target-specific event"
+    },
+    {
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-07-31/pdf/2026-15585.pdf",
+      "status": "unknown",
+      "reason": "No audited target-specific event"
+    },
+    {
+      "source": "https://www.govinfo.gov/content/pkg/FR-2026-07-28/pdf/2026-15239.pdf",
+      "status": "unknown",
+      "reason": "No audited target-specific event"
+    }
+  ],
+  "graph": {
+    "scope": "92fa39201c5783199ce29bdb4efe1f4b",
+    "paths": [
+      {
+        "event": "Event/3add4732a2aa4c826efe52551788e616",
+        "target": "Product/737",
+        "segment": "Segment/Commercial Airplanes"
+      },
+      {
+        "event": "Event/e922ceb12af20e0142cc479e730e8b67",
+        "target": "Product/777",
+        "segment": "Segment/Commercial Airplanes"
+      },
+      {
+        "event": "Event/edcef6c96e829ebd42b47cf07a5a8dd4",
+        "target": "Product/737",
+        "segment": "Segment/Commercial Airplanes"
+      }
+    ]
+  }
+}
