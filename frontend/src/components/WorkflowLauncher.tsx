@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api, describeApiError } from "../api";
 import type { FinRiskRequest, WorkflowRunSummary } from "../types";
+import { AnnualReportPanel } from "./AnnualReportPanel";
 import { LLMProviderSelector } from "./LLMProviderSelector";
 
 const DEFAULT_REQUEST: FinRiskRequest = {
@@ -91,6 +92,8 @@ export function WorkflowLauncher({
   };
 
   return (
+    <>
+    {!staticMode && <AnnualReportPanel />}
     <form onSubmit={handleSubmit}>
       <h2>Workflow Launcher</h2>
       <div className="row">
@@ -211,5 +214,6 @@ export function WorkflowLauncher({
         {busy ? "Working…" : staticMode ? "View Static Demo" : "Run Risk Workflow"}
       </button>
     </form>
+    </>
   );
 }
