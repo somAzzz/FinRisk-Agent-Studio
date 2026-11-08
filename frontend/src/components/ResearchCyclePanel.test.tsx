@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api";
 import type { CompanyResearchSnapshot } from "../types";
@@ -158,6 +158,26 @@ describe("ResearchCyclePanel", () => {
         correlation_id: "workflow-one",
       }),
     ));
+  });
+
+  it("links a snapshot when the server finishes after five minutes", async () => {
+    vi.useFakeTimers();
+    try {
+      const runId = "slow-workflow";
+      vi.mocked(api.startWorkflow).mockResolvedValue({ run_id: runId, status: "queued", started_at: "2026-04-30" });
+      let polls = 0;
+      vi.mocked(api.getStatus).mockImplementation(async () => ({
+        run_id: runId, status: ++polls > 300 ? "completed" : "running",
+        company: null, evaluation: null, trace: [], risk_count: 0, evidence_count: 0,
+      }));
+      render(<ResearchCyclePanel />);
+      fireEvent.change(screen.getByLabelText("Research cycle ticker"), { target: { value: "ACME" } });
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Run FinRisk + snapshot" })); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(301_000); });
+      expect(api.startResearchRun).toHaveBeenCalledWith(expect.objectContaining({ workflow_run_id: runId }));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("saves a historical point-in-time expectation with explicit dates", async () => {

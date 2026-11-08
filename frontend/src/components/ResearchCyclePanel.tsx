@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, describeApiError } from "../api";
 import type {
   CompanyResearchSnapshot,
@@ -61,6 +61,8 @@ export function ResearchCyclePanel({
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const activePolling = useRef<AbortController | null>(null);
+  useEffect(() => () => activePolling.current?.abort(), []);
   const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
   const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
   const [llmConfig, setLlmConfig] = useState<LLMRunConfig>({
@@ -172,6 +174,9 @@ export function ResearchCyclePanel({
   const startFullCycle = async () => {
     const normalized = ticker.toUpperCase().trim();
     if (!normalized || !analysisGoal.trim()) return;
+    const polling = new AbortController();
+    activePolling.current?.abort();
+    activePolling.current = polling;
     setBusy(true);
     setError(null);
     try {
@@ -195,9 +200,9 @@ export function ResearchCyclePanel({
         llm_config: llmConfig,
       });
       setWorkflow(next);
-      for (let attempt = 0; attempt < 300; attempt += 1) {
-        if (["completed", "needs_review", "failed"].includes(next.status)) break;
+      while (!["completed", "needs_review", "failed"].includes(next.status)) {
         await wait(1000);
+        if (polling.signal.aborted) return;
         const status = await api.getStatus(next.run_id);
         next = {
           run_id: status.run_id,
@@ -210,9 +215,7 @@ export function ResearchCyclePanel({
         setWorkflow(next);
       }
       if (next.status === "failed") throw new Error("FinRisk workflow failed");
-      if (!["completed", "needs_review"].includes(next.status)) {
-        throw new Error("FinRisk workflow timed out");
-      }
+      if (polling.signal.aborted) return;
       const response = await api.startResearchRun({
         ticker: normalized,
         year: Number(year),
