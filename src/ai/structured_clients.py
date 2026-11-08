@@ -44,7 +44,6 @@ SupplyChainOutput = TypeVar(
 class PydanticAIFilingExtractionClient:
     """Expose the existing chunked-client protocol using typed Agent output."""
 
-    provider = "pydantic_ai"
 
     def __init__(
         self,
@@ -53,11 +52,13 @@ class PydanticAIFilingExtractionClient:
         settings: Settings,
         services: AgentServices | None = None,
         llm_call_sink: Callable[[LLMCall], None] | None = None,
+        provider: str = "pydantic_ai",
     ) -> None:
         self.model = model
         self.model_name = model.model_name
         self.settings = settings
         self.services = services or AgentServices()
+        self.provider = provider
         self.llm_call_sink = llm_call_sink
         self.agent = build_filing_extraction_agent(model)
 
