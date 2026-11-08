@@ -1,0 +1,6 @@
+[
+{"text":"Unfavorable weather interrupted processing in Romania and Moldova.","scope":"Südzucker beet processing in Romania and Moldova in the reported campaign","kind":"observation","topic":"operations","citation":"740263034edc3db51e190457d763b5f7"},
+{"text":"Favorable weather prevented processing interruptions in Romania and Moldova.","scope":"Südzucker beet processing in Romania and Moldova in the reported campaign","kind":"causal","topic":"operations","citation":"740263034edc3db51e190457d763b5f7"},
+{"text":"Unfavorable weather interrupted processing in Romania and Moldova.","scope":"Südzucker beet processing in Romania and Moldova in the reported campaign","kind":"observation","topic":"operations","citation":"51a481381418d0c443519d32b090b3c1"},
+{"text":"Südzucker breached delivery commitments to beverage customers following the processing interruption.","scope":"Südzucker contracted deliveries to beverage customers in the reported campaign","kind":"fulfillment","topic":"downstream","citation":"740263034edc3db51e190457d763b5f7"}
+]
