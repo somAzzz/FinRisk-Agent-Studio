@@ -17,6 +17,7 @@
 
 - [个人研究闭环](guides/research-cycle.md)
 - [LLM Provider 配置与验收](guides/llm-provider-validation.md)
+- [Pydantic AI 工具调用、Evals 与 Guardrails 代码学习清单](guides/pydantic-ai-tools-evals-guardrails-learning-cn.md)
 
 ## 测试与验收
 
