@@ -1,0 +1,224 @@
+{
+  "scope": "Commercially available, named vehicle models, model families, cabs and powertrains mapped to a formal segment. The source-only screen covered 433 physical pages. An explicitly in-service product range in the segment's portfolio qualifies. A service, trial-only vehicle, generic class or group-only disclosure does not.",
+  "seed_sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+  "formal_note_page": 155,
+  "formal_names": [
+    "Scania Vehicles & Services",
+    "MAN Truck & Bus",
+    "International Motors",
+    "Volkswagen Truck & Bus",
+    "TRATON Financial Services"
+  ],
+  "negative_segments": [
+    "TRATON Operations",
+    "Reconciliation",
+    "TRATON Holding"
+  ],
+  "edges": [
+    {
+      "subject": "MAN Truck & Bus",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Lion’s Coach E",
+      "aliases": [
+        "MAN Lion’s Coach E",
+        "Lion’s Coach E model"
+      ],
+      "evidence_pages": [
+        27
+      ]
+    },
+    {
+      "subject": "MAN Truck & Bus",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN D30",
+      "aliases": [
+        "MAN D30 diesel engine",
+        "13-liter MAN D30 diesel engine",
+        "D30 engine"
+      ],
+      "evidence_pages": [
+        27,
+        64
+      ]
+    },
+    {
+      "subject": "MAN Truck & Bus",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGX",
+      "aliases": [],
+      "evidence_pages": [
+        27
+      ]
+    },
+    {
+      "subject": "MAN Truck & Bus",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGS",
+      "aliases": [],
+      "evidence_pages": [
+        27
+      ]
+    },
+    {
+      "subject": "International Motors",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "S13 Integrated Powertrain",
+      "aliases": [
+        "International S13 Integrated Powertrain",
+        "International S13 Powertrain",
+        "S13 Powertrain"
+      ],
+      "evidence_pages": [
+        24,
+        27,
+        64
+      ]
+    },
+    {
+      "subject": "MAN Truck & Bus",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGE",
+      "aliases": [
+        "MAN TGE vans",
+        "MAN TGE van"
+      ],
+      "evidence_pages": [
+        49
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Super 11",
+      "evidence_pages": [
+        26
+      ],
+      "aliases": [
+        "Super 11 engine",
+        "Scania Super 11"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN eTGE",
+      "evidence_pages": [
+        44
+      ],
+      "aliases": [
+        "MAN eTGE vans",
+        "MAN eTGE van"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "L cab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "L cabs",
+        "Scania L cab"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "P cab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "P cabs",
+        "Scania P cab"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "G cab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "G cabs",
+        "Scania G cab"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "R cab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "R cabs",
+        "Scania R cab"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "S cab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "S cabs",
+        "Scania S cab"
+      ]
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "CrewCab",
+      "evidence_pages": [
+        356
+      ],
+      "aliases": [
+        "CrewCab models",
+        "Scania CrewCab"
+      ]
+    }
+  ],
+  "pages_screened": 433,
+  "queue_sha256": "ea663be940cdef1f1e430f0dc68c9c17a4baf428028cb066a9fd64434904cc79",
+  "review_notes": [
+    "Page 31 explicitly connects the vehicle brands to the formal segments defined on page 155. Pages 26–27 are brand sections.",
+    "Physical p26 introduces the Super 11. The Super 13 appears as a weight comparator only, which is insufficient under the commercial-evidence rule.",
+    "Page 44 records actual MAN eTGE sales. Page 356 names six Scania cab families in scope of a currently implemented service. Scania Zone is a service and the two associated apps are outside this physical model/family scope.",
+    "The NEXT ERA presentation on p26 and expected first deliveries on p64 do not establish commercial availability in 2025. The e-Volksbus 22L is operating in a customer test on p27. Delivery and commercial status remain unknown.",
+    "The group recyclability study on p328 names further models without assigning them to a formal segment. The release-development work on the D08 on p32 does not establish commercial sale.",
+    "Source-only automated labels were reviewed against the PDF by the coding assistant. There was no independent human annotation."
+  ]
+}

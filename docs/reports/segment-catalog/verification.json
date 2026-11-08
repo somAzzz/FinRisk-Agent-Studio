@@ -1,0 +1,2053 @@
+{
+  "novo": {
+    "previous": {
+      "TP": 54,
+      "FP": 0,
+      "FN": 22,
+      "gold": 76,
+      "precision": 1.0,
+      "recall": 0.7105263157894737,
+      "supported_raw": 55,
+      "unknown_raw": 27,
+      "supported_unique": 54,
+      "miss_categories": {
+        "annotated object page selected; exact relation not proposed": 22
+      },
+      "tp": [
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "actrapid"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "awiqli"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fast acting insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fiasp"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flextouch"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glp 1"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "human insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulatard"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "levemir"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "long acting insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "mixtard"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "modern insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "new generation insulin and combinations"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novomix"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novorapid"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "obesity delivery systems"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "once weekly insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ozempic"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "premix insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pumpcart"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "rybelsus"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ryzodeg"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "saxenda"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "tresiba"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "victoza"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy pill"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "xultophy"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "activelle"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "alhemo"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "esperoct"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "estrofem"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "eviana"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "flexpro"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia a products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia b products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "hormone replacement therapies"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "kliogest"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "norditropin"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoeight"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novofem"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoseven"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novothirteen"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "penmate"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "pre filled human growth hormone delivery systems"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare blood disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare endocrine disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare haemato renal disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "refixia"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rivfloza"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "sogroya"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "trisequens"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "vagifem"
+        ]
+      ],
+      "fp": [],
+      "fn": [
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "durable delivery systems"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "flexpen"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "glucagen"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "glucagon"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "hypokit"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "innolet"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "needles"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine autocover"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine plus"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novonorm"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 4"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 5"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 6"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen echo"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen echo plus"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novotwist"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "oral antidiabetic agents"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "penfill"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "pre filled delivery systems"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "single dose device"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "zegalogue"
+          ],
+          "cause": "annotated object page selected; exact relation not proposed",
+          "witness_pages": [
+            25
+          ]
+        }
+      ]
+    },
+    "current": {
+      "TP": 58,
+      "FP": 0,
+      "FN": 18,
+      "gold": 76,
+      "precision": 1.0,
+      "recall": 0.7631578947368421,
+      "supported_raw": 59,
+      "unknown_raw": 37,
+      "supported_unique": 58,
+      "miss_categories": {
+        "object proposed with different subject": 18
+      },
+      "tp": [
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "actrapid"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "awiqli"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fast acting insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fiasp"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flextouch"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glp 1"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "human insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulatard"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "levemir"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "long acting insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "mixtard"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "modern insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "new generation insulin and combinations"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novomix"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novonorm"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novorapid"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "obesity delivery systems"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "once weekly insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "oral antidiabetic agents"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ozempic"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pre filled delivery systems"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "premix insulin"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pumpcart"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "rybelsus"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ryzodeg"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "saxenda"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "single dose device"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "tresiba"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "victoza"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy pill"
+        ],
+        [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "xultophy"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "activelle"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "alhemo"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "esperoct"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "estrofem"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "eviana"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "flexpro"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia a products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia b products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "hormone replacement therapies"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "kliogest"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "norditropin"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoeight"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novofem"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoseven"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novothirteen"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "penmate"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "pre filled human growth hormone delivery systems"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare blood disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare endocrine disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare haemato renal disorder products"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "refixia"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rivfloza"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "sogroya"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "trisequens"
+        ],
+        [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "vagifem"
+        ]
+      ],
+      "fp": [],
+      "fn": [
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "durable delivery systems"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "flexpen"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "glucagen"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "glucagon"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "hypokit"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "innolet"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "needles"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine autocover"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novofine plus"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 4"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 5"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen 6"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen echo"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novopen echo plus"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "novotwist"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "penfill"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        },
+        {
+          "edge": [
+            "Segment",
+            "obesity and diabetes care",
+            "PRODUCES",
+            "Product",
+            "zegalogue"
+          ],
+          "cause": "object proposed with different subject",
+          "witness_pages": [
+            25
+          ]
+        }
+      ]
+    },
+    "all_prior_matches_retained": true,
+    "source_rows_verified": 78,
+    "ocr_readback_pages": [
+      46
+    ],
+    "negative_controls": {
+      "Kyinsu": [
+        "unknown"
+      ],
+      "CagriSema": [
+        "unknown"
+      ]
+    },
+    "page_count": 137,
+    "elapsed_s": 57.795746829000564,
+    "passed": true,
+    "gained_evidence": {
+      "single dose device": {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "Obesity and Diabetes care",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Single Dose Device",
+        "quote": "• Wegovy®, Single Dose Device and",
+        "allocation_quote": "OBESITY&",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Obesity delivery systems",
+          "• Wegovy®, Single Dose Device and",
+          "FlexTouch®"
+        ],
+        "evidence_rule": "named equipment in commercially allocated host entry",
+        "alias_evidence": null,
+        "status": "supported",
+        "review": "Local disclosure and formal segment independently verified.",
+        "cross_page_evidence": [
+          {
+            "page": 90,
+            "quote": "Wegovy®                                                                   51,015 45,770           29,430   28,091    12,436     1,913     15,383      7,705      1,799      6,100       2,677      114     5,812    1,858       —       796      196         — 79,106 58,206 31,343",
+            "segment": "Obesity and Diabetes care",
+            "allocation_quote": "Obesity and Diabetes care segment:",
+            "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092"
+          }
+        ],
+        "segment_evidence": {
+          "name": "Obesity and Diabetes care",
+          "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease, representing the entirety of the Group's operations.",
+          "page": 89,
+          "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+          "aliases": {}
+        }
+      },
+      "pre filled delivery systems": {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "Obesity and Diabetes care",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Pre-filled delivery systems",
+        "quote": "Pre-filled delivery systems",
+        "allocation_quote": "Pre-filled delivery systems",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "• FlexTouch®, U100, U200, U700",
+          "• Ozempic®, FlexTouch®",
+          "OBESITY&",
+          "• Saxenda®, FlexTouch®"
+        ],
+        "evidence_rule": "catalog family with independently allocated member",
+        "alias_evidence": null,
+        "status": "supported",
+        "review": "Local disclosure and formal segment independently verified.",
+        "cross_page_evidence": [
+          {
+            "page": 90,
+            "quote": "Ozempic®                                                                   88,467     84,201      63,010   38,622    36,141    32,708     22,774     19,819     17,917      7,235       7,448    7,102     3,214    3,112    2,868    5,399    5,762      4,821 127,089 120,342 95,718",
+            "segment": "Obesity and Diabetes care",
+            "allocation_quote": "Obesity and Diabetes care segment:",
+            "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092"
+          }
+        ],
+        "scope_limit": "Family participation only; no allocation of other members or amounts.",
+        "segment_evidence": {
+          "name": "Obesity and Diabetes care",
+          "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease, representing the entirety of the Group's operations.",
+          "page": 89,
+          "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+          "aliases": {}
+        }
+      },
+      "oral antidiabetic agents": {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "Obesity and Diabetes care",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Oral antidiabetic agents",
+        "quote": "Oral antidiabetic agents",
+        "allocation_quote": "Oral antidiabetic agents",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "• NovoNorm®, repaglinide"
+        ],
+        "evidence_rule": "treatment class within disclosed condition",
+        "alias_evidence": null,
+        "status": "supported",
+        "review": "Local disclosure and formal segment independently verified.",
+        "cross_page_evidence": [
+          {
+            "segment": "Obesity and Diabetes care",
+            "page": 89,
+            "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+            "quote": "Obesity and Diabetes care: obesity, diabetes, cardiovascular and emerging therapy areas",
+            "allocation_quote": "diabetes"
+          }
+        ],
+        "segment_evidence": {
+          "name": "Obesity and Diabetes care",
+          "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease, representing the entirety of the Group's operations.",
+          "page": 89,
+          "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+          "aliases": {}
+        }
+      },
+      "novonorm": {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "Obesity and Diabetes care",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoNorm®",
+        "quote": "• NovoNorm®, repaglinide",
+        "allocation_quote": "Oral antidiabetic agents",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "• NovoNorm®, repaglinide"
+        ],
+        "evidence_rule": "treatment class within disclosed condition",
+        "alias_evidence": null,
+        "status": "supported",
+        "review": "Local disclosure and formal segment independently verified.",
+        "cross_page_evidence": [
+          {
+            "segment": "Obesity and Diabetes care",
+            "page": 89,
+            "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+            "quote": "Obesity and Diabetes care: obesity, diabetes, cardiovascular and emerging therapy areas",
+            "allocation_quote": "diabetes"
+          }
+        ],
+        "segment_evidence": {
+          "name": "Obesity and Diabetes care",
+          "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease, representing the entirety of the Group's operations.",
+          "page": 89,
+          "sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+          "aliases": {}
+        }
+      }
+    },
+    "unknown_mentions": [
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Durable delivery systems",
+        "quote": "Durable delivery systems",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "FlexPen®",
+        "quote": "• FlexPen®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Pre-filled delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "GlucaGen®",
+        "quote": "• GlucaGen®, glucagon (vial and",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Glucagon"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Glucagon",
+        "quote": "Glucagon",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Glucagon"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Hypokit®",
+        "quote": "Hypokit®)",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Glucagon"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "InnoLet®",
+        "quote": "• InnoLet®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Pre-filled delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Needles",
+        "quote": "Needles",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Needles"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoFine®",
+        "quote": "• NovoFine®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Needles"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoFine® AutoCover®",
+        "quote": "• NovoFine® AutoCover®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Needles"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoFine® Plus",
+        "quote": "• NovoFine® Plus",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Needles"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoPen® 4",
+        "quote": "• NovoPen® 4",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoPen® 5",
+        "quote": "• NovoPen® 5",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoPen® 6",
+        "quote": "• NovoPen® 6",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoPen Echo®",
+        "quote": "• NovoPen Echo®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoPen Echo® Plus",
+        "quote": "• NovoPen Echo® Plus",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Durable delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "NovoTwist®",
+        "quote": "• NovoTwist®",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Needles"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Penfill®",
+        "quote": "• Penfill® cartridge",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Other delivery systems"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      },
+      {
+        "page": 25,
+        "subject_kind": "Segment",
+        "subject": "unknown",
+        "relation": "PRODUCES",
+        "object_kind": "Product",
+        "object": "Zegalogue®",
+        "quote": "• Zegalogue®, dasiglucagon",
+        "commercial_quote": "Product overview",
+        "source_spans": [
+          "Glucagon"
+        ],
+        "status": "unknown",
+        "evidence_rule": "unallocated catalog mention",
+        "review": "Commercial catalog mention only; no verified formal segment allocation."
+      }
+    ],
+    "route_check": {
+      "new_targets_reachable": 4,
+      "unknown_targets_reachable": 0
+    }
+  },
+  "traton": {
+    "previous": {
+      "TP": 14,
+      "FP": 0,
+      "FN": 0,
+      "gold": 14,
+      "precision": 1.0,
+      "recall": 1.0,
+      "supported_raw": 14,
+      "unknown_raw": 10,
+      "supported_unique": 14,
+      "miss_categories": {},
+      "tp": [
+        [
+          "Segment",
+          "international motors",
+          "PRODUCES",
+          "Product",
+          "s13 integrated powertrain"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "lion s coach e"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man d30"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man etge"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tge"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tgs"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tgx"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "crewcab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "g cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "l cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "p cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "r cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "s cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "super 11"
+        ]
+      ],
+      "fp": [],
+      "fn": []
+    },
+    "current": {
+      "TP": 14,
+      "FP": 0,
+      "FN": 0,
+      "gold": 14,
+      "precision": 1.0,
+      "recall": 1.0,
+      "supported_raw": 14,
+      "unknown_raw": 12,
+      "supported_unique": 14,
+      "miss_categories": {},
+      "tp": [
+        [
+          "Segment",
+          "international motors",
+          "PRODUCES",
+          "Product",
+          "s13 integrated powertrain"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "lion s coach e"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man d30"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man etge"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tge"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tgs"
+        ],
+        [
+          "Segment",
+          "man truck bus",
+          "PRODUCES",
+          "Product",
+          "man tgx"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "crewcab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "g cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "l cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "p cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "r cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "s cab"
+        ],
+        [
+          "Segment",
+          "scania vehicles services",
+          "PRODUCES",
+          "Product",
+          "super 11"
+        ]
+      ],
+      "fp": [],
+      "fn": []
+    },
+    "all_prior_matches_retained": true,
+    "source_rows_verified": 17,
+    "ocr_readback_pages": [],
+    "negative_controls": {
+      "e-Volksbus 22L": [
+        "unknown"
+      ],
+      "NEXT ERA": [
+        "unknown"
+      ],
+      "Super 13": [
+        "unknown"
+      ],
+      "TGM": [
+        "unknown"
+      ],
+      "eTGS": [
+        "unknown"
+      ]
+    },
+    "page_count": 433,
+    "elapsed_s": 91.0249802899998,
+    "passed": true
+  }
+}
