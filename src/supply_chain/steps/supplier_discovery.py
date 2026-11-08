@@ -576,9 +576,9 @@ def _supplier_prompt(
         f"Product: {state.request.product_name}\n"
         f"Requirements: {json.dumps(requirements, ensure_ascii=False)}\n"
         "Return JSON with this exact shape:\n"
-        '{"suppliers":[{"requirement_node_id":"component:gpu-accelerator",'
-        '"requirement_label":"GPU accelerator","supplier_name":"NVIDIA",'
-        '"ticker":"NVDA","product_or_service":"AI GPUs","confidence":0.7,'
+        '{"suppliers":[{"requirement_node_id":"<requirement id>",'
+        '"requirement_label":"<input>","supplier_name":"<supplier>",'
+        '"ticker":null,"product_or_service":"<supply>","confidence":0.7,'
         '"uncertainty":"why this is still a hypothesis"}]}\n'
         "Return minified JSON. Keep uncertainty under 12 words. "
         "Return at most two suppliers per requirement. Do not list the seed "

@@ -66,8 +66,8 @@ WebFetcher = Callable[[str], Any]
 INTENT_QUERY_TEMPLATES: dict[str, str] = {
     "supply_chain": "{q} suppliers contract manufacturing outsourcing",
     "customer": "{q} customers order book demand concentration",
-    "policy": "{q} regulation policy CHIPS IRA tariff export control",
-    "geopolitical": "{q} geopolitical risk China Taiwan Middle East sanctions",
+    "policy": "{q} applicable regulation policy tariffs official decision",
+    "geopolitical": "{q} cross-border exposure geopolitical risk trade restrictions",
     "policy_risk": "{q} regulatory risk policy exposure",
     "geopolitical_risk": "{q} geopolitical exposure risk",
     "management_change": "{q} CEO CFO management change turnover",
