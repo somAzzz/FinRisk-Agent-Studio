@@ -1,0 +1,1018 @@
+{
+  "method": "Source-only local annotation queue, independently reviewed against rendered product overview and segment notes before reading predictions. Product-family and brand rows can both count. Collapse presentations differing only by strength; distinguish named devices and separately marketed oral/injected presentations. Omit trial, approval-only and miscellaneous buckets. Therapy headings are mapped to formal segments only in the source reference using note 2.2. A prediction that returns only a sub-business as the reporting segment has a wrong endpoint. Witness pages give the object disclosure; p89 supplies the segment dictionary where required.",
+  "seed_sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+  "pages_screened": 137,
+  "provisional_model_mentions": 82,
+  "review_notes": [
+    "Note 2.2 (89): only two formally reported segments. US/International Operations and therapeutic subareas are not separate reportable segments.",
+    "Product overview (25) reviewed visually, including needles, delivery devices and endocrine products omitted by the separate model. Complete sales-by-segment table on 90 also reviewed.",
+    "Goodwill allocation (111) does not establish a segment operating a named site. Group-level suppliers, wholesalers and cash-generating-unit allocations were excluded.",
+    "Kyinsu approval on 23 does not establish a marketed sale in this report. Regional sales do not establish segment operating sites."
+  ],
+  "edges": [
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Obesity and Diabetes care",
+      "object_kind": "Segment",
+      "evidence_pages": [
+        89,
+        95,
+        127
+      ],
+      "witness": "Segment note 2.2 names both formal segments. Parent note on p127 refers back to it.",
+      "aliases": []
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Rare disease",
+      "object_kind": "Segment",
+      "evidence_pages": [
+        89,
+        95,
+        127
+      ],
+      "witness": "Segment note 2.2 names both formal segments. Parent note on p127 refers back to it.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Saxenda",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Saxenda entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Wegovy",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Wegovy entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "Wegovy injection"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Wegovy pill",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Wegovy pill entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "oral Wegovy"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Victoza",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Victoza entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Ozempic",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Ozempic entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rybelsus",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Rybelsus entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Awiqli",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Awiqli entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "Awigli"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Tresiba",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Tresiba entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Ryzodeg",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Ryzodeg entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Fiasp",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Fiasp entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Xultophy",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Xultophy entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "Xultophy 100/3.6"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Levemir",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Levemir entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoRapid",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoRapid entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "NovoLog"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoMix",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoMix entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Insulatard",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Insulatard entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Actrapid",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Actrapid entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Mixtard",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Mixtard entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "FlexTouch",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, FlexTouch entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "FlexPen",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, FlexPen entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "InnoLet",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, InnoLet entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoPen 6",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoPen 6 entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoPen 5",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoPen 5 entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoPen 4",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoPen 4 entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoPen Echo Plus",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoPen Echo Plus entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoPen Echo",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoPen Echo entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "PumpCart",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, PumpCart entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Penfill",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Penfill entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoNorm",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoNorm entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "GlucaGen",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, GlucaGen entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Zegalogue",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Zegalogue entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoFine Plus",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoFine Plus entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoFine",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoFine entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoTwist",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoTwist entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoFine AutoCover",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, NovoFine AutoCover entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Hypokit",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Hypokit entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Single Dose Device",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, obesity and diabetes product columns, Single Dose Device entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoSeven",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Page 25, Rare disease product column, NovoSeven entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "NovoSeven RT"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoEight",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, NovoEight entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Esperoct",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Esperoct entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Alhemo",
+      "object_kind": "Product",
+      "evidence_pages": [
+        24,
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Alhemo entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Refixia",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Refixia entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "REBINYN"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoThirteen",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, NovoThirteen entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "tretten"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rivfloza",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Rivfloza entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Norditropin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Norditropin entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Sogroya",
+      "object_kind": "Product",
+      "evidence_pages": [
+        24,
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Sogroya entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "FlexPro",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, FlexPro entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "PenMate",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, PenMate entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Vagifem",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Vagifem entry; therapy to formal segment definition on p89.",
+      "aliases": [
+        "gina"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Activelle",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Activelle entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Eviana",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Eviana entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Kliogest",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Kliogest entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Novofem",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Novofem entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Trisequens",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Trisequens entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Estrofem",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Page 25, Rare disease product column, Estrofem entry; therapy to formal segment definition on p89.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "GLP-1",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "GLP-1 products",
+        "GLP-1-based products",
+        "GLP-1 therapies"
+      ]
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Long-acting insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Premix insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Fast-acting insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Human insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Once-weekly insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "New generation insulin and combinations",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Modern insulin",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Obesity delivery systems",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Pre-filled delivery systems",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Durable delivery systems",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Oral antidiabetic agents",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Glucagon",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Obesity and Diabetes care",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Needles",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rare blood disorder products",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        89,
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "Rare blood disorders"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rare endocrine disorder products",
+      "object_kind": "Product",
+      "evidence_pages": [
+        15,
+        25,
+        89,
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "Rare endocrine disorders"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Hormone replacement therapies",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25,
+        89
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "hormone replacement therapy"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rare haemato-renal disorder products",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "Rare haemato-renal disorders"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Pre-filled human growth hormone delivery systems",
+      "object_kind": "Product",
+      "evidence_pages": [
+        25
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": []
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Haemophilia A products",
+      "object_kind": "Product",
+      "evidence_pages": [
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "Haemophilia A"
+      ]
+    },
+    {
+      "subject": "Rare disease",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Haemophilia B products",
+      "object_kind": "Product",
+      "evidence_pages": [
+        90
+      ],
+      "witness": "Named marketed product class in the Product overview or net-sales disclosure; p89 defines segment membership.",
+      "aliases": [
+        "Haemophilia B"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,829 @@
+{
+  "issuer": "Novo Nordisk",
+  "as_of": "2026-11-08",
+  "seed_sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+  "page_count": 137,
+  "sample_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137
+  ],
+  "edges": [
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "US Operations",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in US Operations increased by 3% measured in Danish kroner and by 8% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'US Operations' under the heading 'Geographic sales development' alongside other geographic regions, indicating it is a reporting segment for sales purposes. The quote 'Sales in US Operations increased by 3%...' directly binds the subject (Novo Nordisk, implied by the context of the company's financial performance) to the object 'US Operations' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "International Operations",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in International Operations increased by 10% measured in Danish kroner and by 14% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'International Operations' under the heading 'Geographic sales development', indicating it is a reporting segment. The quote 'Sales in International Operations increased by 10%...' directly binds the subject to the object 'International Operations' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "EUCAN",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in EUCAN increased by 15% measured in Danish kroner and by 16% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'EUCAN' under the heading 'Geographic sales development', indicating it is a reporting segment. The quote 'Sales in EUCAN increased by 15%...' directly binds the subject to the object 'EUCAN' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Emerging Markets",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in Emerging Markets increased by 3% measured in Danish kroner and by 8% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Emerging Markets' under the heading 'Geographic sales development', indicating it is a reporting segment. The quote 'Sales in Emerging Markets increased by 3%...' directly binds the subject to the object 'Emerging Markets' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "APAC",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in APAC increased by 19% measured in Danish kroner and by 25% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'APAC' under the heading 'Geographic sales development', indicating it is a reporting segment. The quote 'Sales in APAC increased by 19%...' directly binds the subject to the object 'APAC' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Region China",
+      "object_kind": "Segment",
+      "page": 14,
+      "quote": "Sales in Region China increased by 1% measured in Danish kroner and by 5% at CER.",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Region China' under the heading 'Geographic sales development', indicating it is a reporting segment. The quote 'Sales in Region China increased by 1%...' directly binds the subject to the object 'Region China' as a segment."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "OBESITY& RELATED COMORBIDITIES",
+      "object_kind": "Segment",
+      "page": 21,
+      "quote": "OBESITY& RELATED COMORBIDITIES Expanding the global reach and impact of Wegovy®",
+      "status": "unknown",
+      "review": "The text describes 'OBESITY& RELATED COMORBIDITIES' as a therapeutic area or portfolio ('our obesity portfolio') and 'Wegovy' as a product. It does not explicitly identify 'OBESITY& RELATED COMORBIDITIES' as a formal reporting segment of Novo Nordisk. A therapeutic area is not automatically a reporting segment."
+    },
+    {
+      "subject": "OBESITY& RELATED COMORBIDITIES",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Wegovy®",
+      "object_kind": "Product",
+      "page": 21,
+      "quote": "In 2025, our obesity portfolio delivered 31% sales growth at constant exchange rates (CER), reaching 3.6 million people worldwide. We have recently expanded the Wegovy® brand with two new offerings",
+      "status": "unknown",
+      "review": "The subject 'OBESITY& RELATED COMORBIDITIES' is not established as a reporting segment in the text; it is referred to as a portfolio or therapeutic area. Therefore, the relationship between the segment and the product is not supported under the strict definition of a reporting segment."
+    },
+    {
+      "subject": "OBESITY& RELATED COMORBIDITIES",
+      "subject_kind": "Segment",
+      "relation": "OPERATES",
+      "object": "Clayton, North Carolina site",
+      "object_kind": "Facility",
+      "page": 21,
+      "quote": "with API manufactured at our Clayton, North Carolina site",
+      "status": "unknown",
+      "review": "The subject 'OBESITY& RELATED COMORBIDITIES' is not established as a reporting segment in the text. The text refers to 'our obesity portfolio' and 'our Clayton, North Carolina site', implying corporate ownership by the issuer, but does not bind the therapeutic area as a reporting segment operating the facility."
+    },
+    {
+      "subject": "OBESITY& RELATED COMORBIDITIES",
+      "subject_kind": "Segment",
+      "relation": "OPERATES",
+      "object": "Durham, North Carolina site",
+      "object_kind": "Facility",
+      "page": 21,
+      "quote": "and tablets made and packed at our Durham, North Carolina site",
+      "status": "unknown",
+      "review": "The subject 'OBESITY& RELATED COMORBIDITIES' is not established as a reporting segment in the text. The text refers to 'our obesity portfolio' and 'our Durham, North Carolina site', implying corporate ownership by the issuer, but does not bind the therapeutic area as a reporting segment operating the facility."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "RARE DISEASE PRODUCTION",
+      "object_kind": "Segment",
+      "page": 24,
+      "quote": "RARE DISEASE PRODUCTION Expanding therapeutic impact in rare bleeding and growth disorders",
+      "status": "unknown",
+      "review": "The text identifies 'RARE DISEASE PRODUCTION' as a heading or thematic section describing a portfolio focus ('Expanding therapeutic impact...'), not as a formally named reporting segment of Novo Nordisk. The passage describes the portfolio's performance and strategy but does not explicitly define 'RARE DISEASE PRODUCTION' as a distinct reporting segment in the financial or organizational sense required for the HAS_SEGMENT relation. It functions more as a category or business area description rather than a bound reporting segment entity."
+    },
+    {
+      "subject": "RARE DISEASE PRODUCTION",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Sogroya®",
+      "object_kind": "Product",
+      "page": 24,
+      "quote": "Sogroya® , our long-acting growth hormone treatment, gained significant momentum in 2025",
+      "status": "supported",
+      "review": "The text explicitly states 'our rare disease portfolio... with Sogroya® leading...'. The heading 'RARE DISEASE PRODUCTION' binds the context of the portfolio. The phrase 'our long-acting growth hormone treatment' directly links Sogroya® to the issuer's portfolio within this specific section. The relation PRODUCES is supported by the description of the product as part of the issuer's portfolio under this heading."
+    },
+    {
+      "subject": "RARE DISEASE PRODUCTION",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Alhemo®",
+      "object_kind": "Product",
+      "page": 24,
+      "quote": "Alhemo® expanding its presence in haemophilia prophylaxis",
+      "status": "supported",
+      "review": "The text states 'our rare disease portfolio... and Alhemo® expanding its presence...'. The heading 'RARE DISEASE PRODUCTION' binds the context. The use of 'our' and the inclusion of Alhemo® in the portfolio description confirms that the issuer produces/markets this product within the scope of this section. The relation PRODUCES is supported."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Obesity and Diabetes care",
+      "object_kind": "Segment",
+      "page": 89,
+      "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease",
+      "status": "supported",
+      "review": "The source text explicitly states under the heading '2.2 Segment information' that 'Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease'. This directly binds the company 'Novo Nordisk' to the reporting segment 'Obesity and Diabetes care'."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Rare disease",
+      "object_kind": "Segment",
+      "page": 89,
+      "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease",
+      "status": "supported",
+      "review": "The source text explicitly states under the heading '2.2 Segment information' that 'Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease'. This directly binds the company 'Novo Nordisk' to the reporting segment 'Rare disease'."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Obesity and Diabetes care segment",
+      "object_kind": "Segment",
+      "page": 90,
+      "quote": "Obesity and Diabetes care segment: Ozempic®",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Obesity and Diabetes care segment' as a row header in the 'Net sales – Segments and geographical areas' table for Novo Nordisk, confirming it as a reporting segment of the company."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Rare disease segment",
+      "object_kind": "Segment",
+      "page": 90,
+      "quote": "Rare disease segment: Rare blood disorders",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Rare disease segment' as a row header in the 'Net sales – Segments and geographical areas' table for Novo Nordisk, confirming it as a reporting segment of the company."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Ozempic®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "Obesity and Diabetes care segment: Ozempic®",
+      "status": "supported",
+      "review": "The source text lists 'Ozempic®' as a sub-item under the 'Obesity and Diabetes care segment' heading in the net sales table, indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Rybelsus®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "Rybelsus®",
+      "status": "supported",
+      "review": "The source text lists 'Rybelsus®' as a sub-item under the 'Obesity and Diabetes care segment' heading in the net sales table, indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Victoza®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "Victoza®",
+      "status": "supported",
+      "review": "The source text lists 'Victoza®' as a sub-item under the 'Obesity and Diabetes care segment' heading in the net sales table, indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Wegovy®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "Wegovy®",
+      "status": "supported",
+      "review": "The source text lists 'Wegovy®' as a sub-item under the 'Obesity and Diabetes care segment' heading (specifically under 'Total Obesity care' which is part of the segment total), indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Saxenda®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "Saxenda®",
+      "status": "supported",
+      "review": "The source text lists 'Saxenda®' as a sub-item under the 'Obesity and Diabetes care segment' heading (specifically under 'Total Obesity care' which is part of the segment total), indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Tresiba®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which Tresiba®",
+      "status": "supported",
+      "review": "The source text lists 'Tresiba®' as a sub-item under 'Long-acting insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Xultophy®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which Xultophy®",
+      "status": "supported",
+      "review": "The source text lists 'Xultophy®' as a sub-item under 'Long-acting insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Levemir®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which Levemir®",
+      "status": "supported",
+      "review": "The source text lists 'Levemir®' as a sub-item under 'Long-acting insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Ryzodeg®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which Ryzodeg®",
+      "status": "supported",
+      "review": "The source text lists 'Ryzodeg®' as a sub-item under 'Premix insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoMix®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which NovoMix®",
+      "status": "supported",
+      "review": "The source text lists 'NovoMix®' as a sub-item under 'Premix insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Fiasp®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which Fiasp®",
+      "status": "supported",
+      "review": "The source text lists 'Fiasp®' as a sub-item under 'Fast-acting insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Obesity and Diabetes care segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoRapid®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which NovoRapid®",
+      "status": "supported",
+      "review": "The source text lists 'NovoRapid®' as a sub-item under 'Fast-acting insulin', which is a sub-category of the 'Obesity and Diabetes care segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Rare disease segment",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "NovoSeven®",
+      "object_kind": "Product",
+      "page": 90,
+      "quote": "• of which NovoSeven®",
+      "status": "supported",
+      "review": "The source text lists 'NovoSeven®' as a sub-item under 'Rare blood disorders', which is a sub-category of the 'Rare disease segment', indicating the segment produces/markets this product."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Obesity and Diabetes care",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "Net sales by segment Obesity and Diabetes care 288,847 261,556",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Obesity and Diabetes care' under the heading 'Net sales by segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Rare disease",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "Rare disease 168 156",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Rare disease' under the heading 'Net sales by segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "US Operations",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "Net sales by geographical segment US Operations 159,077 155,197",
+      "status": "supported",
+      "review": "The source text explicitly lists 'US Operations' under the heading 'Net sales by geographical segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "EUCAN",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "International Operations: EUCAN 57,313 47,855",
+      "status": "supported",
+      "review": "The source text explicitly lists 'EUCAN' under the heading 'Net sales by geographical segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Emerging Markets",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "Emerging Markets 25,527 22,879",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Emerging Markets' under the heading 'Net sales by geographical segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "APAC",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "APAC 17,506 12,425",
+      "status": "supported",
+      "review": "The source text explicitly lists 'APAC' under the heading 'Net sales by geographical segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    },
+    {
+      "subject": "Novo Nordisk A/S",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Region China",
+      "object_kind": "Segment",
+      "page": 127,
+      "quote": "Region China 29,592 23,356",
+      "status": "supported",
+      "review": "The source text explicitly lists 'Region China' under the heading 'Net sales by geographical segment' within the financial statements of Novo Nordisk A/S, confirming it as a reporting segment."
+    }
+  ],
+  "tasks": [
+    {
+      "target": "Product/Ozempic®",
+      "question": "What are the recent external developments affecting the market for Ozempic, including regulatory updates or supply changes?",
+      "web_query": "Ozempic recent news regulatory updates supply",
+      "us_regulatory_relevance": true,
+      "registry_term": "Novo Nordisk Ozempic®"
+    },
+    {
+      "target": "Product/Wegovy®",
+      "question": "What are the recent external developments affecting the market for Wegovy, including regulatory updates or supply changes?",
+      "web_query": "Wegovy recent news regulatory updates supply",
+      "us_regulatory_relevance": true,
+      "registry_term": "Novo Nordisk Wegovy®"
+    },
+    {
+      "target": "Product/Tresiba®",
+      "question": "What are the recent external developments affecting the market for Tresiba, including regulatory updates or supply changes?",
+      "web_query": "Tresiba recent news regulatory updates supply",
+      "us_regulatory_relevance": true,
+      "registry_term": "Novo Nordisk Tresiba®"
+    }
+  ],
+  "search": [
+    {
+      "provider": "british_hits",
+      "query": "Ozempic®",
+      "target": "Product/Ozempic®",
+      "results": [
+        {
+          "title": "MHRA Safety Roundup: June 2025",
+          "url": "https://www.gov.uk/drug-device-alerts/mhra-safety-roundup-june-2025",
+          "decision": "pinned original",
+          "digest": "0d8c7883e87bbd5e45d694dd73a22ac3d209c54acf739868672459d8f878f881",
+          "published": "2025-06-24"
+        },
+        {
+          "title": "Letters and medicine recalls sent to healthcare professionals in March 2023 ",
+          "url": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-march-2023",
+          "decision": "pinned original",
+          "digest": "892255e1fba36665c589b48ffa848c979d1372c3b3ea8e0f7b2708f41e05f0c4",
+          "published": "2023-04-26"
+        },
+        {
+          "title": "Medical examination report for a lorry or bus driving licence (D4)",
+          "url": "https://www.gov.uk/government/publications/d4-medical-examiner-report-for-a-lorry-or-bus-driving-licence",
+          "decision": "No eligible official publication"
+        },
+        {
+          "title": "Register medical devices to place on the market",
+          "url": "https://www.gov.uk/guidance/register-medical-devices-to-place-on-the-market",
+          "decision": "No eligible official publication"
+        },
+        {
+          "title": "Register a trade mark ",
+          "url": "https://www.gov.uk/how-to-register-a-trade-mark",
+          "decision": "No eligible official publication"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Ozempic recent news regulatory updates supply",
+      "target": "Product/Ozempic®",
+      "results": [
+        {
+          "url": "https://www.benzinga.com/topic/ozempic?adt_ei={{email}}&he={{email}}",
+          "title": "Ozempic - Latest News and breaking headlines - Benzinga",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://inews.co.uk/news/semaglutide-ozempic-shortages-increase-drug-heart-attack-stroke-risk-2538828",
+          "title": "Ozempic shortages could worsen after drug found to reduce heart...",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://fherehab.com/learning/ozempic-mental-health",
+          "title": "Ozempic and Weight Loss Drugs: The Mental Health Risks | FHE Health",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.cbc.ca/news/health/ozempic-weight-loss-1.6772021",
+          "title": "Despite social media buzz, Ozempic is not a quick-fix... | CBC News",
+          "decision": "Outside the non-US official-source scope"
+        }
+      ]
+    },
+    {
+      "provider": "british_hits",
+      "query": "Wegovy®",
+      "target": "Product/Wegovy®",
+      "results": [
+        {
+          "title": "Letters and medicine recalls sent to healthcare professionals in April 2024 ",
+          "url": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-april-2024",
+          "decision": "pinned original",
+          "digest": "62261e7b4f5a9b457f4cde6c004f8ebd2e8aad0395e59588ffd33c96033e89f8",
+          "published": "2024-05-29"
+        },
+        {
+          "title": "MHRA Safety Roundup: June 2025",
+          "url": "https://www.gov.uk/drug-device-alerts/mhra-safety-roundup-june-2025",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Medical examination report for a lorry or bus driving licence (D4)",
+          "url": "https://www.gov.uk/government/publications/d4-medical-examiner-report-for-a-lorry-or-bus-driving-licence",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Register medical devices to place on the market",
+          "url": "https://www.gov.uk/guidance/register-medical-devices-to-place-on-the-market",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Register a trade mark ",
+          "url": "https://www.gov.uk/how-to-register-a-trade-mark",
+          "decision": "already evaluated"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Wegovy recent news regulatory updates supply",
+      "target": "Product/Wegovy®",
+      "results": [
+        {
+          "url": "https://www.benzinga.com/topic/wegovy",
+          "title": "Wegovy - Latest News and breaking headlines - Benzinga",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.globenewswire.com/news-release/2024/9/19/2949377/0/en/novo-nordisk-a-s-wegovy-recommended-by-the-european-regulatory-authorities-for-label-update-to-reflect-reduced-heart-failure-symptoms-and-improved-physical-function.html",
+          "title": "Novo Nordisk A/S: Wegovy® recommended by the European",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.theindependentpharmacy.co.uk/weight-loss/guides/mounjaro-vs-wegovy-how-do-they-compare",
+          "title": "Mounjaro vs Wegovy - How Do These Weight Loss Injections Compare?",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.fiercepharma.com/pharma/2025-forecast-after-novo-lilly-expansion-sprees-positive-signals-emerge-around-future-supply",
+          "title": "Novo, Lilly poised to overcome GLP-1 supply constraints in 2025",
+          "decision": "Outside the non-US official-source scope"
+        }
+      ]
+    },
+    {
+      "provider": "british_hits",
+      "query": "Tresiba®",
+      "target": "Product/Tresiba®",
+      "results": [
+        {
+          "title": "Letters and medicine recalls sent to healthcare professionals in March 2024",
+          "url": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-march-2024",
+          "decision": "pinned original",
+          "digest": "0c881e30ce11fb1703b455044970ade2cb4cfce113190467d6d37690091a5098",
+          "published": "2024-04-29"
+        },
+        {
+          "title": "Medical examination report for a lorry or bus driving licence (D4)",
+          "url": "https://www.gov.uk/government/publications/d4-medical-examiner-report-for-a-lorry-or-bus-driving-licence",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Register medical devices to place on the market",
+          "url": "https://www.gov.uk/guidance/register-medical-devices-to-place-on-the-market",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Register a trade mark ",
+          "url": "https://www.gov.uk/how-to-register-a-trade-mark",
+          "decision": "already evaluated"
+        },
+        {
+          "title": "Police use of TASER ® X26 conducted energy devices statistics",
+          "url": "https://www.gov.uk/government/collections/use-of-taser-statistics",
+          "decision": "No eligible official publication"
+        }
+      ]
+    },
+    {
+      "provider": "web_hits",
+      "query": "Tresiba recent news regulatory updates supply",
+      "target": "Product/Tresiba®",
+      "results": [
+        {
+          "url": "https://www.drugs.com/tips/tresiba-patient-tips",
+          "title": "Tresiba Patient Tips: 7 things you should know",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.nytimes.com/2013/02/11/business/fda-wants-more-tests-on-a-novo-nordisk-insulin-tresiba.html",
+          "title": "F.D.A. Wants More Tests on a Novo Nordisk Insulin, Tresiba - The...",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.drugpatentwatch.com/p/biologics/tradename/TRESIBA",
+          "title": "When will the patents on TRESIBA expire, and when will biosimilar...",
+          "decision": "Outside the non-US official-source scope"
+        },
+        {
+          "url": "https://www.diabetes.co.uk/forum/threads/issues-with-tresiba-it-seems-like-its-not-working.144044/",
+          "title": "Issues with Tresiba? It seems like its not working. | Diabetes Forum",
+          "decision": "Outside the non-US official-source scope"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "target": "Product/NovoRapid®",
+      "page": 1,
+      "quote": "NovoRapid® PumpCart® 100 units/ml solution for injection in cartridge (insulin aspart): POTENTIAL SUPPLY SHORTAGE",
+      "status": "supported",
+      "review": "The decisive span explicitly identifies the specific product 'NovoRapid® PumpCart® 100 units/ml solution for injection in cartridge (insulin aspart)' and states a concrete development: 'POTENTIAL SUPPLY SHORTAGE'. This is not a generic match or a mere product identifier, but a specific operational status affecting the supply of this issuer's product.",
+      "fact": "NovoRapid® PumpCart® 100 units/ml solution for injection in cartridge (insulin aspart): POTENTIAL SUPPLY SHORTAGE",
+      "source": "https://www.gov.uk/drug-device-alerts/mhra-safety-roundup-june-2025",
+      "published": "2025-06-24",
+      "digest": "0d8c7883e87bbd5e45d694dd73a22ac3d209c54acf739868672459d8f878f881",
+      "title": "MHRA Safety Roundup: June 2025",
+      "segments": [
+        "Obesity and Diabetes care segment"
+      ],
+      "realized_impact": "unknown",
+      "attributable_amount": "unknown",
+      "fulfillment": "unknown"
+    },
+    {
+      "target": "Product/Tresiba®",
+      "page": 1,
+      "quote": "Tresiba® FlexTouch® 100 U/mL solution for injection (insulin degludec): Supply Shortage in the UK and Tresiba® FlexTouch® 200 U/mL solution for injection (insulin degludec): Medication error",
+      "status": "supported",
+      "review": "The decisive span explicitly names the specific products 'Tresiba® FlexTouch® 100 U/mL' and 'Tresiba® FlexTouch® 200 U/mL' and identifies concrete issues ('Supply Shortage' and 'Medication error') associated with them. This establishes a concrete development for the issuer/product, rather than just a generic identifier or inferred effect.",
+      "fact": "Tresiba® FlexTouch® 100 U/mL solution for injection (insulin degludec): Supply Shortage in the UK and Tresiba® FlexTouch® 200 U/mL solution for injection (insulin degludec): Medication error",
+      "source": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-march-2024",
+      "published": "2024-04-29",
+      "digest": "0c881e30ce11fb1703b455044970ade2cb4cfce113190467d6d37690091a5098",
+      "title": "Letters and medicine recalls sent to healthcare professionals in March 2024",
+      "segments": [
+        "Obesity and Diabetes care segment"
+      ],
+      "realized_impact": "unknown",
+      "attributable_amount": "unknown",
+      "fulfillment": "unknown"
+    }
+  ],
+  "unresolved_external": [
+    {
+      "source": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-march-2023",
+      "status": "unknown",
+      "reason": "No identified graph target in original"
+    },
+    {
+      "source": "https://www.gov.uk/drug-safety-update/letters-and-medicine-recalls-sent-to-healthcare-professionals-in-april-2024",
+      "status": "unknown",
+      "reason": "No audited target-specific event"
+    }
+  ],
+  "graph": {
+    "scope": "31ad2a7203367617b020d3c8f1de79a2",
+    "paths": [
+      {
+        "event": "Event/317e175f135b5f7619e8039a8f570d2d",
+        "target": "Product/Tresiba®",
+        "segment": "Segment/Obesity and Diabetes care segment"
+      },
+      {
+        "event": "Event/4f1f262402bf2f11bd052a2413cd8a33",
+        "target": "Product/NovoRapid®",
+        "segment": "Segment/Obesity and Diabetes care segment"
+      }
+    ]
+  }
+}
