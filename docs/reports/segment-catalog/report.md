@@ -40,12 +40,14 @@ The evaluation checked PDF fingerprints, full physical page sequences, the befor
 
 [Acceptance criteria](protocol.md) · [Verification and evidence for every unresolved endpoint](verification.json) · [Full Novo output](novo-verified.json) · [Full TRATON output](traton-verified.json)
 
-To reproduce from the repository root, with the configured local inference and OCR services:
+To replay the frozen findings against the original PDFs, place the matching reports at the two paths in the input manifest. Run the verifier with Poppler and the configured OCR service:
 
 ```bash
 sha256sum -c docs/reports/segment-catalog/inputs.sha256
-sha256sum -c docs/reports/segment-catalog/implementation.sha256
-uv run --no-sync --env-file .env python -m scripts.regress_segment_products .cache/non-us-holdout/annual.pdf docs/reports/segment-catalog/novo-verified.json
-uv run --no-sync --env-file .env python -m scripts.regress_segment_products .cache/segment-regression/traton.pdf docs/reports/segment-catalog/traton-verified.json
-uv run --no-sync --env-file .env python -m scripts.verify_segment_catalog .cache/non-us-holdout/annual.pdf .cache/segment-regression/traton.pdf docs/reports/segment-catalog
+mkdir -p .cache/catalog-replay
+cp docs/reports/segment-catalog/*-verified.json .cache/catalog-replay/
+uv run --no-sync --env-file .env python -m scripts.verify_segment_catalog .cache/non-us-holdout/annual.pdf .cache/segment-regression/traton.pdf .cache/catalog-replay
+cmp docs/reports/segment-catalog/verification.json .cache/catalog-replay/verification.json
 ```
+
+The [implementation fingerprints](implementation.sha256) describe the original experiment. The annual-report audit has since moved to the shared Pydantic AI runtime. To measure a fresh extraction, run `scripts.regress_segment_products` for each PDF with a separate output directory and score those predictions with the same verifier.
