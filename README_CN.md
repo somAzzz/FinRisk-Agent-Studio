@@ -291,3 +291,20 @@ curl -fsS http://127.0.0.1:8001/v1/models
 ```
 
 单独停止 OCR 可执行 `docker compose -f deploy/xiaomi-ocr.compose.yml stop`。
+
+### 分析在线或本地年报
+
+在 Workflow Launcher 展开 **Analyze an annual report**，选择本地文件或公开 URL。命令行也支持同一组参数。用实际文件路径替换下面的示例路径。
+
+```bash
+uv run --env-file .env python main.py annual-report ./report.pdf --extract-only --output extraction.json
+uv run --env-file .env python main.py annual-report https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf --options config/annual_reports/suedzucker-2026.json --output analysis.json
+```
+
+HTTP 客户端可向 `POST /workflows/annual-report/url` 发送含 `url` 和分析选项的 JSON，或向 `POST /workflows/annual-report/upload?filename=report.pdf` 发送文件原始字节，在查询参数 `options` 中传 URL 编码的 JSON。两种入口均支持 48 MiB 以内的文档。公开 IR 页面在可确定目标时可以解析到 PDF。也支持单份 inline XBRL 的 XHTML 或 ESEF ZIP，可从结果中读取已识别的事实、单位及报告期上下文。
+
+PDF 需要 Poppler。文字稀少的页调用配置好的 OCR，也可用 `force_ocr_pages` 指定从 1 开始的 PDF 物理页号。输出同时保留可识别的印刷页码。文字版与 OCR 不一致时请检查 warnings。`--extract-only` 跳过 LLM 解读，仍执行财务勾稽和指定情景计算。
+
+选项 `as_of` 控制分析截止日，`external` 接受有发布日期的外部材料，`market_series` 接受标明日期列、数值列和单位的 CSV。历史市场序列需配置 SHA-256。示例配置使用半年报和欧盟糖市仪表板，源文件发生变化会提示校验失败。`scenarios` 在给定销量、价格、单位成本、调价比例和闲置成本假设下计算影响。`plant_decisions` 可用同一工厂继续运营、改造和退出三种现金流计算 NPV。分析结果中的 `unknown_topics`、`decision_data_gaps` 以及 `needs_review` 标明待补证的问题。
+
+年报结果的 `chart_rows` 包含可定位的双年度水平柱状图。每行保留图号、指标名、两年的刊载值、单位、同比区间、刊载百分比和页码；`decimal_values` 与 `change.decimal_value` 可按十进制读取。年份通过图例与柱子的颜色对应，百分比通过同一指标的行位置读取。此路径依赖 PDF 文字坐标和可区分颜色的图例。纯扫描件仍使用整页 OCR。

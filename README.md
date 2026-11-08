@@ -320,3 +320,34 @@ v0.2 focuses on Agent memory, recovery, idempotency, live-provider integration c
 ## License
 
 This project includes data from Yahoo Finance, licensed under ODC-BY.
+
+### Analyze a local or public annual report
+
+Open **Analyze an annual report** in the workflow launcher, or use the CLI:
+
+```bash
+uv run --env-file .env python main.py annual-report report.pdf --extract-only --output extraction.json
+```
+
+The upload and URL endpoints under `/workflows/annual-report` accept PDF, inline XBRL XHTML or single-report ESEF ZIP files up to 48 MiB. PDF extraction uses Poppler. Sparse pages use the configured OCR endpoint. The optional [OCR deployment](deploy/xiaomi-ocr.compose.yml) selects GPU 0 by default and accepts a GPU index or UUID through `OCR_GPU_DEVICE`. The [Chinese guide](README_CN.md) includes model setup and analysis options.
+
+### Independent fact audit and annual-report tracking
+
+Use the configured research LLM and Poppler. The tracking command takes a single report and cutoff dates. It discovers publications from the issuer's site and from task-specific web searches. Version-specific issuer reports and authoritative publications with ascertainable publication dates are eligible. A discovery log records rejected sources. Live search rankings are contemporary; the replay reconstructs evidence availability from dated editions.
+
+```bash
+uv run --env-file .env python main.py track-report report.pdf --as-of 2026-05-21 2026-10-08 2026-11-08 --work .cache/tracking --neo4j
+uv run --env-file .env python main.py audit-claims report.pdf --claims config/acceptance/suedzucker_fact_audit.json --as-of 2026-05-21 --output .cache/audit.json
+```
+
+The acceptance claims apply to the original German Südzucker 2025/26 report. Each citation ID identifies a passage in that exact document edition. The audit returns every proposal version, original source locator, verdict and unresolved follow-up. Text and judgments are in English; quoted evidence retains its source language. A second judgment of the decisive span checks both scope and entailment. This release uses term-based retrieval, a numerical guard and the configured model in separate generation and verification calls.
+
+Tracking writes a SQLite ledger, original publications, dated JSON graphs and Markdown reports inside the report-specific work directory. A later cutoff refreshes discovery; repeating a stored cutoff reuses its snapshot. Supply-chain fulfillment stays unknown without direct delivery evidence. Configure the existing Neo4j connection variables to enable projection and verification. Each run prints a graph scope for use in queries such as:
+
+```cypher
+MATCH path = (:AnnualAudit {scope: $scope, kind: 'Alert'})
+  -[:AUDIT_LINK {role: 'BASED_ON'}]->(:AnnualAudit {kind: 'Verdict'})
+  -[:AUDIT_LINK {role: 'DECIDED_ON'}]->(:AnnualAudit {kind: 'Evidence'})
+  -[:AUDIT_LINK {role: 'FROM'}]->(:AnnualAudit {kind: 'Document'})
+RETURN path
+```
