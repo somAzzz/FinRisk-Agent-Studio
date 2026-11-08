@@ -272,3 +272,22 @@ v0.2 聚焦 Agent memory、恢复、幂等、集成覆盖和 lint 治理；v0.3 
 ## License(许可)
 
 本项目包含 Yahoo Finance 数据,按 ODC-BY 授权。
+
+### 本机共享推理与年报 OCR
+
+FinRisk 通过宿主机的 `http://127.0.0.1:30000/v1` 调用共享模型 `qwen3.8-27b`。在项目的私有 `.env` 设置 `SGLANG_API_KEY`，使用 `uv run --env-file .env` 启动应用。客户端仅指定 `provider=sglang` 时沿用后端的地址、凭据和模型别名。
+
+独立 OCR 服务使用 `http://127.0.0.1:8001/v1/chat/completions`，模型别名为 `Xiaomi-OCR-0`。请求中的 `image_url` 可传页面 PNG 的 base64 data URL。整页输出可能包含 OTSL 表格标记。部署默认使用 GPU 0，可通过环境变量 `OCR_GPU_DEVICE` 指定 GPU 编号或 UUID。
+
+首次在仓库根目录准备官方权重并启动服务：
+
+```bash
+hf download xiaomi-research/Xiaomi-OCR-0 \
+  --revision bbd8cf8d21f256b3644b44cb860f3a7cecb93c30 \
+  --include model.safetensors config.json processor_config.json tokenizer.json tokenizer_config.json chat_template.jinja \
+  --local-dir .cache/xiaomi-ocr-model
+docker compose -f deploy/xiaomi-ocr.compose.yml up -d
+curl -fsS http://127.0.0.1:8001/v1/models
+```
+
+单独停止 OCR 可执行 `docker compose -f deploy/xiaomi-ocr.compose.yml stop`。
