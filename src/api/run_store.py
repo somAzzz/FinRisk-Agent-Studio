@@ -148,16 +148,13 @@ class SQLiteRunStore(RunStoreBackend[T]):
         conn = self._ensure()
         payload = state.model_dump_json()  # type: ignore[attr-defined]
         conn.execute(
-            f"INSERT OR REPLACE INTO {self._table}(run_id, payload, created_at) "
-            "VALUES (?, ?, ?)",
+            f"INSERT OR REPLACE INTO {self._table}(run_id, payload, created_at) VALUES (?, ?, ?)",
             (state.run_id, payload, _now()),  # type: ignore[attr-defined]
         )
 
     def _sync_get(self, run_id: str, model: type[T]) -> T | None:
         conn = self._ensure()
-        row = conn.execute(
-            f"SELECT payload FROM {self._table} WHERE run_id = ?", (run_id,)
-        ).fetchone()
+        row = conn.execute(f"SELECT payload FROM {self._table} WHERE run_id = ?", (run_id,)).fetchone()
         if row is None:
             return None
         return self._row_to_state(row, model)
@@ -181,10 +178,7 @@ class SQLiteRunStore(RunStoreBackend[T]):
 
     async def get(self, run_id: str, model: type[T] | None = None) -> T | None:
         if model is None:
-            raise ValueError(
-                "SQLiteRunStore.get requires an explicit `model=` "
-                "argument because it is generic."
-            )
+            raise ValueError("SQLiteRunStore.get requires an explicit `model=` argument because it is generic.")
         async with self._lock:
             return await asyncio.to_thread(self._sync_get, run_id, model)
 
@@ -196,8 +190,7 @@ class SQLiteRunStore(RunStoreBackend[T]):
         # ``model`` is intentionally not part of the public API; the
         # FinRisk-typed subclass passes it for us.
         raise NotImplementedError(
-            "SQLiteRunStore is generic; use the FinRiskSQLiteRunStore "
-            "subclass or pass a typed helper."
+            "SQLiteRunStore is generic; use the FinRiskSQLiteRunStore subclass or pass a typed helper."
         )
 
     async def _list_recent_typed(self, limit: int, model: type[T]) -> list[T]:
@@ -228,6 +221,9 @@ class SQLiteRunStore(RunStoreBackend[T]):
 class FinRiskInMemoryRunStore(InMemoryRunStore[FinRiskWorkflowState]):
     """In-memory backend specialised for ``FinRiskWorkflowState``."""
 
+    async def for_tickers(self, symbols: list[str]) -> list[FinRiskWorkflowState]:
+        return [s for s in self._states.values() if s.request.ticker in symbols]
+
     async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
         run_id = f"run-{uuid.uuid4().hex[:12]}"
         state = FinRiskWorkflowState(run_id=run_id, request=request)
@@ -237,6 +233,20 @@ class FinRiskInMemoryRunStore(InMemoryRunStore[FinRiskWorkflowState]):
 
 class FinRiskSQLiteRunStore(SQLiteRunStore[FinRiskWorkflowState]):
     """SQLite backend specialised for ``FinRiskWorkflowState``."""
+
+    async def for_tickers(self, symbols: list[str]) -> list[FinRiskWorkflowState]:
+        if not symbols:
+            return []
+
+        def read():
+            params = ",".join("?" for _ in symbols)
+            rows = self._ensure().execute(
+                f"SELECT payload FROM runs WHERE json_extract(payload,'$.request.ticker') IN ({params})", symbols
+            )
+            return [FinRiskWorkflowState.model_validate_json(row[0]) for row in rows]
+
+        async with self._lock:
+            return await asyncio.to_thread(read)
 
     async def create(self, request: FinRiskRequest) -> FinRiskWorkflowState:
         run_id = f"run-{uuid.uuid4().hex[:12]}"

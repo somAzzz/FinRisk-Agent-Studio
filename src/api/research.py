@@ -1155,6 +1155,12 @@ async def get_management_comparison(
 async def save_investment_thesis(
     thesis: InvestmentThesis,
 ) -> InvestmentThesis:
+    from src.annual_reports.continuity import binding_for_write
+
+    try:
+        await asyncio.to_thread(binding_for_write, thesis.ticker, thesis.company_id)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return await asyncio.to_thread(get_research_journal_store().save_thesis, thesis)
 
 

@@ -182,6 +182,16 @@ def _inline_xbrl(data: bytes) -> tuple[list[Page], list[dict]]:
         raise DocumentError("External document entities are unsupported")
     ix = {"ix": "http://www.xbrl.org/2013/inlineXBRL"}
     contexts = {e.get("id"): " ".join(e.itertext()).split() for e in root.xpath("//*[local-name()='context']")}
+    entity_ids = {}
+    for ctx in root.findall(".//{http://www.xbrl.org/2003/instance}context"):
+        identifiers = ctx.findall(
+            "{http://www.xbrl.org/2003/instance}entity/{http://www.xbrl.org/2003/instance}identifier"
+        )
+        if ctx.get("id") in entity_ids or len(identifiers) != 1:
+            entity_ids[ctx.get("id")] = None
+        else:
+            item = identifiers[0]
+            entity_ids[ctx.get("id")] = (item.get("scheme"), (item.text or "").strip())
     units = {e.get("id"): " ".join(e.itertext()).split() for e in root.xpath("//*[local-name()='unit']")}
     facts = [
         {
@@ -194,6 +204,7 @@ def _inline_xbrl(data: bytes) -> tuple[list[Page], list[dict]]:
             "format": e.get("format"),
             "id": e.get("id"),
             "context_id": e.get("contextRef"),
+            "reporting_entity": entity_ids.get(e.get("contextRef")),
         }
         for e in root.xpath("//ix:nonFraction", namespaces=ix)
     ]

@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_ai.settings import ThinkingLevel
 
+from src.config import get_settings
+
 LLMProvider = Literal["sglang", "vllm", "deepseek", "openai"]
 
 
@@ -15,7 +17,7 @@ class LLMRunConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    provider: LLMProvider = "sglang"
+    provider: LLMProvider = Field(default_factory=lambda: get_settings().llm_provider, validate_default=True)
     base_url: str | None = None
     model: str | None = None
 

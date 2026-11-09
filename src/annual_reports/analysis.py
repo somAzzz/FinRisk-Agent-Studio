@@ -224,7 +224,10 @@ Do not claim a global event is current based only on historical filings."""
 
 def analyze(data: bytes, source: str, options: Options) -> dict:
     primary = extract(data, source, options.force_ocr_pages)
+    from src.annual_reports.company_identity import extract_issuer, range_questions
+
     meta = identity(primary)
+    meta["issuer"] = extract_issuer(primary, meta["cover"])
     issue = meta["published_at"] or options.published_at
     if meta["published_at"] and options.published_at and issue != options.published_at:
         raise DocumentError("Supplied publication date conflicts with the document")
@@ -347,6 +350,7 @@ def analyze(data: bytes, source: str, options: Options) -> dict:
         else ["NPV ranking requires comparable site cash flows, a discount rate and terminal proceeds."],
         "as_of": options.as_of,
         "identity": meta,
+        "outlook_questions": range_questions(primary, meta),
         "sources": {
             sid: {
                 "source": d.source,

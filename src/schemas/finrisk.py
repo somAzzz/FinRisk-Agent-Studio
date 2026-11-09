@@ -100,6 +100,7 @@ class FinRiskRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ticker: str
+    company_id: str | None = Field(default=None, max_length=160)
     company_name: str | None = None
     analysis_goal: str
     time_horizon: str = "6-12 months"

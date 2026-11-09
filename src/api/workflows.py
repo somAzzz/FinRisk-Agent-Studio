@@ -111,6 +111,7 @@ class WorkflowStatusResponse(BaseModel):
     status: str
     current_step: str | None = None
     trace: list[WorkflowTraceEvent]
+    company_id: str | None = None
     company: Any | None = None
     risk_count: int
     evidence_count: int
@@ -243,6 +244,12 @@ def _schedule_background(coro) -> None:
 )
 async def start_workflow(request: FinRiskRequest) -> WorkflowRunSummary:
     """Start a new FinRisk workflow run."""
+    from src.annual_reports.continuity import binding_for_write
+
+    try:
+        await asyncio.to_thread(binding_for_write, request.ticker, request.company_id)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     state = await _run_store.create(request)
     if _background_enabled():
         _schedule_background(_run_and_store(state))
@@ -299,6 +306,7 @@ async def get_workflow_status(run_id: str) -> WorkflowStatusResponse:
         status=state.status,
         current_step=current_step,
         trace=state.trace,
+        company_id=state.request.company_id,
         company=state.company.model_dump() if state.company else None,
         risk_count=len(state.filing_risks),
         evidence_count=len(state.normalized_evidence),
