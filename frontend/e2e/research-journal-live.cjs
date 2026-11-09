@@ -89,16 +89,6 @@ async function runLinkedFinRisk(page) {
   const primary = config.primary;
   await setCyclePeriod(page, primary.ticker, primary.current_year, primary.quarter);
   await fill(page, "FinRisk analysis goal", primary.analysis_goal);
-  await page.getByText("Research LLM", { exact: true }).click();
-  await page.locator(".cycle-llm-config .runtime-disclosure > summary").click();
-  await page.getByTestId("llm-provider-select").selectOption(config.llm.provider);
-  if (config.llm.base_url) {
-    await page.getByTestId("llm-base-url-input").fill(config.llm.base_url);
-  }
-  if (config.llm.model) {
-    await page.getByTestId("llm-model-input").fill(config.llm.model);
-  }
-
   let workflowPayload;
   page.on("request", (request) => {
     if (request.url().includes("/workflows/finrisk/run") && request.method() === "POST") {
@@ -112,9 +102,7 @@ async function runLinkedFinRisk(page) {
   const workflowRunId = text.split(/\s+/).find((item) => item.startsWith("run-"));
   assert.ok(workflowRunId, `workflow run id missing from ${text}`);
   await page.locator(".cycle-record").filter({ hasText: `${primary.current_year}Q${primary.quarter}` }).waitFor({ timeout });
-  assert.deepEqual(workflowPayload.llm_config, config.llm);
-  assert.equal(workflowPayload.demo_mode, false);
-  assert.equal(workflowPayload.cached_mode, false);
+  for(const k of ["demo_mode","cached_mode","llm_config"]) assert.ok(!(k in workflowPayload));
   report.workflow_run_id = workflowRunId;
   report.workflow_payload = workflowPayload;
   record("linked_local_llm_workflow", { run_id: workflowRunId });

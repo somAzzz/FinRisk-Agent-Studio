@@ -179,68 +179,30 @@ describe("SupplyChainExplorer", () => {
     expandMock.mockClear();
   });
 
-  it("renders the default form with OpenAI / ChatGPT", () => {
-    render(<SupplyChainExplorer />);
+  it("uses the selected company and product without deployment controls", () => {
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     expect(screen.getByTestId("sc-company-input")).toHaveValue("OpenAI");
     expect(screen.getByTestId("sc-product-input")).toHaveValue("ChatGPT");
     expect(screen.queryByTestId("sc-demo-mode")).not.toBeInTheDocument();
-    expect(screen.getByTestId("llm-provider-select")).toHaveValue("sglang");
+    expect(screen.queryByTestId("llm-provider-select")).toBeNull();
+    expect(screen.queryByTestId("sc-depth-input")).toBeNull();
   });
 
   it("clicking Run calls the API and renders the Sankey", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
     });
     expect(startMock).toHaveBeenCalled();
     expect(startMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        demo_mode: false,
-        cached_mode: false,
-        llm_config: expect.objectContaining({ provider: "sglang" }),
-      }),
+      {company_name:"OpenAI",product_name:"ChatGPT"},
     );
     expect(sankeyMock).toHaveBeenCalledWith("sc-run-1");
   });
 
-  it("submits a deeper max depth selection", async () => {
-    render(<SupplyChainExplorer />);
-    fireEvent.change(screen.getByTestId("sc-depth-input"), {
-      target: { value: "8" },
-    });
-    expect(screen.getByTestId("sc-depth-value").textContent).toBe("8");
-    fireEvent.click(screen.getByTestId("sc-run-button"));
-    await waitFor(() => {
-      expect(startMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          max_depth: 8,
-        }),
-      );
-    });
-  });
-
-  it("submits selected LLM provider", async () => {
-    render(<SupplyChainExplorer />);
-    fireEvent.change(screen.getByTestId("llm-provider-select"), {
-      target: { value: "deepseek" },
-    });
-    fireEvent.click(screen.getByTestId("sc-run-button"));
-    await waitFor(() => {
-      expect(startMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          llm_config: expect.objectContaining({
-            provider: "deepseek",
-            base_url: "https://api.deepseek.com",
-            model: "deepseek-v4-flash",
-          }),
-        }),
-      );
-    });
-  });
-
   it("clicking a node opens the drawer", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
@@ -253,7 +215,7 @@ describe("SupplyChainExplorer", () => {
   });
 
   it("shows company scope and comparable suppliers for selected company nodes", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
@@ -271,7 +233,7 @@ describe("SupplyChainExplorer", () => {
   });
 
   it("shows node intelligence for non-company material nodes", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
@@ -289,7 +251,7 @@ describe("SupplyChainExplorer", () => {
   });
 
   it("renders graph viewport controls and node full-name affordances", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey-viewport")).toBeInTheDocument();
@@ -303,7 +265,7 @@ describe("SupplyChainExplorer", () => {
   });
 
   it("marks graph nodes and links with risk levels", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
@@ -319,7 +281,7 @@ describe("SupplyChainExplorer", () => {
   });
 
   it("expands from a selected node in live mode", async () => {
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-sankey")).toBeInTheDocument();
@@ -331,8 +293,6 @@ describe("SupplyChainExplorer", () => {
         expect.objectContaining({
           parent_run_id: "sc-run-1",
           node_id: "component:cpu",
-          demo_mode: false,
-          cached_mode: false,
         }),
       );
     });
@@ -369,7 +329,7 @@ describe("SupplyChainExplorer", () => {
       fallback_events: [],
     };
     statusMock.mockResolvedValueOnce(reviewStatus).mockResolvedValueOnce(reviewStatus);
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-review-summary").textContent).toContain(
@@ -380,7 +340,7 @@ describe("SupplyChainExplorer", () => {
 
   it("API error renders an error banner", async () => {
     startMock.mockRejectedValueOnce(new Error("boom"));
-    render(<SupplyChainExplorer />);
+    render(<SupplyChainExplorer initialCompany="OpenAI" initialProduct="ChatGPT" />);
     fireEvent.click(screen.getByTestId("sc-run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("sc-error").textContent).toContain("boom");

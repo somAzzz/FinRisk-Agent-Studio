@@ -12,6 +12,7 @@ export type WorkflowStatus =
 export type StepStatus = "completed" | "running" | "failed" | "skipped";
 
 export interface FinRiskRequest {
+  company_id?: string;
   ticker: string;
   company_name?: string | null;
   analysis_goal: string;
@@ -134,6 +135,7 @@ export interface WorkflowEvaluation {
 }
 
 export interface WorkflowStatusResponse {
+  company_id?:string|null;
   run_id: string;
   status: WorkflowStatus;
   current_step?: string | null;
@@ -400,6 +402,7 @@ export interface ThesisReview {
 }
 
 export interface InvestmentThesis {
+  company_id?: string;
   thesis_id: string;
   ticker: string;
   statement: string;
@@ -946,7 +949,7 @@ export type AgentWorkflowKind =
   | "company_research"
   | "generic_research";
 
-export type AgentRunProvider = "deepseek" | "vllm" | "sglang";
+export type AgentRunProvider = LLMProvider;
 export type AgentRunToolLoopMode = "native" | "json_fallback" | "auto";
 export type AgentRunToolScope =
   | "company_research"
@@ -968,10 +971,12 @@ export type AgentSubgoalStatus =
   | "skipped"
   | "needs_review";
 
+export type FilingOrigin={report_id:string;cutoff:string;task_id:string};
 export interface AgentRunRequest {
+  filing_origin?:FilingOrigin;
   goal: string;
   workflow_kind: AgentWorkflowKind;
-  provider: AgentRunProvider;
+  provider?: AgentRunProvider;
   tool_loop_mode?: AgentRunToolLoopMode | null;
   tool_scope?: AgentRunToolScope | null;
   max_tool_rounds?: number;
@@ -983,13 +988,14 @@ export interface AgentRunRequest {
 }
 
 export interface AgentRunSummary {
+  goal?:string|null;
   run_id: string;
   status: AgentRunStatus;
   timeline_url: string;
   trace_url: string;
 }
 
-export type RunHistoryKind = "finrisk" | "agent-runs" | "supply-chain";
+export type RunHistoryKind = "filing" | "finrisk" | "agent-runs" | "supply-chain";
 
 export interface AgentSubgoalWire {
   subgoal_id: string;
@@ -1074,6 +1080,7 @@ export interface AgentRunTimelineResponse {
 }
 
 export interface AgentRunTraceResponse {
+  filing_origin?:FilingOrigin|null;
   run_id: string;
   user_goal: string;
   workflow_kind: AgentWorkflowKind;

@@ -115,7 +115,7 @@ describe("ResearchCyclePanel", () => {
     render(<ResearchCyclePanel />);
     fireEvent.click(screen.getByRole("button", { name: "Scan watchlist" }));
     await waitFor(() => expect(api.scanWatchlist).toHaveBeenCalledWith({
-      minimum_materiality: "medium", max_workers: 2,
+      minimum_materiality: "medium",
     }));
   });
 
@@ -146,9 +146,7 @@ describe("ResearchCyclePanel", () => {
 
     await waitFor(() => expect(api.startWorkflow).toHaveBeenCalledWith(
       expect.objectContaining({
-        llm_config: {
-          provider: "sglang",
-        },
+        ticker: "ACME",
       }),
     ));
     await waitFor(() => expect(api.startResearchRun).toHaveBeenCalledWith(

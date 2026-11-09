@@ -4009,3 +4009,10 @@ body:has(.product-app)::before {
   .source-inventory-list article { grid-template-columns: auto 1fr auto; }
   .source-inventory-list b { grid-column: 2; text-align: left; }
 }
+
+.intake-choice { display:flex; gap:4px; padding:4px; border-radius:8px; border:1px solid var(--product-line); background:#eef3f3; margin:20px 0; }
+.intake-choice button { flex:1; min-height:40px; font:inherit; border:0; background:none; color:#40565e; border-radius:5px; }
+.intake-choice button[aria-pressed=true] { background:white; color:var(--product-teal-dark); font-weight:700; box-shadow:0 1px 4px #18333926; }
+.filing-intake form { display:grid; gap:16px; }.filing-intake label {display:grid;gap:6px;font-weight:600}.filing-intake input,.filing-intake textarea,.filing-intake select { min-width:0;width:100%;font:inherit;padding:9px;border:1px solid var(--product-line);border-radius:5px;box-sizing:border-box}.filing-intake textarea{min-height:72px}.filing-intake button[type=submit]{background:var(--product-teal-dark);border:0;border-radius:5px;color:white;padding:10px 16px;font:inherit;font-weight:650}
+
+@media(min-width: 901px){.today-page .queue-summary{grid-template-columns: repeat(2, minmax(0, 1fr));}}

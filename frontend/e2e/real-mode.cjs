@@ -2,20 +2,6 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 
 const APP_URL = process.env.FRONTEND_URL ?? "http://127.0.0.1:5173";
-const EXPECTED_LLM_PROVIDER = process.env.EXPECTED_LLM_PROVIDER ?? "vllm";
-const EXPECTED_LLM_BASE_URL = process.env.EXPECTED_LLM_BASE_URL ?? "http://localhost:30000/v1";
-const EXPECTED_LLM_MODEL = process.env.EXPECTED_LLM_MODEL ?? "nvidia/Qwen3.6-27B-NVFP4";
-
-async function waitForText(page, selector, pattern, timeout = 120_000) {
-  const deadline = Date.now() + timeout;
-  while (Date.now() < deadline) {
-    const text = await page.locator(selector).textContent().catch(() => "");
-    if (pattern.test(text ?? "")) return text;
-    await page.waitForTimeout(500);
-  }
-  throw new Error(`Timed out waiting for ${selector} to match ${pattern}`);
-}
-
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
@@ -37,34 +23,22 @@ async function main() {
   await page.goto(APP_URL);
 
   // Risk Intelligence: run AAPL through the real path.
+  await page.getByRole("button",{name:"New research",exact:true}).click();
+  await page.getByRole("button",{name:"Company question",exact:true}).click();
   await page.getByTestId("ticker-input").fill("AAPL");
-  const demoMode = page.getByTestId("demo-mode");
-  if (await demoMode.isChecked()) await demoMode.uncheck();
-  const cachedMode = page.locator("#cached-mode");
-  if (await cachedMode.isChecked()) await cachedMode.uncheck();
   await page.getByTestId("run-button").click();
   await page.waitForFunction(() => window.__workflowPayloadsReady !== false, null, {
     timeout: 1,
   }).catch(() => {});
   await page.waitForTimeout(500);
   assert.equal(workflowPayloads.length, 1, "Risk workflow request was not sent");
-  assert.equal(workflowPayloads[0].demo_mode, false, "Risk demo_mode must be false");
-  assert.equal(workflowPayloads[0].cached_mode, false, "Risk cached_mode must be false");
+  for(const k of ["demo_mode","cached_mode","llm_config"]) assert.ok(!(k in workflowPayloads[0]));
   assert.equal(workflowPayloads[0].ticker, "AAPL");
-  assert.equal(workflowPayloads[0].llm_config.provider, EXPECTED_LLM_PROVIDER);
-  assert.equal(workflowPayloads[0].llm_config.base_url, EXPECTED_LLM_BASE_URL);
-  assert.equal(workflowPayloads[0].llm_config.model, EXPECTED_LLM_MODEL);
 
-  await page.getByTestId("risk-report").waitFor({ timeout: 120_000 });
-  await page.getByTestId("evaluation-tab").waitFor({ timeout: 10_000 });
-  await page.getByTestId("agent-timeline").waitFor({ timeout: 10_000 });
-  await waitForText(
-    page,
-    "[data-testid='risk-report']",
-    /Risk (?:Report|Intelligence Brief)/,
-  );
-  const riskReportText = await page.getByTestId("risk-report").textContent();
-  assert.match(riskReportText ?? "", /Disclaimer|Top Risks/);
+  await page.getByTestId("research-decision-brief").waitFor({ timeout: 120_000 });
+  assert.ok(await page.getByRole("heading",{name:"Decision brief"}).isVisible());
+  await page.getByRole("button",{name:"Evidence",exact:true}).click();
+  await page.getByRole("heading",{name:"Evidence",exact:true}).first().waitFor();
 
   // Product Supply Chain: run NVIDIA/GPU through the real path.
   await page.getByTestId("tab-supply-chain").click();
@@ -73,13 +47,9 @@ async function main() {
   await page.getByTestId("sc-run-button").click();
   await page.waitForTimeout(500);
   assert.equal(supplyChainPayloads.length, 1, "Supply-chain request was not sent");
-  assert.equal(supplyChainPayloads[0].demo_mode, false, "Supply-chain demo_mode must be false");
-  assert.equal(supplyChainPayloads[0].cached_mode, false, "Supply-chain cached_mode must be false");
+  assert.deepEqual(Object.keys(supplyChainPayloads[0]).sort(),["company_name","product_name"]);
   assert.equal(supplyChainPayloads[0].company_name, "NVIDIA");
   assert.equal(supplyChainPayloads[0].product_name, "GPU");
-  assert.equal(supplyChainPayloads[0].llm_config.provider, EXPECTED_LLM_PROVIDER);
-  assert.equal(supplyChainPayloads[0].llm_config.base_url, EXPECTED_LLM_BASE_URL);
-  assert.equal(supplyChainPayloads[0].llm_config.model, EXPECTED_LLM_MODEL);
 
   await page.getByTestId("sc-sankey").waitFor({ timeout: 120_000 });
   const nodeCountText = await page.getByTestId("sc-sankey-node-count").textContent();

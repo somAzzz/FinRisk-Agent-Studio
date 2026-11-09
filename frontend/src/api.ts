@@ -157,6 +157,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 const sendRequest = request;
 
 export interface AnnualReportResult {
+  report_id?: string;
   identity: { cover: string[] };
   status: string;
   sources: { annual: { page_count: number } };
@@ -169,6 +170,21 @@ export interface AnnualReportResult {
 }
 
 export const api = {
+  companyWorkspace:(id:string,day="")=>request<import("./annual/company").CompanyDesk>("/research/companies/"+encodeURIComponent(id)+"/workspace"+(day?"?as_of="+encodeURIComponent(day):"")),
+  annualLibrary: () => request<import("./annual/model").Entry[]>("/workflows/annual-report/library"),
+  savedAnnual: (id:string, day?:string) => request<import("./annual/model").Bundle>("/workflows/annual-report/library/"+encodeURIComponent(id)+(day?"?cutoff="+encodeURIComponent(day):"")),
+  annualJob(id: string): Promise<AnnualJob> {
+    return request("/workflows/annual-report/jobs/" + encodeURIComponent(id));
+  },
+  startAnnualJob(source: File | string, options: Record<string, unknown>): Promise<AnnualJob> {
+    if (typeof source === "string") return sendRequest("/workflows/annual-report/jobs/url", {
+      method: "POST", body: JSON.stringify({ ...options, url: source })
+    });
+    const params = new URLSearchParams({filename:source.name,options:JSON.stringify(options)});
+    return sendRequest("/workflows/annual-report/jobs/upload?" + params, {
+      method:"POST", headers:{"Content-Type":"application/octet-stream"}, body:source
+    });
+  },
   analyzeAnnualReport(source: File | string, options: Record<string, unknown>): Promise<AnnualReportResult> {
     if (typeof source === "string") {
       return sendRequest("/workflows/annual-report/url", { method: "POST", body: JSON.stringify({ ...options, url: source }) });
@@ -621,3 +637,5 @@ export const apiPaths = {
   agentRunReviewCandidate: (runId: string, candidateId: string) =>
     `/agent-runs/${runId}/evidence-candidates/${candidateId}`,
 };
+
+export type AnnualJob={id:string;status:"queued"|"running"|"completed"|"failed";report_id?:string;detail?:string};

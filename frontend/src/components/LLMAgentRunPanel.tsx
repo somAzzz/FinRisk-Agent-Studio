@@ -1,3 +1,4 @@
+import {reportRoute} from "../annual/model";
 import { Check, ChevronDown, Download, PlayCircle, RotateCw, ShieldAlert, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
@@ -12,15 +13,7 @@ import type {
 } from "../types";
 
 const DEFAULT_REQUEST: AgentRunRequest = {
-  goal: "Find evidence about Apple's supply chain risk and cite sources.",
-  workflow_kind: "finrisk",
-  provider: "deepseek",
-  tool_loop_mode: "auto",
-  tool_scope: "finrisk_market",
-  max_tool_rounds: 4,
-  demo_mode: false,
-  cached_mode: false,
-  subject: { ticker: "AAPL", company_name: "Apple Inc." },
+  goal: "", workflow_kind: "generic_research",
 };
 
 const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
@@ -40,6 +33,7 @@ interface ToolDisplaySummary {
 interface Props {
   onProgress?: (timeline: AgentRunTimelineResponse | null) => void;
   selectedRunId?: string | null;
+  initialRequest?:AgentRunRequest;
   staticMode?: boolean;
 }
 
@@ -103,7 +97,7 @@ const STATIC_AGENT_TIMELINE: AgentRunTimelineResponse = {
 
 const STATIC_AGENT_TRACE: AgentRunTraceResponse = {
   run_id: STATIC_AGENT_SUMMARY.run_id,
-  user_goal: DEFAULT_REQUEST.goal,
+  user_goal: "Review evidence about Apple’s supply chain risk.",
   workflow_kind: "finrisk",
   status: "completed",
   accepted_evidence_ids: ["10-K-2025"],
@@ -324,12 +318,12 @@ function hostFromUrl(url: string | null | undefined): string | null {
   }
 }
 
-export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false }: Props = {}) {
-  const [request, setRequest] = useState<AgentRunRequest>(DEFAULT_REQUEST);
+export function LLMAgentRunPanel({ onProgress, selectedRunId, initialRequest, staticMode = false }: Props = {}) {
+  const [request, setRequest] = useState<AgentRunRequest>(initialRequest ?? (staticMode?{...DEFAULT_REQUEST,goal:"Review the archived supply chain investigation."}:DEFAULT_REQUEST));
   const [summary, setSummary] = useState<AgentRunSummary | null>(staticMode ? STATIC_AGENT_SUMMARY : null);
   const [timeline, setTimeline] = useState<AgentRunTimelineResponse | null>(staticMode ? STATIC_AGENT_TIMELINE : null);
   const [trace, setTrace] = useState<AgentRunTraceResponse | null>(staticMode ? STATIC_AGENT_TRACE : null);
-  const [configOpen, setConfigOpen] = useState(!staticMode);
+  const [configOpen, setConfigOpen] = useState(Boolean(initialRequest)||(!staticMode&&!selectedRunId));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
@@ -505,10 +499,11 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
 
   return (
     <div className="agent-run-view" data-testid="llm-agent-run-panel">
+      {trace?.filing_origin&&<p><a href={reportRoute(trace.filing_origin.report_id)+"?"+new URLSearchParams({day:trace.filing_origin.cutoff,view:"tracking",lane:"fresh",task:trace.filing_origin.task_id})}>Return to originating filing question →</a></p>}
       <details className="agent-run-launcher section" open={configOpen} onToggle={(event) => setConfigOpen(event.currentTarget.open)}>
         <summary>
-          <div><span className="page-eyebrow">Run configuration</span><strong>{summary ? request.goal : "Configure a source-backed research run"}</strong></div>
-          <span>{summary ? "Edit setup" : "Open setup"}<ChevronDown size={16} aria-hidden="true" /></span>
+          <div><span className="page-eyebrow">Investigation</span><strong>{summary ? trace?.user_goal || request.goal || "Investigation" : "Investigate a research question"}</strong></div>
+          <span>{summary ? "Review question" : "Research question"}<ChevronDown size={16} aria-hidden="true" /></span>
         </summary>
         <form
           className="agent-run-controls"
@@ -519,7 +514,7 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
         >
           <div className="agent-run-form-grid">
           <div className="row stacked agent-goal-field">
-            <label htmlFor="agent-goal">Goal</label>
+            <label htmlFor="agent-goal">Research question</label>
             <textarea
               id="agent-goal"
               data-testid="agent-goal-input"
@@ -533,7 +528,7 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
             />
           </div>
           <div className="row">
-            <label htmlFor="agent-workflow">Workflow</label>
+            <label htmlFor="agent-workflow">Research focus</label>
             <select
               id="agent-workflow"
               value={request.workflow_kind}
@@ -544,79 +539,11 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
                 }))
               }
             >
-              <option value="finrisk">FinRisk</option>
+              <option value="finrisk">Financial risk</option>
               <option value="supply_chain">Supply Chain</option>
               <option value="company_research">Company Research</option>
               <option value="generic_research">Generic Research</option>
             </select>
-          </div>
-          <div className="row">
-            <label htmlFor="agent-provider">Provider</label>
-            <select
-              id="agent-provider"
-              data-testid="agent-provider-select"
-              value={request.provider}
-              onChange={(event) =>
-                setRequest((current) => ({
-                  ...current,
-                  provider: event.target.value as AgentRunRequest["provider"],
-                }))
-              }
-            >
-              <option value="deepseek">DeepSeek</option>
-              <option value="vllm">vLLM</option>
-              <option value="sglang">SGLang</option>
-            </select>
-          </div>
-          <div className="row">
-            <label htmlFor="agent-tool-scope">Tools</label>
-            <select
-              id="agent-tool-scope"
-              value={request.tool_scope ?? "finrisk_market"}
-              onChange={(event) =>
-                setRequest((current) => ({
-                  ...current,
-                  tool_scope: event.target.value as AgentRunRequest["tool_scope"],
-                }))
-              }
-            >
-              <option value="finrisk_market">FinRisk market</option>
-              <option value="supply_chain">Supply chain</option>
-              <option value="company_research">Company research</option>
-            </select>
-          </div>
-          <div className="row">
-            <label htmlFor="agent-tool-mode">Tool loop</label>
-            <select
-              id="agent-tool-mode"
-              value={request.tool_loop_mode ?? "auto"}
-              onChange={(event) =>
-                setRequest((current) => ({
-                  ...current,
-                  tool_loop_mode: event.target.value as AgentRunRequest["tool_loop_mode"],
-                }))
-              }
-            >
-              <option value="auto">Auto</option>
-              <option value="native">Native</option>
-              <option value="json_fallback">JSON fallback</option>
-            </select>
-          </div>
-          <div className="row">
-            <label htmlFor="agent-rounds">Max rounds</label>
-            <input
-              id="agent-rounds"
-              type="number"
-              min={0}
-              max={10}
-              value={request.max_tool_rounds ?? 4}
-              onChange={(event) =>
-                setRequest((current) => ({
-                  ...current,
-                  max_tool_rounds: Number(event.target.value) || 0,
-                }))
-              }
-            />
           </div>
           </div>
           <div className="agent-run-form-actions">
@@ -627,7 +554,7 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
             data-testid="agent-run-button"
           >
             <PlayCircle size={15} />
-            {busy ? "Running…" : "Run Agent"}
+            {busy ? "Running…" : "Start investigation"}
           </button>
           {summary ? (
             <button
@@ -661,7 +588,7 @@ export function LLMAgentRunPanel({ onProgress, selectedRunId, staticMode = false
           </div>
         </section>
       ) : (
-        <section className="run-empty-state section"><ShieldAlert size={24} aria-hidden="true" /><div><strong>No run selected</strong><p>Open the configuration above to start a traceable research run.</p></div></section>
+        <section className="run-empty-state section"><ShieldAlert size={24} aria-hidden="true" /><div><strong>No run selected</strong><p>Enter a research question above or open a saved investigation.</p></div></section>
       )}
 
       {timeline ? (
