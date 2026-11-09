@@ -1,3 +1,4 @@
+import {issuerRoute,type CompanyScope} from "../annual/company";
 import { useEffect, useState } from "react";
 import { CalendarClock, ChevronDown, Plus, Target } from "lucide-react";
 import { api, describeApiError } from "../api";
@@ -29,11 +30,11 @@ function initialResearchTask(): ResearchTask {
   return requested && RESEARCH_TASKS.has(requested) ? requested : "cycle";
 }
 
-export function ResearchJournalPanel({ staticMode = false }: { staticMode?: boolean }) {
+export function ResearchJournalPanel({ staticMode = false,scope }: { staticMode?: boolean;scope?:CompanyScope }) {
   const [theses, setTheses] = useState<InvestmentThesis[]>(staticMode ? [staticResearchThesis] : []);
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>(staticMode ? [staticResearchWatchlist] : []);
   const [reminders, setReminders] = useState<ResearchReminder[]>(staticMode ? [staticResearchReminder] : []);
-  const [ticker, setTicker] = useState("");
+  const [ticker, setTicker] = useState(scope?.ticker??"");
   const [statement, setStatement] = useState("");
   const [timeHorizon, setTimeHorizon] = useState("12 months");
   const [disconfirming, setDisconfirming] = useState("");
@@ -85,6 +86,7 @@ export function ResearchJournalPanel({ staticMode = false }: { staticMode?: bool
       const nextThesis: InvestmentThesis = {
         thesis_id: id("thesis"),
         ticker: ticker.toUpperCase().trim(),
+        ...(scope?{company_id:scope.id}:{}),
         statement: statement.trim(),
         time_horizon: timeHorizon.trim(),
         status: "active",
@@ -180,7 +182,7 @@ export function ResearchJournalPanel({ staticMode = false }: { staticMode?: bool
           <details className="journal-compose section" open={composerOpen} onToggle={(event) => setComposerOpen(event.currentTarget.open)}>
             <summary><span><Plus size={16} aria-hidden="true" />Create a thesis</span><ChevronDown size={16} aria-hidden="true" /></summary>
             <div className="journal-compose-fields">
-              <label>Ticker<input name="thesis_ticker" autoComplete="off" spellCheck={false} value={ticker} onChange={(event) => setTicker(event.target.value)} /></label>
+              {scope&&<p>New thesis for <a href={issuerRoute(scope.id)}>{scope.name} · Company workspace</a></p>}<label>Ticker<input readOnly={!!scope} name="thesis_ticker" autoComplete="off" spellCheck={false} value={ticker} onChange={(event) => setTicker(event.target.value)} /></label>
               <label>Thesis<textarea name="thesis_statement" autoComplete="off" value={statement} onChange={(event) => setStatement(event.target.value)} /></label>
               <label>Time horizon<input name="thesis_time_horizon" autoComplete="off" value={timeHorizon} onChange={(event) => setTimeHorizon(event.target.value)} /></label>
               <label>What would disprove it?<textarea name="thesis_disconfirming" autoComplete="off" value={disconfirming} onChange={(event) => setDisconfirming(event.target.value)} placeholder="Comma-separated falsification conditions…" /></label>
@@ -204,7 +206,7 @@ export function ResearchJournalPanel({ staticMode = false }: { staticMode?: bool
           <details className="section thesis-ledger-section">
             <summary><span>Thesis archive</span><small>{theses.length} records</small><ChevronDown size={16} aria-hidden="true" /></summary>
             <div className="thesis-list">
-              {theses.map((thesis) => <article className={`thesis-card ${thesis.status}`} key={thesis.thesis_id}><header><div><strong>{thesis.ticker}</strong><span>{thesis.status}</span></div><small>{thesis.time_horizon}</small></header><div className="thesis-meta"><span>Drivers: {thesis.key_drivers.join(", ") || "—"}</span><span>Monitor: {thesis.monitoring_metrics.join(", ") || "—"}</span><span>{thesis.reviews.length} reviews</span></div><div className="thesis-actions"><input type="date" aria-label={`Next review date for ${thesis.ticker}`} value={reviewDates[thesis.thesis_id] ?? ""} onChange={(event) => setReviewDates((current) => ({ ...current, [thesis.thesis_id]: event.target.value }))} /><button className="ghost" type="button" onClick={() => void addToWatchlist(thesis)}>Add to watchlist</button><input aria-label={`Review notes for ${thesis.ticker}`} value={reviewNotes[thesis.thesis_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [thesis.thesis_id]: event.target.value }))} placeholder="Review evidence and outcome" /><button className="ghost" type="button" onClick={() => void review(thesis, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void review(thesis, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void review(thesis, "invalidated")}>Invalidated</button></div></article>)}
+              {theses.map((thesis) => <article className={`thesis-card ${thesis.status}`} key={thesis.thesis_id}><header><div><strong>{thesis.company_id?<a href={issuerRoute(thesis.company_id)}>{thesis.ticker} · Workspace</a>:thesis.ticker}</strong><span>{thesis.status}</span></div><small>{thesis.time_horizon}</small></header><div className="thesis-meta"><span>Drivers: {thesis.key_drivers.join(", ") || "—"}</span><span>Monitor: {thesis.monitoring_metrics.join(", ") || "—"}</span><span>{thesis.reviews.length} reviews</span></div><div className="thesis-actions"><input type="date" aria-label={`Next review date for ${thesis.ticker}`} value={reviewDates[thesis.thesis_id] ?? ""} onChange={(event) => setReviewDates((current) => ({ ...current, [thesis.thesis_id]: event.target.value }))} /><button className="ghost" type="button" onClick={() => void addToWatchlist(thesis)}>Add to watchlist</button><input aria-label={`Review notes for ${thesis.ticker}`} value={reviewNotes[thesis.thesis_id] ?? ""} onChange={(event) => setReviewNotes((current) => ({ ...current, [thesis.thesis_id]: event.target.value }))} placeholder="Review evidence and outcome" /><button className="ghost" type="button" onClick={() => void review(thesis, "supported")}>Supported</button><button className="ghost" type="button" onClick={() => void review(thesis, "mixed")}>Mixed</button><button className="ghost danger" type="button" onClick={() => void review(thesis, "invalidated")}>Invalidated</button></div></article>)}
               {!theses.length ? <p className="muted">No saved thesis yet.</p> : null}
             </div>
           </details>

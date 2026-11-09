@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.messages import ToolCallPart
 from pydantic_ai.models import Model
+from pydantic_ai.settings import ModelSettings
 
 from src.ai.deps import AgentDeps
 from src.ai.runtime_types import LLMToolCallRecord, LLMToolRunResult
@@ -28,26 +29,20 @@ class PydanticAIRuntimeAdapter:
         deps: AgentDeps,
         system_prompt: str,
         max_tool_result_chars: int = 12000,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
+        model_settings: ModelSettings | None = None,
     ) -> None:
         catalog = deps.services.tool_catalog
         if catalog is None:
             raise ValueError("AgentDeps.services.tool_catalog is required")
         self.deps = deps
         self.max_tool_result_chars = max_tool_result_chars
-        model_settings: dict[str, Any] = {}
-        if temperature is not None:
-            model_settings["temperature"] = temperature
-        if max_tokens is not None:
-            model_settings["max_tokens"] = max_tokens
+        self.model_settings = model_settings
         self.agent: Agent[AgentDeps, Any] = Agent(
             model,
             output_type=str,
             deps_type=AgentDeps,
             instructions=system_prompt,
             toolsets=[build_scoped_toolset(catalog)],
-            model_settings=model_settings or None,
             name="finrisk_pydantic_ai_subgoal",
         )
 
@@ -58,21 +53,21 @@ class PydanticAIRuntimeAdapter:
         agent: Agent[AgentDeps, Any],
         deps: AgentDeps,
         max_tool_result_chars: int = 12000,
+        model_settings: ModelSettings | None = None,
     ) -> PydanticAIRuntimeAdapter:
         """Wrap a domain-specific typed Agent in the workflow contract."""
         instance = cls.__new__(cls)
         instance.agent = agent
         instance.deps = deps
         instance.max_tool_result_chars = max_tool_result_chars
+        instance.model_settings = model_settings
         return instance
 
     def run(self, goal: str) -> LLMToolRunResult:
         """Run the async Pydantic AI loop behind the legacy sync protocol."""
         self.deps.services.tool_events.clear()
         limits = UsageLimits(
-            request_limit=max(
-                1, self.deps.budget.max_tool_rounds_per_subgoal + 1
-            ),
+            request_limit=max(1, self.deps.budget.max_tool_rounds_per_subgoal + 1),
             tool_calls_limit=self.deps.budget.max_total_tool_calls,
         )
         result = run_awaitable_sync(
@@ -95,9 +90,7 @@ class PydanticAIRuntimeAdapter:
         used_chars = sum(event.result_chars for event in events)
         output = result.output
         if isinstance(output, BaseModel):
-            final_answer = json.dumps(
-                output.model_dump(mode="json"), ensure_ascii=False
-            )
+            final_answer = json.dumps(output.model_dump(mode="json"), ensure_ascii=False)
         else:
             final_answer = str(output)
         return LLMToolRunResult(
@@ -108,9 +101,7 @@ class PydanticAIRuntimeAdapter:
             llm_calls=[],
             budget_usage=ToolBudgetUsage(
                 max_tool_result_chars=self.max_tool_result_chars,
-                max_total_tool_result_chars=(
-                    self.deps.budget.max_total_tool_result_chars
-                ),
+                max_total_tool_result_chars=(self.deps.budget.max_total_tool_result_chars),
                 used_tool_result_chars=used_chars,
                 truncated_events=sum(event.truncated for event in events),
             ),
@@ -127,6 +118,7 @@ class PydanticAIRuntimeAdapter:
             goal,
             deps=self.deps,
             message_history=message_history,
+            model_settings=self.model_settings,
             usage_limits=limits,
             run_id=self.deps.run_id,
             conversation_id=conversation_id,

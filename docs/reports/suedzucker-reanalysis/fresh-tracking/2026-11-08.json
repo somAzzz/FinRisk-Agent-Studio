@@ -1,0 +1,301 @@
+{
+  "as_of": "2026-11-08",
+  "tasks": [
+    {
+      "id": "5b4c340fbda95a33828fa38d5bc8b754",
+      "topic": "international",
+      "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+      "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+      "seed_id": "d6b09523204fc011308bf47f8800cca3",
+      "query": "EuGH Entscheidung Mercosur Abkommen Zucker Zollkontingent vorläufige Anwendung 1. Mai 2026",
+      "terms": "EuGH, Mercosur, Abkommen, Zucker, Zollkontingent, vorläufige Anwendung, 1. Mai 2026, EU-Recht, Vereinbarkeit",
+      "direct_evidence_needed": "Offizielle Pressemitteilung des EuGH oder der EU-Kommission, die den Status der vorläufigen Anwendung des Mercosur-Abkommens für Zucker ab Mai 2026 bestätigt oder eine rechtliche Hürde benennt.",
+      "stop_condition": "Eine offizielle Veröffentlichung des EuGH oder der EU-Kommission, die den endgültigen Status der vorläufigen Anwendung des Abkommens für den Zuckermarkt ab Mai 2026 feststellt.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "await_next_publication",
+      "proofs": {},
+      "pending": {
+        "id": "4d387fe71d036bc8b0ee61c4a085b779",
+        "question": "No provided evidence confirms the EuGH decision or the status of the EU-Mercosur sugar interim application.",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "missing": "Actual delivery evidence is missing."
+      }
+    },
+    {
+      "id": "1e5bf9819d41b7d319f230d72f539502",
+      "topic": "upstream",
+      "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+      "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+      "seed_id": "51a481381418d0c443519d32b090b3c1",
+      "query": "Südzucker Zuckerrüben Anbaufläche Kampagne 2025/26 Ertrag offizielle Zahlen",
+      "terms": "Südzucker, Zuckerrüben, Anbaufläche, Kampagne 2025/26, Ertrag, 305.800 ha, Reduktion, europäische Nachfrage",
+      "direct_evidence_needed": "Offizielle Unternehmensmitteilung oder Branchenbericht, der die tatsächliche Anbaufläche und den Ertrag der Zuckerrübenkampagne 2025/26 im Vergleich zur Planung bestätigt.",
+      "stop_condition": "Veröffentlichung der finalen Erntedaten durch Südzucker oder eine relevante Branchenorganisation, die die Abweichung von der geplanten Anbaufläche von 305.800 ha quantifiziert.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "await_next_publication",
+      "proofs": {},
+      "pending": {
+        "id": "d7301fe79f2954f172681dde436b89ef",
+        "question": "No provided evidence confirms actual 2025/26 sugar beet acreage or yield figures against the planned 305,800 ha reduction.",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span."
+      }
+    },
+    {
+      "id": "1a221420bd26223b5a21cdee8c5c377c",
+      "topic": "downstream",
+      "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+      "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+      "seed_id": "29fb526158a7e82898d29fd6744256a1",
+      "query": "Südzucker Stärke Segment Preis Neuabschlüsse 2026 Margendruck Überversorgung",
+      "terms": "Südzucker, Stärke, Segment, Preis, Neuabschlüsse, 2026, Margendruck, Überversorgung, Marktanteile, Ergebnisqualität",
+      "direct_evidence_needed": "Offizielle Segmentberichterstattung oder Analystenbericht, der die spezifischen Preiszugeständnisse und deren Auswirkung auf die operative Marge im Stärkesegment für das Jahr 2026 beschreibt.",
+      "stop_condition": "Veröffentlichung der Quartalszahlen oder des Zwischenberichts für das Geschäftsjahr 2026/27, in dem die Auswirkungen der Preisstrategie auf die operative Marge des Stärkesegments offengelegt werden.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "await_next_publication",
+      "proofs": {},
+      "pending": {
+        "id": "87a91a9d1180bae6b5c364b38366f387",
+        "question": "Südzucker's starch segment operating EBITDA rose to €20 million in the first quarter of fiscal year 2026/27, up 33.3% from €15 million in the prior year.",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span."
+      }
+    }
+  ],
+  "eligible_digests": [
+    "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+    "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+    "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83"
+  ],
+  "audits": [],
+  "alerts": [],
+  "graph": {
+    "nodes": [
+      {
+        "day": "2026-11-08",
+        "id": "681bfd31d4d6af41a9384158311c6c1d",
+        "kind": "Snapshot"
+      },
+      {
+        "topic": "international",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+        "seed_id": "d6b09523204fc011308bf47f8800cca3",
+        "query": "EuGH Entscheidung Mercosur Abkommen Zucker Zollkontingent vorläufige Anwendung 1. Mai 2026",
+        "terms": "EuGH, Mercosur, Abkommen, Zucker, Zollkontingent, vorläufige Anwendung, 1. Mai 2026, EU-Recht, Vereinbarkeit",
+        "direct_evidence_needed": "Offizielle Pressemitteilung des EuGH oder der EU-Kommission, die den Status der vorläufigen Anwendung des Mercosur-Abkommens für Zucker ab Mai 2026 bestätigt oder eine rechtliche Hürde benennt.",
+        "stop_condition": "Eine offizielle Veröffentlichung des EuGH oder der EU-Kommission, die den endgültigen Status der vorläufigen Anwendung des Abkommens für den Zuckermarkt ab Mai 2026 feststellt.",
+        "id": "5f85978850d01802cf532bd68b4d449c",
+        "kind": "Task"
+      },
+      {
+        "topic": "international",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "id": "9c12c8ab3718b18a677befc261c4f4c9",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "id": "96b036e87e61b9036a0061ae7f9f1418",
+        "kind": "Document"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "Brasiliens von 98 €/t auf 0 €/t gesenkt wird und - Paraguay ein neues zollfreies Einfuhrkontingent von jährlich 10.000 t Rohrohrzucker für die Raffination erhält. Voraussetzung für das reguläre Inkrafttreten des Interims- Handelsabkommens wäre die Zustimmung im EU-Parlament mit einfacher Mehrheit gewesen. Da das EU-Parlament in seiner Plenarsitzung am 21. Januar 2026 für einen Antrag zur Über- prüfung der Vereinbarkeit des Mercosur-Abkommens mit den EU-Verträgen gestimmt hat, wird sich diese Zustimmung nun erheblich verzögern. Der Prüfprozess durch den EuGH könnte bis zu zwei Jahre dauern und den endgültigen Ratifizierungsprozess mit den Mercosur-Staaten erheblich verzögern. Ungeachtet der rechtlichen Überprüfung wurde das vorläufige Handelsabkommen am 27. Februar 2026 im EU-Amtsblatt veröffentlicht. Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen,",
+        "id": "970e836dee120e8c4f90151634fd6964",
+        "kind": "Evidence"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "15b4d316c06aca587344559903bbb43a",
+        "kind": "Status"
+      },
+      {
+        "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+        "missing": "Actual delivery evidence is missing.",
+        "id": "da7cd7dae21811d4c472be17e12e85c3",
+        "kind": "FollowUp"
+      },
+      {
+        "topic": "upstream",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+        "seed_id": "51a481381418d0c443519d32b090b3c1",
+        "query": "Südzucker Zuckerrüben Anbaufläche Kampagne 2025/26 Ertrag offizielle Zahlen",
+        "terms": "Südzucker, Zuckerrüben, Anbaufläche, Kampagne 2025/26, Ertrag, 305.800 ha, Reduktion, europäische Nachfrage",
+        "direct_evidence_needed": "Offizielle Unternehmensmitteilung oder Branchenbericht, der die tatsächliche Anbaufläche und den Ertrag der Zuckerrübenkampagne 2025/26 im Vergleich zur Planung bestätigt.",
+        "stop_condition": "Veröffentlichung der finalen Erntedaten durch Südzucker oder eine relevante Branchenorganisation, die die Abweichung von der geplanten Anbaufläche von 305.800 ha quantifiziert.",
+        "id": "dd9d48073d87419a551b8191b3a9948c",
+        "kind": "Task"
+      },
+      {
+        "topic": "upstream",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "id": "10a42e4d0b5a9671d17bc37d16154046",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "Mio. € ergab sich im Geschäftsjahr 2025/26 ein negativer ROCE von –6,8 (–0,4) %. Investitionen in Sachanlagen und immaterielle Vermögenswerte Die Investitionen im Segment Zucker gingen deutlich auf 196 (282) Mio. € zurück. Wesentliche Projekte waren: - die Umsetzung des Wechsels des Primärenergieträgers Kohle zu Gas am Standort Strzelin/Polen, - die Umsetzung des Wechsels des Primärenergieträgers Kohle zu Gas am Standort Zeitz/Deutschland sowie - die Erweiterung der Verladung und des Zuckersilos am Stand- ort Wabern/Deutschland. Rohstoff und Produktion Kampagne 2025 Die Rübenanbaufläche in der Südzucker-Gruppe wurde 2025 um 18 % auf 305.800 (373.800) ha reduziert, um die Zucker- produktion an die europäische Nachfrage anzupassen. Die Rüben- Herbst 2025 ein erstes großes Projekt beendet und am Standort Strzelin Polens größte und modernste Biogasanlage in Betrieb genommen. Die Anlage verfügt",
+        "id": "56d051e33d59ce13f20382f77240408b",
+        "kind": "Evidence"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "451bc97582d8e845412c981b16b809b9",
+        "kind": "Status"
+      },
+      {
+        "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "id": "0e5ab13909f7a2cba24d492056dde24e",
+        "kind": "FollowUp"
+      },
+      {
+        "topic": "downstream",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+        "seed_id": "29fb526158a7e82898d29fd6744256a1",
+        "query": "Südzucker Stärke Segment Preis Neuabschlüsse 2026 Margendruck Überversorgung",
+        "terms": "Südzucker, Stärke, Segment, Preis, Neuabschlüsse, 2026, Margendruck, Überversorgung, Marktanteile, Ergebnisqualität",
+        "direct_evidence_needed": "Offizielle Segmentberichterstattung oder Analystenbericht, der die spezifischen Preiszugeständnisse und deren Auswirkung auf die operative Marge im Stärkesegment für das Jahr 2026 beschreibt.",
+        "stop_condition": "Veröffentlichung der Quartalszahlen oder des Zwischenberichts für das Geschäftsjahr 2026/27, in dem die Auswirkungen der Preisstrategie auf die operative Marge des Stärkesegments offengelegt werden.",
+        "id": "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "kind": "Task"
+      },
+      {
+        "topic": "downstream",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "id": "78ac75522d032033e6e2accce1f24231",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 58,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Wirtschaftsbericht GESCHÄFTSBERICHT 2025/26 Marktumfeld Absatzmärkte Der Stärkemarkt war im Geschäftsjahr 2025/26 weiterhin von einer strukturellen Überversorgung geprägt. Dauerhafte Überkapazi- täten auf der Angebotsseite führten zu einem signifikanten Preis- verfall, der trotz stabiler Absatzentwicklung zu einem anhaltend hohen Margendruck führte. Im Lebensmittelbereich blieb die Nachfrage insgesamt robust, was die Resilienz der Endmärkte unterstreicht. Gleichzeitig verschärfte sich der Preiswettbewerb deutlich. Für Neuabschlüsse ab 2026 sind weitere Preiszugeständnisse erforderlich, um Marktanteile zu sichern, was kurzfristig die Ergebnisqualität belastet. Flüssige Verzuckerungsprodukte wie Glukosesirup und Isoglukose standen aufgrund ihrer engen Kopplung an den Zuckerpreis weiterhin unter erheblichem Druck. Das Bio-Segment zeigte erste Anzeichen einer Nachfragebelebung, bleibt jedoch margen- und volumenmäßig sensibel. Im Non-Food-Bereich spiegelte sich die anhaltende konjunkturelle Schwäche",
+        "id": "dd78b394938a48c8fece8c618453257f",
+        "kind": "Evidence"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "3cdcb8820b33120ecf94af0696b7a379",
+        "kind": "Status"
+      },
+      {
+        "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "id": "dc8aa31f1c054d3dbcb0571477957ae2",
+        "kind": "FollowUp"
+      }
+    ],
+    "edges": [
+      [
+        "56d051e33d59ce13f20382f77240408b",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "HAS_STATUS",
+        "15b4d316c06aca587344559903bbb43a"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "MONITORS",
+        "9c12c8ab3718b18a677befc261c4f4c9"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "OPEN_QUESTION",
+        "da7cd7dae21811d4c472be17e12e85c3"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "SEEDED_BY",
+        "970e836dee120e8c4f90151634fd6964"
+      ],
+      [
+        "681bfd31d4d6af41a9384158311c6c1d",
+        "TRACKS",
+        "5f85978850d01802cf532bd68b4d449c"
+      ],
+      [
+        "681bfd31d4d6af41a9384158311c6c1d",
+        "TRACKS",
+        "dd9d48073d87419a551b8191b3a9948c"
+      ],
+      [
+        "681bfd31d4d6af41a9384158311c6c1d",
+        "TRACKS",
+        "e9ffcc28d4a59652a1e3e09efb48b6de"
+      ],
+      [
+        "970e836dee120e8c4f90151634fd6964",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "dd78b394938a48c8fece8c618453257f",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "HAS_STATUS",
+        "451bc97582d8e845412c981b16b809b9"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "MONITORS",
+        "10a42e4d0b5a9671d17bc37d16154046"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "OPEN_QUESTION",
+        "0e5ab13909f7a2cba24d492056dde24e"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "SEEDED_BY",
+        "56d051e33d59ce13f20382f77240408b"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "HAS_STATUS",
+        "3cdcb8820b33120ecf94af0696b7a379"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "MONITORS",
+        "78ac75522d032033e6e2accce1f24231"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "OPEN_QUESTION",
+        "dc8aa31f1c054d3dbcb0571477957ae2"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "SEEDED_BY",
+        "dd78b394938a48c8fece8c618453257f"
+      ]
+    ]
+  },
+  "tracking_tasks": []
+}

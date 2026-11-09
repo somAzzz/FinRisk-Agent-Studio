@@ -25,6 +25,18 @@ reports/
 !src/reports/**
 !docs/reports/
 !docs/reports/**
+# Local experiment outputs; retain the inputs used by the segment replay checks.
+/docs/reports/segment-recall/*
+!/docs/reports/segment-recall/novo-verified.json
+!/docs/reports/segment-recall/traton-verified.json
+/docs/reports/segment-regression/*
+!/docs/reports/segment-regression/novo-final.json
+!/docs/reports/segment-regression/traton-final.json
+!/docs/reports/segment-regression/traton-full-reference.json
+/docs/reports/non-us-holdout/*.sha256
+/docs/reports/non-us-holdout/*-diagnostic.json
+/docs/reports/non-us-holdout/eight-reviewed.json
+/docs/reports/non-us-holdout/reference-queue.json
 demo_output/
 artifacts/
 
@@ -49,3 +61,7 @@ dist/
 # Local direnv config (per-developer shell environment)
 .envrc
 src/reports/__pycache__/
+
+# Local Südzucker exploration outputs
+/docs/reports/suedzucker-reanalysis/options.json
+/docs/reports/suedzucker-reanalysis/fresh-tracking/tasks.json

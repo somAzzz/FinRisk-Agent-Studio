@@ -1,3 +1,4 @@
+import { annualSamplePlugin } from "./annualSamplePlugin";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -13,7 +14,7 @@ const apiProxy = {
 
 export default defineConfig({
   base: process.env.GITHUB_PAGES === "true" ? "/FinRisk-Agent-Studio/" : "/",
-  plugins: [react()],
+  plugins: [react(), annualSamplePlugin()],
   server: {
     host: "127.0.0.1",
     port: 5173,

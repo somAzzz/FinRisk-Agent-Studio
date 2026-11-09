@@ -242,6 +242,23 @@ async def web_fetch(url: str) -> WebFetchResult:  # noqa: PLR0911
     if error_result is not None:
         return error_result
 
+    # The HTML extractor cannot decode PDF streams (and may return a false success).
+    from src.annual_reports.documents import extract, is_pdf
+
+    if is_pdf(response.content) or "application/pdf" in response.headers.get("content-type", ""):
+        try:
+            document = await asyncio.to_thread(extract, response.content, url)
+        except ValueError as exc:
+            return WebFetchResult(url=url, status="failed", error_code="PARSE_ERROR", error_message=str(exc))
+        text = "\n\n".join(f"[PDF page {p.number}]\n{p.text}" for p in document.pages if p.text)
+        return WebFetchResult(
+            url=url,
+            title=urlparse(url).path.rsplit("/", 1)[-1],
+            content=_truncate_content(text),
+            description="; ".join(document.warnings) or None,
+            fetched_at=datetime.now(UTC).isoformat(),
+        )
+
     # 5. Extract metadata before processing
     title, description = _extract_metadata(response.text)
 

@@ -12,7 +12,8 @@ from src.ai.structured_clients import (
 from src.config import Settings
 
 
-def test_filing_client_returns_canonical_chunk_contract() -> None:
+@pytest.mark.parametrize("provider", ["pydantic_ai", "sglang"])
+def test_filing_client_returns_canonical_chunk_contract(provider) -> None:
     client = PydanticAIFilingExtractionClient(
         model=TestModel(
             custom_output_args={
@@ -35,6 +36,7 @@ def test_filing_client_returns_canonical_chunk_contract() -> None:
             }
         ),
         settings=Settings(),
+        provider=provider,
     )
 
     risks, validations, calls = client.extract_risks_chunked(
@@ -50,7 +52,7 @@ def test_filing_client_returns_canonical_chunk_contract() -> None:
     assert [risk.risk_id for risk in risks] == ["risk-typed"]
     assert validations[0].ok is True
     assert validations[0].pydantic_model == "FilingRiskExtractionOutput"
-    assert calls[0].provider == "pydantic_ai"
+    assert calls[0].provider == provider
     assert calls[0].response_structured is not None
 
 

@@ -12,6 +12,7 @@ from src.schemas.finrisk import LLMCall
 from src.schemas.tool_trace import ToolBudgetUsage, ToolExecutionEvent, ToolLoopMode
 
 DEFAULT_SYSTEM_PROMPT = """You are a financial research agent.
+Write analysis in English and preserve quotations in their source language.
 Use tools when you need current web evidence or page content.
 Prefer web_search for discovery, web_fetch for specific URLs, and
 search_and_fetch when snippets are insufficient. Do not make investment

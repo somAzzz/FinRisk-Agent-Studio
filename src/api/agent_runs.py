@@ -10,16 +10,17 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.global_runtime import GlobalAgentRuntime
-from src.agents.state import AgentRunState, AgentWorkflowKind, HumanReviewItem, _now
+from src.agents.state import AgentRunState, AgentWorkflowKind, FilingOrigin, HumanReviewItem, _now
 from src.ai.runtime_types import DEFAULT_SYSTEM_PROMPT
 from src.api.store_factory import get_agent_run_store
 from src.config import AgentRuntimeMode, StoredAgentRuntimeMode
+from src.schemas.llm_config import LLMProvider, LLMRunConfig
 from src.security.redaction import redact_obj
 
 router = APIRouter(prefix="/agent-runs")
 
 ReviewAction = Literal["approve", "reject", "comment"]
-AgentRunProvider = Literal["deepseek", "vllm", "sglang"]
+AgentRunProvider = LLMProvider
 AgentRunToolLoopMode = Literal["native", "json_fallback", "auto"]
 AgentRunToolScope = Literal["company_research", "finrisk_market", "supply_chain"]
 
@@ -32,9 +33,10 @@ class AgentRunRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    filing_origin: FilingOrigin | None = None
     goal: str = Field(min_length=1)
     workflow_kind: AgentWorkflowKind = "generic_research"
-    provider: AgentRunProvider = "deepseek"
+    provider: AgentRunProvider = Field(default_factory=lambda: LLMRunConfig().provider)
     # Deprecated: kept for backwards compatibility, ignored by the runtime.
     tool_loop_mode: AgentRunToolLoopMode | None = None
     tool_scope: AgentRunToolScope | None = None
@@ -49,6 +51,7 @@ class AgentRunRequest(BaseModel):
 class AgentRunSummary(BaseModel):
     """Lightweight response for a newly started agent run."""
 
+    goal: str | None = None
     run_id: str
     status: str
     runtime_mode: StoredAgentRuntimeMode
@@ -83,7 +86,7 @@ class AgentRunResumeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     goal: str | None = Field(default=None, min_length=1)
-    provider: AgentRunProvider = "deepseek"
+    provider: AgentRunProvider = Field(default_factory=lambda: LLMRunConfig().provider)
     # Deprecated: kept for backwards compatibility, ignored by the runtime.
     tool_loop_mode: AgentRunToolLoopMode | None = None
     tool_scope: AgentRunToolScope | None = None
@@ -108,10 +111,28 @@ def reset_agent_run_store_for_tests() -> None:
     set_agent_runtime_for_tests(None)
 
 
+def filing_subject(origin: FilingOrigin) -> dict[str, Any]:
+    from src.annual_reports.library import bundle
+
+    try:
+        saved = bundle(origin.report_id, origin.cutoff)
+        task = next(t for t in (saved.get("fresh") or {}).get("tasks", []) if t["id"] == origin.task_id)
+    except (KeyError, StopIteration) as exc:
+        raise HTTPException(422, "Tracking question unavailable in the selected filing snapshot") from exc
+    return {
+        "company_name": saved["meta"]["company"], "filing_sha256": saved["meta"]["sha256"],
+        "filing_origin": origin.model_dump(), "original_question": task["question"],
+        "evidence_needed": task["direct_evidence_needed"], "source_document": saved["original"],
+    }
+
+
 @router.post("", response_model=AgentRunSummary, status_code=status.HTTP_202_ACCEPTED)
 async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
     """Start a local V21 agent run."""
+    if request.filing_origin:
+        request.subject = await asyncio.to_thread(filing_subject, request.filing_origin)
     state = AgentRunState(
+        filing_origin=request.filing_origin,
         user_goal=request.goal,
         workflow_kind=request.workflow_kind,
         status="queued",
@@ -126,6 +147,7 @@ async def start_agent_run(request: AgentRunRequest) -> AgentRunSummary:
         run_id=state.run_id,
         status=state.status,
         runtime_mode=state.runtime_mode,
+        goal=state.user_goal,
         timeline_url=f"/agent-runs/{state.run_id}/timeline",
         trace_url=f"/agent-runs/{state.run_id}/trace.json",
     )
@@ -140,6 +162,7 @@ async def list_agent_runs(limit: int = 20) -> list[AgentRunSummary]:
             run_id=state.run_id,
             status=state.status,
             runtime_mode=state.runtime_mode,
+            goal=state.user_goal,
             timeline_url=f"/agent-runs/{state.run_id}/timeline",
             trace_url=f"/agent-runs/{state.run_id}/trace.json",
         )
@@ -192,7 +215,10 @@ async def resume_agent_run(
 ) -> AgentRunSummary:
     """Resume trusted server-side history under a new run ID."""
     parent = await _require_run(run_id)
+    if parent.filing_origin:
+        request.subject = await asyncio.to_thread(filing_subject, parent.filing_origin)
     state = AgentRunState(
+        filing_origin=parent.filing_origin,
         user_goal=request.goal or parent.user_goal,
         workflow_kind=parent.workflow_kind,
         status="queued",
@@ -202,6 +228,7 @@ async def resume_agent_run(
     )
     await get_agent_run_store().update(state)
     run_request = AgentRunRequest(
+        filing_origin=parent.filing_origin,
         goal=state.user_goal,
         workflow_kind=state.workflow_kind,
         provider=request.provider,
@@ -220,6 +247,7 @@ async def resume_agent_run(
         run_id=state.run_id,
         status=state.status,
         runtime_mode=state.runtime_mode,
+        goal=state.user_goal,
         timeline_url=f"/agent-runs/{state.run_id}/timeline",
         trace_url=f"/agent-runs/{state.run_id}/trace.json",
     )
@@ -355,7 +383,6 @@ def _build_pydantic_agent_runtime(request: AgentRunRequest) -> GlobalAgentRuntim
     from src.ai.runtime_adapter import PydanticAIRuntimeAdapter
     from src.ai.store_factory import get_agent_run_recorder
     from src.config import get_settings
-    from src.schemas.llm_config import LLMRunConfig
     from src.tools.catalog import build_project_tool_catalog
 
     settings = get_settings()
@@ -456,6 +483,7 @@ async def _run_and_store_agent(request: AgentRunRequest, run_id: str) -> None:
         state.conversation_id = conversation_id
         state.parent_run_id = parent_run_id
         state.runtime_mode = runtime_mode
+        state.filing_origin = request.filing_origin
     except Exception as exc:
         state = await store.get(run_id)
         if state is None:

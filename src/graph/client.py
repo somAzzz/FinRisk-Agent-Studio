@@ -76,6 +76,16 @@ class Neo4jClient:
         """Execute ``cypher`` with ``parameters`` and return record dicts."""
         return list(self._execute(cypher, parameters))
 
+    def verified_write(self, operation):
+        """Commit the projection only after its readback checks succeed in the same transaction."""
+        def perform(transaction):
+            def run(query, parameters):
+                return [dict(record) for record in transaction.run(query, parameters)]
+            return operation(run)
+
+        with self._driver.session() as session:
+            return session.execute_write(perform)
+
     def close(self) -> None:
         """Close the underlying driver (idempotent)."""
         close = getattr(self._driver, "close", None)

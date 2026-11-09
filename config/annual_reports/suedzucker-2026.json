@@ -1,0 +1,36 @@
+{
+  "as_of": "2026-11-08",
+  "force_ocr_pages": [
+    45
+  ],
+  "external": [
+    {
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "published_at": "2026-10-08",
+      "topic": "drought underutilization ethanol prices half year operating EBITDA",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288"
+    },
+    {
+      "url": "https://agriculture.ec.europa.eu/document/download/166100ca-001d-4a6c-9c96-52af7d0e78c5_en?filename=sugar-dashboard_en.pdf",
+      "published_at": "2026-11-03",
+      "topic": "EU white sugar September price stocks imports trade",
+      "sha256": "4402003e517364f0a40995db5f58e1f75f8b7c7220e44b5388c0755778293dbe",
+      "event_date": "2026-10-30"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "Illustrative stress only. FY sales volume as base; price, costs, exposure and shock are analyst assumptions.",
+      "segment": "Sugar",
+      "currency": "EUR",
+      "tonnes": 3700000,
+      "price": 500,
+      "variable_cost": 420,
+      "volume_change": -0.1,
+      "price_change_per_tonne": 10,
+      "cost_change_per_tonne": 5,
+      "repricing_share": 0.5,
+      "additional_idle_cost": 1000000
+    }
+  ]
+}

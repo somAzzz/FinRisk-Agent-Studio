@@ -189,6 +189,7 @@ describe("LLMAgentRunPanel", () => {
   it("starts a V21 agent run and renders backend trace metadata", async () => {
     render(<LLMAgentRunPanel />);
 
+    fireEvent.change(screen.getByTestId("agent-goal-input"), {target:{value:"Check the supplier claim"}});
     fireEvent.click(screen.getByTestId("agent-run-button"));
 
     await waitFor(() => {
@@ -196,10 +197,7 @@ describe("LLMAgentRunPanel", () => {
     });
 
     expect(startAgentRunMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        provider: "deepseek",
-        tool_scope: "finrisk_market",
-      }),
+      { goal:"Check the supplier claim", workflow_kind:"generic_research" },
     );
     expect(screen.getByTestId("agent-budget")).toHaveTextContent("3021/40000");
     expect(screen.getByTestId("agent-subgoal-sg-1")).toHaveTextContent(
@@ -228,6 +226,7 @@ describe("LLMAgentRunPanel", () => {
   it("approves pending review items", async () => {
     render(<LLMAgentRunPanel />);
 
+    fireEvent.change(screen.getByTestId("agent-goal-input"), {target:{value:"Check the supplier claim"}});
     fireEvent.click(screen.getByTestId("agent-run-button"));
     await screen.findByText("Source needs inspection");
     const reviewCard = screen.getByText("Source needs inspection").closest("article");
@@ -246,6 +245,7 @@ describe("LLMAgentRunPanel", () => {
   it("approves needs-review evidence candidates directly", async () => {
     render(<LLMAgentRunPanel />);
 
+    fireEvent.change(screen.getByTestId("agent-goal-input"), {target:{value:"Check the supplier claim"}});
     fireEvent.click(screen.getByTestId("agent-run-button"));
     await screen.findByText("This evidence needs a human decision.");
     const candidateCard = screen

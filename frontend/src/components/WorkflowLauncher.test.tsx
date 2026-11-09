@@ -29,18 +29,19 @@ const SUMMARY: WorkflowRunSummary = {
 };
 
 describe("WorkflowLauncher", () => {
-  it("renders default AAPL form", () => {
+  it("starts with no assumed company or runtime settings", () => {
     render(<WorkflowLauncher onStarted={() => {}} busy={false} />);
     const ticker = screen.getByTestId("ticker-input") as HTMLInputElement;
-    expect(ticker.value).toBe("AAPL");
-    expect(screen.getByTestId("demo-mode")).not.toBeChecked();
-    expect(screen.getByTestId("llm-provider-select")).toHaveValue("vllm");
+    expect(ticker.value).toBe("");
+    expect(screen.queryByTestId("demo-mode")).toBeNull();
+    expect(screen.queryByTestId("llm-provider-select")).toBeNull();
   });
 
   it("submits the request and invokes onStarted", async () => {
     (api.startWorkflow as ReturnType<typeof vi.fn>).mockResolvedValue(SUMMARY);
     const onStarted = vi.fn();
     render(<WorkflowLauncher onStarted={onStarted} busy={false} />);
+    fireEvent.change(screen.getByTestId("ticker-input"),{target:{value:"ACME"}});
     fireEvent.click(screen.getByTestId("run-button"));
     await waitFor(() => {
       expect(api.startWorkflow).toHaveBeenCalled();
@@ -48,9 +49,7 @@ describe("WorkflowLauncher", () => {
     expect(onStarted).toHaveBeenCalledWith(
       SUMMARY,
       expect.objectContaining({
-        ticker: "AAPL",
-        demo_mode: false,
-        llm_config: expect.objectContaining({ provider: "vllm" }),
+        ticker: "ACME",
       }),
     );
   });
@@ -65,6 +64,7 @@ describe("WorkflowLauncher", () => {
       target: { value: "18" },
     });
     expect(screen.getByTestId("horizon-value").textContent).toBe("3-18 months");
+    fireEvent.change(screen.getByTestId("ticker-input"),{target:{value:"ACME"}});
     fireEvent.click(screen.getByTestId("run-button"));
     await waitFor(() => {
       expect(api.startWorkflow).toHaveBeenCalledWith(
@@ -75,24 +75,13 @@ describe("WorkflowLauncher", () => {
     });
   });
 
-  it("submits the selected LLM provider", async () => {
-    (api.startWorkflow as ReturnType<typeof vi.fn>).mockResolvedValue(SUMMARY);
-    render(<WorkflowLauncher onStarted={() => {}} busy={false} />);
-    fireEvent.change(screen.getByTestId("llm-provider-select"), {
-      target: { value: "openai" },
-    });
+  it("requires at least one evidence source and leaves deployment to the server", async () => {
+    render(<WorkflowLauncher initialTicker="ACME" onStarted={()=>{}} busy={false}/>);
+    for(const src of ["filing","graph","web"]) fireEvent.click(screen.getByTestId("source-"+src));
+    expect(screen.getByTestId("run-button")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("source-filing"));
     fireEvent.click(screen.getByTestId("run-button"));
-    await waitFor(() => {
-      expect(api.startWorkflow).toHaveBeenCalledWith(
-        expect.objectContaining({
-          llm_config: expect.objectContaining({
-            provider: "openai",
-            base_url: "https://api.openai.com/v1",
-            model: "gpt-4o-mini",
-          }),
-        }),
-      );
-    });
+    await waitFor(()=>expect(api.startWorkflow).toHaveBeenLastCalledWith({ticker:"ACME", company_name:undefined,analysis_goal:expect.any(String),time_horizon:"6-12 months",sources:["filing"]}));
   });
 
   it("surfaces API errors", async () => {
@@ -100,6 +89,7 @@ describe("WorkflowLauncher", () => {
       new Error("network down"),
     );
     render(<WorkflowLauncher onStarted={() => {}} busy={false} />);
+    fireEvent.change(screen.getByTestId("ticker-input"),{target:{value:"ACME"}});
     fireEvent.click(screen.getByTestId("run-button"));
     await waitFor(() => {
       expect(screen.getByTestId("launcher-error").textContent).toMatch(

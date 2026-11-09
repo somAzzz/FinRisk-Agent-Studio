@@ -1,0 +1,19 @@
+{
+  "replay_order": [
+    "2026-11-08",
+    "2026-10-08",
+    "2026-11-08",
+    "2026-10-08"
+  ],
+  "identical_on_repeat": true,
+  "rejected_wrong_financial_delta": true,
+  "failed_projection_nodes": 0,
+  "original_alert_ids": [
+    "b782527c7daabed511b8d534b928edf4",
+    "e4239a57181801d1692f0146835e3183"
+  ],
+  "scopes": {
+    "2026-11-08": "6d22ca36ee13aa80f551a6e28564ef5e",
+    "2026-10-08": "c3b6c781d13efcab1e4ad8da2d195974"
+  }
+}

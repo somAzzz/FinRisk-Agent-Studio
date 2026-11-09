@@ -455,10 +455,10 @@ def _build_llm_client(
         from src.ai.store_factory import get_agent_run_recorder
         from src.ai.structured_clients import PydanticAIFilingExtractionClient
 
+        deployment = resolve_agent_model_config(config, settings=settings)
         return PydanticAIFilingExtractionClient(
-            model=build_agent_model(
-                resolve_agent_model_config(config, settings=settings)
-            ),
+            model=build_agent_model(deployment),
+            provider=deployment.provider,
             settings=settings,
             services=AgentServices(message_recorder=get_agent_run_recorder()),
             llm_call_sink=sink,

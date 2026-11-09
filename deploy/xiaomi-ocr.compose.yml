@@ -1,0 +1,36 @@
+name: finrisk-ocr
+services:
+  ocr:
+    restart: unless-stopped
+    image: lmsysorg/sglang@sha256:d6e7288627be8b02be88e4bba38e73f6d50e2826869f753c13a4c4385ab3eda9
+    entrypoint: ["python3", "-m", "sglang.launch_server"]
+    command:
+      - --model-path
+      - /models/ocr
+      - --served-model-name
+      - Xiaomi-OCR-0
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8001"
+      - --context-length
+      - "16384"
+      - --max-running-requests
+      - "1"
+      - --mem-fraction-static
+      - "0.45"
+    ports:
+      - "127.0.0.1:8001:8001"
+    # Official xiaomi-research/Xiaomi-OCR-0 revision bbd8cf8d21f256b3644b44cb860f3a7cecb93c30
+    volumes:
+      - ../.cache/xiaomi-ocr-model:/models/ocr:ro
+    cpus: 4
+    mem_limit: 12g
+    shm_size: 2g
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${OCR_GPU_DEVICE:-0}"]
+              capabilities: [gpu]

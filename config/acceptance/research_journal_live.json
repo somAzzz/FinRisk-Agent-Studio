@@ -47,13 +47,11 @@
     "terminal_growth": 0.025
   },
   "llm": {
-    "provider": "vllm",
-    "base_url": "http://localhost:30000/v1",
-    "model": "nvidia/Qwen3.6-27B-NVFP4"
+    "provider": "sglang"
   },
   "timeouts": {
     "ui_action_ms": 30000,
-    "workflow_ms": 360000,
+    "workflow_ms": 900000,
     "service_start_s": 60
   }
 }

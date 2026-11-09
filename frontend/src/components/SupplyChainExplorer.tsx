@@ -5,7 +5,6 @@ import type {
   SupplyChainStatusResponseWire,
 } from "../supply-chain-types";
 import { api, describeApiError, FinRiskApiError } from "../api";
-import { LLMProviderSelector } from "./LLMProviderSelector";
 import { SupplyChainSankey } from "./SupplyChainSankey";
 import { SupplyChainNodeDrawer } from "./SupplyChainNodeDrawer";
 
@@ -20,17 +19,8 @@ interface Props {
 const DEFAULT_REQUEST: SupplyChainExploreRequestWire = {
   company_name: "OpenAI",
   product_name: "ChatGPT",
-  max_depth: 3,
-  max_suppliers_per_node: 5,
-  llm_config: {
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
-  },
 };
 
-const MIN_SUPPLY_CHAIN_DEPTH = 1;
-const MAX_SUPPLY_CHAIN_DEPTH = 10;
 const TERMINAL_STATUSES = new Set(["completed", "failed", "needs_review"]);
 
 function formatApiError(err: unknown): string {
@@ -54,8 +44,8 @@ function formatApiError(err: unknown): string {
 }
 
 export function SupplyChainExplorer({
-  initialCompany = "OpenAI",
-  initialProduct = "ChatGPT",
+  initialCompany = "",
+  initialProduct = "",
   initialPayload,
   onProgress,
   selectedRunId,
@@ -94,7 +84,7 @@ export function SupplyChainExplorer({
     const status = await api.getSupplyChainStatus(targetRunId);
     setLatestStatus(status);
     onProgress?.(status);
-    setRequest((current) => ({ ...current, ...status.request }));
+    setRequest({company_name: status.request.company_name, product_name: status.request.product_name});
     if (TERMINAL_STATUSES.has(status.status)) {
       stopPolling();
       const sankeyResp = await api.getSupplyChainSankey(sankeyRunId);
@@ -136,11 +126,7 @@ export function SupplyChainExplorer({
   }, [selectedRunId]);
 
   const run = async (req: SupplyChainExploreRequestWire) => {
-    const liveRequest = {
-      ...req,
-      demo_mode: false,
-      cached_mode: false,
-    };
+    const liveRequest = {company_name:req.company_name?.trim() || undefined,product_name:req.product_name.trim()};
     setBusy(true);
     setError(null);
     setLatestStatus(null);
@@ -206,10 +192,6 @@ export function SupplyChainExplorer({
         parent_run_id: runId,
         node_id: nodeId,
         product_name: nodeId.split(":").slice(-1)[0],
-        max_depth: 2,
-        demo_mode: false,
-        cached_mode: false,
-        llm_config: currentRequest.llm_config,
       });
       const queuedStatus: SupplyChainStatusResponseWire = {
         run_id: resp.run_id,
@@ -275,42 +257,6 @@ export function SupplyChainExplorer({
             }
           />
         </div>
-        <div className="row">
-          <label htmlFor="sc-depth">Max depth</label>
-          <div className="range-pair compact">
-            <div className="range-value" data-testid="sc-depth-value">
-              {request.max_depth ?? 3}
-            </div>
-            <input
-              id="sc-depth"
-              type="range"
-              min={MIN_SUPPLY_CHAIN_DEPTH}
-              max={MAX_SUPPLY_CHAIN_DEPTH}
-              step={1}
-              value={request.max_depth ?? 3}
-              onChange={(e) =>
-                setRequest((r) => ({
-                  ...r,
-                  max_depth: Number(e.target.value) || 3,
-                }))
-              }
-              data-testid="sc-depth-input"
-            />
-            <div className="range-scale" aria-hidden="true">
-              <span>{MIN_SUPPLY_CHAIN_DEPTH}</span>
-              <span>{MAX_SUPPLY_CHAIN_DEPTH}</span>
-            </div>
-          </div>
-        </div>
-        <details className="runtime-disclosure">
-          <summary>Runtime settings <small>{request.llm_config?.provider ?? "default"} · {request.llm_config?.model ?? "configured model"}</small></summary>
-          <LLMProviderSelector
-            value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
-            onChange={(next) =>
-              setRequest((r) => ({ ...r, llm_config: next }))
-            }
-          />
-        </details>
         <button
           type="submit"
           className="primary"

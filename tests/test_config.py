@@ -26,8 +26,11 @@ def _clear_env() -> None:
         "OPENAI_BASE_URL",
         "OPENAI_API_KEY",
         "OPENAI_MODEL",
-        "LLM_MODEL",
         "LLM_PROVIDER",
+        "LLM_TEMPERATURE",
+        "LLM_MAX_TOKENS",
+        "LLM_TIMEOUT_SECONDS",
+        "LLM_THINKING",
         "AGENT_RUNTIME_MODE",
         "SGLANG_BASE_URL",
         "SGLANG_MODEL",
@@ -35,7 +38,6 @@ def _clear_env() -> None:
         "VLLM_BASE_URL",
         "VLLM_MODEL",
         "VLLM_API_KEY",
-        "DEEPSEEK_BASE_URL",
         "DEEPSEEK_MODEL",
         "DEEPSEEK_API_KEY",
         "DEEPSEEK_TEMPERATURE",
@@ -61,8 +63,11 @@ class TestDefaults:
             "OPENAI_BASE_URL",
             "OPENAI_API_KEY",
             "OPENAI_MODEL",
-            "LLM_MODEL",
             "LLM_PROVIDER",
+            "LLM_TEMPERATURE",
+            "LLM_MAX_TOKENS",
+            "LLM_TIMEOUT_SECONDS",
+            "LLM_THINKING",
             "AGENT_RUNTIME_MODE",
             "HF_EDGAR_DATASET",
             "NEO4J_URI",
@@ -77,9 +82,13 @@ class TestDefaults:
         assert settings.sec_user_agent == "FinRisk-Agent-Studio contact@example.com"
         assert settings.agent_runtime_mode == "pydantic_ai"
         assert settings.sec_rate_limit_per_second == 8.0
-        assert settings.openai_base_url == "http://localhost:30000/v1"
-        assert settings.openai_api_key == "EMPTY"
-        assert settings.llm_model == "Qwen/Qwen3.5-35B-A3B"
+        assert settings.openai_base_url == "https://api.openai.com/v1"
+        assert settings.openai_api_key is None
+        assert settings.llm_provider == "sglang"
+        assert settings.llm_temperature is None
+        assert settings.llm_max_tokens is None
+        assert settings.llm_timeout_seconds == 60.0
+        assert settings.llm_thinking is None
         assert settings.sglang_base_url == "http://localhost:30000/v1"
         assert settings.vllm_base_url == "http://localhost:8000/v1"
         assert settings.hf_edgar_dataset == "eloukas/edgar-corpus"
@@ -90,34 +99,32 @@ class TestDefaults:
 
 
 class TestEnvOverrides:
-    def test_sec_user_agent_is_read_from_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_sec_user_agent_is_read_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
         monkeypatch.setenv("SEC_USER_AGENT", "Research Bot me@example.org")
         settings = Settings()
         assert settings.sec_user_agent == "Research Bot me@example.org"
 
-    def test_numeric_settings_are_coerced_from_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_numeric_settings_are_coerced_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
         monkeypatch.setenv("SEC_RATE_LIMIT_PER_SECOND", "12.5")
+        monkeypatch.setenv("LLM_TEMPERATURE", "0")
+        monkeypatch.setenv("LLM_MAX_TOKENS", "2048")
+        monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "45.5")
         settings = Settings()
         assert settings.sec_rate_limit_per_second == 12.5
         assert isinstance(settings.sec_rate_limit_per_second, float)
+        assert settings.llm_temperature == 0
+        assert settings.llm_max_tokens == 2048
+        assert settings.llm_timeout_seconds == 45.5
 
-    def test_cache_dir_is_coerced_to_path(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_cache_dir_is_coerced_to_path(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
         monkeypatch.setenv("CACHE_DIR", "/tmp/finrisk-test-cache")
         settings = Settings()
         assert settings.cache_dir == Path("/tmp/finrisk-test-cache")
 
-    def test_neo4j_password_can_be_set(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_neo4j_password_can_be_set(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
         monkeypatch.setenv("NEO4J_PASSWORD", "s3cr3t")
         settings = Settings()
@@ -134,24 +141,20 @@ class TestEnvOverrides:
 
 
 class TestGetSettings:
-    def test_get_settings_returns_cached_instance(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_get_settings_returns_cached_instance(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
-        monkeypatch.setenv("LLM_MODEL", "custom/model")
+        monkeypatch.setenv("LLM_TEMPERATURE", "0")
         first = get_settings()
         second = get_settings()
         assert first is second
-        assert first.llm_model == "custom/model"
+        assert first.llm_temperature == 0
 
-    def test_get_settings_does_not_pick_up_later_env_changes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_get_settings_does_not_pick_up_later_env_changes(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _clear_env()
+        monkeypatch.setenv("LLM_TEMPERATURE", "0.1")
         first = get_settings()
-        monkeypatch.setenv("LLM_MODEL", "another/model")
+        monkeypatch.setenv("LLM_TEMPERATURE", "0.9")
         second = get_settings()
         assert first is second
-        assert second.llm_model == "custom/model" or first.llm_model == first.llm_model
-        # The cached instance is reused regardless of later env mutations.
-        assert first.llm_model == second.llm_model
+        assert first.llm_temperature == 0.1
+        assert second.llm_temperature == 0.1

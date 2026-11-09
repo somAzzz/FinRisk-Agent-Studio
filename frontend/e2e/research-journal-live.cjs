@@ -50,7 +50,7 @@ async function screenshot(page, name) {
 }
 
 async function openJournal(page, task = "cycle") {
-  await page.goto(`${APP_URL}?view=journal&task=${task}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${APP_URL}?task=${task}#/journal`, { waitUntil: "domcontentloaded" });
   await page.getByTestId("research-journal").waitFor({ timeout });
 }
 
@@ -63,7 +63,8 @@ async function createThesisAndWatchlist(page) {
   await fill(page, "Key drivers", primary.key_drivers);
   await fill(page, "Metrics to monitor", primary.monitoring_metrics);
   await clickAndWaitForResponse(page, "Save active thesis", "/research/theses");
-  await page.locator(".thesis-card", { hasText: primary.thesis }).waitFor({ timeout });
+  await page.getByText("Thesis archive", { exact: true }).click();
+  await page.locator(".thesis-focus-statement", { hasText: primary.thesis }).waitFor({ timeout });
   await fill(page, `Next review date for ${primary.ticker}`, futureDate(primary.next_review_days_from_now));
   await clickAndWaitForResponse(page, "Add to watchlist", "/research/watchlist", "PUT");
   await page.locator(".watchlist-ledger article", { hasText: primary.ticker }).waitFor({ timeout });
@@ -88,11 +89,6 @@ async function runLinkedFinRisk(page) {
   const primary = config.primary;
   await setCyclePeriod(page, primary.ticker, primary.current_year, primary.quarter);
   await fill(page, "FinRisk analysis goal", primary.analysis_goal);
-  await page.getByText("Research LLM", { exact: true }).click();
-  await page.getByTestId("llm-provider-select").selectOption(config.llm.provider);
-  await page.getByTestId("llm-base-url-input").fill(config.llm.base_url);
-  await page.getByTestId("llm-model-input").fill(config.llm.model);
-
   let workflowPayload;
   page.on("request", (request) => {
     if (request.url().includes("/workflows/finrisk/run") && request.method() === "POST") {
@@ -106,9 +102,7 @@ async function runLinkedFinRisk(page) {
   const workflowRunId = text.split(/\s+/).find((item) => item.startsWith("run-"));
   assert.ok(workflowRunId, `workflow run id missing from ${text}`);
   await page.locator(".cycle-record").filter({ hasText: `${primary.current_year}Q${primary.quarter}` }).waitFor({ timeout });
-  assert.deepEqual(workflowPayload.llm_config, config.llm);
-  assert.equal(workflowPayload.demo_mode, false);
-  assert.equal(workflowPayload.cached_mode, false);
+  for(const k of ["demo_mode","cached_mode","llm_config"]) assert.ok(!(k in workflowPayload));
   report.workflow_run_id = workflowRunId;
   report.workflow_payload = workflowPayload;
   record("linked_local_llm_workflow", { run_id: workflowRunId });

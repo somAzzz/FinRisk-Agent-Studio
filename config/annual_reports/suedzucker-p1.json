@@ -1,0 +1,430 @@
+{
+  "company": "Südzucker",
+  "annual_document": "ar",
+  "documents": {
+    "ar": {
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "q1": {
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+      "sha256": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+      "published": "2026-07-09",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "h1": {
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+      "published": "2026-10-08",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "de_oct": {
+      "url": "https://www.bundesregierung.de/breg-de/suche/regierungspressekonferenz-vom-2-oktober-2026-2455546",
+      "published": "2026-10-02",
+      "sha256": "1079dc6c963fa1dc2708abbb678c838534c12df6c3819378e014abb9d91f8a9c",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "DE"
+    },
+    "de_cabinet": {
+      "url": "https://www.bundesregierung.de/breg-de/aktuelles/zuckergetraenkesteuer-2457018",
+      "published": "2026-10-14",
+      "sha256": "2b811487394e2b9c2fa1cb03a4ad51a7ad679b278e49f37cfd8f151d428e5542",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "DE"
+    },
+    "de_nov": {
+      "url": "https://www.bundesregierung.de/breg-de/aktuelles/regierungspressekonferenz-vom-6-november-2026-2460276",
+      "published": "2026-11-06",
+      "sha256": "1a00b75f9b7a81ba45e15b323fe98b18e218135bf793192058ab236bd22fb96f",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "DE"
+    },
+    "fr": {
+      "url": "https://bofip.impots.gouv.fr/bofip/11575-PGP.html/identifiant%3DBOI-BAREME-000038-20251224",
+      "published": "2025-12-24",
+      "sha256": "8c1ab4dde97003e260c611019b63f5d3fb69d32f674c063f03fa81d91ba578a9",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "FR",
+      "instrument": "tax_schedule"
+    },
+    "eu": {
+      "url": "https://health.ec.europa.eu/document/download/dfb60cde-21a5-426d-8616-e394a326abc2_en?filename=ncd_com-2025-1024_act_en.pdf",
+      "published": "2025-12-16",
+      "sha256": "c1fe10cde29b6a331f687df5286f03597fd4a394fc760591be0eb76afbfa1bc1",
+      "kind": "authority",
+      "format": "pdf",
+      "jurisdiction": "EU",
+      "instrument": "commission_communication"
+    },
+    "permit": {
+      "url": "https://rp-kassel.hessen.de/sites/rp-kassel.hessen.de/files/2024-12/abschrift_bescheid_suedzucker_ag_wabern_siloerweiterung.pdf",
+      "published": "2024-12-20",
+      "sha256": "5f5a88d942de41fc9c01d04908af261a445f2267dac314e6b505a08f4a7c7c19",
+      "kind": "authority",
+      "format": "pdf",
+      "jurisdiction": "DE"
+    }
+  },
+  "evidence": {
+    "structure": {
+      "document": "ar",
+      "page": 24,
+      "anchors": [
+        "Die Südzucker-Gruppe umfasst die fünf Segmente Zucker, Spezialitäten, CropEnergies, Stärke und Frucht."
+      ]
+    },
+    "sugar_chain": {
+      "document": "ar",
+      "page": 96,
+      "anchors": [
+        "Zucker • Zucker • Zuckerspezialitäten • Flüssigzucker",
+        "• Futtermittel • Lebensmittelindustrie",
+        "Anbauer von Zuckerrüben"
+      ]
+    },
+    "starch_chain": {
+      "document": "ar",
+      "page": 97,
+      "anchors": [
+        "Stärke • Native und modifizierte Stärken • Verzuckerungsprodukte",
+        "• Nahrungsmittelindustrie • Papierindustrie"
+      ]
+    },
+    "fruit_chain": {
+      "document": "ar",
+      "page": 97,
+      "anchors": [
+        "• Fruchtzubereitungen • Fruchtsaftkonzentrate",
+        "• Food-Service-Industrie • Getränkeindustrie Frucht"
+      ]
+    },
+    "wabern": {
+      "document": "ar",
+      "page": 45,
+      "anchors": [
+        "Investitionen im Segment Zucker",
+        "Verladung und des Zuckersilos am Standort Wabern"
+      ]
+    },
+    "wabern_permit": {
+      "document": "permit",
+      "page": 1,
+      "anchors": [
+        "Südzucker AG",
+        "Betriebsstandort: Homberger Straße 1 in 34590 Wabern",
+        "Anlage zur Herstellung von Zucker aus Zuckerrüben"
+      ]
+    },
+    "crop_regions": {
+      "document": "h1",
+      "page": 12,
+      "anchors": [
+        "expected beet yields. Southern Germany and France were particularly affected"
+      ]
+    },
+    "q1_outlook": {
+      "document": "q1",
+      "page": 17,
+      "anchors": [
+        "We expect sugar production and sales volumes",
+        "shrinking beet cultivation area"
+      ]
+    },
+    "h1_starch": {
+      "document": "h1",
+      "page": 16,
+      "anchors": [
+        "Higher sales volumes for the main products",
+        "lower selling prices for starch and sweetening products"
+      ]
+    },
+    "sugar_results": {
+      "document": "h1",
+      "page": 12,
+      "anchors": [
+        "Business performance – Sugar segment",
+        "Operating result"
+      ]
+    },
+    "starch_results": {
+      "document": "h1",
+      "page": 16,
+      "anchors": [
+        "Business performance – Starch segment",
+        "Operating result"
+      ]
+    },
+    "de_proposal": {
+      "document": "de_oct",
+      "page": null,
+      "anchors": [
+        "2. Oktober 2026",
+        "Es gibt den Vorschlag für die Zuckersteuer"
+      ]
+    },
+    "de_cabinet": {
+      "document": "de_cabinet",
+      "page": null,
+      "anchors": [
+        "14. Oktober 2026",
+        "Das Bundeskabinett hat die Einführung einer Zuckergetränkesteuer auf den Weg gebracht"
+      ]
+    },
+    "de_review": {
+      "document": "de_nov",
+      "page": null,
+      "anchors": [
+        "6. November 2026",
+        "was die Zuckergetränkesteuer angeht, einen Vorschlag vorgelegt. Der befindet sich in den parlamentarischen Beratungen."
+      ]
+    },
+    "fr_schedule": {
+      "document": "fr",
+      "page": null,
+      "anchors": [
+        "24/12/2025",
+        "sucres ajoutés, applicables à compter du 1 er janvier 2026"
+      ]
+    },
+    "eu_plan": {
+      "document": "eu",
+      "page": 13,
+      "anchors": [
+        "The Commission will continue to support Member States in advancing taxation"
+      ]
+    },
+    "de_scope": {
+      "document": "de_cabinet",
+      "page": null,
+      "anchors": [
+        "reine Frucht- und Gemüsesäfte, reines Frucht- und Gemüsesaftkonzentrat",
+        "sollen ebenfalls von der Steuer ausgenommen werden"
+      ]
+    }
+  },
+  "relationships": [
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Sugar",
+      "evidence": "structure"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Special products",
+      "evidence": "structure"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/CropEnergies",
+      "evidence": "structure"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Starch",
+      "evidence": "structure"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Fruit",
+      "evidence": "structure"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "USES",
+      "object": "Product/Sugar beet",
+      "evidence": "sugar_chain"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SELLS",
+      "object": "Product/Sugar",
+      "evidence": "sugar_chain"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SELLS",
+      "object": "Product/Liquid sugar",
+      "evidence": "sugar_chain"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SERVES",
+      "object": "Customer class/Food industry",
+      "evidence": "sugar_chain"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SELLS",
+      "object": "Product/Native and modified starch",
+      "evidence": "starch_chain"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SELLS",
+      "object": "Product/Starch sweetening products",
+      "evidence": "starch_chain"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SERVES",
+      "object": "Customer class/Food industry",
+      "evidence": "starch_chain"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SERVES",
+      "object": "Customer class/Paper industry",
+      "evidence": "starch_chain"
+    },
+    {
+      "subject": "Segment/Fruit",
+      "relation": "SERVES",
+      "object": "Customer class/Beverage industry",
+      "evidence": "fruit_chain"
+    },
+    {
+      "subject": "Segment/Fruit",
+      "relation": "SELLS",
+      "object": "Product/Fruit juice concentrate",
+      "evidence": "fruit_chain"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "HAS_SITE",
+      "object": "Plant/Wabern sugar factory",
+      "evidence": "wabern"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "PERMIT_HOLDER_FOR",
+      "object": "Plant/Wabern sugar factory",
+      "evidence": "wabern_permit"
+    },
+    {
+      "subject": "Plant/Wabern sugar factory",
+      "relation": "PROCESSES",
+      "object": "Product/Sugar beet",
+      "evidence": "wabern_permit"
+    },
+    {
+      "subject": "Growing region/Southern Germany",
+      "relation": "GROWS",
+      "object": "Product/Sugar beet",
+      "evidence": "crop_regions"
+    },
+    {
+      "subject": "Growing region/France",
+      "relation": "GROWS",
+      "object": "Product/Sugar beet",
+      "evidence": "crop_regions"
+    },
+    {
+      "subject": "Customer class/German sugary drink producers",
+      "relation": "MAY_REDUCE_PURCHASES_OF",
+      "object": "Product/Liquid sugar",
+      "evidence": "sugar_chain",
+      "inference": true
+    }
+  ],
+  "policy_task": {
+    "name": "German tax on sugar-sweetened beverages",
+    "origin": "user_assigned",
+    "jurisdiction": "DE",
+    "customer": "Customer class/German sugary drink producers",
+    "states": [
+      {
+        "jurisdiction": "DE",
+        "status": "coalition proposal",
+        "evidence": "de_proposal"
+      },
+      {
+        "jurisdiction": "DE",
+        "status": "cabinet-backed proposal",
+        "evidence": "de_cabinet"
+      },
+      {
+        "jurisdiction": "DE",
+        "status": "under parliamentary consideration",
+        "evidence": "de_review"
+      },
+      {
+        "jurisdiction": "FR",
+        "status": "in force",
+        "evidence": "fr_schedule",
+        "effective": "2026-01-01"
+      },
+      {
+        "jurisdiction": "EU",
+        "status": "Commission policy coordination",
+        "evidence": "eu_plan"
+      }
+    ],
+    "assumptions": {
+      "litres": 100000000,
+      "grams_removed_per_litre": 2,
+      "supplier_share": 0.3,
+      "price_per_tonne": 500,
+      "variable_cost_per_tonne": 420
+    },
+    "notes": [
+      {
+        "evidence": "de_scope",
+        "text": "The German cabinet proposal would exempt pure fruit juice and pure juice concentrate. The Fruit segment sells concentrates; exposure depends on the final drink and its recipe."
+      }
+    ]
+  },
+  "alert_cases": [
+    {
+      "evidence": "q1_outlook",
+      "product": "Product/Sugar beet",
+      "segment": "Segment/Sugar",
+      "financial_evidence": "sugar_results",
+      "scenario": {
+        "name": "Illustrative sensitivity",
+        "currency": "EUR",
+        "segment": "Sugar",
+        "tonnes": 100000,
+        "price": 500,
+        "variable_cost": 420,
+        "volume_change": -0.1,
+        "price_change_per_tonne": 0,
+        "cost_change_per_tonne": 0,
+        "repricing_share": 1
+      },
+      "interpretation": "Shrinking beet acreage led the issuer to forecast lower full-year sugar production and sales volumes in July. In H1 both selling prices and volume fell. Lower prior-campaign costs helped earnings; expected idle capacity added a burden."
+    },
+    {
+      "evidence": "h1_starch",
+      "product": "Product/Starch sweetening products",
+      "segment": "Segment/Starch",
+      "financial_evidence": "starch_results",
+      "scenario": {
+        "name": "Illustrative sensitivity",
+        "currency": "EUR",
+        "segment": "Starch",
+        "tonnes": 10000,
+        "price": 500,
+        "variable_cost": 420,
+        "volume_change": 0.05,
+        "price_change_per_tonne": -20,
+        "cost_change_per_tonne": 0,
+        "repricing_share": 1
+      },
+      "interpretation": "Higher volumes and ethanol prices partly offset lower starch and sweetener prices. Ethanol margins supported earnings; the issuer gives no event-specific price/volume bridge."
+    }
+  ]
+}

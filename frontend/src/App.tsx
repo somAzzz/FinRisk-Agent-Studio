@@ -12,7 +12,7 @@ import {
   Menu,
   Play,
   RefreshCw,
-  Settings,
+  Plus,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -35,7 +35,7 @@ import type { OverviewRiskRow } from "./components/ResearchDecisionBrief";
 const ResearchJournalPanel = lazy(() => import("./components/ResearchJournalPanel").then((module) => ({ default: module.ResearchJournalPanel })));
 import { RiskScoreBreakdown } from "./components/RiskScoreBreakdown";
 const ScenarioValuationPanel = lazy(() => import("./components/ScenarioValuationPanel").then((module) => ({ default: module.ScenarioValuationPanel })));
-import type { RunHistoryItem } from "./components/RunHistoryPanel";
+import { kindLabel, type RunHistoryItem } from "./components/RunHistoryPanel";
 const SupplyChainExplorer = lazy(() => import("./components/SupplyChainExplorer").then((module) => ({ default: module.SupplyChainExplorer })));
 import { TodayDashboard } from "./components/TodayDashboard";
 import { WorkflowLauncher } from "./components/WorkflowLauncher";
@@ -69,13 +69,21 @@ import {
 } from "./productDemo";
 
 const POLL_INTERVAL_MS = 1500;
+import { CompanyWorkspaceNav } from "./components/CompanyWorkspaceNav";
+import { reportRoute, sample, type Entry } from "./annual/model";
+import {issuerRoute,type CompanyScope} from "./annual/company";
+const IssuerDesk=lazy(()=>import("./annual/CompanyDesk"));
+import { lastFiling,lastCompany } from "./annual/navigation";
+import { AnnualReportPanel } from "./components/AnnualReportPanel";
+const AnnualWorkspace = lazy(() => import("./annual/AnnualWorkspace"));
 const STATIC_DEMO_MODE = isStaticDemoMode();
 
 type AppView = "finrisk" | "supply-chain" | "agent-runs" | "journal";
-type ProductPage = "today" | "companies" | "runs" | "journal";
+type ProductPage = "issuer" | "today" | "companies" | "runs" | "journal";
 type CompanySection =
   | "overview"
   | "risks"
+  | "annual-reports"
   | "financials"
   | "valuation"
   | "management"
@@ -83,6 +91,7 @@ type CompanySection =
   | "evidence";
 
 interface ProductRoute {
+  issuer?:string;day?:string;
   page: ProductPage;
   section: CompanySection;
 }
@@ -90,6 +99,7 @@ interface ProductRoute {
 const COMPANY_SECTIONS = new Set<CompanySection>([
   "overview",
   "risks",
+  "annual-reports",
   "financials",
   "valuation",
   "management",
@@ -99,7 +109,8 @@ const COMPANY_SECTIONS = new Set<CompanySection>([
 
 function routeFromLocation(): ProductRoute {
   if (typeof window === "undefined") return { page: "today", section: "overview" };
-  const route = window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const route = window.location.hash.split("?")[0].replace(/^#\/?/, "").split("/").filter(Boolean);
+  if(route[0]==="companies" && route[2]==="dossier") return {page:"issuer",section:"overview",issuer:route[1],day:new URLSearchParams(window.location.hash.split("?")[1]).get("day")||""};
   if (route[0] === "companies") {
     const requestedSection = route[2] as CompanySection | undefined;
     return {
@@ -116,7 +127,8 @@ function routeFromLocation(): ProductRoute {
 }
 
 function routeHash(route: ProductRoute): string {
-  if (route.page === "companies") return `#/companies/AAPL/${route.section}`;
+  if (route.section === "annual-reports") return "#/companies/library/annual-reports";
+  if (route.page === "companies") return `#/companies/${STATIC_DEMO_MODE?"AAPL":"current"}/${route.section}`;
   return `#/${route.page}`;
 }
 
@@ -247,7 +259,7 @@ function agentRunSnapshot(
           },
         ];
   return {
-    title: "LLM Agent Run",
+    title: "Evidence investigation",
     runId: timeline.run_id,
     status: timeline.status,
     nodes,
@@ -335,6 +347,7 @@ export function App() {
         ]
       : [],
   );
+  const [historyIncomplete,setHistoryIncomplete]=useState(false);
   const [selectedHistoryRunId, setSelectedHistoryRunId] = useState<string | null>(
     STATIC_DEMO_MODE ? "agent-aapl-fixture" : null,
   );
@@ -342,6 +355,12 @@ export function App() {
   const [selectedSupplyChainRunId, setSelectedSupplyChainRunId] = useState<string | null>(null);
   const [route, setRoute] = useState<ProductRoute>(routeFromLocation);
   const [runPanelOpen, setRunPanelOpen] = useState(false);
+  const [issuerScope,setIssuerScope]=useState<CompanyScope>();
+  const [journalScope,setJournalScope]=useState<CompanyScope>();
+  const [intake,setIntake]=useState<"company"|"filing">("company");
+  const launcherTrigger=useRef<HTMLElement|null>(null);
+  function startResearch(kind:"company"|"filing"="company",scope?:CompanyScope){setIssuerScope(scope);launcherTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setIntake(kind);setMobileNavOpen(false);setActivityOpen(false);setRunPanelOpen(true);}
+
   const [activityOpen, setActivityOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [serviceHealth, setServiceHealth] = useState<"checking" | "available" | "partial" | "fixture">(
@@ -380,18 +399,30 @@ export function App() {
   };
 
   const refreshHistory = async () => {
-    if (STATIC_DEMO_MODE) return;
-    const [workflows, agents, supplyChains] = await Promise.all([
-      api.listWorkflows(10).catch(() => []),
-      api.listAgentRuns(10).catch(() => []),
-      api.listSupplyChains(10).catch(() => []),
+    const filingItems = (entries: Entry[]): RunHistoryItem[] => entries.map(e=>({
+      kind:"filing", runId:e.id, title:e.company+" · "+e.period, status:e.status, detail:"Annual report · evidence as of "+e.as_of,
+    }));
+    if (STATIC_DEMO_MODE) {
+      const entries=await sample<Entry[]>("index.json").catch(()=>[]);
+      setHistoryItems(prev=>[...filingItems(entries),...prev.filter(x=>x.kind!=="filing")]);
+      return;
+    }
+    let incomplete=false;
+    const unavailable=()=>{incomplete=true;return [];};
+    const [workflows, agents, supplyChains, filings] = await Promise.all([
+      api.listWorkflows(10).catch(unavailable),
+      api.listAgentRuns(10).catch(unavailable),
+      api.listSupplyChains(10).catch(unavailable),
+      api.annualLibrary().catch(unavailable),
     ]);
+    setHistoryIncomplete(incomplete);
     setHistoryItems([
+      ...filingItems(filings),
       ...agents.map((item): RunHistoryItem => ({
         kind: "agent-runs",
         runId: item.run_id,
         status: item.status,
-        title: "LLM Agent Run",
+        title: item.goal || "Evidence investigation",
       })),
       ...supplyChains.map((item): RunHistoryItem => ({
         kind: "supply-chain",
@@ -406,7 +437,7 @@ export function App() {
         title: "Risk Intelligence",
         detail: item.current_step,
       })),
-    ].slice(0, 20));
+    ]);
   };
 
   const loadStaticDemo = () => {
@@ -486,7 +517,7 @@ export function App() {
     if (!window.location.hash) {
       window.history.replaceState(null, "", routeHash(route));
     }
-    const syncRoute = () => setRoute(routeFromLocation());
+    const syncRoute = () => { setRoute(routeFromLocation()); setRunPanelOpen(false); };
     window.addEventListener("hashchange", syncRoute);
     window.addEventListener("popstate", syncRoute);
     return () => {
@@ -515,6 +546,12 @@ export function App() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key==="Tab" && runPanelOpen) {
+        const targets=document.querySelectorAll<HTMLElement>('.research-drawer button:not(:disabled), .research-drawer a[href], .research-drawer input:not(:disabled), .research-drawer select, .research-drawer textarea');
+        const first=targets[0], last=targets[targets.length-1];
+        if(event.shiftKey && document.activeElement===first){event.preventDefault();last?.focus();}
+        if(!event.shiftKey && document.activeElement===last){event.preventDefault();first?.focus();}
+      }
       if (event.key !== "Escape") return;
       setRunPanelOpen(false);
       setActivityOpen(false);
@@ -522,6 +559,7 @@ export function App() {
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
+      if(runPanelOpen && launcherTrigger.current?.isConnected) launcherTrigger.current.focus({preventScroll:true});
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [activityOpen, runPanelOpen]);
@@ -529,6 +567,7 @@ export function App() {
   useEffect(() => {
     if (STATIC_DEMO_MODE) {
       setViewMonitor("finrisk", finriskSnapshot(staticDemoStatus));
+      void refreshHistory();
       return undefined;
     }
     void refreshHistory();
@@ -632,6 +671,7 @@ export function App() {
 
   const handleSelectHistory = (item: RunHistoryItem) => {
     setSelectedHistoryRunId(item.runId);
+    if (item.kind === "filing") {window.location.hash=reportRoute(item.runId);return;}
     if (item.kind === "finrisk") {
       navigate({ page: "companies", section: "overview" });
       if (STATIC_DEMO_MODE) {
@@ -650,8 +690,8 @@ export function App() {
     setSelectedSupplyChainRunId(item.runId);
   };
 
-  const companyName = status?.company?.company_name ?? "Apple Inc.";
-  const companyTicker = status?.company?.ticker ?? "AAPL";
+  const companyName = status?.company?.company_name ?? (STATIC_DEMO_MODE?"Apple Inc.":"Company research");
+  const companyTicker = status?.company?.ticker ?? (STATIC_DEMO_MODE?"AAPL":"");
   const lastUpdated = summary?.completed_at ?? status?.completed_at ?? summary?.started_at ?? null;
   const activeMonitor = processMonitors[activeView];
   const healthLabel =
@@ -666,6 +706,7 @@ export function App() {
     { id: "overview", label: "Overview" },
     { id: "risks", label: "Risks" },
     { id: "financials", label: "Financials" },
+    { id: "annual-reports", label: "Annual reports" },
     { id: "valuation", label: "Valuation" },
     { id: "management", label: "Management" },
     { id: "supply-chain", label: "Supply Chain" },
@@ -698,13 +739,13 @@ export function App() {
           <button type="button" className={route.page === "today" ? "active" : ""} aria-current={route.page === "today" ? "page" : undefined} onClick={() => navigate({ page: "today", section: "overview" })}>
             <Home size={18} aria-hidden="true" /> Today
           </button>
-          <button type="button" className={route.page === "companies" ? "active" : ""} aria-current={route.page === "companies" ? "page" : undefined} onClick={() => navigate({ page: "companies", section: "overview" })} data-testid="tab-finrisk">
+          <button type="button" className={["issuer","companies"].includes(route.page) ? "active" : ""} aria-current={["issuer","companies"].includes(route.page) ? "page" : undefined} onClick={() => {const filing=route.page==="issuer"?window.location.hash:(lastCompany()||lastFiling()); if(filing){window.location.hash=filing;setMobileNavOpen(false)}else navigate({page:"companies",section:"overview"})}} data-testid="tab-finrisk">
             <Building2 size={18} aria-hidden="true" /> Companies
           </button>
           <button type="button" className={route.page === "runs" ? "active" : ""} aria-current={route.page === "runs" ? "page" : undefined} onClick={() => navigate({ page: "runs", section: "overview" })} data-testid="tab-agent-runs">
             <Activity size={18} aria-hidden="true" /> Research Runs
           </button>
-          <button type="button" className={route.page === "journal" ? "active" : ""} aria-current={route.page === "journal" ? "page" : undefined} onClick={() => navigate({ page: "journal", section: "overview" })} data-testid="tab-journal">
+          <button type="button" className={route.page === "journal" ? "active" : ""} aria-current={route.page === "journal" ? "page" : undefined} onClick={() => {setJournalScope(undefined);navigate({ page: "journal", section: "overview" })}} data-testid="tab-journal">
             <BookOpen size={18} aria-hidden="true" /> Journal
           </button>
         </nav>
@@ -713,8 +754,8 @@ export function App() {
             <CircleGauge size={18} aria-hidden="true" /> Activity
             {polling ? <span className="live-dot" aria-label="Research run in progress" /> : null}
           </button>
-          <button type="button" onClick={() => setRunPanelOpen(true)}>
-            <Settings size={18} aria-hidden="true" /> Runtime settings
+          <button type="button" onClick={() => startResearch(route.section==="annual-reports"?"filing":"company")}>
+            <Plus size={18} aria-hidden="true" /> New research
           </button>
           <div className="analyst-profile"><span>AA</span><div><strong>Analyst</strong><small>Research team</small></div></div>
         </div>
@@ -723,12 +764,12 @@ export function App() {
       <div className="product-content">
         {route.page === "companies" ? (
           <>
-            <header className="company-header">
+            {route.section !== "annual-reports" && <header className="company-header">
               <div className="company-identity">
-                <div className="company-icon"><FaApple size={38} aria-hidden="true" /></div>
+                <div className="company-icon">{companyTicker==="AAPL"?<FaApple size={38} aria-hidden="true"/>:<Building2 size={38} aria-hidden="true"/>}</div>
                 <div>
                   <div className="company-title-row"><h1>{companyName}</h1><span>{companyTicker}</span></div>
-                  <p>Technology Hardware, Storage &amp; Peripherals · Nasdaq</p>
+                  {status?.company_id&&<a href={issuerRoute(status.company_id)}>Return to company workspace →</a>}<p>{companyTicker==="AAPL"?"Technology Hardware, Storage & Peripherals · Nasdaq":"Company research workspace"}</p>
                   <small>Last updated: {STATIC_DEMO_MODE ? "July 12, 2026 10:32 AM ET" : lastUpdated ? new Date(lastUpdated).toLocaleString() : "No completed update"}</small>
                 </div>
               </div>
@@ -737,34 +778,30 @@ export function App() {
                 <span><small>Data health</small><strong>{healthLabel}</strong></span>
                 <ChevronDown size={16} aria-hidden="true" />
               </button>
-              <button className="product-primary run-update" type="button" onClick={() => setRunPanelOpen(true)}>
+              <button className="product-primary run-update" type="button" onClick={() => startResearch()}>
                 <RefreshCw size={17} aria-hidden="true" /> Run update
               </button>
-            </header>
-            <nav className="company-tabs" aria-label={`${companyName} workspace sections`}>
-              {companyTabs.map((tab) => (
-                <button type="button" key={tab.id} className={route.section === tab.id ? "active" : ""} aria-current={route.section === tab.id ? "page" : undefined} onClick={() => navigate({ page: "companies", section: tab.id })} data-testid={tab.id === "supply-chain" ? "tab-supply-chain" : undefined}>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+            </header>}
+            {route.section !== "annual-reports" && <CompanyWorkspaceNav company={companyName} sections={companyTabs} active={route.section} onSelect={(section)=>navigate({page:"companies",section})}/>}
           </>
         ) : null}
 
         {error ? <div className="product-error" role="alert" data-testid="app-error"><span>{error}</span><button type="button" onClick={() => setError(null)} aria-label="Dismiss error"><X size={15} /></button></div> : null}
 
         <Suspense fallback={<main className="product-page route-loading" id="main-content"><span className="page-eyebrow">Loading workspace</span><h2>Preparing the latest research view…</h2></main>}>
+        {route.page==="issuer"&&route.issuer&&<main className="company-page product-page" id="main-content"><IssuerDesk key={route.issuer+route.day} id={route.issuer} day={route.day||""} staticMode={STATIC_DEMO_MODE} start={scope=>startResearch("company",scope)} journal={scope=>{setJournalScope(scope);navigate({page:"journal",section:"overview"})}} brief={id=>handleSelectHistory({kind:"finrisk",runId:id,title:"Company brief",status:"completed"})}/></main>}
         {route.page === "today" ? (
-          <TodayDashboard historyItems={historyItems} hasCompanyBrief={Boolean(report?.report_v16)} onOpenCompany={() => navigate({ page: "companies", section: "overview" })} onOpenRuns={() => navigate({ page: "runs", section: "overview" })} onStartResearch={() => setRunPanelOpen(true)} />
+          <TodayDashboard incomplete={historyIncomplete} historyItems={historyItems} onSelect={handleSelectHistory} staticMode={STATIC_DEMO_MODE} onOpenRuns={() => navigate({ page: "runs", section: "overview" })} onStartResearch={() => startResearch()} />
         ) : null}
 
         {route.page === "companies" ? (
           <main className="company-page product-page" id="main-content" tabIndex={-1}>
-            {!summary ? (
+            {route.section === "annual-reports" && <AnnualWorkspace staticMode={STATIC_DEMO_MODE} start={()=>startResearch("filing")} openGeneral={()=>navigate({page:"companies",section:"overview"})} />}
+            {!summary && route.section !== "annual-reports" ? (
               <section className="company-empty" data-testid="empty-state">
                 <FileSearch size={30} aria-hidden="true" />
                 <div><h2>Establish the first company baseline</h2><p>Run an evidence-linked update to populate risks, financials, management signals and source quality.</p></div>
-                <button className="product-primary" type="button" onClick={() => setRunPanelOpen(true)}>Run first update</button>
+                <button className="product-primary" type="button" onClick={() => startResearch()}>Run first update</button>
               </section>
             ) : null}
             {summary && route.section === "overview" ? (
@@ -782,19 +819,20 @@ export function App() {
             {route.section === "financials" ? <div className="subpage-stack"><header className="subpage-heading"><span className="page-eyebrow">Standardized facts</span><h2>Financials</h2><p>Point-in-time SEC metrics with lineage and change checks.</p></header><FinancialTrendPanel snapshot={financials} loading={financialsLoading} error={financialsError ?? (!financials && !STATIC_DEMO_MODE ? "Financial history has not been loaded for this company." : null)} />{!financials && STATIC_DEMO_MODE ? <div className="directed-empty"><BarChart3 size={24} /><div><strong>Financials are not included in the static fixture.</strong><p>Connect the API to load standardized SEC facts.</p></div></div> : null}</div> : null}
             {route.section === "valuation" ? <div className="subpage-stack"><header className="subpage-heading"><span className="page-eyebrow">Assumption-led</span><h2>Valuation</h2><p>Scenarios remain separate from observed evidence and preserve every assumption.</p></header><ScenarioValuationPanel snapshot={financials} staticMode={STATIC_DEMO_MODE} /></div> : null}
             {route.section === "management" ? <div className="subpage-stack"><header className="subpage-heading"><span className="page-eyebrow">Transcript comparison</span><h2>Management</h2><p>Compare topic shifts and claims across earnings calls.</p></header><ManagementComparisonPanel ticker={status?.company?.ticker ?? companyTicker} demoResult={STATIC_DEMO_MODE ? staticManagementComparison : undefined} /></div> : null}
-            {route.section === "supply-chain" ? <SupplyChainExplorer initialCompany={companyName} initialProduct="iPhone" initialPayload={STATIC_DEMO_MODE ? staticSupplyChain : undefined} selectedRunId={selectedSupplyChainRunId} onProgress={(nextStatus) => { if (nextStatus) setSelectedHistoryRunId(nextStatus.run_id); setViewMonitor("supply-chain", supplyChainSnapshot(nextStatus)); }} /> : null}
+            {route.section === "supply-chain" ? <SupplyChainExplorer initialCompany={companyTicker?companyName:""} initialProduct={companyTicker==="AAPL"?"iPhone":""} initialPayload={STATIC_DEMO_MODE ? staticSupplyChain : undefined} selectedRunId={selectedSupplyChainRunId} onProgress={(nextStatus) => { if (nextStatus) setSelectedHistoryRunId(nextStatus.run_id); setViewMonitor("supply-chain", supplyChainSnapshot(nextStatus)); }} /> : null}
             {summary && route.section === "evidence" ? (
-              <div className="subpage-stack"><header className="subpage-heading"><span className="page-eyebrow">Grounding and quality</span><h2>Evidence</h2><p>Review claim coverage, source quality, guardrails and graph paths in one place.</p></header><CompanyEvidencePage evaluation={evaluation ?? status?.evaluation ?? report?.evaluation ?? null} claims={(report?.report_v16?.evidence_vs_inference ?? []).map((claim) => ({ ...claim, grounding: claim.supporting_evidence_ids.length ? "grounded" : "unsupported", status: claim.supporting_evidence_ids.length ? "pass" : "needs_review", recommendation: claim.supporting_evidence_ids.length ? null : "Link primary evidence before relying on this claim." }))} staticMode={STATIC_DEMO_MODE} graphContent={<><EvidenceGraph report={report?.report ?? null} companyName={companyName} v16Paths={graph?.paths ?? null} />{evaluation ? <EvaluationTab evaluation={evaluation} runId={summary.run_id} /> : <EvaluationPanel evaluation={status?.evaluation ?? report?.evaluation ?? null} />}</>} /></div>
+              <div className="subpage-stack"><header className="subpage-heading"><span className="page-eyebrow">Grounding and quality</span><h2>Evidence</h2><a href="#/companies/library/annual-reports">Annual report evidence →</a><p>Review claim coverage, source quality, guardrails and graph paths in one place.</p></header><CompanyEvidencePage evaluation={evaluation ?? status?.evaluation ?? report?.evaluation ?? null} claims={(report?.report_v16?.evidence_vs_inference ?? []).map((claim) => ({ ...claim, grounding: claim.supporting_evidence_ids.length ? "grounded" : "unsupported", status: claim.supporting_evidence_ids.length ? "pass" : "needs_review", recommendation: claim.supporting_evidence_ids.length ? null : "Link primary evidence before relying on this claim." }))} staticMode={STATIC_DEMO_MODE} graphContent={<><EvidenceGraph report={report?.report ?? null} companyName={companyName} v16Paths={graph?.paths ?? null} />{evaluation ? <EvaluationTab evaluation={evaluation} runId={summary.run_id} /> : <EvaluationPanel evaluation={status?.evaluation ?? report?.evaluation ?? null} />}</>} /></div>
             ) : null}
           </main>
         ) : null}
 
         {route.page === "runs" ? (
           <main className="runs-page product-page" id="main-content" tabIndex={-1}>
-            <header className="page-heading"><div><span className="page-eyebrow">Execution review</span><h1>Research runs</h1><p>Decide whether each run is trustworthy, then resolve the evidence that needs human judgment.</p></div><button className="product-primary" type="button" onClick={() => setRunPanelOpen(true)}><Play size={16} /> New company update</button></header>
+            <header className="page-heading"><div><span className="page-eyebrow">Execution review</span><h1>Research runs</h1><p>Decide whether each run is trustworthy, then resolve the evidence that needs human judgment.</p></div><button className="product-primary" type="button" onClick={() => startResearch()}><Play size={16} /> New company update</button></header>
+            <a className="text-action" href="#/companies/library/annual-reports">Open annual report library →</a>
             <div className="runs-layout">
-              <section className="inline-history"><header className="section-heading-row"><div><span className="page-eyebrow">Latest first</span><h2>Run history</h2></div><button className="text-action" type="button" onClick={() => void refreshHistory()}>Refresh</button></header>{historyItems.length ? <div className="inline-history-list">{historyItems.map((item) => <button type="button" key={`${item.kind}:${item.runId}`} className={item.runId === selectedHistoryRunId ? "active" : ""} onClick={() => handleSelectHistory(item)}><span className={`history-kind ${item.kind}`}>{item.kind === "finrisk" ? "Risk" : item.kind === "agent-runs" ? "Agent" : "Supply"}</span><strong>{item.title}</strong><small>{item.status}</small>{item.detail ? <em>{item.detail}</em> : null}</button>)}</div> : <p className="quiet-empty">No runs yet. Start research to create an auditable trail.</p>}</section>
-              <LLMAgentRunPanel selectedRunId={selectedAgentRunId} staticMode={STATIC_DEMO_MODE} onProgress={(timeline) => { if (timeline) { setSelectedHistoryRunId(timeline.run_id); setHistoryItems((current) => [{ kind: "agent-runs", runId: timeline.run_id, status: timeline.status, title: "Supply-chain evidence review", detail: `${timeline.human_review_items.filter((item) => item.status === "pending").length} item(s) need analyst judgment` }, ...current.filter((item) => item.runId !== timeline.run_id)]); } setViewMonitor("agent-runs", agentRunSnapshot(timeline)); }} />
+              <section className="inline-history"><header className="section-heading-row"><div><span className="page-eyebrow">Saved research</span><h2>Run history</h2></div><button className="text-action" type="button" onClick={() => void refreshHistory()}>Refresh</button></header>{historyIncomplete && <p role="status">Some saved research could not be loaded. Refresh to retry.</p>}{historyItems.length ? <div className="inline-history-list">{historyItems.map((item) => <button type="button" key={`${item.kind}:${item.runId}`} className={item.runId === selectedHistoryRunId ? "active" : ""} onClick={() => handleSelectHistory(item)}><span className={`history-kind ${item.kind}`}>{kindLabel(item.kind)}</span><strong>{item.title}</strong><small>{item.status}</small>{item.detail ? <em>{item.detail}</em> : null}</button>)}</div> : <p className="quiet-empty">No runs yet. Start research to create an auditable trail.</p>}</section>
+              <LLMAgentRunPanel selectedRunId={selectedAgentRunId} staticMode={STATIC_DEMO_MODE} onProgress={(timeline) => { if (timeline) { setSelectedHistoryRunId(timeline.run_id); setHistoryItems((current) => [{ kind: "agent-runs", runId: timeline.run_id, status: timeline.status, title: "Evidence investigation", detail: `${timeline.human_review_items.filter((item) => item.status === "pending").length} item(s) need analyst judgment` }, ...current.filter((item) => item.runId !== timeline.run_id)]); } setViewMonitor("agent-runs", agentRunSnapshot(timeline)); }} />
             </div>
           </main>
         ) : null}
@@ -802,7 +840,7 @@ export function App() {
         {route.page === "journal" ? (
           <main className="journal-page product-page" id="main-content" tabIndex={-1}>
             <header className="page-heading"><div><span className="page-eyebrow">Long-term research memory</span><h1>Journal</h1><p>Keep the thesis, disconfirming evidence, checkpoints and decisions in one traceable record.</p></div></header>
-            <ResearchJournalPanel staticMode={STATIC_DEMO_MODE} />
+            <ResearchJournalPanel key={journalScope?.id} scope={journalScope} staticMode={STATIC_DEMO_MODE} />
           </main>
         ) : null}
         </Suspense>
@@ -811,8 +849,9 @@ export function App() {
       {runPanelOpen ? (
         <div className="drawer-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRunPanelOpen(false); }}>
           <aside className="research-drawer" role="dialog" aria-modal="true" aria-labelledby="research-drawer-title">
-            <header><div><span className="page-eyebrow">New company update</span><h2 id="research-drawer-title">Start research</h2><p>Define the question first. Runtime controls remain optional.</p></div><button type="button" autoFocus onClick={() => setRunPanelOpen(false)} aria-label="Close research panel"><X size={18} /></button></header>
-            <WorkflowLauncher onStarted={handleStarted} busy={polling} staticMode={STATIC_DEMO_MODE} onLoadStaticDemo={() => { loadStaticDemo(); setRunPanelOpen(false); navigate({ page: "companies", section: "overview" }); }} />
+            <header><div><span className="page-eyebrow">Research desk</span><h2 id="research-drawer-title">New research</h2><p>{STATIC_DEMO_MODE?"Explore saved examples.":"Start with a filing or a company question."}</p></div><button type="button" autoFocus onClick={()=>setRunPanelOpen(false)} aria-label="Close research panel"><X size={18}/></button></header>
+            <div className="intake-choice" role="group" aria-label="Research starting point">{(["filing","company"] as const).map(k=><button type="button" key={k} aria-pressed={intake===k} onClick={()=>setIntake(k)}>{k==="filing"?"Annual report":"Company question"}</button>)}</div>
+            {intake==="filing"?(STATIC_DEMO_MODE?<p><a href="#/companies/library/annual-reports" onClick={()=>setRunPanelOpen(false)}>Browse archived annual reports →</a></p>:<AnnualReportPanel/>):<WorkflowLauncher scope={issuerScope} onStarted={handleStarted} busy={polling} initialTicker={route.section!=="annual-reports" ? status?.company?.ticker:undefined} staticMode={STATIC_DEMO_MODE} onLoadStaticDemo={()=>{loadStaticDemo();setRunPanelOpen(false);navigate({page:"companies",section:"overview"})}}/>}
           </aside>
         </div>
       ) : null}

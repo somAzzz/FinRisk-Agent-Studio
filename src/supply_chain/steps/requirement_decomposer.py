@@ -17,7 +17,7 @@ from src.supply_chain.models import (
 )
 from src.supply_chain.steps._base import SupplyChainStep
 
-_GENERIC_REQUIREMENTS: tuple[tuple[str, str, str, float], ...] = (
+_COMPUTE_REQUIREMENTS: tuple[tuple[str, str, str, float], ...] = (
     ("service:cloud-compute", "service", "Cloud compute", 1.0),
     ("component:gpu-accelerator", "component", "GPU accelerator", 0.9),
     ("component:cpu", "component", "CPU/server platform", 0.55),
@@ -189,7 +189,12 @@ class SupplyChainRequirementDecomposerStep(SupplyChainStep):
         )
         existing_nodes = {n.node_id for n in state.nodes}
         existing_edges = {e.edge_id for e in state.links}
-        for node_id, node_type, label, value in _GENERIC_REQUIREMENTS:
+        product = state.request.product_name.casefold()
+        compute_terms = ("chatgpt", "gpu", "cloud compute", "ai accelerator", "large language model")
+        if not any(term in product for term in compute_terms):
+            state.warnings.append("Product-specific inputs require source evidence or a successful decomposition.")
+            return
+        for node_id, node_type, label, value in _COMPUTE_REQUIREMENTS:
             if node_id not in existing_nodes:
                 state.nodes.append(
                     SupplyChainNode(
@@ -243,7 +248,7 @@ def _requirement_prompt(state: SupplyChainExploreState) -> str:
         f"Product: {state.request.product_name}\n"
         f"Focus regions: {regions}\n"
         "Return JSON with this exact shape:\n"
-        '{"requirements":[{"label":"GPU accelerator","node_type":"component",'
+        '{"requirements":[{"label":"input identified in evidence","node_type":"component",'
         '"importance":0.9,"confidence":0.75,"reason":"why it matters"}]}\n'
         "Allowed node_type values: component, service, infrastructure, energy, "
         "commodity, region, unknown. Use canonical parent labels for broad "

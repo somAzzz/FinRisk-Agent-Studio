@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { api, describeApiError } from "../api";
 import type { FinRiskRequest, WorkflowRunSummary } from "../types";
-import { LLMProviderSelector } from "./LLMProviderSelector";
 
 const DEFAULT_REQUEST: FinRiskRequest = {
   ticker: "AAPL",
@@ -10,20 +9,14 @@ const DEFAULT_REQUEST: FinRiskRequest = {
     "Identify macro, policy and supply-chain risks that changed recently.",
   time_horizon: "6-12 months",
   sources: ["filing", "web", "graph"],
-  max_browser_steps: 5,
-  demo_mode: false,
-  cached_mode: false,
-  llm_config: {
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
-  },
 };
 
 interface Props {
   onStarted: (summary: WorkflowRunSummary, request: FinRiskRequest) => void;
   busy: boolean;
   staticMode?: boolean;
+  initialTicker?: string;
+  scope?: import("../annual/company").CompanyScope;
   onLoadStaticDemo?: () => void;
 }
 
@@ -49,9 +42,16 @@ export function WorkflowLauncher({
   onStarted,
   busy,
   staticMode = false,
+  initialTicker,
+  scope,
   onLoadStaticDemo,
 }: Props) {
-  const [request, setRequest] = useState<FinRiskRequest>(DEFAULT_REQUEST);
+  const [request, setRequest] = useState<FinRiskRequest>({
+    ...DEFAULT_REQUEST,
+    ticker: initialTicker ?? (staticMode ? "AAPL" : ""),
+    company_name: scope?.name,
+    ...(scope ? { company_id: scope.id, ticker: scope.ticker } : {}),
+  });
   const [error, setError] = useState<string | null>(null);
   const [horizonStart, horizonEnd] = parseTimeHorizon(request.time_horizon);
 
@@ -72,8 +72,10 @@ export function WorkflowLauncher({
 
   const updateHorizon = (edge: "start" | "end", rawValue: string) => {
     const nextValue = Number(rawValue);
-    const nextStart = edge === "start" ? Math.min(nextValue, horizonEnd) : horizonStart;
-    const nextEnd = edge === "end" ? Math.max(nextValue, horizonStart) : horizonEnd;
+    const nextStart =
+      edge === "start" ? Math.min(nextValue, horizonEnd) : horizonStart;
+    const nextEnd =
+      edge === "end" ? Math.max(nextValue, horizonStart) : horizonEnd;
     update("time_horizon", formatTimeHorizon(nextStart, nextEnd));
   };
 
@@ -94,10 +96,10 @@ export function WorkflowLauncher({
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Workflow Launcher</h2>
       <div className="row">
         <label htmlFor="ticker">Ticker</label>
         <input
+          readOnly={!!scope}
           id="ticker"
           data-testid="ticker-input"
           value={request.ticker}
@@ -106,8 +108,9 @@ export function WorkflowLauncher({
         />
       </div>
       <div className="row">
-        <label htmlFor="company">Company (opt.)</label>
+        <label htmlFor="company">Company name (optional)</label>
         <input
+          readOnly={!!scope}
           id="company"
           value={request.company_name ?? ""}
           onChange={(e) => update("company_name", e.target.value || null)}
@@ -158,7 +161,7 @@ export function WorkflowLauncher({
         </div>
       </div>
       <div className="row">
-        <label>Sources</label>
+        <label>Evidence to consult</label>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {SOURCES.map((src) => {
             const enabled = request.sources?.includes(src) ?? false;
@@ -180,37 +183,27 @@ export function WorkflowLauncher({
           })}
         </div>
       </div>
-      <div className="row-checkbox">
-        <input
-          type="checkbox"
-          id="demo-mode"
-          data-testid="demo-mode"
-          checked={request.demo_mode ?? false}
-          onChange={(e) => update("demo_mode", e.target.checked)}
-        />
-        <label htmlFor="demo-mode">Demo mode (offline cached fixture)</label>
-      </div>
-      <div className="row-checkbox">
-        <input
-          type="checkbox"
-          id="cached-mode"
-          checked={request.cached_mode ?? false}
-          onChange={(e) => update("cached_mode", e.target.checked)}
-        />
-        <label htmlFor="cached-mode">Cached mode (use cache when available)</label>
-      </div>
-      <LLMProviderSelector
-        value={request.llm_config ?? DEFAULT_REQUEST.llm_config!}
-        onChange={(next) => update("llm_config", next)}
-      />
-      {error ? <div className="error-banner" role="alert" data-testid="launcher-error">{error}</div> : null}
+      {error ? (
+        <div className="error-banner" role="alert" data-testid="launcher-error">
+          {error}
+        </div>
+      ) : null}
       <button
         type="submit"
         className="primary"
-        disabled={busy}
+        disabled={
+          busy ||
+          !request.ticker.trim() ||
+          !request.analysis_goal.trim() ||
+          !request.sources?.length
+        }
         data-testid="run-button"
       >
-        {busy ? "Working…" : staticMode ? "View Static Demo" : "Run Risk Workflow"}
+        {busy
+          ? "Working…"
+          : staticMode
+            ? "View Static Demo"
+            : "Start company research"}
       </button>
     </form>
   );

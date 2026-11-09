@@ -17,7 +17,8 @@ interface Props {
   onRefresh: () => void;
 }
 
-function kindLabel(kind: RunHistoryKind): string {
+export function kindLabel(kind: RunHistoryKind): string {
+  if (kind === "filing") return "Filing";
   if (kind === "finrisk") return "Risk";
   if (kind === "agent-runs") return "Agent";
   return "Supply";

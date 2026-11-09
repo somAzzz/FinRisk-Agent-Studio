@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, describeApiError } from "../api";
 import type {
   CompanyResearchSnapshot,
@@ -6,7 +6,6 @@ import type {
   ExpectationPoint,
   ExpectationComparison,
   InvestmentThesis,
-  LLMRunConfig,
   PostEarningsReviewDraft,
   ResearchAlert,
   ResearchChangeSet,
@@ -16,7 +15,6 @@ import type {
 } from "../types";
 import { PeerAnalysisPanel } from "./PeerAnalysisPanel";
 import { ScenarioValuationPanel } from "./ScenarioValuationPanel";
-import { LLMProviderSelector } from "./LLMProviderSelector";
 import {
   staticResearchChanges,
   staticResearchQueue,
@@ -61,14 +59,10 @@ export function ResearchCyclePanel({
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const activePolling = useRef<AbortController | null>(null);
+  useEffect(() => () => activePolling.current?.abort(), []);
   const [workflow, setWorkflow] = useState<WorkflowRunSummary | null>(null);
   const [analysisGoal, setAnalysisGoal] = useState("Update the evidence-linked company risk assessment.");
-  const [llmConfig, setLlmConfig] = useState<LLMRunConfig>({
-    provider: "vllm",
-    base_url: "http://localhost:30000/v1",
-    model: "nvidia/Qwen3.6-27B-NVFP4",
-  });
-
   const refreshGlobal = async () => {
     if (staticMode) {
       setTheses([staticResearchThesis]);
@@ -174,6 +168,9 @@ export function ResearchCyclePanel({
   const startFullCycle = async () => {
     const normalized = ticker.toUpperCase().trim();
     if (!normalized || !analysisGoal.trim()) return;
+    const polling = new AbortController();
+    activePolling.current?.abort();
+    activePolling.current = polling;
     setBusy(true);
     setError(null);
     try {
@@ -192,14 +189,11 @@ export function ResearchCyclePanel({
         analysis_goal: analysisGoal.trim(),
         year: Number(year),
         sources: ["filing", "web", "transcript", "graph"],
-        demo_mode: false,
-        cached_mode: false,
-        llm_config: llmConfig,
       });
       setWorkflow(next);
-      for (let attempt = 0; attempt < 300; attempt += 1) {
-        if (["completed", "needs_review", "failed"].includes(next.status)) break;
+      while (!["completed", "needs_review", "failed"].includes(next.status)) {
         await wait(1000);
+        if (polling.signal.aborted) return;
         const status = await api.getStatus(next.run_id);
         next = {
           run_id: status.run_id,
@@ -212,9 +206,7 @@ export function ResearchCyclePanel({
         setWorkflow(next);
       }
       if (next.status === "failed") throw new Error("FinRisk workflow failed");
-      if (!["completed", "needs_review"].includes(next.status)) {
-        throw new Error("FinRisk workflow timed out");
-      }
+      if (polling.signal.aborted) return;
       const response = await api.startResearchRun({
         ticker: normalized,
         year: Number(year),
@@ -241,7 +233,7 @@ export function ResearchCyclePanel({
         setError(null);
         return;
       }
-      await api.scanWatchlist({ minimum_materiality: "medium", max_workers: 2 });
+      await api.scanWatchlist({ minimum_materiality: "medium" });
       await refreshGlobal();
       if (ticker) await refreshTicker();
     } catch {
@@ -440,7 +432,6 @@ export function ResearchCyclePanel({
         <button className="ghost" type="button" disabled={!ticker.trim()} onClick={() => void refreshTicker()}>Load history</button>
       </div>
       <label className="cycle-full-run-goal">FinRisk analysis goal<input aria-label="FinRisk analysis goal" value={analysisGoal} onChange={(event) => setAnalysisGoal(event.target.value)} /><small>Estimated providers: SEC filing, web search, transcript and graph. Actual requests depend on availability.</small></label>
-      <details className="cycle-details cycle-llm-config"><summary>Research LLM</summary><LLMProviderSelector value={llmConfig} onChange={setLlmConfig} /></details>
       {workflow ? <div className={`cycle-run-state ${workflow.status}`}><strong>FinRisk: {workflow.status}</strong><span>{workflow.run_id}</span>{workflow.current_step ? <small>{workflow.current_step}</small> : null}</div> : null}
       {run ? <div className={`cycle-run-state ${run.manifest.state}`}><strong>{run.manifest.state}</strong><span>{run.manifest.run_id}</span>{run.manifest.components.map((item) => <small key={item.component}>{item.component}: {item.state}{item.reason ? ` · ${item.reason}` : ""}</small>)}</div> : null}
       {error ? <div className="recoverable-error" role="alert"><p>{error}</p><button className="ghost" type="button" onClick={() => void refreshGlobal()}>Retry research data</button></div> : null}

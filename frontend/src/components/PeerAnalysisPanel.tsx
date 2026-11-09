@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PeerValuationInputs, valuationsFrom, type Assumption } from "./PeerValuationInputs";
 import { api, describeApiError } from "../api";
 import type { PeerAnalysisResponse, PeerCandidate, PeerGroup } from "../types";
 
@@ -30,7 +31,7 @@ export function PeerAnalysisPanel({ staticMode = false }: { staticMode?: boolean
   const [memberText, setMemberText] = useState("");
   const [industry, setIndustry] = useState<PeerGroup["industry_template"]>("general");
   const [metrics, setMetrics] = useState("revenue,gross_margin,free_cash_flow");
-  const [valuationInputs, setValuationInputs] = useState("[]");
+  const [valuationInputs, setValuationInputs] = useState<Assumption[]>([]);
   const [analysis, setAnalysis] = useState<PeerAnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -41,6 +42,8 @@ export function PeerAnalysisPanel({ staticMode = false }: { staticMode?: boolean
     () => groups.find((group) => group.peer_group_id === selectedId) ?? null,
     [groups, selectedId],
   );
+
+  useEffect(()=>{setValuationInputs([]);setAnalysis(null);setCandidates([]);},[selectedId]);
 
   const loadGroups = async () => {
     if (staticMode) {
@@ -146,10 +149,10 @@ export function PeerAnalysisPanel({ staticMode = false }: { staticMode?: boolean
 
   const compare = async () => {
     if (!selected) return;
+    let valuations;
+    try {valuations=valuationsFrom(valuationInputs);} catch (e) {setError((e as Error).message);return;}
     setBusy(true);
     try {
-      const valuations = JSON.parse(valuationInputs) as unknown;
-      if (!Array.isArray(valuations)) throw new Error("valuation input must be an array");
       if (staticMode) {
         setAnalysis({
           financials: {
@@ -255,7 +258,7 @@ export function PeerAnalysisPanel({ staticMode = false }: { staticMode?: boolean
         <button className="ghost danger" type="button" disabled={!selected || busy} onClick={() => void deleteGroup()}>{deleteArmed ? "Confirm delete peer group" : "Delete peer group"}</button>
       </div>
       {notice ? <p className="operation-notice" role="status">{notice}</p> : null}
-      <details className="cycle-details"><summary>Optional explicit valuation inputs</summary><textarea aria-label="Peer valuation inputs" value={valuationInputs} onChange={(event) => setValuationInputs(event.target.value)} placeholder='[{"ticker":"NVDA","method":"pe","share_price":100,"diluted_shares":10,"earnings":50,"period":"TTM"}]' /><p className="muted">JSON array using P/E, EV/EBITDA or FCF-yield inputs. Values are never inferred from market data.</p></details>
+      {selected && !staticMode && <PeerValuationInputs members={selected.members.map(m=>m.ticker)} rows={valuationInputs} onChange={setValuationInputs}/>}
       {selected ? <div className="peer-group-summary"><strong>{selected.base_ticker} · {selected.industry_template}</strong><span>{selected.fiscal_period_policy} · {selected.currency_policy}</span><ul>{selected.members.map((member) => <li key={member.ticker}><b>{member.ticker}</b> — {member.inclusion_reason}</li>)}</ul><button className="ghost" type="button" disabled={busy} onClick={() => void suggestCandidates()}>Suggest SEC SIC peers from Watchlist</button></div> : null}
       {candidates.length ? <div className="peer-candidates"><strong>Unconfirmed candidates</strong>{candidates.map((candidate) => <article key={candidate.ticker}><div><b>{candidate.ticker}</b><span>{candidate.similarity}</span><p>{candidate.inclusion_reason}</p></div><button className="ghost" type="button" disabled={busy} onClick={() => void confirmCandidate(candidate)}>Confirm peer</button></article>)}</div> : null}
       <details className="cycle-details"><summary>Create an analyst-confirmed peer group</summary><div className="peer-analysis-controls"><label>Name<input aria-label="Peer group name" value={name} onChange={(event) => setName(event.target.value)} /></label><label>Base ticker<input aria-label="Peer group base ticker" value={baseTicker} onChange={(event) => setBaseTicker(event.target.value)} /></label><label>Members<input aria-label="Peer group members" value={memberText} onChange={(event) => setMemberText(event.target.value)} placeholder="NVDA, AMD, INTC" /></label><label>Industry<select aria-label="Peer group industry" value={industry} onChange={(event) => setIndustry(event.target.value as PeerGroup["industry_template"])}>{["general", "bank", "saas", "semiconductor", "energy", "biotech"].map((item) => <option key={item}>{item}</option>)}</select></label><button className="ghost" type="button" disabled={busy} onClick={() => void createGroup()}>Save group</button></div><p className="muted">Suggested members cannot be persisted until confirmed; this form records every member as an analyst decision with an inclusion reason.</p></details>

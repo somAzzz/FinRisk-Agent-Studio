@@ -1,0 +1,4491 @@
+{
+  "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+  "pages": [
+    {
+      "page": 1,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 2,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 3,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 4,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 5,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 6,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 7,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 8,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 9,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 10,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 11,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 12,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 13,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 14,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 15,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 16,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 17,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 18,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 19,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 20,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 21,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 22,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 23,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 24,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "International Motors",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "International S13 Powertrain",
+          "page": 24,
+          "quote": "ket. The development and launch of the new International S13 Powertrain on the basis of the Group-wide 13-liter Common Base Engine (CBE) diesel engine",
+          "line": 42,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "ket. The development and launch of the new International S13 Powertrain on the basis of the Group-wide 13-liter Common Base Engine (CBE) diesel engine",
+          "allocation_line": 42,
+          "commercial_quote": "11% in 2029. Over the period from 2024 to 2029, the TRATON GROUP’s sales revenue is projected to grow between 20 and 40%. By the end of the decade,",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          },
+          "segment_evidence": {
+            "name": "International Motors",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "international": {
+                "page": 31,
+                "quote": "International Motors (brand name: International)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 25,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 26,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "NEXT ERA",
+          "page": 26,
+          "quote": "Scania also presented its NEXT ERA product line, which is tailored to the Chinese market. It will complement the premium vehicles that Scania developed",
+          "line": 34,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Super 11",
+          "page": 26,
+          "quote": "new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo-",
+          "line": 37,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "Scania",
+          "allocation_line": 31,
+          "commercial_quote": "Scania is pursuing the goal of contributing to sustainable transportation in the future through efficiency improvements in the field of diesel engines. The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo- grams lighter than the Super 13 engine and achieves fuel savings of up to 7% compared with the 9-liter engines of the current generation.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Super 13",
+          "page": 26,
+          "quote": "new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo-",
+          "line": 37,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "Scania",
+          "allocation_line": 31,
+          "commercial_quote": "Scania is pursuing the goal of contributing to sustainable transportation in the future through efficiency improvements in the field of diesel engines. The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo- grams lighter than the Super 13 engine and achieves fuel savings of up to 7% compared with the 9-liter engines of the current generation.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 26,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Super 11",
+          "quote": "The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio.",
+          "allocation_quote": "Scania",
+          "commercial_quote": "The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio.",
+          "source_spans": [],
+          "evidence_rule": "completed commercial clause",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 27,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Lion's Coach E",
+          "page": 27,
+          "quote": "manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the",
+          "line": 16,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the",
+          "allocation_line": 16,
+          "commercial_quote": "MAN started series production of battery-electric heavy-duty trucks at its original plant in Munich in June 2025. Electric and diesel trucks are now being manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the first European manufacturer to launch an all-electric coach, which received the “Sustainable Bus of the Year 2026” award in October 2025.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN D30",
+          "page": 27,
+          "quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group-",
+          "line": 22,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group-",
+          "allocation_line": 22,
+          "commercial_quote": "the next generation of batteries. Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group- wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGX",
+          "page": 27,
+          "quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "line": 23,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "allocation_line": 23,
+          "commercial_quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group- wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGS",
+          "page": 27,
+          "quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "line": 23,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "allocation_line": 23,
+          "commercial_quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group- wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "International Motors",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "S13 Integrated Powertrain",
+          "page": 27,
+          "quote": "cient CBE drive platform in its S13 Integrated Powertrain. Its market penetration increased sharply in 2025. In the Class 8 segment, which is important for",
+          "line": 30,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "International",
+          "allocation_line": 25,
+          "commercial_quote": "International is also making progress toward sustainable transportation in the field of diesel engines. International is also using the TRATON GROUP’s effi- cient CBE drive platform in its S13 Integrated Powertrain. Its market penetration increased sharply in 2025. In the Class 8 segment, which is important for the USA, almost every second truck sold by International in 2025 was equipped with this state-of-the-art drive system. It reduces fuel consumption by up to",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          },
+          "segment_evidence": {
+            "name": "International Motors",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "international": {
+                "page": 31,
+                "quote": "International Motors (brand name: International)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Volkswagen Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "e-Volksbus 22L",
+          "page": 27,
+          "quote": "vehicles. The new e-Volksbus 22L, for example, is already operating in São Paulo in cooperation with VWTB customers.",
+          "line": 38,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "Volkswagen Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "volkswagen truck bus": {
+                "page": 31,
+                "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+              },
+              "vwtb": {
+                "page": 31,
+                "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+              }
+            }
+          }
+        },
+        {
+          "page": 27,
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGX",
+          "quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "commercial_quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "source_spans": [],
+          "evidence_rule": "completed commercial clause",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "page": 27,
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGS",
+          "quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+          "commercial_quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+          "source_spans": [],
+          "evidence_rule": "completed commercial clause",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 28,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 29,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 30,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 31,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 32,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "NEXT ERA",
+          "page": 32,
+          "quote": "Scania unveiled the new NEXT ERA series in China, a locally developed truck platform for long-haul transportation. AI-based systems have proven the per-",
+          "line": 29,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 33,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 34,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 35,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 36,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 37,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 38,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 39,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 40,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 41,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 42,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 43,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 43,
+          "quote": "MAN TGE vans                                                                  29,150        22,821         28%         31,344      27,672             13%",
+          "line": 30,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "allocation_quote": "MAN TGE vans                                                                  29,150        22,821         28%         31,344      27,672             13%",
+          "allocation_line": 30,
+          "commercial_quote": "Incoming orders and unit sales",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 44,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 44,
+          "quote": "order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as",
+          "line": 21,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as",
+          "allocation_line": 21,
+          "commercial_quote": "medium-duty and, above all, heavy-duty truck segments. Incoming orders for buses declined sizably, primarily in North America, mainly due to restrictive order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as a result of the further expansion of the sales organization.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN eTGE",
+          "page": 44,
+          "quote": "1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting",
+          "line": 29,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting",
+          "allocation_line": 29,
+          "commercial_quote": "The book-to-bill ratio in the reporting period was 0.9 (previous year: 0.8). 1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting year.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 45,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 46,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 47,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 48,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 49,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 49,
+          "quote": "of which MAN TGE vans 31,344 27,672 13%",
+          "line": 24,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "of which MAN TGE vans 31,344 27,672 13%",
+          "allocation_line": 24,
+          "commercial_quote": "The overall decline in truck unit sales was the main reason for the moderate reduction in sales revenue, which mainly affected the New Vehicles business.",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 50,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 51,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 52,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 53,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 54,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 55,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 56,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 57,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 58,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 59,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 60,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 61,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 62,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 63,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 64,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "NEXT ERA",
+          "page": 64,
+          "quote": "started producing Scania trucks in the same month. Delivery of the first vehicles for the new NEXT ERA product line, which is tailored to the Chinese market,",
+          "line": 16,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "D30",
+          "page": 64,
+          "quote": "start of production in the first half of 2025, as well as the integration of the new D30 engine into the product range. Increased investment in the TRATON",
+          "line": 19,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 64,
+          "quote": "Modular System and the new generation of the MAN TGE van are planned for the coming years.",
+          "line": 20,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "International Motors",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "S13",
+          "page": 64,
+          "quote": "International Motors’ investments in 2025 mainly focused on optimizing the Class 8 product range and investing in the S13 powertrain. Expansion invest-",
+          "line": 21,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "International Motors",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "international": {
+                "page": 31,
+                "quote": "International Motors (brand name: International)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 65,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 66,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 67,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 68,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 69,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 70,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 71,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 72,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 73,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 74,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 75,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 76,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 77,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 78,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 79,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 80,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 81,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 82,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 83,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 84,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 85,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 86,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 87,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 88,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 89,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 90,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 91,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 92,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 93,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 94,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 95,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 96,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 97,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 98,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 99,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 100,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 101,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 102,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 103,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 104,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 105,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 106,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 107,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 108,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 109,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 110,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 111,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 112,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 113,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 114,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 115,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 116,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 117,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 118,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 119,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 120,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 121,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 122,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 123,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 124,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 125,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 126,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 127,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 128,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 129,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 130,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 131,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 132,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 133,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 134,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 135,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 136,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 137,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 138,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 139,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 140,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 141,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 142,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 143,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 144,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 145,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 146,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 147,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 148,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 149,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 150,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 151,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 152,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 153,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 154,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 155,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 156,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 157,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 158,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 159,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 160,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 161,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 162,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 163,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 164,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 165,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 166,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 167,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 168,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 169,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 170,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 171,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 172,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 173,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 174,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 175,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 176,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 177,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 178,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 179,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 180,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 181,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 182,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 183,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 184,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 185,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 186,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 187,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 188,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 189,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 190,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 191,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 192,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 193,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 194,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 195,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 196,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 197,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 198,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 199,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 200,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 201,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 202,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 203,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 204,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 205,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 206,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 207,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 208,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 209,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 210,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 211,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 212,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 213,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 214,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 215,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 216,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 217,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 218,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 219,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 220,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 221,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 222,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 223,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 224,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 225,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 226,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 227,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 228,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 229,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 230,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 231,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 232,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 233,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 234,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 235,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 236,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 237,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 238,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 239,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 240,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 241,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 242,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 243,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 244,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 245,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 246,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 247,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 248,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 249,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 250,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 251,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 252,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 253,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 254,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 255,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 256,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 257,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 258,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 259,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 260,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 261,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 262,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 263,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 264,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 265,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 266,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 267,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 268,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 269,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 270,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 271,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 272,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 273,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 274,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 275,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 276,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 277,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 278,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 279,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 280,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 281,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 282,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 283,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 284,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 285,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 286,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 287,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 288,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 289,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 290,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 291,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 292,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 293,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 294,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 295,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 296,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 297,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 298,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 299,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 300,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 301,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 302,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 303,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 304,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 305,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 306,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 307,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 308,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 309,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 310,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 311,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 312,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 313,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 314,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 315,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 316,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 317,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 318,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 319,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 320,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 321,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 322,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 323,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 324,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 325,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 326,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 327,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 328,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Volkswagen Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Citywide",
+          "page": 328,
+          "quote": "ability. A recyclability calculation conducted on two 12-meter Citywide urban buses, one Inter ICE and one BEV, using the guidelines set out in ISO",
+          "line": 31,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "Volkswagen Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "volkswagen truck bus": {
+                "page": 31,
+                "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+              },
+              "vwtb": {
+                "page": 31,
+                "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "TGX",
+          "page": 328,
+          "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+          "line": 33,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "TGS",
+          "page": 328,
+          "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+          "line": 33,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "TGM",
+          "page": 328,
+          "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+          "line": 33,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "TGL",
+          "page": 328,
+          "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+          "line": 33,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "eTGS",
+          "page": 328,
+          "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+          "line": 33,
+          "status": "unknown",
+          "review": "Missing exact product mention, segment definition or independent support.",
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 329,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 330,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 331,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 332,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 333,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 334,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 335,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 336,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 337,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 338,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 339,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 340,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 341,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 342,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 343,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 344,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 345,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 346,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 347,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 348,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 349,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 350,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 351,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 352,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 353,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 354,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 355,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 356,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "L cab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "P cab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "G cab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "R cab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "S cab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        },
+        {
+          "page": 356,
+          "subject_kind": "Segment",
+          "subject": "Scania Vehicles & Services",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "CrewCab",
+          "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+          "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+          "source_spans": [
+            "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+          ],
+          "evidence_rule": "in-service model scope",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          },
+          "status": "supported",
+          "review": "Local disclosure and formal segment independently verified.",
+          "segment_evidence": {
+            "name": "Scania Vehicles & Services",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "scania": {
+                "page": 31,
+                "quote": "Scania Vehicles & Services (brand name: Scania)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 357,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 358,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 359,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 360,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 361,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 362,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 363,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 364,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 365,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 366,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 367,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 368,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 369,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 370,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 371,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 372,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 373,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 374,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 375,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 376,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 377,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 378,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 379,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 380,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 381,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 382,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 383,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 384,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 385,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 386,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 387,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 388,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 389,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 390,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 391,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 392,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 393,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 394,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 395,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 396,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 397,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 398,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 399,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 400,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 401,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 402,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 403,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 404,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 405,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 406,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 407,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 408,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 409,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 410,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 411,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 412,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 413,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 414,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 415,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 416,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 417,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 418,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 419,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 420,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 421,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 422,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 423,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 424,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 425,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 426,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 427,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 428,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 429,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 429,
+          "quote": "of which MAN TGE vans                                29,150        22,821       24,373       28,010         31,993",
+          "line": 10,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "of which MAN TGE vans                                29,150        22,821       24,373       28,010         31,993",
+          "allocation_line": 10,
+          "commercial_quote": "of which buses                                       27,932       32,235       29,808        32,274         22,237 of which MAN TGE vans                                29,150        22,821       24,373       28,010         31,993 Unit sales                                           305,486       334,215       338,183     305,485         271,608",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "MAN Truck & Bus",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "MAN TGE",
+          "page": 429,
+          "quote": "of which MAN TGE vans                                31,344       27,672        26,627       21,584         22,202",
+          "line": 14,
+          "status": "supported",
+          "review": "Independent page and segment-note review accepted.",
+          "allocation_quote": "of which MAN TGE vans                                31,344       27,672        26,627       21,584         22,202",
+          "allocation_line": 14,
+          "commercial_quote": "of which buses                                      34,359        28,413        30,266       29,601         18,857 of which MAN TGE vans                                31,344       27,672        26,627       21,584         22,202 BEV unit sales ratio (excluding MAN TGE, in %)1           1.2             0.5        0.6            –              –",
+          "alias_evidence": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          },
+          "segment_evidence": {
+            "name": "MAN Truck & Bus",
+            "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+            "page": 155,
+            "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+            "aliases": {
+              "man": {
+                "page": 31,
+                "quote": "MAN Truck & Bus (brand name: MAN)"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "page": 430,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 431,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 432,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 433,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    }
+  ],
+  "note": {
+    "definitions": {
+      "scania vehicles services": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      },
+      "man truck bus": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      },
+      "international motors": {
+        "name": "International Motors",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "international": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          }
+        }
+      },
+      "volkswagen truck bus": {
+        "name": "Volkswagen Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "volkswagen truck bus": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          },
+          "vwtb": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          }
+        }
+      },
+      "traton financial services": {
+        "name": "TRATON Financial Services",
+        "quote": "The TRATON GROUP offers financing solutions for the purchase of commercial vehicles in the TRATON Financial Services segment.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {}
+      }
+    },
+    "page": 155,
+    "context": "Segment reporting Accounting policies: segment reporting The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments. The classification corresponds to the internal organizational and reporting structure. In order to make decisions about the allocation of resources and the assessment of performance, the results of the units are regularly reviewed by the Executive Board of TRATON SE in its role as chief operating decision maker. As an additional reference, we include the TRATON Operations business area in the reporting, which corresponds to the consolidated value of the four vehicle segments allocated to it and minor values from Group-wide research and development not allocated to the vehicle segments. The TRATON GROUP offers financing solutions for the purchase of commercial vehicles in the TRATON Financial Services segment. The Reconciliation column shows the activities and services of TRATON Holding (TRATON SE and other investees not allocated to segments), consolida- tion between the segments and with TRATON Holding, and the earnings effects of purchase price allocations in the event of the acquisition of an indi- vidual segment. In the TRATON GROUP, segment result is calculated on the basis of operating result (adjusted). Operating result (adjusted) is calculated to ensure the greatest possible transparency of our business performance by making adjustments to our operating result. These adjustments concern certain items in the financial statements that, in the opinion of the Executive Board, can be presented separately to enable a more appropriate assessment of financial performance. They include, in particular, costs of restructurings and structural measures as well as one-time events with a material impact on the TRATON GROUP’s earnings. Segment financial information is generally presented in accordance with the disclosure and measurement policies applied in the preparation of the consolidated financial statements. As a departure from IFRS 16 Leases, subleasing of buyback vehicles in the Financial Services segment is always ac- counted for as an operating lease. The merger of significant parts of the research and development departments of the individual brands into a cross-brand, Group-wide research and development (Group R&D) organization was completed as of June 30, 2025. This required a change in the TRATON GROUP’s Group management, which impacts segment reporting. The number and designations of the segments remain unchanged. The change impacts capitalized development costs, expenses, and intercompany income incurred and generated in cross-brand research and development. Until June 30, 2025, cross-brand R&D projects were assigned to one segment and R&D expenses were recharged to the other segments that benefited from this research and development in the usage phase by means of licenses. Since July 1, 2025, cross-brand R&D projects have been recorded primarily on a centralized basis. Intercompany R&D expenses and income arising between Group R&D and the segments are now eliminated for segment reporting purposes. R&D expenses and capitalized development costs in Group R&D that are not eliminated are allocated to the segments in the TRATON Opera- tions business area that benefit from the development project in accordance with predefined principles.",
+    "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+    "sales_brands": {}
+  },
+  "elapsed_s": 91.0249802899998,
+  "methods": {
+    "ocr": 5,
+    "native": 356,
+    "layout": 72
+  },
+  "warnings": [],
+  "edges": [
+    {
+      "subject_kind": "Segment",
+      "subject": "International Motors",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "International S13 Powertrain",
+      "page": 24,
+      "quote": "ket. The development and launch of the new International S13 Powertrain on the basis of the Group-wide 13-liter Common Base Engine (CBE) diesel engine",
+      "line": 42,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "allocation_quote": "ket. The development and launch of the new International S13 Powertrain on the basis of the Group-wide 13-liter Common Base Engine (CBE) diesel engine",
+      "allocation_line": 42,
+      "commercial_quote": "11% in 2029. Over the period from 2024 to 2029, the TRATON GROUP’s sales revenue is projected to grow between 20 and 40%. By the end of the decade,",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "International Motors (brand name: International)"
+      },
+      "segment_evidence": {
+        "name": "International Motors",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "international": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "NEXT ERA",
+      "page": 26,
+      "quote": "Scania also presented its NEXT ERA product line, which is tailored to the Chinese market. It will complement the premium vehicles that Scania developed",
+      "line": 34,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 26,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Super 11",
+      "quote": "The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio.",
+      "allocation_quote": "Scania",
+      "commercial_quote": "The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio.",
+      "source_spans": [],
+      "evidence_rule": "completed commercial clause",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Super 13",
+      "page": 26,
+      "quote": "new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo-",
+      "line": 37,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "allocation_quote": "Scania",
+      "allocation_line": 31,
+      "commercial_quote": "Scania is pursuing the goal of contributing to sustainable transportation in the future through efficiency improvements in the field of diesel engines. The new Super 11 engine, which was introduced in mid-May 2025, will play an important role in supplementing the drive portfolio. This 11-liter engine is 85 kilo- grams lighter than the Super 13 engine and achieves fuel savings of up to 7% compared with the 9-liter engines of the current generation.",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Lion's Coach E",
+      "page": 27,
+      "quote": "manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the",
+      "line": 16,
+      "status": "supported",
+      "review": "Independent page and segment-note review accepted.",
+      "allocation_quote": "manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the",
+      "allocation_line": 16,
+      "commercial_quote": "MAN started series production of battery-electric heavy-duty trucks at its original plant in Munich in June 2025. Electric and diesel trucks are now being manufactured in series there on the same production line in a fully integrated mixed production process. With the Lion’s Coach E model, MAN was also the first European manufacturer to launch an all-electric coach, which received the “Sustainable Bus of the Year 2026” award in October 2025.",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN D30",
+      "page": 27,
+      "quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group-",
+      "line": 22,
+      "status": "supported",
+      "review": "Independent page and segment-note review accepted.",
+      "allocation_quote": "Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group-",
+      "allocation_line": 22,
+      "commercial_quote": "the next generation of batteries. Also at the Nuremberg plant, MAN started production of the efficient new 13-liter MAN D30 diesel engine in February 2025, which is based on the Group- wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "page": 27,
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGX",
+      "quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+      "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+      "commercial_quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+      "source_spans": [],
+      "evidence_rule": "completed commercial clause",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "page": 27,
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGS",
+      "quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+      "allocation_quote": "wide Common Base Engine (CBE) drive, along with the eCoach. This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN",
+      "commercial_quote": "This is the largest standard engine in the brand portfolio and is installed in the 40-ton MAN TGX and MAN TGS semitrailer tractors.",
+      "source_spans": [],
+      "evidence_rule": "completed commercial clause",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "International Motors",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "S13 Integrated Powertrain",
+      "page": 27,
+      "quote": "cient CBE drive platform in its S13 Integrated Powertrain. Its market penetration increased sharply in 2025. In the Class 8 segment, which is important for",
+      "line": 30,
+      "status": "supported",
+      "review": "Independent page and segment-note review accepted.",
+      "allocation_quote": "International",
+      "allocation_line": 25,
+      "commercial_quote": "International is also making progress toward sustainable transportation in the field of diesel engines. International is also using the TRATON GROUP’s effi- cient CBE drive platform in its S13 Integrated Powertrain. Its market penetration increased sharply in 2025. In the Class 8 segment, which is important for the USA, almost every second truck sold by International in 2025 was equipped with this state-of-the-art drive system. It reduces fuel consumption by up to",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "International Motors (brand name: International)"
+      },
+      "segment_evidence": {
+        "name": "International Motors",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "international": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Volkswagen Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "e-Volksbus 22L",
+      "page": 27,
+      "quote": "vehicles. The new e-Volksbus 22L, for example, is already operating in São Paulo in cooperation with VWTB customers.",
+      "line": 38,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "Volkswagen Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "volkswagen truck bus": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          },
+          "vwtb": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN TGE",
+      "page": 44,
+      "quote": "order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as",
+      "line": 21,
+      "status": "supported",
+      "review": "Independent page and segment-note review accepted.",
+      "allocation_quote": "order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as",
+      "allocation_line": 21,
+      "commercial_quote": "medium-duty and, above all, heavy-duty truck segments. Incoming orders for buses declined sizably, primarily in North America, mainly due to restrictive order acceptance in the middle of the year caused by limited capacity and a general reluctance to buy. Demand for the MAN TGE van rose sharply, partly as a result of the further expansion of the sales organization.",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "MAN eTGE",
+      "page": 44,
+      "quote": "1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting",
+      "line": 29,
+      "status": "supported",
+      "review": "Independent page and segment-note review accepted.",
+      "allocation_quote": "1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting",
+      "allocation_line": 29,
+      "commercial_quote": "The book-to-bill ratio in the reporting period was 0.9 (previous year: 0.8). 1,281 (previous year: 430) all-electric trucks, 1,923 (previous year: 1,190) all-electric buses, and 22 (previous year: 119) MAN eTGE vans were sold in the reporting year.",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "MAN Truck & Bus (brand name: MAN)"
+      },
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "D30",
+      "page": 64,
+      "quote": "start of production in the first half of 2025, as well as the integration of the new D30 engine into the product range. Increased investment in the TRATON",
+      "line": 19,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "International Motors",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "S13",
+      "page": 64,
+      "quote": "International Motors’ investments in 2025 mainly focused on optimizing the Class 8 product range and investing in the S13 powertrain. Expansion invest-",
+      "line": 21,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "International Motors",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "international": {
+            "page": 31,
+            "quote": "International Motors (brand name: International)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Volkswagen Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Citywide",
+      "page": 328,
+      "quote": "ability. A recyclability calculation conducted on two 12-meter Citywide urban buses, one Inter ICE and one BEV, using the guidelines set out in ISO",
+      "line": 31,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "Volkswagen Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "volkswagen truck bus": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          },
+          "vwtb": {
+            "page": 31,
+            "quote": "Volkswagen Truck & Bus (brand name: Volkswagen Truck & Bus — VWTB)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "TGX",
+      "page": 328,
+      "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+      "line": 33,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "TGS",
+      "page": 328,
+      "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+      "line": 33,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "TGM",
+      "page": 328,
+      "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+      "line": 33,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "TGL",
+      "page": 328,
+      "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+      "line": 33,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "MAN Truck & Bus",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "eTGS",
+      "page": 328,
+      "quote": "Additionally, a study of the Group’s heavy-duty truck portfolio, including ICE models TGX, TGS, TGM, TGL, and the BEV truck model eTGS, revealed recyclability",
+      "line": 33,
+      "status": "unknown",
+      "review": "Missing exact product mention, segment definition or independent support.",
+      "segment_evidence": {
+        "name": "MAN Truck & Bus",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "man": {
+            "page": 31,
+            "quote": "MAN Truck & Bus (brand name: MAN)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "L cab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "P cab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "G cab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "R cab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "S cab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    },
+    {
+      "page": 356,
+      "subject_kind": "Segment",
+      "subject": "Scania Vehicles & Services",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "CrewCab",
+      "quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "allocation_quote": "Scania’s L, P, G, R and S cabs as well as the CrewCab models",
+      "commercial_quote": "Scania Zone Scania Zone is a position-based service for vehicles that allows geographic conditions to be set to restrict speed in certain areas.",
+      "source_spans": [
+        "Scania Zone                Scania Zone is a position-based service for vehicles that allows geographic Scania’s L, P, G, R No"
+      ],
+      "evidence_rule": "in-service model scope",
+      "alias_evidence": {
+        "page": 31,
+        "quote": "Scania Vehicles & Services (brand name: Scania)"
+      },
+      "status": "supported",
+      "review": "Local disclosure and formal segment independently verified.",
+      "segment_evidence": {
+        "name": "Scania Vehicles & Services",
+        "quote": "The TRATON GROUP’s production and marketing activities are divided into the Scania Vehicles & Services, MAN Truck & Bus, International Motors, and Volkswagen Truck & Bus segments.",
+        "page": 155,
+        "sha256": "d62b4e4cae9be441f4635bebd94a45e46b44385ef60df4d743341c55d11e3039",
+        "aliases": {
+          "scania": {
+            "page": 31,
+            "quote": "Scania Vehicles & Services (brand name: Scania)"
+          }
+        }
+      }
+    }
+  ]
+}

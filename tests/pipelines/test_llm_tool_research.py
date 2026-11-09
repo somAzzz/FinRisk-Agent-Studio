@@ -114,6 +114,7 @@ def test_build_runtime_returns_pydantic_adapter_without_network(
     assert runtime.deps.permissions.tool_scopes == frozenset({"company_research"})
     assert runtime.deps.permissions.allow_write is False
     assert runtime.deps.permissions.allow_interactive is False
+    assert runtime.model_settings == {"timeout": 60.0}
 
     result = runtime.run("Find evidence")
     assert result.goal == "Find evidence"
@@ -122,7 +123,7 @@ def test_build_runtime_returns_pydantic_adapter_without_network(
 
     config = captured["config"]
     assert config.provider == "sglang"
-    assert config.model == "Qwen/Qwen3.5-35B-A3B"
+    assert config.model == "qwen3.8-27b"
     assert config.base_url == "http://localhost:30000/v1"
 
 

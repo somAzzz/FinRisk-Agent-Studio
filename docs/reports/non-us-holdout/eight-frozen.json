@@ -1,0 +1,81 @@
+{
+  "issuer": "Novo Nordisk",
+  "as_of": "2026-11-08",
+  "seed_sha256": "f5475f1e043eaa99526772c0e06677a74ab2c2abb8181755afbe02a10e395092",
+  "page_count": 137,
+  "sample_pages": [
+    89,
+    95,
+    6,
+    63,
+    17,
+    24,
+    55,
+    51
+  ],
+  "edges": [
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Obesity and Diabetes care",
+      "object_kind": "Segment",
+      "page": 89,
+      "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease",
+      "status": "supported",
+      "review": "The source text explicitly states under the heading '2.2 Segment information' that 'Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease'. This directly binds the company 'Novo Nordisk' to the reporting segment 'Obesity and Diabetes care'."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "Rare disease",
+      "object_kind": "Segment",
+      "page": 89,
+      "quote": "Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease",
+      "status": "supported",
+      "review": "The source text explicitly states under the heading '2.2 Segment information' that 'Novo Nordisk operates in two segments based on therapies: Obesity and Diabetes care and Rare disease'. This directly binds the company 'Novo Nordisk' to the reporting segment 'Rare disease'."
+    },
+    {
+      "subject": "Novo Nordisk",
+      "subject_kind": "Company",
+      "relation": "HAS_SEGMENT",
+      "object": "RARE DISEASE PRODUCTION",
+      "object_kind": "Segment",
+      "page": 24,
+      "quote": "RARE DISEASE PRODUCTION Expanding therapeutic impact in rare bleeding and growth disorders",
+      "status": "unknown",
+      "review": "The text identifies 'RARE DISEASE PRODUCTION' as a heading or thematic section describing a portfolio focus ('Expanding therapeutic impact...'), not as a formally named reporting segment of Novo Nordisk. The passage describes the portfolio's performance and strategy but does not explicitly define 'RARE DISEASE PRODUCTION' as a distinct reporting segment in the financial or organizational sense required for the HAS_SEGMENT relation. It functions more as a category or business area description rather than a bound reporting segment entity."
+    },
+    {
+      "subject": "RARE DISEASE PRODUCTION",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Sogroya®",
+      "object_kind": "Product",
+      "page": 24,
+      "quote": "Sogroya® , our long-acting growth hormone treatment, gained significant momentum in 2025",
+      "status": "supported",
+      "review": "The text explicitly states 'our rare disease portfolio... with Sogroya® leading...'. The heading 'RARE DISEASE PRODUCTION' binds the context of the portfolio. The phrase 'our long-acting growth hormone treatment' directly links Sogroya® to the issuer's portfolio within this specific section. The relation PRODUCES is supported by the description of the product as part of the issuer's portfolio under this heading."
+    },
+    {
+      "subject": "RARE DISEASE PRODUCTION",
+      "subject_kind": "Segment",
+      "relation": "PRODUCES",
+      "object": "Alhemo®",
+      "object_kind": "Product",
+      "page": 24,
+      "quote": "Alhemo® expanding its presence in haemophilia prophylaxis",
+      "status": "supported",
+      "review": "The text states 'our rare disease portfolio... and Alhemo® expanding its presence...'. The heading 'RARE DISEASE PRODUCTION' binds the context. The use of 'our' and the inclusion of Alhemo® in the portfolio description confirms that the issuer produces/markets this product within the scope of this section. The relation PRODUCES is supported."
+    }
+  ],
+  "tasks": [],
+  "search": [],
+  "events": [],
+  "unresolved_external": [],
+  "graph": {
+    "scope": "9506dad7038eb2bfbf33c4e569b282ed",
+    "paths": []
+  }
+}

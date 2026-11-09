@@ -1,0 +1,2085 @@
+{
+  "eight": {
+    "TP": 2,
+    "FP": 2,
+    "FN": 76,
+    "gold": 78,
+    "precision": 0.5,
+    "recall": 0.02564102564102564,
+    "supported_raw": 4,
+    "unknown_raw": 1,
+    "supported_unique": 4,
+    "miss_categories": {
+      "no annotated object-disclosure page selected": 71,
+      "object proposed with different subject": 2,
+      "annotated object page selected; exact relation not proposed": 3
+    },
+    "tp": [
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "obesity and diabetes care"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "rare disease"
+      ]
+    ],
+    "fp": [
+      [
+        "Segment",
+        "rare disease production",
+        "PRODUCES",
+        "Product",
+        "alhemo"
+      ],
+      [
+        "Segment",
+        "rare disease production",
+        "PRODUCES",
+        "Product",
+        "sogroya"
+      ]
+    ],
+    "fn": [
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "actrapid"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "awiqli"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "durable delivery systems"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fast acting insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fiasp"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flexpen"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flextouch"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glp 1"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          15,
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glucagen"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glucagon"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "human insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "hypokit"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "innolet"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulatard"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          15,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "levemir"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "long acting insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "mixtard"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "modern insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "needles"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "new generation insulin and combinations"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine autocover"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine plus"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novomix"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novonorm"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 4"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 5"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 6"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen echo"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen echo plus"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novorapid"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novotwist"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "obesity delivery systems"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "once weekly insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "oral antidiabetic agents"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ozempic"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          15,
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "penfill"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pre filled delivery systems"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "premix insulin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pumpcart"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "rybelsus"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          15,
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "ryzodeg"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "saxenda"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "single dose device"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "tresiba"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "victoza"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          15,
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy pill"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "xultophy"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "zegalogue"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "activelle"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "alhemo"
+        ],
+        "cause": "object proposed with different subject",
+        "witness_pages": [
+          24,
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "esperoct"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "estrofem"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "eviana"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "flexpro"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia a products"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia b products"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "hormone replacement therapies"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25,
+          89
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "kliogest"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "norditropin"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoeight"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novofem"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoseven"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novothirteen"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "penmate"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "pre filled human growth hormone delivery systems"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare blood disorder products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          25,
+          89,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare endocrine disorder products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          25,
+          89,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare haemato renal disorder products"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "refixia"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rivfloza"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "sogroya"
+        ],
+        "cause": "object proposed with different subject",
+        "witness_pages": [
+          24,
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "trisequens"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "vagifem"
+        ],
+        "cause": "no annotated object-disclosure page selected",
+        "witness_pages": [
+          25
+        ]
+      }
+    ]
+  },
+  "all": {
+    "TP": 15,
+    "FP": 8,
+    "FN": 63,
+    "gold": 78,
+    "precision": 0.6521739130434783,
+    "recall": 0.19230769230769232,
+    "supported_raw": 32,
+    "unknown_raw": 5,
+    "supported_unique": 23,
+    "miss_categories": {
+      "annotated object page selected; exact relation not proposed": 61,
+      "object proposed with different subject": 2
+    },
+    "tp": [
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "obesity and diabetes care"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "rare disease"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "fiasp"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "levemir"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "novomix"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "novorapid"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "ozempic"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "rybelsus"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "ryzodeg"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "saxenda"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "tresiba"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "victoza"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "wegovy"
+      ],
+      [
+        "Segment",
+        "obesity and diabetes care",
+        "PRODUCES",
+        "Product",
+        "xultophy"
+      ],
+      [
+        "Segment",
+        "rare disease",
+        "PRODUCES",
+        "Product",
+        "novoseven"
+      ]
+    ],
+    "fp": [
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "apac"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "emerging markets"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "eucan"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "international operations"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "region china"
+      ],
+      [
+        "Company",
+        "novo nordisk",
+        "HAS_SEGMENT",
+        "Segment",
+        "us operations"
+      ],
+      [
+        "Segment",
+        "rare disease production",
+        "PRODUCES",
+        "Product",
+        "alhemo"
+      ],
+      [
+        "Segment",
+        "rare disease production",
+        "PRODUCES",
+        "Product",
+        "sogroya"
+      ]
+    ],
+    "fn": [
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "actrapid"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "awiqli"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "durable delivery systems"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "fast acting insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flexpen"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "flextouch"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glp 1"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glucagen"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "glucagon"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "human insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "hypokit"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "innolet"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulatard"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "long acting insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "mixtard"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "modern insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "needles"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "new generation insulin and combinations"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine autocover"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novofine plus"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novonorm"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 4"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 5"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen 6"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen echo"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novopen echo plus"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "novotwist"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "obesity delivery systems"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "once weekly insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "oral antidiabetic agents"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "penfill"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pre filled delivery systems"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "premix insulin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "pumpcart"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "single dose device"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "wegovy pill"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "obesity and diabetes care",
+          "PRODUCES",
+          "Product",
+          "zegalogue"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "activelle"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "alhemo"
+        ],
+        "cause": "object proposed with different subject",
+        "witness_pages": [
+          24,
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "esperoct"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "estrofem"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "eviana"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "flexpro"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia a products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "haemophilia b products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "hormone replacement therapies"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25,
+          89
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "kliogest"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "norditropin"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novoeight"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novofem"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "novothirteen"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "penmate"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "pre filled human growth hormone delivery systems"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare blood disorder products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          25,
+          89,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare endocrine disorder products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          15,
+          25,
+          89,
+          90
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rare haemato renal disorder products"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "refixia"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "rivfloza"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "sogroya"
+        ],
+        "cause": "object proposed with different subject",
+        "witness_pages": [
+          24,
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "trisequens"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      },
+      {
+        "edge": [
+          "Segment",
+          "rare disease",
+          "PRODUCES",
+          "Product",
+          "vagifem"
+        ],
+        "cause": "annotated object page selected; exact relation not proposed",
+        "witness_pages": [
+          25
+        ]
+      }
+    ]
+  }
+}

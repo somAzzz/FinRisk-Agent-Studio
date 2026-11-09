@@ -213,6 +213,14 @@ class HumanReviewItem(BaseModel):
     reviewed_at: datetime | None = None
 
 
+class FilingOrigin(BaseModel):
+    """Locator of the dated question, not an assertion that it was verified."""
+    model_config = ConfigDict(extra="forbid")
+    report_id: str = Field(min_length=1, max_length=100)
+    cutoff: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    task_id: str = Field(min_length=1, max_length=128)
+
+
 class AgentRunState(BaseModel):
     """Global V21 agent state across planner decisions and subgoals."""
 
@@ -221,6 +229,7 @@ class AgentRunState(BaseModel):
     run_id: str = Field(default_factory=lambda: f"agent-{uuid.uuid4().hex[:12]}")
     conversation_id: str | None = None
     parent_run_id: str | None = None
+    filing_origin: FilingOrigin | None = None
     # Old persisted states remain readable after the runtime cutover.
     runtime_mode: StoredAgentRuntimeMode = "legacy"
     user_goal: str

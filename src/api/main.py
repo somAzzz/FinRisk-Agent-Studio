@@ -16,7 +16,9 @@ import logging
 from fastapi import Depends, FastAPI
 
 from src.api.agent_runs import router as agent_runs_router
+from src.api.annual_reports import router as annual_reports_router
 from src.api.auth import require_api_key
+from src.api.company_workspace import router as company_workspace_router
 from src.api.rate_limit import RateLimitMiddleware, build_default_limiter
 from src.api.research import router as research_router
 from src.api.supply_chain import router as supply_chain_router
@@ -68,6 +70,8 @@ app.add_middleware(RateLimitMiddleware, get_limiter=get_limiter)
 # R1: every workflow / supply-chain route is gated by ``X-API-Key``,
 # enforced through a single FastAPI dependency. Set ``AUTH_DISABLED=1``
 # to opt out (e.g. local development, internal handler-direct tests).
+app.include_router(company_workspace_router, dependencies=[Depends(require_api_key)])
+app.include_router(annual_reports_router, dependencies=[Depends(require_api_key)])
 app.include_router(
     workflows_router,
     dependencies=[Depends(require_api_key)],
@@ -94,6 +98,8 @@ async def root() -> dict:
         "version": "0.1.0",
         "endpoints": [
             "/workflows/health",
+            "/workflows/annual-report/url",
+            "/workflows/annual-report/upload",
             "/workflows/finrisk/run",
             "/workflows/{run_id}",
             "/workflows/{run_id}/report",

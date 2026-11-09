@@ -168,3 +168,17 @@ async def test_search_confirms_llm_candidate_instead_of_adding_unmatched_supplie
     assert edge.evidence_ids
     assert edge.metadata["search_confirmed"] is True
     assert not any(edge.target_node_id == "company:amd" for edge in state.links)
+
+
+async def test_rule_fallback_only_adds_compute_dependencies_to_compute_products():
+    for product, expects_gpu in [("ChatGPT", True), ("sugar", False)]:
+        state = await run_supply_chain_workflow(
+            SupplyChainExploreRequest(company_name="Example", product_name=product, demo_mode=False, cached_mode=False),
+            steps=[
+                SupplyChainProductResolverStep(),
+                SupplyChainRequirementDecomposerStep(llm_client_factory=lambda _: None),
+            ],
+        )
+        assert ("component:gpu-accelerator" in {n.node_id for n in state.nodes}) is expects_gpu
+        components = [edge for edge in state.links if edge.target_node_id.startswith("component:")]
+        assert all(edge.relation_type == "hypothesized" for edge in components)

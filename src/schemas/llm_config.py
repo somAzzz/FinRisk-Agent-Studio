@@ -1,27 +1,40 @@
-"""Per-run LLM provider configuration.
-
-The frontend sends this object with workflow requests so a run can
-select a local or cloud OpenAI-compatible backend without mutating
-process-wide environment variables.
-"""
+"""Per-run LLM deployment and generation configuration."""
 
 from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic_ai.settings import ThinkingLevel
+
+from src.config import get_settings
 
 LLMProvider = Literal["sglang", "vllm", "deepseek", "openai"]
 
 
 class LLMRunConfig(BaseModel):
-    """LLM provider selection for one workflow run."""
+    """Select where and which model should serve one workflow run."""
 
     model_config = ConfigDict(extra="forbid")
 
-    provider: LLMProvider = "sglang"
+    provider: LLMProvider = Field(default_factory=lambda: get_settings().llm_provider, validate_default=True)
     base_url: str | None = None
     model: str | None = None
 
 
-__all__ = ["LLMProvider", "LLMRunConfig"]
+class AgentGenerationConfig(BaseModel):
+    """Describe how a model should generate for one Agent run."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    temperature: float | None = Field(default=None, ge=0, le=2)
+    max_tokens: int | None = Field(default=None, ge=1)
+    timeout_seconds: float | None = Field(default=None, gt=0)
+    thinking: ThinkingLevel | None = None
+
+
+__all__ = [
+    "AgentGenerationConfig",
+    "LLMProvider",
+    "LLMRunConfig",
+]

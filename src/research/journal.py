@@ -48,6 +48,7 @@ class InvestmentThesis(BaseModel):
 
     thesis_id: str = Field(default_factory=lambda: f"thesis-{uuid.uuid4().hex[:12]}")
     ticker: str
+    company_id: str | None = Field(default=None, max_length=160)
     statement: str
     time_horizon: str
     status: ThesisStatus = "draft"

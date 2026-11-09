@@ -368,3 +368,56 @@ def test_build_agent_runtime_uses_pydantic_primary_without_live_request(
     assert state.status == "needs_review"
     assert any("no tool evidence" in item for item in state.fallback_events)
     get_settings.cache_clear()
+
+
+async def test_filing_handoff_verifies_source_and_survives_resume(monkeypatch):
+    from fastapi import HTTPException
+
+    from src.annual_reports.library import CASE_ID, bundle
+    from src.api.agent_runs import get_agent_run_trace
+
+    saved = bundle(CASE_ID, "2026-11-08")
+    task = saved["fresh"]["tasks"][0]
+    origin = {"report_id": CASE_ID, "cutoff": saved["cutoff"], "task_id": task["id"]}
+    seen = []
+
+    class Runtime:
+        def run(self, goal, *, subject, **kwargs):
+            seen.append(subject)
+            return AgentRunState(user_goal=goal, status="completed")
+
+    monkeypatch.setattr("src.api.agent_runs._background_enabled", lambda: False)
+    set_agent_runtime_for_tests(Runtime())
+    for invalid in [dict(origin, cutoff="2027-11-08"), dict(origin, task_id="absent")]:
+        with pytest.raises(HTTPException) as error:
+            await start_agent_run(AgentRunRequest(goal="Follow up", filing_origin=invalid))
+        assert error.value.status_code == 422
+    assert not seen
+    summary = await start_agent_run(AgentRunRequest(
+        goal="Follow up", filing_origin=origin, subject={"company_name":"Wrong issuer"}
+    ))
+    resumed = await resume_agent_run(summary.run_id, AgentRunResumeRequest())
+    for run in [summary, resumed]:
+        trace = await get_agent_run_trace(run.run_id)
+        assert trace["filing_origin"] == origin
+        assert trace["status"] == "completed"
+    assert len(seen) == 2
+    for subject in seen:
+        assert subject["company_name"] == saved["meta"]["company"]
+        assert subject["original_question"] == task["question"]
+        assert subject["evidence_needed"] == task["direct_evidence_needed"]
+    assert bundle(CASE_ID, origin["cutoff"])["fresh"]["tasks"][0] == task
+
+
+def test_research_uses_deployment_provider_by_default(monkeypatch):
+    from src.config import get_settings
+    from src.schemas.llm_config import LLMRunConfig
+
+    monkeypatch.setenv("LLM_PROVIDER", "vllm")
+    get_settings.cache_clear()
+    try:
+        assert LLMRunConfig().provider == AgentRunRequest(goal="Investigate").provider == "vllm"
+        assert AgentRunResumeRequest().provider == "vllm"
+        assert AgentRunRequest(goal="Investigate", provider="sglang").provider == "sglang"
+    finally:
+        get_settings.cache_clear()

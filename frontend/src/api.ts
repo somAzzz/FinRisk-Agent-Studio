@@ -156,7 +156,44 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 // referenced through bundlers' auto-imports.
 const sendRequest = request;
 
+export interface AnnualReportResult {
+  report_id?: string;
+  identity: { cover: string[] };
+  status: string;
+  sources: { annual: { page_count: number } };
+  findings: Array<{ subject: string; status: string; assessment: string; contrary_evidence_or_test: string; missing_data: string; decision: string;
+    evidence: Array<{ source_id: string; physical_page: number; quote: string }> }>;
+  chart_rows?: Array<{ chart_id: string; printed_page: string | null; physical_page: number; metric: string;
+    values: Record<string, string>; unit: string; change: { from_year: string; to_year: string; value: string; unit: string } }>;
+  reconciliations: Array<{ metric: string; calculated: Array<number | string>; unit: string; status: string; physical_page: number }>;
+  warnings: string[];
+}
+
 export const api = {
+  companyWorkspace:(id:string,day="")=>request<import("./annual/company").CompanyDesk>("/research/companies/"+encodeURIComponent(id)+"/workspace"+(day?"?as_of="+encodeURIComponent(day):"")),
+  annualLibrary: () => request<import("./annual/model").Entry[]>("/workflows/annual-report/library"),
+  savedAnnual: (id:string, day?:string) => request<import("./annual/model").Bundle>("/workflows/annual-report/library/"+encodeURIComponent(id)+(day?"?cutoff="+encodeURIComponent(day):"")),
+  annualJob(id: string): Promise<AnnualJob> {
+    return request("/workflows/annual-report/jobs/" + encodeURIComponent(id));
+  },
+  startAnnualJob(source: File | string, options: Record<string, unknown>): Promise<AnnualJob> {
+    if (typeof source === "string") return sendRequest("/workflows/annual-report/jobs/url", {
+      method: "POST", body: JSON.stringify({ ...options, url: source })
+    });
+    const params = new URLSearchParams({filename:source.name,options:JSON.stringify(options)});
+    return sendRequest("/workflows/annual-report/jobs/upload?" + params, {
+      method:"POST", headers:{"Content-Type":"application/octet-stream"}, body:source
+    });
+  },
+  analyzeAnnualReport(source: File | string, options: Record<string, unknown>): Promise<AnnualReportResult> {
+    if (typeof source === "string") {
+      return sendRequest("/workflows/annual-report/url", { method: "POST", body: JSON.stringify({ ...options, url: source }) });
+    }
+    const params = new URLSearchParams({ filename: source.name, options: JSON.stringify(options) });
+    return sendRequest("/workflows/annual-report/upload?" + params, {
+      method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: source,
+    });
+  },
   startWorkflow(req: FinRiskRequest): Promise<WorkflowRunSummary> {
     return sendRequest<WorkflowRunSummary>("/workflows/finrisk/run", {
       method: "POST",
@@ -600,3 +637,5 @@ export const apiPaths = {
   agentRunReviewCandidate: (runId: string, candidateId: string) =>
     `/agent-runs/${runId}/evidence-candidates/${candidateId}`,
 };
+
+export type AnnualJob={id:string;status:"queued"|"running"|"completed"|"failed";report_id?:string;detail?:string};
