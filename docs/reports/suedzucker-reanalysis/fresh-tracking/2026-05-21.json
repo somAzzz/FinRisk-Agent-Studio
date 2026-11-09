@@ -1,0 +1,1328 @@
+{
+  "as_of": "2026-05-21",
+  "tasks": [
+    {
+      "id": "5b4c340fbda95a33828fa38d5bc8b754",
+      "topic": "international",
+      "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+      "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+      "seed_id": "d6b09523204fc011308bf47f8800cca3",
+      "query": "EuGH Entscheidung Mercosur Abkommen Zucker Zollkontingent vorläufige Anwendung 1. Mai 2026",
+      "terms": "EuGH, Mercosur, Abkommen, Zucker, Zollkontingent, vorläufige Anwendung, 1. Mai 2026, EU-Recht, Vereinbarkeit",
+      "direct_evidence_needed": "Offizielle Pressemitteilung des EuGH oder der EU-Kommission, die den Status der vorläufigen Anwendung des Mercosur-Abkommens für Zucker ab Mai 2026 bestätigt oder eine rechtliche Hürde benennt.",
+      "stop_condition": "Eine offizielle Veröffentlichung des EuGH oder der EU-Kommission, die den endgültigen Status der vorläufigen Anwendung des Abkommens für den Zuckermarkt ab Mai 2026 feststellt.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "reviewed",
+      "proofs": {}
+    },
+    {
+      "id": "1e5bf9819d41b7d319f230d72f539502",
+      "topic": "upstream",
+      "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+      "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+      "seed_id": "51a481381418d0c443519d32b090b3c1",
+      "query": "Südzucker Zuckerrüben Anbaufläche Kampagne 2025/26 Ertrag offizielle Zahlen",
+      "terms": "Südzucker, Zuckerrüben, Anbaufläche, Kampagne 2025/26, Ertrag, 305.800 ha, Reduktion, europäische Nachfrage",
+      "direct_evidence_needed": "Offizielle Unternehmensmitteilung oder Branchenbericht, der die tatsächliche Anbaufläche und den Ertrag der Zuckerrübenkampagne 2025/26 im Vergleich zur Planung bestätigt.",
+      "stop_condition": "Veröffentlichung der finalen Erntedaten durch Südzucker oder eine relevante Branchenorganisation, die die Abweichung von der geplanten Anbaufläche von 305.800 ha quantifiziert.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "reviewed",
+      "proofs": {}
+    },
+    {
+      "id": "1a221420bd26223b5a21cdee8c5c377c",
+      "topic": "downstream",
+      "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+      "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+      "seed_id": "29fb526158a7e82898d29fd6744256a1",
+      "query": "Südzucker Stärke Segment Preis Neuabschlüsse 2026 Margendruck Überversorgung",
+      "terms": "Südzucker, Stärke, Segment, Preis, Neuabschlüsse, 2026, Margendruck, Überversorgung, Marktanteile, Ergebnisqualität",
+      "direct_evidence_needed": "Offizielle Segmentberichterstattung oder Analystenbericht, der die spezifischen Preiszugeständnisse und deren Auswirkung auf die operative Marge im Stärkesegment für das Jahr 2026 beschreibt.",
+      "stop_condition": "Veröffentlichung der Quartalszahlen oder des Zwischenberichts für das Geschäftsjahr 2026/27, in dem die Auswirkungen der Preisstrategie auf die operative Marge des Stärkesegments offengelegt werden.",
+      "state": "unknown",
+      "fulfillment": "unknown",
+      "action": "seek_direct_evidence",
+      "proofs": {},
+      "pending": {
+        "id": "c6c17337e2701e09db1eee1876b900a4",
+        "question": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels despite lower prices, citing efficiency gains.",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span."
+      }
+    }
+  ],
+  "eligible_digests": [
+    "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e"
+  ],
+  "audits": [
+    {
+      "as_of": "2026-05-21",
+      "history": [
+        {
+          "proposal": {
+            "text": "Die EU-Kommission kündigte Ende März 2026 an, die Handelsregelungen provisorisch ab dem 1. Mai 2026 anzuwenden, ohne die EuGH-Entscheidung abzuwarten.",
+            "citation": "f44b4e95e459d4f38beda3fa2f5658ea",
+            "kind": "observation",
+            "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+            "topic": "international",
+            "formal_segment": null
+          },
+          "verdict": {
+            "status": "supported",
+            "reason": "The cited passage explicitly states that the EU Commission announced at the end of March to apply the trade regulations provisionally from May 1, 2026, without waiting for the ECJ decision.",
+            "quote": "Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen, ohne die Entscheidung des EuGH abzuwarten.",
+            "evidence_id": "f44b4e95e459d4f38beda3fa2f5658ea",
+            "direct": true,
+            "fulfillment": "unknown"
+          },
+          "checked": [
+            "f44b4e95e459d4f38beda3fa2f5658ea",
+            "d6b09523204fc011308bf47f8800cca3",
+            "8c7f8a509a41218079365eae5f8b80ac",
+            "81217fb88da86fe20d4fbb707d71ec20",
+            "d3bba4fcdee1ab73d6003bb1a32ee271",
+            "47cb319a103b88a69eae57ced0045b12",
+            "906d924268534828a0e79f2f15ce9e08",
+            "3addfc08e1632f1b32ee93d80c004c34",
+            "10b49f24db8f5b3817b5d105863112e8",
+            "312302d1229b90daac65791bfbdb8703"
+          ],
+          "span_check": {
+            "formal_segments_claimed": [],
+            "every_clause_supported": true,
+            "answers_named_scope": true,
+            "explanation": "The source span states: 'Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen, ohne die Entscheidung des EuGH abzuwarten.' The assertion claims the EU Commission announced at the end of March 2026 to apply trade rules provisionally from May 1, 2026, without waiting for the ECJ decision. The source explicitly supports the announcement by the EU Commission, the provisional application starting May 1, 2026, and the condition of not waiting for the ECJ decision. The year 2026 for the announcement is inferred from the start date of May 1, 2026, which is a reasonable contextual inference within the span. The scope asks for the status of provisional application and legal compatibility; the span provides the status (provisional application intended) and the legal stance (ignoring the ECJ decision), thus answering the scope. No formal reporting segments are named in the text. No unsupported clauses are found."
+          },
+          "segment_evidence": [],
+          "locator": {
+            "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+            "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+            "page": 42,
+            "published": "2026-05-21"
+          }
+        }
+      ],
+      "status": "supported",
+      "fulfillment": "unknown",
+      "follow_up": null
+    },
+    {
+      "as_of": "2026-05-21",
+      "history": [
+        {
+          "proposal": {
+            "text": "Südzucker reduced its 2025 beet cultivation area by 18% to 305,800 hectares to align production with European demand.",
+            "citation": "51a481381418d0c443519d32b090b3c1",
+            "kind": "observation",
+            "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+            "topic": "upstream",
+            "formal_segment": null
+          },
+          "verdict": {
+            "status": "supported",
+            "reason": "The cited passage explicitly states that the beet cultivation area in the Südzucker Group was reduced by 18% to 305,800 hectares in 2025 to align sugar production with European demand.",
+            "quote": "Die Rübenanbaufläche in der Südzucker-Gruppe wurde 2025 um 18 % auf 305.800 (373.800) ha reduziert, um die Zucker- produktion an die europäische Nachfrage anzupassen.",
+            "evidence_id": "51a481381418d0c443519d32b090b3c1",
+            "direct": true,
+            "fulfillment": "unknown"
+          },
+          "checked": [
+            "51a481381418d0c443519d32b090b3c1",
+            "0f54ce48dc074398fd984fdb4b7f4c06",
+            "9d161fef43738067dab51f6e43f0441c",
+            "cd5f75d4e174f76a314cb01ce4127903",
+            "3e7ca0f36c3e8bec17bb185201bc4845",
+            "bb89c76e328904ab5bbbe40d806737dd",
+            "d2836f75ce9c3f53182e6422aeb78bc1",
+            "7e1a026ae9a33606de97c3b39dd829c4",
+            "705c086d43df51f2a4b9fdb336deaca4",
+            "38124a21e7ae83ff12d00733cb6c40b3",
+            "740263034edc3db51e190457d763b5f7"
+          ],
+          "span_check": {
+            "formal_segments_claimed": [],
+            "every_clause_supported": true,
+            "answers_named_scope": true,
+            "explanation": "The source span explicitly states that the beet cultivation area in the Südzucker Group was reduced by 18% in 2025 to 305,800 hectares (from 373,800) to align sugar production with European demand. This directly supports the assertion's claims regarding the company (Südzucker), the year (2025), the percentage reduction (18%), the resulting area (305,800 hectares), and the causal reason (aligning with European demand). The scope focuses on the procurement of sugar beets and adjusting cultivation area to European demand, which is exactly what the source describes. No formal reporting segments are named in the assertion or source other than the 'Südzucker-Gruppe' (Südzucker Group) itself, which is treated as the entity rather than a sub-segment in this context. There are no unsupported clauses or missing premises within the provided span."
+          },
+          "segment_evidence": [],
+          "locator": {
+            "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+            "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+            "page": 45,
+            "published": "2026-05-21"
+          }
+        }
+      ],
+      "status": "supported",
+      "fulfillment": "unknown",
+      "follow_up": null
+    },
+    {
+      "as_of": "2026-05-21",
+      "history": [
+        {
+          "proposal": {
+            "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels despite lower prices, citing efficiency gains.",
+            "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+            "kind": "forecast",
+            "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+            "topic": "downstream",
+            "formal_segment": null
+          },
+          "verdict": {
+            "status": "wrong_citation",
+            "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+            "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+            "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+            "direct": true,
+            "fulfillment": "unknown"
+          },
+          "checked": [
+            "60d13e7ccbcac8ec627a72ab0b123951",
+            "29fb526158a7e82898d29fd6744256a1",
+            "18181e750f0e3816c043c0a8c50bc17d",
+            "c11d0628e8feaa922eb906918d7cc6b1",
+            "3569937ef838a3f0ce39fbc63bf5a9a8",
+            "7359ab6173ec44729c39179d275e667d",
+            "49b63a189f6f47a238353acf5e43ec4a",
+            "c41b5f75766f5d327eaea683038da7da",
+            "4de6574d4f6d6e5990530a0249802f99"
+          ],
+          "span_check": null,
+          "segment_evidence": [],
+          "locator": {
+            "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+            "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+            "page": 65,
+            "published": "2026-05-21"
+          }
+        },
+        {
+          "proposal": {
+            "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels due to efficiency gains and cost reductions.",
+            "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+            "kind": "forecast",
+            "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+            "topic": "downstream",
+            "formal_segment": null
+          },
+          "verdict": {
+            "status": "wrong_citation",
+            "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+            "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+            "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+            "direct": true,
+            "fulfillment": "unknown"
+          },
+          "checked": [
+            "60d13e7ccbcac8ec627a72ab0b123951",
+            "29fb526158a7e82898d29fd6744256a1",
+            "18181e750f0e3816c043c0a8c50bc17d",
+            "c11d0628e8feaa922eb906918d7cc6b1",
+            "3569937ef838a3f0ce39fbc63bf5a9a8",
+            "7359ab6173ec44729c39179d275e667d",
+            "49b63a189f6f47a238353acf5e43ec4a",
+            "c41b5f75766f5d327eaea683038da7da",
+            "4de6574d4f6d6e5990530a0249802f99"
+          ],
+          "span_check": null,
+          "segment_evidence": [],
+          "locator": {
+            "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+            "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+            "page": 65,
+            "published": "2026-05-21"
+          }
+        },
+        {
+          "proposal": {
+            "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels due to efficiency gains and cost reductions.",
+            "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+            "kind": "forecast",
+            "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+            "topic": "downstream",
+            "formal_segment": null
+          },
+          "verdict": {
+            "status": "wrong_citation",
+            "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+            "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+            "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+            "direct": true,
+            "fulfillment": "unknown"
+          },
+          "checked": [
+            "60d13e7ccbcac8ec627a72ab0b123951",
+            "29fb526158a7e82898d29fd6744256a1",
+            "18181e750f0e3816c043c0a8c50bc17d",
+            "c11d0628e8feaa922eb906918d7cc6b1",
+            "3569937ef838a3f0ce39fbc63bf5a9a8",
+            "7359ab6173ec44729c39179d275e667d",
+            "49b63a189f6f47a238353acf5e43ec4a",
+            "c41b5f75766f5d327eaea683038da7da",
+            "4de6574d4f6d6e5990530a0249802f99"
+          ],
+          "span_check": null,
+          "segment_evidence": [],
+          "locator": {
+            "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+            "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+            "page": 65,
+            "published": "2026-05-21"
+          }
+        }
+      ],
+      "status": "wrong_citation",
+      "fulfillment": "unknown",
+      "follow_up": {
+        "id": "c6c17337e2701e09db1eee1876b900a4",
+        "question": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels despite lower prices, citing efficiency gains.",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span."
+      }
+    }
+  ],
+  "alerts": [],
+  "graph": {
+    "nodes": [
+      {
+        "day": "2026-05-21",
+        "id": "36410e8183106ffaa3e887404b632d43",
+        "kind": "Snapshot"
+      },
+      {
+        "topic": "international",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+        "seed_id": "d6b09523204fc011308bf47f8800cca3",
+        "query": "EuGH Entscheidung Mercosur Abkommen Zucker Zollkontingent vorläufige Anwendung 1. Mai 2026",
+        "terms": "EuGH, Mercosur, Abkommen, Zucker, Zollkontingent, vorläufige Anwendung, 1. Mai 2026, EU-Recht, Vereinbarkeit",
+        "direct_evidence_needed": "Offizielle Pressemitteilung des EuGH oder der EU-Kommission, die den Status der vorläufigen Anwendung des Mercosur-Abkommens für Zucker ab Mai 2026 bestätigt oder eine rechtliche Hürde benennt.",
+        "stop_condition": "Eine offizielle Veröffentlichung des EuGH oder der EU-Kommission, die den endgültigen Status der vorläufigen Anwendung des Abkommens für den Zuckermarkt ab Mai 2026 feststellt.",
+        "id": "5f85978850d01802cf532bd68b4d449c",
+        "kind": "Task"
+      },
+      {
+        "topic": "international",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "id": "9c12c8ab3718b18a677befc261c4f4c9",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "id": "96b036e87e61b9036a0061ae7f9f1418",
+        "kind": "Document"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "Brasiliens von 98 €/t auf 0 €/t gesenkt wird und - Paraguay ein neues zollfreies Einfuhrkontingent von jährlich 10.000 t Rohrohrzucker für die Raffination erhält. Voraussetzung für das reguläre Inkrafttreten des Interims- Handelsabkommens wäre die Zustimmung im EU-Parlament mit einfacher Mehrheit gewesen. Da das EU-Parlament in seiner Plenarsitzung am 21. Januar 2026 für einen Antrag zur Über- prüfung der Vereinbarkeit des Mercosur-Abkommens mit den EU-Verträgen gestimmt hat, wird sich diese Zustimmung nun erheblich verzögern. Der Prüfprozess durch den EuGH könnte bis zu zwei Jahre dauern und den endgültigen Ratifizierungsprozess mit den Mercosur-Staaten erheblich verzögern. Ungeachtet der rechtlichen Überprüfung wurde das vorläufige Handelsabkommen am 27. Februar 2026 im EU-Amtsblatt veröffentlicht. Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen,",
+        "id": "970e836dee120e8c4f90151634fd6964",
+        "kind": "Evidence"
+      },
+      {
+        "text": "Die EU-Kommission kündigte Ende März 2026 an, die Handelsregelungen provisorisch ab dem 1. Mai 2026 anzuwenden, ohne die EuGH-Entscheidung abzuwarten.",
+        "citation": "f44b4e95e459d4f38beda3fa2f5658ea",
+        "kind": "Claim",
+        "scope": "EU-Mercosur Interims-Handelsabkommen: Status der vorläufigen Anwendung und rechtliche Vereinbarkeit",
+        "topic": "international",
+        "formal_segment": null,
+        "id": "57a774cc157382b6f8e08e84129c29c2"
+      },
+      {
+        "status": "supported",
+        "reason": "The cited passage explicitly states that the EU Commission announced at the end of March to apply the trade regulations provisionally from May 1, 2026, without waiting for the ECJ decision.",
+        "quote": "Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen, ohne die Entscheidung des EuGH abzuwarten.",
+        "evidence_id": "f44b4e95e459d4f38beda3fa2f5658ea",
+        "direct": true,
+        "fulfillment": "unknown",
+        "id": "42281a6a4ba996b6afc510e4b9d1e605",
+        "kind": "Verdict"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "vorläufige Handelsabkommen am 27. Februar 2026 im EU-Amtsblatt veröffentlicht. Gleichzeitig hat die EU-Kommission Ende März angekündigt, die Handels- regelungen provisorisch ab dem 1. Mai 2026 anwenden zu wollen, ohne die Entscheidung des EuGH abzuwarten. Für diese vorläufige Anwendung des Abkommens gelten die Zollkontingente dann anteilig für den Rest des Jahres. Für den Fall, dass der EuGH fest- stellt, dass das Abkommen nicht mit EU-Recht vereinbar ist, muss es geändert werden, bevor es final in Kraft treten kann. Das EU-Mercosur-Abkommen enthält auch Vereinbarungen zu Ethanolimporten in die EU, die im Kapitel Segment CropEnergies dargestellt werden. 40",
+        "id": "31c6ca449ff6c53a012d79771a5e405c",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 54,
+        "text": "der Umsetzung unter Bedingungen zugestimmt. Die finale Umsetzung bedarf der Zustimmung des Europäischen Rats. Im Gegensatz dazu sieht das am 8. Mai 2025 zwischen dem UK und den USA geschlossene Handelsabkommen ein zollfreies Kontingent (TRQ) in Höhe von 1,4 Mio. m³ US-Ethanol pro Jahr vor. Nach Inkrafttreten am 30. Juni 2025 wurden bis Ende 2025 knapp 700.000 m³ US-Ethanol zollfrei importiert. Da unter diesen Umständen ein profitabler Betrieb nicht möglich ist, hat die CropEnergies-Tochtergesellschaft Ensus UK Ltd., Wilton/UK, die Produktionsanlage im September 2025 bis auf Weiteres stillgelegt. EU- Mercosur-Abkommen Grundlegende Informationen zum EU-Mercosur-Abkommen sind im Kapitel Segment Zucker dargestellt. Die angekündigte provi- 52",
+        "id": "a39a7a800742be4ee1eb2a214e9fea8b",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "für Zucker von 20.070 t auf 100.000 t pro Jahr zu erhöhen. Für 2025 wurde das Abkommen anteilig für sieben Monate angewendet, ab 2026 gilt die volle jährliche zollfreie Importquote von 100.000 t. EU-Mercosur-Abkommen Am 7. Januar 2026 hat der Ministerrat der EU mit qualifizierter Mehrheit dem Mercosur-Abkommen nach 25 Jahren Ver- handlungen zugestimmt. Das Abkommen zwischen der EU und den Mercosur-Staaten (Brasilien, Argentinien, Paraguay und Uru- guay) besteht aus einem Partnerschaftsabkommen und einem Interims-Handelsabkommen; es wurde am 17. Januar 2026 in Paraguay unterzeichnet. Für den Zuckermarkt bedeutet das Abkommen, dass - der Zoll für 180.000 t des bestehenden Einfuhrkontingents Brasiliens von 98 €/t auf 0 €/t gesenkt wird und - Paraguay ein neues zollfreies Einfuhrkontingent von jährlich 10.000 t Rohrohrzucker für die Raffination erhält. Voraussetzung für das",
+        "id": "2b40e85fdec633e2f3e164d6bd0e2ff0",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 206,
+        "text": "Auswirkungen auf die Darstellung des Abschlusses, die überwiegend die Anpassung der Gewinn-und-Verlust-Rechnung an die neue Struktur ohne Auswirkungen auf das Periodenergebnis betreffen. Daneben sind vom Management definierte Leistungskennzahlen (MPMs) im Anhang offenzulegen. Bei der Kapitalflussrechnung werden nur eingeschränkte Anpassungserfordernisse gesehen. Südzucker plant keine vorzeitige Anwendung von IFRS 18. Zukünftig anzuwendende IFRS und IFRIC In der nachfolgenden Übersicht sind die Standards und Inter- pretationen aufgeführt, die ab dem Geschäftsjahr 2026/27 oder später anzuwenden sind, da sie bereits von der EU anerkannt wurden bzw. vom IASB veröffentlicht wurden, aber noch nicht von der EU anerkannt worden sind. Bei den noch nicht von der EU anerkannten Standards wird der erwartete Anwendungszeitpunkt angegeben. Südzucker hat keine der genannten neuen oder geänderten Vorschriften vorzeitig angewendet. Die Angaben zum Inhalt orientieren sich daran, ob",
+        "id": "033502cb53051df47aa54f33b433e9c6",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 205,
+        "text": "ist berechtigt, sich auch an anderen Unternehmungen in jeder zulässigen Form zu beteiligen, solche zu erwerben und alle Geschäfte zu unter- nehmen, die zur Erreichung oder Förderung des Gesellschafts- zwecks unmittelbar oder mittelbar als dienlich erscheinen. Gegenstand des Konzernabschlusses sind die Südzucker AG sowie ihre Tochterunternehmen. Südzucker hat den Konzernabschluss nach den International Financial Reporting Standards (IFRS) des International Accounting Standards Board (IASB), London/UK, unter Berücksichtigung der Interpretationen des IFRS Interpretations Committee (IFRS IC) erstellt, wie sie in der EU anzuwenden sind. Ergänzend wurden die nach § 315e Abs. 1 HGB anzuwendenden handelsrechtlichen Vorschriften berücksichtigt. Sämtliche vom IASB herausgegebenen und zum Zeitpunkt der Aufstellung des vorliegenden Konzernabschlusses geltenden und von der Südzucker AG angewendeten IFRS wurden von der Europäischen Kommission für die Anwendung in der EU übernommen. Der",
+        "id": "8398e64463bf5e589131f52756376a6c",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Wirtschaftsbericht GESCHÄFTSBERICHT 2025/26 Absatzmärkte Zucker Die größten Absatzmärkte für Zucker sind weiterhin die Getränke- industrie (Softdrinks und alkoholische Getränke), gefolgt von den Herstellern von Süß- und Backwaren. Für das ZWJ 2023/24 weist die EU-Kommission eine Zuckernach- frage in Höhe von 12,4 Mio. t aus. Für die ZWJ 2024/25 und 2025/26 wird mit einem Rückgang der Nachfrage auf 12,1 bzw. 12,0 Mio. t. gerechnet. Der Trend zu einer gesunden Ernährung hält weiter an. In diesem Kontext sind das Thema Zuckerreduktion und die damit ver- bundenen Konsumthemen politisch und gesellschaftlich weiter im Fokus. Die Kaufkraft der Konsumenten hat sich aufgrund einer rückläufigen Inflation etwas erholt. Absatzmärkte zuckerhaltige Co-Produkte Die Märkte für zuckerhaltige Co-Produkte waren bis Mitte",
+        "id": "e344dbb1b9b8205a8cf67c2ede6ba5c1",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "und gesellschaftlich weiter im Fokus. Die Kaufkraft der Konsumenten hat sich aufgrund einer rückläufigen Inflation etwas erholt. Absatzmärkte zuckerhaltige Co-Produkte Die Märkte für zuckerhaltige Co-Produkte waren bis Mitte des Geschäftsjahres 2025/26 von niedrigen Getreidepreisen und einem Überangebot an Melasse in der EU geprägt. Trotz einer anschließend positiven Markt- und Preisentwicklung lagen die Erlöse für zuckerhaltige Co-Produkte für das Geschäftsjahr 2025/26 unter dem Vorjahr. Die weltweite Melasseproduktion wird von S&P Global Energy auf 67,6 (65,6) Mio. t geschätzt. Für die EU wird ein Produktionsrück- gang um rund 5 % auf 3,5 (3,7) Mio. t erwartet, was in Verbindung mit geringen Melasse-Endbeständen ab Mitte 2025 zu steigenden Preisen geführt hat. Die Preise für Trockenschnitzel standen bis zum Beginn der Kam- pagne 2025/26 unter Druck. Unter der Annahme weiter fallender Preise",
+        "id": "f3ca2c04193c1fc3d0757145091d1959",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "ab Mitte 2025 zu steigenden Preisen geführt hat. Die Preise für Trockenschnitzel standen bis zum Beginn der Kam- pagne 2025/26 unter Druck. Unter der Annahme weiter fallender Preise wurden in der Folge große Mengen exportiert, was zu einer merklichen Verknappung und ab Dezember 2025 zu deutlich stei- genden Preisen führte. Diese Entwicklung sollte sich für die Men- gen aus der Kampagne 2025/26 fortsetzen. Rechtliche und politische Rahmenbedingungen Die EU hat aus unserer Sicht einen der weltweit am wenigsten regulierten und geschützten Zuckermärkte. Im Gegensatz zu ande- ren großen Erzeugerländern wird die Ausfuhr von Zucker nicht staatlich subventioniert. Sofern die EU-Kommission nicht gegen diese unterschiedlichen Wettbewerbsvoraussetzungen vorgeht, weitere Einfuhrzugeständnisse macht oder die Einfuhr unter Umgehung der Ursprungsregeln zulässt, ist davon auszugehen, dass dies negative Auswirkungen auf Südzucker hat. Einigung",
+        "id": "a118c9e68ea0b305f50151d896fb2915",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 42,
+        "text": "nicht gegen diese unterschiedlichen Wettbewerbsvoraussetzungen vorgeht, weitere Einfuhrzugeständnisse macht oder die Einfuhr unter Umgehung der Ursprungsregeln zulässt, ist davon auszugehen, dass dies negative Auswirkungen auf Südzucker hat. Einigung bei Revision des EU-Ukraine- Assoziierungsabkommens Nachdem Anfang Juni 2025 die Quote für zollfreie Importe aus der Ukraine wieder auf das Niveau des ursprünglichen Assoziierungs- abkommens aus dem Jahr 2014 in Höhe von 20.070 t pro Jahr reduziert wurde, kam es bereits Ende Juni 2025 zu einer Einigung bei den Verhandlungen über die Revision des EU-Ukraine- Assoziierungsabkommens zwischen der EU-Kommission und der Ukraine. Das angepasste Abkommen sieht vor, das jährliche zoll- freie Kontingent für Zucker von 20.070 t auf 100.000 t pro Jahr zu erhöhen. Für 2025 wurde das Abkommen anteilig für sieben Monate angewendet, ab 2026 gilt die volle jährliche",
+        "id": "636b3a4db27b7a42885bd2b1134a4347",
+        "kind": "Evidence"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "15b4d316c06aca587344559903bbb43a",
+        "kind": "Status"
+      },
+      {
+        "topic": "upstream",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+        "seed_id": "51a481381418d0c443519d32b090b3c1",
+        "query": "Südzucker Zuckerrüben Anbaufläche Kampagne 2025/26 Ertrag offizielle Zahlen",
+        "terms": "Südzucker, Zuckerrüben, Anbaufläche, Kampagne 2025/26, Ertrag, 305.800 ha, Reduktion, europäische Nachfrage",
+        "direct_evidence_needed": "Offizielle Unternehmensmitteilung oder Branchenbericht, der die tatsächliche Anbaufläche und den Ertrag der Zuckerrübenkampagne 2025/26 im Vergleich zur Planung bestätigt.",
+        "stop_condition": "Veröffentlichung der finalen Erntedaten durch Südzucker oder eine relevante Branchenorganisation, die die Abweichung von der geplanten Anbaufläche von 305.800 ha quantifiziert.",
+        "id": "dd9d48073d87419a551b8191b3a9948c",
+        "kind": "Task"
+      },
+      {
+        "topic": "upstream",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "id": "10a42e4d0b5a9671d17bc37d16154046",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "Mio. € ergab sich im Geschäftsjahr 2025/26 ein negativer ROCE von –6,8 (–0,4) %. Investitionen in Sachanlagen und immaterielle Vermögenswerte Die Investitionen im Segment Zucker gingen deutlich auf 196 (282) Mio. € zurück. Wesentliche Projekte waren: - die Umsetzung des Wechsels des Primärenergieträgers Kohle zu Gas am Standort Strzelin/Polen, - die Umsetzung des Wechsels des Primärenergieträgers Kohle zu Gas am Standort Zeitz/Deutschland sowie - die Erweiterung der Verladung und des Zuckersilos am Stand- ort Wabern/Deutschland. Rohstoff und Produktion Kampagne 2025 Die Rübenanbaufläche in der Südzucker-Gruppe wurde 2025 um 18 % auf 305.800 (373.800) ha reduziert, um die Zucker- produktion an die europäische Nachfrage anzupassen. Die Rüben- Herbst 2025 ein erstes großes Projekt beendet und am Standort Strzelin Polens größte und modernste Biogasanlage in Betrieb genommen. Die Anlage verfügt",
+        "id": "56d051e33d59ce13f20382f77240408b",
+        "kind": "Evidence"
+      },
+      {
+        "text": "Südzucker reduced its 2025 beet cultivation area by 18% to 305,800 hectares to align production with European demand.",
+        "citation": "51a481381418d0c443519d32b090b3c1",
+        "kind": "Claim",
+        "scope": "Beschaffung von Zuckerrüben: Anpassung der Anbaufläche an die europäische Nachfrage",
+        "topic": "upstream",
+        "formal_segment": null,
+        "id": "9dc5bd76ab3e10c2ecb3a160822e6881"
+      },
+      {
+        "status": "supported",
+        "reason": "The cited passage explicitly states that the beet cultivation area in the Südzucker Group was reduced by 18% to 305,800 hectares in 2025 to align sugar production with European demand.",
+        "quote": "Die Rübenanbaufläche in der Südzucker-Gruppe wurde 2025 um 18 % auf 305.800 (373.800) ha reduziert, um die Zucker- produktion an die europäische Nachfrage anzupassen.",
+        "evidence_id": "51a481381418d0c443519d32b090b3c1",
+        "direct": true,
+        "fulfillment": "unknown",
+        "id": "e3fd42898820d966836b75ff538a8e31",
+        "kind": "Verdict"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 54,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Wirtschaftsbericht GESCHÄFTSBERICHT 2025/26 Rechtliche und politische Rahmenbedingungen Europäischer Green Deal Die EU will mit dem European Green Deal den Übergang zu einer ressourceneffizienten und wettbewerbsfähigen Wirtschaft schaf- fen, die spätestens im Jahr 2050 keine Netto-Treibhausgase mehr ausstößt. Das Europäische Klimagesetz sieht vor, die Netto-Treib- hausgasemissionen bis 2030 um mindestens 55 % gegenüber dem Stand von 1990 zu senken. Mit dem Fit-for-55-Paket wurden zahlreiche Initiativen zur Anpassung der EU-Klima- und -Energiepolitik vom Europäischen Parlament und Rat beschlossen. Als weiteren Schritt auf dem Weg zur Klimaneutralität schlug die EU-Kommission im Juli 2025 die Festlegung eines neuen Klimaziels für 2040 vor. Im Dezember 2025 einigten sich das Europäische Parlament und der Rat darauf, die Netto-Treibhausgasemissionen bis 2040",
+        "id": "2d3e583c204c16f8e2e849a829350a7c",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 184,
+        "text": "knapp 25 Mio. t Zuckerrüben ausschließlich aus europäischer Produktion. Die Rübenbeschaffung erfolgt im Rahmen des Vertragsanbaus direkt von den Landwirten im Umkreis von etwa 80 km um unsere Zuckerfabriken. Es werden jährliche Zuckerrüben-Lieferverträge abgeschlossen, die die Bedingungen für die Rübenlieferungen sowie Rechte und Pflichten beider Vertragspartner festlegen, einschließlich der Rübenpreise in der jeweiligen Zuckerkampagne. Dabei leitet sich der für die Zuckerrüben bezahlte Preis aus dem Erlös vom Endprodukt Zucker ab. So wollen wir gewährleisten, dass die Landwirte am wirtschaftlichen Erfolg des Unternehmens teilhaben. Auch die Zahlungszeitpunkte seitens Südzucker bzw. AGRANA werden im Liefervertrag genau festgelegt. Durch die zentralen Treasury-Teams von Südzucker bzw. AGRANA erfolgen vor den jeweiligen Zahlungsterminen die Planung und Abstimmung der Auszahlungen. Zahlungszeitpunkte werden systemseitig hinterlegt und der finalisierte Zahllauf wird jeweils einen Tag vor Fälligkeit",
+        "id": "116973db70f39dbbf29988dfdbbe50a6",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 184,
+        "text": "bei, potenzielle negative Auswirkungen bzw. Risiken in Bezug auf die Unternehmenskultur (2-G1), auf den Schutz von Hinweisgebern (3-G1) sowie auf Korruption und Bestechung (8-G1) zu verringern bzw. die mit der Förderung einer positiven Unternehmenskultur verbundenen Chancen zu nutzen (1-G1). G1-2 – Management der Beziehungen zu Lieferanten Wir pflegen mit unseren Rübenanbauern eine langfristige Partnerschaft im Rahmen des Vertragsanbaus (7-G1). Rund 26.000 Rübenanbauer in Europa liefern Zuckerrüben direkt an die Südzucker-Gruppe und ihre Tochterunternehmen. Aktive und ehemalige Rübenanbauer aus Deutschland halten gebündelt in der Süddeutschen Zuckerrüben-Verwertungsgenossenschaft (SZVG) Aktien unseres Unternehmens. Als größter Zuckerhersteller Europas verarbeitete die Südzucker- Gruppe im Geschäftsjahr 2025/26 knapp 25 Mio. t Zuckerrüben ausschließlich aus europäischer Produktion. Die Rübenbeschaffung erfolgt im Rahmen des Vertragsanbaus direkt von den Landwirten im Umkreis von etwa 80 km um unsere",
+        "id": "6940767670e4eaebd3b7b3e6460cd01a",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 64,
+        "text": "in ihrer Schätzung vom Dezember 2025 trotz eines deutlichen Rückgangs der Anbaufläche aufgrund überdurch- schnittlicher Erträge einen nur leichten Rückgang der Erzeugung (exkl. Isoglukose) auf 16,0 (16,6) Mio. t Zucker. Dadurch bleiben bei stabilen Beständen die Export- über den Importmengen. Die Anbaufläche für die Zuckerproduktion im ZWJ 2026/27 sollte nach Einschätzung der Analysten gegenüber dem Vorjahr weiter zurück- gehen. Ethanol Der Verbrauch von Kraftstoffethanol und Neutralalkohol soll 2026 in der EU und im UK weiter ansteigen auf rund 11,4 (11,2) Mio. m³; der Nachfrage soll eine Erzeugung von 7,8 (7,8) Mio. m³ gegen- überstehen. Die Nettoimporte sollen sich mit rund 3,8 (3,2) Mio. m³ ebenfalls weiter erhöhen und sich damit auf einem sehr hohen Niveau bewegen. Getreide Die weltweite Getreideernte (ohne Reis) soll im Getreidewirt- schaftsjahr (GWJ; 1.",
+        "id": "eb09bee3f2f18c3c1933d6f38a06164b",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 184,
+        "text": "dritten Jahr Zuckerrüben anzubauen. Da der Anbau mit Ausnahme von Moldau ausschließlich in der Europäischen Union erfolgt, erfüllt er die für die landwirtschaftliche Erzeugung in der EU geltenden Cross-Compliance-Standards. Südzucker beschafft auch Bio-Zuckerrüben. Der Anbau erfolgt nach der EU-Öko-Verordnung und darauf aufbauenden Richtlinien der Bioverbände Bioland, Naturland, Biokreis, Gäa und Demeter. Einen überwiegenden Anteil der Zuckerrüben beziehen wir unter Berücksichtigung der Einhaltung ökologischer und sozialer Nach- haltigkeitskriterien nach dem sogenannten Farm Sustainability Assessment (FSA) der Sustainable Agriculture Initiative Platform (SAI). Südzucker und ihre Zuckerrübenanbauer konnten 2025 mit dem Erhalt des RedCert2 -Zertifikats erneut die Einhaltung der SAI-Nachhaltigkeitskriterien belegen. Im Geschäftsjahr 2025/26 wurde in Deutschland, Belgien, Frankreich und Polen der FSA- Gold-Status – und damit erneut die höchste FSA-Bewertung für Nachhaltigkeit – erreicht. In Moldau wurde bei der erstmaligen",
+        "id": "3d3561609c9eb725ac3ac70641cf9750",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Wirtschaftsbericht GESCHÄFTSBERICHT 2025/26 in Tschechien betraf. Insgesamt betrugen die Wertminderungen im Segment Zucker – inklusive der Wertminderung des Geschäfts- oder Firmenwerts – damit 138 Mio. €. Daneben sind am Standort Buzău auch im Zusammenhang mit der temporären Stilllegung Kosten für einen Sozialplan angefallen. Capital Employed und Return on Capital Employed (ROCE) Der Rückgang des Capital Employed um 467 Mio. € auf 2.589 (3.056) Mio. € resultierte im Wesentlichen aus den im Geschäfts- jahr 2025/26 vorgenommenen Wertminderungen auf Zucker- fabriken. Bei einem operativen Ergebnis von –177 (–13) Mio. € ergab sich im Geschäftsjahr 2025/26 ein negativer ROCE von –6,8 (–0,4) %. Investitionen in Sachanlagen und immaterielle Vermögenswerte Die Investitionen im Segment Zucker gingen deutlich auf",
+        "id": "b23128a90efef891c146c8dcc54a6a08",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "die europäische Nachfrage anzupassen. Die Rüben- Herbst 2025 ein erstes großes Projekt beendet und am Standort Strzelin Polens größte und modernste Biogasanlage in Betrieb genommen. Die Anlage verfügt über vier Fermenter, zwei Nach- fermenter sowie ein fortschrittliches Gärrest-Reinigungssystem. Mit einer Kapazität von 45 MW, einer Biogasproduktion von über 9.000 m³ pro Stunde sowie einem gasgefeuerten Kalkofen (80–150 t CaO/Tag) leistet die Anlage einen wichtigen Beitrag zur Dekarbonisierung. Insgesamt können jährlich rund 60.000 t CO2 eingespart werden. Zudem wird überschüssiges Biomethan über eine neun Kilometer lange Pipeline in das polnische Gasnetz eingespeist. Erzeugung Die Zuckererzeugung einschließlich Rohzuckerraffination im Kon- zern ging auf 3,8 (3,9) Mio. t zurück. Der Flächenrückgang beim Biorübenanbau führte zu einer deutlich geringeren Erzeugung von Biozucker in den Werken Rain und Tulln/Österreich. Die Menge an erzeugten",
+        "id": "fbe119877d3fb1ba3a248fa1dc1eee72",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "auf 3,8 (3,9) Mio. t zurück. Der Flächenrückgang beim Biorübenanbau führte zu einer deutlich geringeren Erzeugung von Biozucker in den Werken Rain und Tulln/Österreich. Die Menge an erzeugten zuckerhaltigen Co-Produkten lag mit 3,2 (3,5) Mio. t unter dem Vorjahresniveau. Absatz Der Zuckerabsatz der Gesellschaften in der EU, aber auch die Exporte aus der EU auf den Weltmarkt sowie der Absatz der in der Republik Moldau und auf dem Westbalkan ansässigen Gesell- schaften, waren rückläufig, was zu einem konsolidierten Zucker- absatz im Konzern von 3,7 (4,4) Mio. t führte. Der Absatz zucker- haltiger Co-Produkte lag im Geschäftsjahr 2025/26 mit rund 3,4 (3,4) Mio. t auf Vorjahresniveau. aussaat begann Mitte März 2025 und war dank günstiger Witte- rung deutlich früher als im Vorjahr abgeschlossen. Das Wachstum der Rüben wurde durch",
+        "id": "7dcd3a091d05de5039ea704d9eaf79bb",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "(3,4) Mio. t auf Vorjahresniveau. aussaat begann Mitte März 2025 und war dank günstiger Witte- rung deutlich früher als im Vorjahr abgeschlossen. Das Wachstum der Rüben wurde durch einen Wechsel zwischen niederschlags- reichem, kühlem und warmem, trockenem Wetter begünstigt. Die positive Ertragsentwicklung in Deutschland war unter anderem auf eine geringere Ausbreitung von SBR-/Stolbur-Symptomen auf- grund erstmals möglicher Anwendung von Insektiziden gegen die Schilf-Glasflügelzikade zurückzuführen. In der Südzucker-Gruppe lagen 2025 sowohl der Rübenertrag als auch der Zuckergehalt mit 81 (78) t/ha bzw. 17,1 (15,6) % über dem langjährigen Durchschnitt. Daraus resultierte ein hoher theo- retischer Zuckerertrag von 13,9 (12,1) t/ha. Insgesamt wurden in 125 (135) Kampagnetagen 24,8 (29,0) Mio. t Rüben verarbeitet. Die Verarbeitung lief meist störungsfrei; nur in Teilen Deutsch- lands und Polens beeinträchtigte Frost die Qualität. In",
+        "id": "03ae07df4f45a4568db3aaa4ec07e0ba",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 45,
+        "text": "wurden in 125 (135) Kampagnetagen 24,8 (29,0) Mio. t Rüben verarbeitet. Die Verarbeitung lief meist störungsfrei; nur in Teilen Deutsch- lands und Polens beeinträchtigte Frost die Qualität. In Rumänien und Moldau führten ungünstige Wetterbedingungen zu Ernte- verzögerungen und einer Unterbrechung der Verarbeitung. Eines der Nachhaltigkeitsziele der Südzucker-Gruppe ist die Etab- lierung einer CO2-neutralen Zuckerproduktion. Dazu haben wir im Anbau und Erzeugung GRAFIK 007 –18,2 % 3,9 Mio. t –14,5 % +15,1 % –2,8 % 2025 2024 305.800 ha Anbaufläche Rübenmenge Zuckerertrag Gesamtzuckererzeugung (einschl. Rohzuckerraffination) 13,9 t/ha 373.800 ha 12,1 t/ha 24,8 Mio. t 3,8 Mio. t 29,0 Mio. t 43",
+        "id": "d363e071789b0ed0a8012a49d81348d1",
+        "kind": "Evidence"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "451bc97582d8e845412c981b16b809b9",
+        "kind": "Status"
+      },
+      {
+        "topic": "downstream",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+        "seed_id": "29fb526158a7e82898d29fd6744256a1",
+        "query": "Südzucker Stärke Segment Preis Neuabschlüsse 2026 Margendruck Überversorgung",
+        "terms": "Südzucker, Stärke, Segment, Preis, Neuabschlüsse, 2026, Margendruck, Überversorgung, Marktanteile, Ergebnisqualität",
+        "direct_evidence_needed": "Offizielle Segmentberichterstattung oder Analystenbericht, der die spezifischen Preiszugeständnisse und deren Auswirkung auf die operative Marge im Stärkesegment für das Jahr 2026 beschreibt.",
+        "stop_condition": "Veröffentlichung der Quartalszahlen oder des Zwischenberichts für das Geschäftsjahr 2026/27, in dem die Auswirkungen der Preisstrategie auf die operative Marge des Stärkesegments offengelegt werden.",
+        "id": "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "kind": "Task"
+      },
+      {
+        "topic": "downstream",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "id": "78ac75522d032033e6e2accce1f24231",
+        "kind": "Exposure"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 58,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Wirtschaftsbericht GESCHÄFTSBERICHT 2025/26 Marktumfeld Absatzmärkte Der Stärkemarkt war im Geschäftsjahr 2025/26 weiterhin von einer strukturellen Überversorgung geprägt. Dauerhafte Überkapazi- täten auf der Angebotsseite führten zu einem signifikanten Preis- verfall, der trotz stabiler Absatzentwicklung zu einem anhaltend hohen Margendruck führte. Im Lebensmittelbereich blieb die Nachfrage insgesamt robust, was die Resilienz der Endmärkte unterstreicht. Gleichzeitig verschärfte sich der Preiswettbewerb deutlich. Für Neuabschlüsse ab 2026 sind weitere Preiszugeständnisse erforderlich, um Marktanteile zu sichern, was kurzfristig die Ergebnisqualität belastet. Flüssige Verzuckerungsprodukte wie Glukosesirup und Isoglukose standen aufgrund ihrer engen Kopplung an den Zuckerpreis weiterhin unter erheblichem Druck. Das Bio-Segment zeigte erste Anzeichen einer Nachfragebelebung, bleibt jedoch margen- und volumenmäßig sensibel. Im Non-Food-Bereich spiegelte sich die anhaltende konjunkturelle Schwäche",
+        "id": "dd78b394938a48c8fece8c618453257f",
+        "kind": "Evidence"
+      },
+      {
+        "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels despite lower prices, citing efficiency gains.",
+        "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+        "kind": "Claim",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "topic": "downstream",
+        "formal_segment": null,
+        "id": "57bbf7f8262243816edd0d4b7ccf4948"
+      },
+      {
+        "status": "wrong_citation",
+        "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+        "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+        "direct": true,
+        "fulfillment": "unknown",
+        "id": "27c9056e1c199a1feb5247afafc26807",
+        "kind": "Verdict"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 65,
+        "text": "zurückzuführen. Aufgrund höherer erzielbarer Ethanolpreise sowie gleichzeitig geringerer Nettorohstoffkosten und Energiekosten erwarten wir für das Geschäftsjahr 2026/27 einen deutlichen Anstieg im opera- tiven EBITDA (2025/26: 71 Mio. €). Segment Stärke Für das Geschäftsjahr 2026/27 prognostiziert das Segment Stärke bei leicht niedrigeren Preisen einen Umsatz auf Vorjahresniveau (2025/26: 911 Mio. €). Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte. Segment Frucht Im Segment Frucht erwarten wir nach einem erneut erfolgreichen Jahr 2025/26 im Geschäftsjahr 2026/27 aufgrund steigender Absatzmengen bei gleichzeitig leicht sinkenden Preisen einen moderaten Umsatzanstieg (2025/26: 1,6 Mrd. €). Derzeit gehen wir davon aus, dass das operative EBITDA aufgrund der sinkenden Preise und der daraus resultierenden geringeren Marge",
+        "id": "a0ac2149f2c715b981dd39fe9d58e8e3",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 74,
+        "text": "damit sämtliche Aktivitäten der Südzucker-Gruppe. In den Segmenten Zucker, CropEnergies, Stärke sowie der Division BENEO unterliegt Südzucker den Regelungen des europäischen Emissionshandelssystems und ist von potenziellen Anpassungen unmittelbar betroffen. Darüber hinaus werden lang- fristig weitere Anpassungsmaßnahmen erforderlich sein. Südzucker arbeitet intensiv an einer standortspezifischen Evaluie- rung unterschiedlicher Technologien. Die Risiken aus der techni- schen Umsetzung der einzelnen Maßnahmen werden in den kom- menden Jahren steigen; gleichzeitig werden der entsprechende Investitionsbedarf und die damit verbundenen finanziellen Risiken zunehmen. Neben diesen Risiken ergeben sich mittel- und lang- fristig auch Chancen – etwa durch potenziell höhere Erträge in geeigneten Anbauregionen, die Steigerung der Resilienz in land- wirtschaftlichen Wertschöpfungsketten sowie durch eine Dekarbonisierung von Produktion und die Bereitstellung von bio- massebasierten Produkten, die die Wettbewerbsfähigkeit im Umfeld verschärfter Klimaschutzanforderungen stärken kann. Strukturelle",
+        "id": "d1d31e395093fe33e5b4a2888174eae7",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 58,
+        "text": "zurück. Zu diesem Umsatzrückgang trugen leicht rückläufige Preise und insgesamt rückläufige Absatzmengen bei den Haupt- produkten bei; die Absatzmengen bei Nebenprodukten konnten Geschäftsentwicklung im Segment Stärke 2025/26 2024/25 +/– in % Umsatzerlöse Mio. € 911 955 –4,6 Operatives EBITDA Mio. € 69 83 –16,9 Operative EBITDA-Marge % 7,6 8,7 Abschreibungen Mio. € –48 –47 2,1 Operatives Ergebnis Mio. € 21 36 –41,7 Operative Marge % 2,3 3,8 Ergebnis aus Restrukturierung und Sondereinflüssen Mio. € 1 –6 – Ergebnis aus at Equity einbezogenen Unternehmen Mio. € –4 7 – Ergebnis der Betriebstätigkeit Mio. € 18 37 –51,4 Investitionen in Sachanlagen und immaterielle Vermögenswerte Mio. € 18 33 –45,5 Investitionen in Finanzanlagen und Akquisitionen Mio. € 2 0 – Investitionen gesamt Mio. € 20 33 –39,4 Anteile an at Equity",
+        "id": "d12241fddbf1734a81230716fc423184",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 5,
+        "text": "SÜDZUCKER AG GESCHÄFTSBERICHT 2025/26 3 Segment Zucker S. 38 Segment Spezialitäten S. 44 Segment CropEnergies S. 49 Segment Stärke S. 55 Segment Frucht S. 58 2.786 [3.876] Mio. € Umsatz –177 [–13] Mio. € Operatives Ergebnis 2.216 [2.275] Mio. € Umsatz 177 [203] Mio. € Operatives Ergebnis 793 [959] Mio. € Umsatz 37 [22] Mio. € Operatives Ergebnis 911 [955] Mio. € Umsatz 21 [36] Mio. € Operatives Ergebnis 1.646 [1.629] Mio. € Umsatz 105 [102] Mio. € Operatives Ergebnis Prognose 2026/27 S. 62 8,0 bis 8,4 Mrd. € Konzernumsatz erwartet. 480 bis 680 Mio. € Operatives Konzern-EBITDA erwartet. Stabiles Capital Employed und deutlicher Anstieg des ROCE erwartet. Rund 90 Produktionsstandorte in 31 Ländern 8.352 [9.694] Mio. € Umsatz 535 [723] Mio. € Operatives EBITDA 163 [350] Mio.",
+        "id": "6385a31cec928939f900f36208c0d2f7",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 201,
+        "text": "Finanzanlagen und Akquisitionen 1 5 –80,0 Investitionen gesamt 83 89 –6,7 Materialaufwand ohne Sondereinflüsse 611 788 –22,5 Anteile an at Equity einbezogenen Unternehmen 0 0 – Working Capital 99 113 –12,4 Capital Employed 507 479 5,8 Return on Capital Employed 7,3 % 4,6 % Mitarbeitende 523 537 –2,6 Mio. € 2025/26 2024/25 +/– in % Segment Stärke Umsatzerlöse (brutto) 994 1.027 –3,2 Konsolidierung –83 –72 15,3 Umsatzerlöse 911 955 –4,6 Operatives EBITDA 69 83 –16,9 Operative EBITDA-Marge 7,6 % 8,7 % Abschreibungen –48 –47 2,1 Operatives Ergebnis 21 36 –41,7 Operative Marge 2,3 % 3,8 % Ergebnis aus Restrukturierung und Sondereinflüssen 1 –6 – Ergebnis aus at Equity einbezogenen Unternehmen –4 7 – Ergebnis der Betriebstätigkeit 18 37 –51,4 Investitionen in Sachanlagen und immaterielle Vermögenswerte 18 33 –45,5",
+        "id": "84ded2cc259ff9e971e6effc68cd416f",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 65,
+        "text": "01 AN UNSERE AKTIONÄRE 02 ZUSAMMENGEFASSTER LAGEBERICHT 03 KONZERNABSCHLUSS 04 WEITERE INFORMATIONEN SÜDZUCKER AG Prognosebericht GESCHÄFTSBERICHT 2025/26 Segment Zucker Im Geschäftsjahr 2026/27 gehen wir aufgrund rückläufiger Rüben- anbauflächen von sinkenden Zuckererzeugungs- und -absatz- mengen aus. Die bereits 2024/25 gesunkenen Preise haben sich aufgrund der größer als erwarteten Ernte im Laufe des Geschäfts- jahres 2025/26 nicht erholt. Auch im laufenden Geschäftsjahr 2026/27 erwarten wir keine deutliche Preiserholung. Insgesamt gehen wir deshalb von einem deutlichen Umsatzrückgang aus (2025/26: 2,8 Mrd. €). Die Prognose für das operative EBITDA liegt in einer Bandbreite zwischen –60 und 40 Mio. € (2025/26: –17 Mio. €). Die weiterhin niedrigen Zuckerpreise wirken trotz sinkender Herstellungskosten weiterhin belastend auf die Ergebnisentwicklung. Segment Spezialitäten Im Geschäftsjahr 2026/27 erwarten wir im Segment Spezialitäten insgesamt leicht steigende Absatzmengen sowie moderat",
+        "id": "09b1f5c15259808205da220bf8a79958",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 65,
+        "text": "weiterhin niedrigen Zuckerpreise wirken trotz sinkender Herstellungskosten weiterhin belastend auf die Ergebnisentwicklung. Segment Spezialitäten Im Geschäftsjahr 2026/27 erwarten wir im Segment Spezialitäten insgesamt leicht steigende Absatzmengen sowie moderat steigende Preise. Vor diesem Hintergrund sehen wir einen moderaten Umsatzanstieg (2025/26: 2,2 Mrd. €). Infolge des steigenden Umsatzes und gleichzeitig moderat steigen- der Margen erwarten wir für das Geschäftsjahr 2026/27 eine moderate Steigerung des operativen EBITDA (2025/26: 266 Mio. €). Segment CropEnergies Für das Geschäftsjahr 2026/27 gehen wir im Segment CropEnergies von einem deutlichen Umsatzrückgang aus (2025/26: 793 Mio. €). Dieser Rückgang ist im Wesentlichen auf den Betriebsstillstand der Anlage in Wilton/UK zurückzuführen. Aufgrund höherer erzielbarer Ethanolpreise sowie gleichzeitig geringerer Nettorohstoffkosten und Energiekosten erwarten wir für das Geschäftsjahr 2026/27 einen deutlichen Anstieg im opera- tiven EBITDA (2025/26: 71 Mio. €).",
+        "id": "f46b33363535060fce387e65fab1725f",
+        "kind": "Evidence"
+      },
+      {
+        "source": ".cache/p0/verified/597193d6e3ff8ba3/597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e.pdf",
+        "digest": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+        "published": "2026-05-21",
+        "page": 65,
+        "text": "sinkenden Preisen einen moderaten Umsatzanstieg (2025/26: 1,6 Mrd. €). Derzeit gehen wir davon aus, dass das operative EBITDA aufgrund der sinkenden Preise und der daraus resultierenden geringeren Marge leicht zurückgehen wird (2025/26: 146 Mio. €). 63",
+        "id": "c1ec2edbd99f5a8cd2dbf32c60ec3dc8",
+        "kind": "Evidence"
+      },
+      {
+        "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels due to efficiency gains and cost reductions.",
+        "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+        "kind": "Claim",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "topic": "downstream",
+        "formal_segment": null,
+        "id": "83e80c8fbdff261b744d58981af45885"
+      },
+      {
+        "status": "wrong_citation",
+        "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+        "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+        "direct": true,
+        "fulfillment": "unknown",
+        "id": "26df3fdeb66d587cabdfdf088e6210f0",
+        "kind": "Verdict"
+      },
+      {
+        "text": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels due to efficiency gains and cost reductions.",
+        "citation": "60d13e7ccbcac8ec627a72ab0b123951",
+        "kind": "Claim",
+        "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+        "topic": "downstream",
+        "formal_segment": null,
+        "id": "67b4b63c46a44f2729dbee08923231df"
+      },
+      {
+        "status": "wrong_citation",
+        "reason": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "quote": "Wir gehen davon aus, dass das operative EBITDA aufgrund leicht sinkender Rohstoffkosten sowie weiterer Effizienzsteigerungen und Kostensenkungen leicht über dem Vor- jahresniveau (2025/26: 69 Mio. €) liegen sollte.",
+        "evidence_id": "60d13e7ccbcac8ec627a72ab0b123951",
+        "direct": true,
+        "fulfillment": "unknown",
+        "id": "2377f0b5b2a5907a22b6c85040a09360",
+        "kind": "Verdict"
+      },
+      {
+        "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+        "missing": "Claim numbers or periods lack an exact textual match in the decisive span.",
+        "id": "a4065076301cd408c415a538310a3091",
+        "kind": "FollowUp"
+      },
+      {
+        "state": "unknown",
+        "fulfillment": "unknown",
+        "id": "3cdcb8820b33120ecf94af0696b7a379",
+        "kind": "Status"
+      }
+    ],
+    "edges": [
+      [
+        "033502cb53051df47aa54f33b433e9c6",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "03ae07df4f45a4568db3aaa4ec07e0ba",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "09b1f5c15259808205da220bf8a79958",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "116973db70f39dbbf29988dfdbbe50a6",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "09b1f5c15259808205da220bf8a79958"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "6385a31cec928939f900f36208c0d2f7"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "84ded2cc259ff9e971e6effc68cd416f"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "c1ec2edbd99f5a8cd2dbf32c60ec3dc8"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "d12241fddbf1734a81230716fc423184"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "d1d31e395093fe33e5b4a2888174eae7"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "dd78b394938a48c8fece8c618453257f"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "CHECKED",
+        "f46b33363535060fce387e65fab1725f"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "DECIDED_ON",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "2377f0b5b2a5907a22b6c85040a09360",
+        "REQUIRES",
+        "a4065076301cd408c415a538310a3091"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "09b1f5c15259808205da220bf8a79958"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "6385a31cec928939f900f36208c0d2f7"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "84ded2cc259ff9e971e6effc68cd416f"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "c1ec2edbd99f5a8cd2dbf32c60ec3dc8"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "d12241fddbf1734a81230716fc423184"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "d1d31e395093fe33e5b4a2888174eae7"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "dd78b394938a48c8fece8c618453257f"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "CHECKED",
+        "f46b33363535060fce387e65fab1725f"
+      ],
+      [
+        "26df3fdeb66d587cabdfdf088e6210f0",
+        "DECIDED_ON",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "09b1f5c15259808205da220bf8a79958"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "6385a31cec928939f900f36208c0d2f7"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "84ded2cc259ff9e971e6effc68cd416f"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "c1ec2edbd99f5a8cd2dbf32c60ec3dc8"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "d12241fddbf1734a81230716fc423184"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "d1d31e395093fe33e5b4a2888174eae7"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "dd78b394938a48c8fece8c618453257f"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "CHECKED",
+        "f46b33363535060fce387e65fab1725f"
+      ],
+      [
+        "27c9056e1c199a1feb5247afafc26807",
+        "DECIDED_ON",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "2b40e85fdec633e2f3e164d6bd0e2ff0",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "2d3e583c204c16f8e2e849a829350a7c",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "31c6ca449ff6c53a012d79771a5e405c",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "36410e8183106ffaa3e887404b632d43",
+        "TRACKS",
+        "5f85978850d01802cf532bd68b4d449c"
+      ],
+      [
+        "36410e8183106ffaa3e887404b632d43",
+        "TRACKS",
+        "dd9d48073d87419a551b8191b3a9948c"
+      ],
+      [
+        "36410e8183106ffaa3e887404b632d43",
+        "TRACKS",
+        "e9ffcc28d4a59652a1e3e09efb48b6de"
+      ],
+      [
+        "3d3561609c9eb725ac3ac70641cf9750",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "033502cb53051df47aa54f33b433e9c6"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "2b40e85fdec633e2f3e164d6bd0e2ff0"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "31c6ca449ff6c53a012d79771a5e405c"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "636b3a4db27b7a42885bd2b1134a4347"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "8398e64463bf5e589131f52756376a6c"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "970e836dee120e8c4f90151634fd6964"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "a118c9e68ea0b305f50151d896fb2915"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "a39a7a800742be4ee1eb2a214e9fea8b"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "e344dbb1b9b8205a8cf67c2ede6ba5c1"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "CHECKED",
+        "f3ca2c04193c1fc3d0757145091d1959"
+      ],
+      [
+        "42281a6a4ba996b6afc510e4b9d1e605",
+        "DECIDED_ON",
+        "31c6ca449ff6c53a012d79771a5e405c"
+      ],
+      [
+        "56d051e33d59ce13f20382f77240408b",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "57a774cc157382b6f8e08e84129c29c2",
+        "CITES",
+        "31c6ca449ff6c53a012d79771a5e405c"
+      ],
+      [
+        "57a774cc157382b6f8e08e84129c29c2",
+        "JUDGED_BY",
+        "42281a6a4ba996b6afc510e4b9d1e605"
+      ],
+      [
+        "57bbf7f8262243816edd0d4b7ccf4948",
+        "CITES",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "57bbf7f8262243816edd0d4b7ccf4948",
+        "JUDGED_BY",
+        "27c9056e1c199a1feb5247afafc26807"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "EXAMINES",
+        "57a774cc157382b6f8e08e84129c29c2"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "HAS_STATUS",
+        "15b4d316c06aca587344559903bbb43a"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "MONITORS",
+        "9c12c8ab3718b18a677befc261c4f4c9"
+      ],
+      [
+        "5f85978850d01802cf532bd68b4d449c",
+        "SEEDED_BY",
+        "970e836dee120e8c4f90151634fd6964"
+      ],
+      [
+        "636b3a4db27b7a42885bd2b1134a4347",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "6385a31cec928939f900f36208c0d2f7",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "67b4b63c46a44f2729dbee08923231df",
+        "CITES",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "67b4b63c46a44f2729dbee08923231df",
+        "JUDGED_BY",
+        "2377f0b5b2a5907a22b6c85040a09360"
+      ],
+      [
+        "67b4b63c46a44f2729dbee08923231df",
+        "REVISES",
+        "83e80c8fbdff261b744d58981af45885"
+      ],
+      [
+        "6940767670e4eaebd3b7b3e6460cd01a",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "7dcd3a091d05de5039ea704d9eaf79bb",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "8398e64463bf5e589131f52756376a6c",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "83e80c8fbdff261b744d58981af45885",
+        "CITES",
+        "a0ac2149f2c715b981dd39fe9d58e8e3"
+      ],
+      [
+        "83e80c8fbdff261b744d58981af45885",
+        "JUDGED_BY",
+        "26df3fdeb66d587cabdfdf088e6210f0"
+      ],
+      [
+        "83e80c8fbdff261b744d58981af45885",
+        "REVISES",
+        "57bbf7f8262243816edd0d4b7ccf4948"
+      ],
+      [
+        "84ded2cc259ff9e971e6effc68cd416f",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "970e836dee120e8c4f90151634fd6964",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "9dc5bd76ab3e10c2ecb3a160822e6881",
+        "CITES",
+        "56d051e33d59ce13f20382f77240408b"
+      ],
+      [
+        "9dc5bd76ab3e10c2ecb3a160822e6881",
+        "JUDGED_BY",
+        "e3fd42898820d966836b75ff538a8e31"
+      ],
+      [
+        "a0ac2149f2c715b981dd39fe9d58e8e3",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "a118c9e68ea0b305f50151d896fb2915",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "a39a7a800742be4ee1eb2a214e9fea8b",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "b23128a90efef891c146c8dcc54a6a08",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "c1ec2edbd99f5a8cd2dbf32c60ec3dc8",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "d12241fddbf1734a81230716fc423184",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "d1d31e395093fe33e5b4a2888174eae7",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "d363e071789b0ed0a8012a49d81348d1",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "dd78b394938a48c8fece8c618453257f",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "EXAMINES",
+        "9dc5bd76ab3e10c2ecb3a160822e6881"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "HAS_STATUS",
+        "451bc97582d8e845412c981b16b809b9"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "MONITORS",
+        "10a42e4d0b5a9671d17bc37d16154046"
+      ],
+      [
+        "dd9d48073d87419a551b8191b3a9948c",
+        "SEEDED_BY",
+        "56d051e33d59ce13f20382f77240408b"
+      ],
+      [
+        "e344dbb1b9b8205a8cf67c2ede6ba5c1",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "03ae07df4f45a4568db3aaa4ec07e0ba"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "116973db70f39dbbf29988dfdbbe50a6"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "2d3e583c204c16f8e2e849a829350a7c"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "3d3561609c9eb725ac3ac70641cf9750"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "56d051e33d59ce13f20382f77240408b"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "6940767670e4eaebd3b7b3e6460cd01a"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "7dcd3a091d05de5039ea704d9eaf79bb"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "b23128a90efef891c146c8dcc54a6a08"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "d363e071789b0ed0a8012a49d81348d1"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "eb09bee3f2f18c3c1933d6f38a06164b"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "CHECKED",
+        "fbe119877d3fb1ba3a248fa1dc1eee72"
+      ],
+      [
+        "e3fd42898820d966836b75ff538a8e31",
+        "DECIDED_ON",
+        "56d051e33d59ce13f20382f77240408b"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "EXAMINES",
+        "57bbf7f8262243816edd0d4b7ccf4948"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "EXAMINES",
+        "67b4b63c46a44f2729dbee08923231df"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "EXAMINES",
+        "83e80c8fbdff261b744d58981af45885"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "HAS_STATUS",
+        "3cdcb8820b33120ecf94af0696b7a379"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "MONITORS",
+        "78ac75522d032033e6e2accce1f24231"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "OPEN_QUESTION",
+        "a4065076301cd408c415a538310a3091"
+      ],
+      [
+        "e9ffcc28d4a59652a1e3e09efb48b6de",
+        "SEEDED_BY",
+        "dd78b394938a48c8fece8c618453257f"
+      ],
+      [
+        "eb09bee3f2f18c3c1933d6f38a06164b",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "f3ca2c04193c1fc3d0757145091d1959",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "f46b33363535060fce387e65fab1725f",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ],
+      [
+        "fbe119877d3fb1ba3a248fa1dc1eee72",
+        "FROM",
+        "96b036e87e61b9036a0061ae7f9f1418"
+      ]
+    ]
+  },
+  "tracking_tasks": [
+    {
+      "id": "c6c17337e2701e09db1eee1876b900a4",
+      "question": "Südzucker forecasts 2026/27 Stärke EBITDA slightly above 2025/26 levels despite lower prices, citing efficiency gains.",
+      "scope": "Stärkemarkt: Strukturelle Überversorgung und Preisdruck bei Neuabschlüssen",
+      "missing": "Claim numbers or periods lack an exact textual match in the decisive span."
+    }
+  ]
+}

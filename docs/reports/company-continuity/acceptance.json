@@ -1,0 +1,512 @@
+{
+  "id": "de-mannheim-hrb-42",
+  "name": "Südzucker AG",
+  "as_of": "2026-11-08",
+  "filings": [
+    {
+      "id": "suedzucker-2024-25",
+      "issuer": {
+        "status": "confirmed",
+        "company_id": "de-mannheim-hrb-42",
+        "name": "SÜDZUCKER AG",
+        "registration": {
+          "page": 187,
+          "quote": "Die Südzucker AG hat ihren Sitz in der Maximilianstraße 10 in 68165 Mannheim/Deutschland; die Gesellschaft in der Rechts- form einer Aktiengesellschaft nach deutschem Aktienrecht ist als Kapitalgesellschaft im Handelsregister unter HRB-Nr. 42 beim Amtsgericht Mannheim eingetragen"
+        },
+        "listings": [
+          {
+            "symbol": "SZU",
+            "qualified": "SZUG.DE",
+            "isin": "DE0007297004",
+            "page": 18,
+            "quote": "Börsendaten der Südzucker-Aktie\nISIN DE 000 729 700 4\nWKN 729 700\nHandelsplätze\nXetra®\n, Frankfurt, Stuttgart, München, Hamburg,\nBerlin, Düsseldorf, Hannover (Freiverkehr)\nBörsenkürzel SZU\nTickersymbol Reuters SZUG.DE (Xetra®\n), SZUG.F (Frankfurt)\nTickersymbol Bloomberg SZU GY (Xetra®\n), SZU GF (Frankfurt)"
+          }
+        ]
+      },
+      "company": "SÜDZUCKER AG",
+      "period": "FY 2024/25",
+      "period_end": "2025-02-28",
+      "published": "2025-05-15",
+      "sha256": "5f948070a72ffaa11b8024a91a6447e1a59fff0d5b8e1b7c24fa3de4c05e64fe",
+      "original": "https://www.suedzuckergroup.com/sites/default/files/2025-05/Suedzucker_Geschaeftsbericht_2024%E2%80%9325.pdf",
+      "cutoff": "2025-05-15"
+    },
+    {
+      "id": "suedzucker-2025-26",
+      "issuer": {
+        "status": "confirmed",
+        "company_id": "de-mannheim-hrb-42",
+        "name": "SÜDZUCKER AG",
+        "registration": {
+          "page": 205,
+          "quote": "Die Südzucker AG hat ihren Sitz in der Maximilianstraße 10 in 68165 Mannheim/Deutschland; die Gesellschaft in der Rechts- form einer Aktiengesellschaft nach deutschem Aktienrecht ist als Kapitalgesellschaft im Handelsregister unter HRB-Nr. 42 beim Amtsgericht Mannheim eingetragen"
+        },
+        "listings": [
+          {
+            "symbol": "SZU",
+            "qualified": "SZUG.DE",
+            "isin": "DE0007297004",
+            "page": 21,
+            "quote": "Börsendaten der Südzucker-Aktie\nISIN DE 000 729 700 4\nWKN 729 700\nHandelsplätze\nXetra®\n, Frankfurt, Stuttgart, München, Hamburg,\nBerlin, Düsseldorf, Hannover (Freiverkehr)\nBörsenkürzel SZU\nTickersymbol Reuters SZUG.DE (Xetra®\n), SZUG.F (Frankfurt)\nTickersymbol Bloomberg SZU GY (Xetra®\n), SZU GF (Frankfurt)"
+          }
+        ]
+      },
+      "company": "Südzucker AG",
+      "period": "FY 2025/26",
+      "period_end": "2026-02-28",
+      "published": "2026-05-21",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "original": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "cutoff": "2026-11-08"
+    }
+  ],
+  "comparisons": [
+    {
+      "from": "suedzucker-2024-25",
+      "to": "suedzucker-2025-26",
+      "rows": [
+        {
+          "segment": "Zucker",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 3876,
+          "current": 2786,
+          "comparative": 3876,
+          "change": -1090,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Zucker 3.876 4.162 –6,9",
+            "Zucker 2.786 3.876 –28,1"
+          ]
+        },
+        {
+          "segment": "Spezialitäten",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 2275,
+          "current": 2216,
+          "comparative": 2275,
+          "change": -59,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Spezialitäten 2.275 2.414 –5,8",
+            "Spezialitäten 2.216 2.275 –2,6"
+          ]
+        },
+        {
+          "segment": "CropEnergies",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 959,
+          "current": 793,
+          "comparative": 959,
+          "change": -166,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "CropEnergies 959 1.091 –12,1",
+            "CropEnergies 793 959 –17,3"
+          ]
+        },
+        {
+          "segment": "Stärke",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 955,
+          "current": 911,
+          "comparative": 955,
+          "change": -44,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Stärke 955 1.056 –9,6",
+            "Stärke 911 955 –4,6"
+          ]
+        },
+        {
+          "segment": "Frucht",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 1629,
+          "current": 1646,
+          "comparative": 1629,
+          "change": 17,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Frucht 1.629 1.566 4,0",
+            "Frucht 1.646 1.629 1,0"
+          ]
+        },
+        {
+          "segment": "Konzern",
+          "metric": "Umsatzerlöse",
+          "unit": "Mio. €",
+          "prior": 9694,
+          "current": 8352,
+          "comparative": 9694,
+          "change": -1342,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Konzern 9.694 10.289 –5,8",
+            "Konzern 8.352 9.694 –13,8"
+          ]
+        },
+        {
+          "segment": "Zucker",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": -13,
+          "current": -177,
+          "comparative": -13,
+          "change": -164,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Zucker –13 558 –",
+            "Zucker –177 –13 >100"
+          ]
+        },
+        {
+          "segment": "Spezialitäten",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": 203,
+          "current": 177,
+          "comparative": 203,
+          "change": -26,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Spezialitäten 203 196 3,6",
+            "Spezialitäten 177 203 –12,8"
+          ]
+        },
+        {
+          "segment": "CropEnergies",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": 22,
+          "current": 37,
+          "comparative": 22,
+          "change": 15,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "CropEnergies 22 60 –63,3",
+            "CropEnergies 37 22 68,2"
+          ]
+        },
+        {
+          "segment": "Stärke",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": 36,
+          "current": 21,
+          "comparative": 36,
+          "change": -15,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Stärke 36 48 –25,0",
+            "Stärke 21 36 –41,7"
+          ]
+        },
+        {
+          "segment": "Frucht",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": 102,
+          "current": 105,
+          "comparative": 102,
+          "change": 3,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Frucht 102 85 20,0",
+            "Frucht 105 102 2,9"
+          ]
+        },
+        {
+          "segment": "Konzern",
+          "metric": "Operatives Ergebnis",
+          "unit": "Mio. €",
+          "prior": 350,
+          "current": 163,
+          "comparative": 350,
+          "change": -187,
+          "status": "comparable",
+          "pages": [
+            3,
+            6
+          ],
+          "quotes": [
+            "Konzern 350 947 –63,0",
+            "Konzern 163 350 –53,4"
+          ]
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "87e22da344fff329c58097d7",
+      "question": "Did Zucker report an operating result inside the disclosed 2025/26 range?",
+      "segment": "Zucker",
+      "metric": "Operatives Ergebnis",
+      "unit": "Mio. €",
+      "period": "2025/26",
+      "page": 58,
+      "range": [
+        -200.0,
+        -100.0
+      ],
+      "quote": "Das operative Ergebnis im Segment Zucker erwarten wir in einer Bandbreite zwischen –100 und –200 Mio. €",
+      "origin": "suedzucker-2024-25",
+      "kind": "disclosed_outlook",
+      "answer": {
+        "value": -177,
+        "page": 6,
+        "report": "suedzucker-2025-26",
+        "quote": "Zucker –177 –13 >100",
+        "published": "2026-05-21"
+      },
+      "status": "within_range",
+      "fulfillment": "unknown"
+    },
+    {
+      "id": "5b4c340fbda95a33828fa38d5bc8b754",
+      "origin": "suedzucker-2025-26",
+      "kind": "existing_task",
+      "question": "Hat der EuGH eine Entscheidung zur Vereinbarkeit des EU-Mercosur-Abkommens mit dem EU-Recht getroffen, und wurde die vorläufige Anwendung der zollfreien Kontingente für Zucker ab dem 1. Mai 2026 offiziell bestätigt oder zurückgezogen?",
+      "status": "unknown",
+      "fulfillment": "unknown",
+      "required": "Offizielle Pressemitteilung des EuGH oder der EU-Kommission, die den Status der vorläufigen Anwendung des Mercosur-Abkommens für Zucker ab Mai 2026 bestätigt oder eine rechtliche Hürde benennt.",
+      "cutoff": "2026-11-08",
+      "trail": [
+        {
+          "published": "2026-10-08",
+          "page": 33,
+          "digest": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+          "verdict": "checked_only",
+          "quote": "33 Notes to the interim consolidated financial statements | INTERIM CONSOLIDATED FINANCIAL STATEMENTS SÜDZUCKER AG HALF-YEAR FINANCIAL REPORT Q2 2026/27 (5) Trade receivables and other assets Trade receivables declined to € 824 (935) million despite stable revenues, partly due to",
+          "reviewed": "2026-10-08",
+          "path": [
+            "5f85978850d01802cf532bd68b4d449c",
+            "ae844ca89690f41a46aff9c0d6401f91",
+            "bc117cf867501d48f342e996a5b30794",
+            "f09ca0e5dad5e8061eceb4a48e53d12a",
+            "9e7573aea50592b5c3659b9280d63faa"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1e5bf9819d41b7d319f230d72f539502",
+      "origin": "suedzucker-2025-26",
+      "kind": "existing_task",
+      "question": "Wie hat sich die tatsächliche Zuckerrübenanbaufläche in der Südzucker-Gruppe im Vergleich zur geplanten Reduktion um 18 % auf 305.800 ha entwickelt, und welche offiziellen Ertragszahlen wurden für die Kampagne 2025/26 veröffentlicht?",
+      "status": "unknown",
+      "fulfillment": "unknown",
+      "required": "Offizielle Unternehmensmitteilung oder Branchenbericht, der die tatsächliche Anbaufläche und den Ertrag der Zuckerrübenkampagne 2025/26 im Vergleich zur Planung bestätigt.",
+      "cutoff": "2026-11-08",
+      "trail": [
+        {
+          "published": "2026-07-09",
+          "page": 11,
+          "digest": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+          "verdict": "checked_only",
+          "quote": "infestation. With the emergency approval, it seems likely that the cicada infestation in SBR-impacted regions can also be controlled in 2026. Overall, sugar beet development was good to very good across most regions through early June. The yields, however, are largely determined ",
+          "reviewed": "2026-10-08",
+          "path": [
+            "dd9d48073d87419a551b8191b3a9948c",
+            "121dfbc4a24fe7b06fc594a08d779627",
+            "de7fe4f09d3adbbb58cebc49feceab22",
+            "6081712294f91438e72b75462c4f828f",
+            "791b9a3048781170ead196894a919b97"
+          ]
+        },
+        {
+          "published": "2026-10-08",
+          "page": 11,
+          "digest": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+          "verdict": "checked_only",
+          "quote": "and consumption increasing (+1.6 million tonnes). The world market price for white sugar was 345 €/t at the beginning of fiscal 2026/27 and, following significant fluctua- tions, recovered to around 450 €/t by mid-September. EU sugar market In its August 2026 forecast for the 202",
+          "reviewed": "2026-10-08",
+          "path": [
+            "dd9d48073d87419a551b8191b3a9948c",
+            "121dfbc4a24fe7b06fc594a08d779627",
+            "de7fe4f09d3adbbb58cebc49feceab22",
+            "1f4f089d409b3ea8e5bcf816ec16e86b",
+            "9e7573aea50592b5c3659b9280d63faa"
+          ]
+        },
+        {
+          "published": "2026-10-08",
+          "page": 12,
+          "digest": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+          "verdict": "checked_only",
+          "quote": "consequently, a substantial decline in expected beet yields. Southern Germany and France were particularly affected by extreme weather conditions, resulting in significant drought damage. The yield outlook is also being adversely affected by SBR and Stolbur in southern Germany an",
+          "reviewed": "2026-10-08",
+          "path": [
+            "dd9d48073d87419a551b8191b3a9948c",
+            "121dfbc4a24fe7b06fc594a08d779627",
+            "de7fe4f09d3adbbb58cebc49feceab22",
+            "bec160cc6515ebab01e6ef8fceaaa128",
+            "9e7573aea50592b5c3659b9280d63faa"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1a221420bd26223b5a21cdee8c5c377c",
+      "origin": "suedzucker-2025-26",
+      "kind": "existing_task",
+      "question": "Welche konkreten Preisveränderungen und Margenanpassungen wurden im Segment Stärke für Neuabschlüsse ab 2026 im Vergleich zum Geschäftsjahr 2025/26 dokumentiert, um Marktanteile in der strukturellen Überversorgung zu sichern?",
+      "status": "unknown",
+      "fulfillment": "unknown",
+      "required": "Offizielle Segmentberichterstattung oder Analystenbericht, der die spezifischen Preiszugeständnisse und deren Auswirkung auf die operative Marge im Stärkesegment für das Jahr 2026 beschreibt.",
+      "cutoff": "2026-11-08",
+      "trail": [
+        {
+          "published": "2026-07-09",
+          "page": 2,
+          "digest": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+          "verdict": "wrong_citation",
+          "quote": "Starch 20 15 33.3",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "d79f0c7ca15f8c5303a64f8bab034d9a",
+            "791b9a3048781170ead196894a919b97"
+          ]
+        },
+        {
+          "published": "2026-07-09",
+          "page": 2,
+          "digest": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+          "verdict": "checked_only",
+          "quote": "20 15 33.3 Fruit 44 45 –2.2 Group total 135 96 40.6 TABLE 02 Overview First quarter 2026/27 Fiscal year 2026/27 forecast Group figures as of 31 May 2026 3 Economic report 4 Group results of operations 4 Group financial position 5 Group assets 7 Employees 9 Sugar segment 10 Specia",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "8d11e6efef531786bd69b17145e06ec0",
+            "791b9a3048781170ead196894a919b97"
+          ]
+        },
+        {
+          "published": "2026-07-09",
+          "page": 4,
+          "digest": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+          "verdict": "checked_only",
+          "quote": "4 Economic report SÜDZUCKER AG QUARTERLY STATEMENT Q1 2026/27 ECONOMIC REPORT Group results of operations Revenues and operating EBITDA Group consolidated revenues fell moderately to € 2,058 (2,153) million. Revenues declined significantly in the sugar segment, dropped moderately",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "aa55bdd9a7363bf15323937506a6f58b",
+            "791b9a3048781170ead196894a919b97"
+          ]
+        },
+        {
+          "published": "2026-07-09",
+          "page": 17,
+          "digest": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+          "verdict": "checked_only",
+          "quote": "is essentially due to the only temporary opera- tion of the plant in Wilton, UK. With higher achievable ethanol prices and concurrently lower net raw material costs, we foresee a substantial increase in operating EBITDA for the fiscal year 2026/27 (2025/26: € 71 million). Starch ",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "44e1a1ada7527a17b7397465a4292d6f",
+            "791b9a3048781170ead196894a919b97"
+          ]
+        },
+        {
+          "published": "2026-10-08",
+          "page": 2,
+          "digest": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+          "verdict": "checked_only",
+          "quote": "15 July 2027 Q2 – Half-year financial report 1st half year 2027/28 7 October 2027 Q3 – Quarterly statement 1st to 3rd quarter 2027/28 13 January 2028 First half year 2026/27 Revenues by segment 1st half year € million 2026/27 2025/26 +/– in % Sugar 1,269 1,389 –8.6 Special produc",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "4907e3b8c4d3cb36c30912645cd33377",
+            "9e7573aea50592b5c3659b9280d63faa"
+          ]
+        },
+        {
+          "published": "2026-10-08",
+          "page": 18,
+          "digest": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+          "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+          "verdict": "checked_only",
+          "quote": "fiscal year 2026/27, we expect slightly increasing sales volumes and moderately rising prices in the special products segment. We therefore anticipate a moderate increase in rev- enues (2025/26: € 2.2 billion). Following the increase in revenues and the concurrent moder- ate rise",
+          "reviewed": "2026-10-08",
+          "path": [
+            "e9ffcc28d4a59652a1e3e09efb48b6de",
+            "fe7ddc37015c9749ce39565e07fb5659",
+            "adaf8213b6f86d5afc3ea5c180eb32f3",
+            "a73e82f05a37756414ba69e6ac78f3f2",
+            "9e7573aea50592b5c3659b9280d63faa"
+          ]
+        }
+      ]
+    }
+  ],
+  "briefs": [],
+  "journal": []
+}

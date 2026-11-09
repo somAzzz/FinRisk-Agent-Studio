@@ -1,0 +1,845 @@
+{
+  "company": "Südzucker",
+  "as_of": "2026-10-08",
+  "nodes": [
+    {
+      "id": "Company/Südzucker",
+      "kind": "Company",
+      "name": "Südzucker"
+    },
+    {
+      "id": "Segment/Sugar",
+      "kind": "Segment",
+      "name": "Sugar"
+    },
+    {
+      "id": "Segment/Special products",
+      "kind": "Segment",
+      "name": "Special products"
+    },
+    {
+      "id": "Segment/CropEnergies",
+      "kind": "Segment",
+      "name": "CropEnergies"
+    },
+    {
+      "id": "Segment/Starch",
+      "kind": "Segment",
+      "name": "Starch"
+    },
+    {
+      "id": "Segment/Fruit",
+      "kind": "Segment",
+      "name": "Fruit"
+    },
+    {
+      "id": "Product/Sugar beet",
+      "kind": "Product",
+      "name": "Sugar beet"
+    },
+    {
+      "id": "Product/Sugar",
+      "kind": "Product",
+      "name": "Sugar"
+    },
+    {
+      "id": "Product/Liquid sugar",
+      "kind": "Product",
+      "name": "Liquid sugar"
+    },
+    {
+      "id": "Customer class/Food industry",
+      "kind": "Customer class",
+      "name": "Food industry"
+    },
+    {
+      "id": "Product/Native and modified starch",
+      "kind": "Product",
+      "name": "Native and modified starch"
+    },
+    {
+      "id": "Product/Starch sweetening products",
+      "kind": "Product",
+      "name": "Starch sweetening products"
+    },
+    {
+      "id": "Customer class/Paper industry",
+      "kind": "Customer class",
+      "name": "Paper industry"
+    },
+    {
+      "id": "Customer class/Beverage industry",
+      "kind": "Customer class",
+      "name": "Beverage industry"
+    },
+    {
+      "id": "Product/Fruit juice concentrate",
+      "kind": "Product",
+      "name": "Fruit juice concentrate"
+    },
+    {
+      "id": "Plant/Wabern sugar factory",
+      "kind": "Plant",
+      "name": "Wabern sugar factory"
+    },
+    {
+      "id": "Growing region/Southern Germany",
+      "kind": "Growing region",
+      "name": "Southern Germany"
+    },
+    {
+      "id": "Growing region/France",
+      "kind": "Growing region",
+      "name": "France"
+    },
+    {
+      "id": "Customer class/German sugary drink producers",
+      "kind": "Customer class",
+      "name": "German sugary drink producers"
+    },
+    {
+      "id": "Assigned task/German tax on sugar-sweetened beverages",
+      "kind": "Assigned task",
+      "name": "German tax on sugar-sweetened beverages",
+      "origin": "user_assigned",
+      "jurisdiction": "DE"
+    },
+    {
+      "id": "Policy observation/DE/coalition proposal",
+      "kind": "Policy observation",
+      "name": "DE/coalition proposal",
+      "jurisdiction": "DE",
+      "status": "coalition proposal",
+      "effective": null
+    },
+    {
+      "id": "Policy observation/FR/in force",
+      "kind": "Policy observation",
+      "name": "FR/in force",
+      "jurisdiction": "FR",
+      "status": "in force",
+      "effective": "2026-01-01"
+    },
+    {
+      "id": "Policy observation/EU/Commission policy coordination",
+      "kind": "Policy observation",
+      "name": "EU/Commission policy coordination",
+      "jurisdiction": "EU",
+      "status": "Commission policy coordination",
+      "effective": null
+    },
+    {
+      "id": "Scenario/German tax on sugar-sweetened beverages",
+      "kind": "Scenario",
+      "name": "German tax on sugar-sweetened beverages",
+      "assumptions": {
+        "litres": 100000000,
+        "grams_removed_per_litre": 2,
+        "supplier_share": 0.3,
+        "price_per_tonne": 500,
+        "variable_cost_per_tonne": 420
+      },
+      "tonnes_removed": 60.0,
+      "revenue_delta": -30000.0,
+      "operating_result_delta_fixed_other_costs": -4800.0,
+      "currency": "EUR",
+      "attributable_amount": "unknown"
+    },
+    {
+      "id": "Alert reference/e4239a57181801d1692f0146835e3183",
+      "kind": "Alert reference",
+      "name": "e4239a57181801d1692f0146835e3183",
+      "p0_scope": "bf498185b77e9a995790d2fd88096cc7",
+      "p0_id": "e4239a57181801d1692f0146835e3183",
+      "attributable_revenue": "unknown",
+      "attributable_operating_result": "unknown",
+      "fulfillment": "unknown"
+    },
+    {
+      "id": "Metric/Segment/Sugar/H1 2026-27/Revenues",
+      "kind": "Metric",
+      "name": "Segment/Sugar/H1 2026-27/Revenues",
+      "period": "H1 2026/27",
+      "comparison": "H1 2025/26",
+      "unit": "EUR million",
+      "current": 1269,
+      "prior": 1389,
+      "change": -120
+    },
+    {
+      "id": "Metric/Segment/Sugar/H1 2026-27/Operating result",
+      "kind": "Metric",
+      "name": "Segment/Sugar/H1 2026-27/Operating result",
+      "period": "H1 2026/27",
+      "comparison": "H1 2025/26",
+      "unit": "EUR million",
+      "current": -63,
+      "prior": -89,
+      "change": 26
+    },
+    {
+      "id": "Scenario/e4239a57181801d1692f0146835e3183",
+      "kind": "Scenario",
+      "name": "e4239a57181801d1692f0146835e3183",
+      "assumptions": {
+        "name": "Illustrative sensitivity",
+        "segment": "Sugar",
+        "currency": "EUR",
+        "tonnes": "100000",
+        "price": "500",
+        "variable_cost": "420",
+        "volume_change": "-0.1",
+        "price_change_per_tonne": "0",
+        "cost_change_per_tonne": "0",
+        "repricing_share": "1",
+        "additional_idle_cost": "0"
+      },
+      "revenue_delta": "-5000000.0",
+      "contribution_after_idle_cost_delta": "-800000.0",
+      "currency": "EUR"
+    },
+    {
+      "id": "Alert reference/b782527c7daabed511b8d534b928edf4",
+      "kind": "Alert reference",
+      "name": "b782527c7daabed511b8d534b928edf4",
+      "p0_scope": "bf498185b77e9a995790d2fd88096cc7",
+      "p0_id": "b782527c7daabed511b8d534b928edf4",
+      "attributable_revenue": "unknown",
+      "attributable_operating_result": "unknown",
+      "fulfillment": "unknown"
+    },
+    {
+      "id": "Metric/Segment/Starch/H1 2026-27/Revenues",
+      "kind": "Metric",
+      "name": "Segment/Starch/H1 2026-27/Revenues",
+      "period": "H1 2026/27",
+      "comparison": "H1 2025/26",
+      "unit": "EUR million",
+      "current": 456,
+      "prior": 474,
+      "change": -18
+    },
+    {
+      "id": "Metric/Segment/Starch/H1 2026-27/Operating result",
+      "kind": "Metric",
+      "name": "Segment/Starch/H1 2026-27/Operating result",
+      "period": "H1 2026/27",
+      "comparison": "H1 2025/26",
+      "unit": "EUR million",
+      "current": 12,
+      "prior": 5,
+      "change": 7
+    },
+    {
+      "id": "Scenario/b782527c7daabed511b8d534b928edf4",
+      "kind": "Scenario",
+      "name": "b782527c7daabed511b8d534b928edf4",
+      "assumptions": {
+        "name": "Illustrative sensitivity",
+        "segment": "Starch",
+        "currency": "EUR",
+        "tonnes": "10000",
+        "price": "500",
+        "variable_cost": "420",
+        "volume_change": "0.05",
+        "price_change_per_tonne": "-20",
+        "cost_change_per_tonne": "0",
+        "repricing_share": "1",
+        "additional_idle_cost": "0"
+      },
+      "revenue_delta": "40000.00",
+      "contribution_after_idle_cost_delta": "-170000.00",
+      "currency": "EUR"
+    }
+  ],
+  "edges": [
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Sugar",
+      "evidence": "structure",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Special products",
+      "evidence": "structure",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/CropEnergies",
+      "evidence": "structure",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Starch",
+      "evidence": "structure",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "HAS_SEGMENT",
+      "object": "Segment/Fruit",
+      "evidence": "structure",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "USES",
+      "object": "Product/Sugar beet",
+      "evidence": "sugar_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SELLS",
+      "object": "Product/Sugar",
+      "evidence": "sugar_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SELLS",
+      "object": "Product/Liquid sugar",
+      "evidence": "sugar_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "SERVES",
+      "object": "Customer class/Food industry",
+      "evidence": "sugar_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SELLS",
+      "object": "Product/Native and modified starch",
+      "evidence": "starch_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SELLS",
+      "object": "Product/Starch sweetening products",
+      "evidence": "starch_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SERVES",
+      "object": "Customer class/Food industry",
+      "evidence": "starch_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "SERVES",
+      "object": "Customer class/Paper industry",
+      "evidence": "starch_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Fruit",
+      "relation": "SERVES",
+      "object": "Customer class/Beverage industry",
+      "evidence": "fruit_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Fruit",
+      "relation": "SELLS",
+      "object": "Product/Fruit juice concentrate",
+      "evidence": "fruit_chain",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "HAS_SITE",
+      "object": "Plant/Wabern sugar factory",
+      "evidence": "wabern",
+      "provenance": "annual_report_disclosure",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Company/Südzucker",
+      "relation": "PERMIT_HOLDER_FOR",
+      "object": "Plant/Wabern sugar factory",
+      "evidence": "wabern_permit",
+      "provenance": "external_confirmation",
+      "published": "2024-12-20"
+    },
+    {
+      "subject": "Plant/Wabern sugar factory",
+      "relation": "PROCESSES",
+      "object": "Product/Sugar beet",
+      "evidence": "wabern_permit",
+      "provenance": "external_confirmation",
+      "published": "2024-12-20"
+    },
+    {
+      "subject": "Growing region/Southern Germany",
+      "relation": "GROWS",
+      "object": "Product/Sugar beet",
+      "evidence": "crop_regions",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Growing region/France",
+      "relation": "GROWS",
+      "object": "Product/Sugar beet",
+      "evidence": "crop_regions",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Customer class/German sugary drink producers",
+      "relation": "MAY_REDUCE_PURCHASES_OF",
+      "object": "Product/Liquid sugar",
+      "evidence": "sugar_chain",
+      "provenance": "model_inference",
+      "published": "2026-05-21"
+    },
+    {
+      "subject": "Assigned task/German tax on sugar-sweetened beverages",
+      "relation": "TRACKS",
+      "object": "Policy observation/DE/coalition proposal",
+      "evidence": "de_proposal",
+      "provenance": "external_confirmation",
+      "published": "2026-10-02"
+    },
+    {
+      "subject": "Policy observation/DE/coalition proposal",
+      "relation": "MAY_AFFECT",
+      "object": "Customer class/German sugary drink producers",
+      "evidence": "de_proposal",
+      "provenance": "model_inference",
+      "published": "2026-10-02"
+    },
+    {
+      "subject": "Assigned task/German tax on sugar-sweetened beverages",
+      "relation": "COMPARES",
+      "object": "Policy observation/FR/in force",
+      "evidence": "fr_schedule",
+      "provenance": "external_confirmation",
+      "published": "2025-12-24"
+    },
+    {
+      "subject": "Assigned task/German tax on sugar-sweetened beverages",
+      "relation": "COMPARES",
+      "object": "Policy observation/EU/Commission policy coordination",
+      "evidence": "eu_plan",
+      "provenance": "external_confirmation",
+      "published": "2025-12-16"
+    },
+    {
+      "subject": "Assigned task/German tax on sugar-sweetened beverages",
+      "relation": "HAS_SCENARIO",
+      "object": "Scenario/German tax on sugar-sweetened beverages",
+      "evidence": "de_proposal",
+      "provenance": "model_inference",
+      "published": "2026-10-02"
+    },
+    {
+      "subject": "Alert reference/e4239a57181801d1692f0146835e3183",
+      "relation": "CONCERNS",
+      "object": "Product/Sugar beet",
+      "evidence": "q1_outlook",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-07-09"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "REPORTED",
+      "object": "Metric/Segment/Sugar/H1 2026-27/Revenues",
+      "evidence": "sugar_results",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Segment/Sugar",
+      "relation": "REPORTED",
+      "object": "Metric/Segment/Sugar/H1 2026-27/Operating result",
+      "evidence": "sugar_results",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Alert reference/e4239a57181801d1692f0146835e3183",
+      "relation": "HAS_SCENARIO",
+      "object": "Scenario/e4239a57181801d1692f0146835e3183",
+      "evidence": "q1_outlook",
+      "provenance": "model_inference",
+      "published": "2026-07-09"
+    },
+    {
+      "subject": "Alert reference/b782527c7daabed511b8d534b928edf4",
+      "relation": "CONCERNS",
+      "object": "Product/Starch sweetening products",
+      "evidence": "h1_starch",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "REPORTED",
+      "object": "Metric/Segment/Starch/H1 2026-27/Revenues",
+      "evidence": "starch_results",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Segment/Starch",
+      "relation": "REPORTED",
+      "object": "Metric/Segment/Starch/H1 2026-27/Operating result",
+      "evidence": "starch_results",
+      "provenance": "issuer_interim_disclosure",
+      "published": "2026-10-08"
+    },
+    {
+      "subject": "Alert reference/b782527c7daabed511b8d534b928edf4",
+      "relation": "HAS_SCENARIO",
+      "object": "Scenario/b782527c7daabed511b8d534b928edf4",
+      "evidence": "h1_starch",
+      "provenance": "model_inference",
+      "published": "2026-10-08"
+    }
+  ],
+  "evidence": {
+    "structure": {
+      "document": "ar",
+      "page": 24,
+      "anchors": [
+        "Die Südzucker-Gruppe umfasst die fünf Segmente Zucker, Spezialitäten, CropEnergies, Stärke und Frucht."
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "sugar_chain": {
+      "document": "ar",
+      "page": 96,
+      "anchors": [
+        "Zucker • Zucker • Zuckerspezialitäten • Flüssigzucker",
+        "• Futtermittel • Lebensmittelindustrie",
+        "Anbauer von Zuckerrüben"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "starch_chain": {
+      "document": "ar",
+      "page": 97,
+      "anchors": [
+        "Stärke • Native und modifizierte Stärken • Verzuckerungsprodukte",
+        "• Nahrungsmittelindustrie • Papierindustrie"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "fruit_chain": {
+      "document": "ar",
+      "page": 97,
+      "anchors": [
+        "• Fruchtzubereitungen • Fruchtsaftkonzentrate",
+        "• Food-Service-Industrie • Getränkeindustrie Frucht"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "wabern": {
+      "document": "ar",
+      "page": 45,
+      "anchors": [
+        "Investitionen im Segment Zucker",
+        "Verladung und des Zuckersilos am Standort Wabern"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-05/Suedzucker_Geschaeftsbericht_2025-26.pdf",
+      "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+      "published": "2026-05-21",
+      "kind": "annual_report",
+      "format": "pdf"
+    },
+    "wabern_permit": {
+      "document": "permit",
+      "page": 1,
+      "anchors": [
+        "Südzucker AG",
+        "Betriebsstandort: Homberger Straße 1 in 34590 Wabern",
+        "Anlage zur Herstellung von Zucker aus Zuckerrüben"
+      ],
+      "url": "https://rp-kassel.hessen.de/sites/rp-kassel.hessen.de/files/2024-12/abschrift_bescheid_suedzucker_ag_wabern_siloerweiterung.pdf",
+      "published": "2024-12-20",
+      "sha256": "5f5a88d942de41fc9c01d04908af261a445f2267dac314e6b505a08f4a7c7c19",
+      "kind": "authority",
+      "format": "pdf",
+      "jurisdiction": "DE"
+    },
+    "crop_regions": {
+      "document": "h1",
+      "page": 12,
+      "anchors": [
+        "expected beet yields. Southern Germany and France were particularly affected"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+      "published": "2026-10-08",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "de_proposal": {
+      "document": "de_oct",
+      "page": null,
+      "anchors": [
+        "2. Oktober 2026",
+        "Es gibt den Vorschlag für die Zuckersteuer"
+      ],
+      "url": "https://www.bundesregierung.de/breg-de/suche/regierungspressekonferenz-vom-2-oktober-2026-2455546",
+      "published": "2026-10-02",
+      "sha256": "1079dc6c963fa1dc2708abbb678c838534c12df6c3819378e014abb9d91f8a9c",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "DE"
+    },
+    "fr_schedule": {
+      "document": "fr",
+      "page": null,
+      "anchors": [
+        "24/12/2025",
+        "sucres ajoutés, applicables à compter du 1 er janvier 2026"
+      ],
+      "url": "https://bofip.impots.gouv.fr/bofip/11575-PGP.html/identifiant%3DBOI-BAREME-000038-20251224",
+      "published": "2025-12-24",
+      "sha256": "8c1ab4dde97003e260c611019b63f5d3fb69d32f674c063f03fa81d91ba578a9",
+      "kind": "authority",
+      "format": "html",
+      "jurisdiction": "FR",
+      "instrument": "tax_schedule"
+    },
+    "eu_plan": {
+      "document": "eu",
+      "page": 13,
+      "anchors": [
+        "The Commission will continue to support Member States in advancing taxation"
+      ],
+      "url": "https://health.ec.europa.eu/document/download/dfb60cde-21a5-426d-8616-e394a326abc2_en?filename=ncd_com-2025-1024_act_en.pdf",
+      "published": "2025-12-16",
+      "sha256": "c1fe10cde29b6a331f687df5286f03597fd4a394fc760591be0eb76afbfa1bc1",
+      "kind": "authority",
+      "format": "pdf",
+      "jurisdiction": "EU",
+      "instrument": "commission_communication"
+    },
+    "q1_outlook": {
+      "document": "q1",
+      "page": 17,
+      "anchors": [
+        "We expect sugar production and sales volumes",
+        "shrinking beet cultivation area"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-07/Q1_2026-27_EN.pdf",
+      "sha256": "b118df381046934942760e4dd52e63205bef9c1a75bb6d0aafa9e133bf474a83",
+      "published": "2026-07-09",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "sugar_results": {
+      "document": "h1",
+      "page": 12,
+      "anchors": [
+        "Business performance – Sugar segment",
+        "Operating result"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+      "published": "2026-10-08",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "h1_starch": {
+      "document": "h1",
+      "page": 16,
+      "anchors": [
+        "Higher sales volumes for the main products",
+        "lower selling prices for starch and sweetening products"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+      "published": "2026-10-08",
+      "kind": "interim_report",
+      "format": "pdf"
+    },
+    "starch_results": {
+      "document": "h1",
+      "page": 16,
+      "anchors": [
+        "Business performance – Starch segment",
+        "Operating result"
+      ],
+      "url": "https://www.suedzuckergroup.com/sites/default/files/2026-10/Suedzucker_Q2_2026-27_en.pdf",
+      "sha256": "291d95b8fb54f9488022b33ad9dfb5b8a34110d0c7b311efa28d105b0b97b288",
+      "published": "2026-10-08",
+      "kind": "interim_report",
+      "format": "pdf"
+    }
+  },
+  "alerts": [
+    {
+      "alert": "e4239a57181801d1692f0146835e3183",
+      "day": "2026-10-08",
+      "published": "2026-07-09",
+      "evidence": "q1_outlook",
+      "product": "Product/Sugar beet",
+      "segment": "Segment/Sugar",
+      "fulfillment": "unknown",
+      "actuals": {
+        "Revenues": {
+          "current": 1269,
+          "prior": 1389,
+          "change": -120
+        },
+        "Operating result": {
+          "current": -63,
+          "prior": -89,
+          "change": 26
+        }
+      },
+      "financial_evidence": "sugar_results",
+      "interpretation": "Shrinking beet acreage led the issuer to forecast lower full-year sugar production and sales volumes in July. In H1 both selling prices and volume fell. Lower prior-campaign costs helped earnings; expected idle capacity added a burden.",
+      "attributable_revenue": "unknown",
+      "attributable_operating_result": "unknown",
+      "scenario": {
+        "assumptions": {
+          "name": "Illustrative sensitivity",
+          "segment": "Sugar",
+          "currency": "EUR",
+          "tonnes": "100000",
+          "price": "500",
+          "variable_cost": "420",
+          "volume_change": "-0.1",
+          "price_change_per_tonne": "0",
+          "cost_change_per_tonne": "0",
+          "repricing_share": "1",
+          "additional_idle_cost": "0"
+        },
+        "revenue_delta": "-5000000.0",
+        "contribution_after_idle_cost_delta": "-800000.0",
+        "currency": "EUR"
+      }
+    },
+    {
+      "alert": "b782527c7daabed511b8d534b928edf4",
+      "day": "2026-10-08",
+      "published": "2026-10-08",
+      "evidence": "h1_starch",
+      "product": "Product/Starch sweetening products",
+      "segment": "Segment/Starch",
+      "fulfillment": "unknown",
+      "actuals": {
+        "Revenues": {
+          "current": 456,
+          "prior": 474,
+          "change": -18
+        },
+        "Operating result": {
+          "current": 12,
+          "prior": 5,
+          "change": 7
+        }
+      },
+      "financial_evidence": "starch_results",
+      "interpretation": "Higher volumes and ethanol prices partly offset lower starch and sweetener prices. Ethanol margins supported earnings; the issuer gives no event-specific price/volume bridge.",
+      "attributable_revenue": "unknown",
+      "attributable_operating_result": "unknown",
+      "scenario": {
+        "assumptions": {
+          "name": "Illustrative sensitivity",
+          "segment": "Starch",
+          "currency": "EUR",
+          "tonnes": "10000",
+          "price": "500",
+          "variable_cost": "420",
+          "volume_change": "0.05",
+          "price_change_per_tonne": "-20",
+          "cost_change_per_tonne": "0",
+          "repricing_share": "1",
+          "additional_idle_cost": "0"
+        },
+        "revenue_delta": "40000.00",
+        "contribution_after_idle_cost_delta": "-170000.00",
+        "currency": "EUR"
+      }
+    }
+  ],
+  "policy_task": "German tax on sugar-sweetened beverages",
+  "policies": {
+    "DE": {
+      "jurisdiction": "DE",
+      "status": "coalition proposal",
+      "evidence": "de_proposal",
+      "published": "2026-10-02"
+    },
+    "FR": {
+      "jurisdiction": "FR",
+      "status": "in force",
+      "evidence": "fr_schedule",
+      "effective": "2026-01-01",
+      "published": "2025-12-24"
+    },
+    "EU": {
+      "jurisdiction": "EU",
+      "status": "Commission policy coordination",
+      "evidence": "eu_plan",
+      "published": "2025-12-16"
+    }
+  },
+  "policy_notes": [],
+  "tax_scenario": {
+    "assumptions": {
+      "litres": 100000000,
+      "grams_removed_per_litre": 2,
+      "supplier_share": 0.3,
+      "price_per_tonne": 500,
+      "variable_cost_per_tonne": 420
+    },
+    "tonnes_removed": 60.0,
+    "revenue_delta": -30000.0,
+    "operating_result_delta_fixed_other_costs": -4800.0,
+    "currency": "EUR",
+    "attributable_amount": "unknown"
+  },
+  "target_jurisdiction": "DE",
+  "unmapped_alerts": []
+}

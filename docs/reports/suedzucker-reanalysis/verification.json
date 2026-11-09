@@ -1,0 +1,33 @@
+{
+  "annual_sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+  "pages": 278,
+  "financial_reconciliations_passed": 4,
+  "audited_narrative": {
+    "wrong_citation": 1,
+    "supported": 8,
+    "insufficient": 4,
+    "partial": 1
+  },
+  "product_relationships": {
+    "unknown": 28
+  },
+  "reviewed_case_matches_archive_excluding_prior_database_readback": true,
+  "fresh_tracker": {
+    "2026-05-21": {
+      "eligible_originals": 1,
+      "new_alerts": 0,
+      "unknown_fulfillment": 3
+    },
+    "2026-10-08": {
+      "eligible_originals": 3,
+      "new_alerts": 0,
+      "unknown_fulfillment": 3
+    },
+    "2026-11-08": {
+      "eligible_originals": 3,
+      "new_alerts": 0,
+      "unknown_fulfillment": 3
+    }
+  },
+  "eligible_originals_and_node_dates_checked": true
+}

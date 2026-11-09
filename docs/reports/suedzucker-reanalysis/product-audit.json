@@ -1,0 +1,2454 @@
+{
+  "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e",
+  "pages": [
+    {
+      "page": 1,
+      "method": "ocr",
+      "ocr_reason": "sparse_text_over_image",
+      "edges": []
+    },
+    {
+      "page": 2,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 3,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 4,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 5,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 6,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 7,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 8,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 9,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 10,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 11,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 12,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BENEO",
+          "page": 12,
+          "quote": "- Special Products (BENEO, PortionPack)",
+          "line": 81,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "PortionPack",
+          "page": 12,
+          "quote": "- Special Products (BENEO, PortionPack)",
+          "line": 81,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 13,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 14,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 15,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 16,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 17,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 18,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 19,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 20,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 21,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 22,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 23,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 24,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 25,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 26,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "beet2go",
+          "page": 26,
+          "quote": "Lösungen wie die mobile Anwendung „beet2go“, die den gesamten",
+          "line": 70,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 27,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 28,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BeetKraft®",
+          "page": 28,
+          "quote": "BeetKraft®",
+          "line": 98,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 29,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 30,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 31,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 32,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 33,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 34,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 35,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 36,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 37,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 38,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 39,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 40,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 41,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 42,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 43,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 44,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 45,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 46,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BENEO",
+          "page": 46,
+          "quote": "BENEO",
+          "line": 22,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Freiberger",
+          "page": 46,
+          "quote": "Freiberger",
+          "line": 40,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 47,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BENEO Freiberger PortionPack",
+          "page": 47,
+          "quote": "BENEO Freiberger PortionPack",
+          "line": 13,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Isomalt",
+          "page": 47,
+          "quote": "Isomalt, PalatinoseTM",
+          "line": 59,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "PalatinoseTM",
+          "page": 47,
+          "quote": "Isomalt, PalatinoseTM",
+          "line": 59,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Isomalt",
+          "page": 47,
+          "quote": "Isomalt, PalatinoseTM",
+          "line": 59,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "PalatinoseTM",
+          "page": 47,
+          "quote": "Isomalt, PalatinoseTM",
+          "line": 59,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "galenIQTM",
+          "page": 47,
+          "quote": ", galenIQTM",
+          "line": 60,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Orafti®",
+          "page": 47,
+          "quote": "Orafti®",
+          "line": 62,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Inulin",
+          "page": 47,
+          "quote": "Inulin, Orafti®",
+          "line": 63,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Oligofruktose",
+          "page": 47,
+          "quote": "Oligofruktose,",
+          "line": 64,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "ß-Fit",
+          "page": 47,
+          "quote": "ß-Fit; Remy, Meatless®",
+          "line": 66,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Remy",
+          "page": 47,
+          "quote": "ß-Fit; Remy, Meatless®",
+          "line": 66,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Meatless®",
+          "page": 47,
+          "quote": "ß-Fit; Remy, Meatless®",
+          "line": 66,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Alberto",
+          "page": 47,
+          "quote": "Handelseigenmarken, Alberto,",
+          "line": 67,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Pizzatainment",
+          "page": 47,
+          "quote": "Pizzatainment",
+          "line": 68,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Hellma",
+          "page": 47,
+          "quote": "Hellma, Van Oordt",
+          "line": 69,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Van Oordt",
+          "page": 47,
+          "quote": "Hellma, Van Oordt",
+          "line": 69,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 48,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Spezialitäten",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Freiberger",
+          "page": 48,
+          "quote": "Freiberger als größtem Hersteller – überdurchschnittlich betroffen",
+          "line": 27,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 49,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Spezialitäten",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Palatinit",
+          "page": 49,
+          "quote": "• Ausbau der Produktionskapazitäten für Palatinit am",
+          "line": 25,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Spezialitäten",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Palatinose™",
+          "page": 49,
+          "quote": "Palatinose™ und galenIQ™ ausgeglichen werden.",
+          "line": 50,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Spezialitäten",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "galenIQ™",
+          "page": 49,
+          "quote": "Palatinose™ und galenIQ™ ausgeglichen werden.",
+          "line": 50,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 50,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 51,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 52,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 53,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 54,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 55,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 56,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 57,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "Stärke",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "ActiProt®",
+          "page": 57,
+          "quote": "ActiProt®",
+          "line": 50,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Stärke",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BioAgenasol®",
+          "page": 57,
+          "quote": ", BioAgenasol®",
+          "line": 51,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "Stärke",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "AgenaBee®",
+          "page": 57,
+          "quote": ", AgenaBee®",
+          "line": 52,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 58,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 59,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 60,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 61,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 62,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 63,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 64,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 65,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 66,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 67,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 68,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 69,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 70,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 71,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 72,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 73,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 74,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 75,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 76,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 77,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 78,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 79,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 80,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 81,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 82,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 83,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 84,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 85,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 86,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 87,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 88,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 89,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 90,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 91,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 92,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 93,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 94,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 95,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 96,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 97,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 98,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 99,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 100,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 101,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 102,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 103,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 104,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 105,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 106,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 107,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 108,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 109,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 110,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 111,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 112,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 113,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 114,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 115,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 116,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 117,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 118,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 119,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 120,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 121,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 122,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 123,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 124,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 125,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 126,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 127,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 128,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 129,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 130,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 131,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 132,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 133,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 134,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 135,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 136,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 137,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 138,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 139,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 140,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 141,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 142,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 143,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 144,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 145,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 146,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 147,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 148,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 149,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 150,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 151,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 152,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 153,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 154,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 155,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 156,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 157,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 158,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 159,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 160,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 161,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 162,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 163,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 164,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 165,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 166,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 167,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 168,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 169,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 170,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Tiefkühlpizza",
+          "page": 170,
+          "quote": "Gesamternährung an. Convenience-Produkte wie Tiefkühlpizza",
+          "line": 64,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "BENEO",
+          "page": 170,
+          "quote": "kette BENEO",
+          "line": 111,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 171,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 172,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 173,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 174,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 175,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 176,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 177,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 178,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 179,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 180,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 181,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 182,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 183,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 184,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 185,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 186,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 187,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 188,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 189,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 190,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 191,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 192,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 193,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 194,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 195,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 196,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 197,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 198,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 199,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 200,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 201,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 202,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 203,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 204,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 205,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 206,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 207,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 208,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 209,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 210,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 211,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 212,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 213,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 214,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 215,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 216,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 217,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 218,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 219,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 220,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 221,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 222,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 223,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 224,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 225,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 226,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 227,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 228,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 229,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": [
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Beneo",
+          "page": 229,
+          "quote": "Notwendigkeit einer Wertberichtigung. Für die CGUs Beneo,             (22) Sachanlagen einschließlich Leasing",
+          "line": 3,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "PortionPack",
+          "page": 229,
+          "quote": "PortionPack und Freiberger wurde zudem eine Sensitivitätsanalyse",
+          "line": 4,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Freiberger",
+          "page": 229,
+          "quote": "PortionPack und Freiberger wurde zudem eine Sensitivitätsanalyse",
+          "line": 4,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        },
+        {
+          "subject_kind": "Segment",
+          "subject": "unknown",
+          "relation": "PRODUCES",
+          "object_kind": "Product",
+          "object": "Frucht",
+          "page": 229,
+          "quote": "eine Wertberichtigung. Die CGU Frucht verwendet eine Basis-                                                                       grundstücksgleiche",
+          "line": 8,
+          "status": "unknown",
+          "review": "Formal segment is unconfirmed in the issuer's note."
+        }
+      ]
+    },
+    {
+      "page": 230,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 231,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 232,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 233,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 234,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 235,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 236,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 237,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 238,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 239,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 240,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 241,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 242,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 243,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 244,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 245,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 246,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 247,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 248,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 249,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 250,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 251,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 252,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 253,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 254,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 255,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 256,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 257,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 258,
+      "method": "layout",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 259,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 260,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 261,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 262,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 263,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 264,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 265,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 266,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 267,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 268,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 269,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 270,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 271,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 272,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 273,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 274,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 275,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 276,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 277,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    },
+    {
+      "page": 278,
+      "method": "native",
+      "ocr_reason": null,
+      "edges": []
+    }
+  ],
+  "note": {
+    "definitions": {},
+    "page": null,
+    "context": "",
+    "sha256": "597193d6e3ff8ba389272bdfd597554a278b4ad9cc1137d87d8d5232d90a791e"
+  },
+  "elapsed_s": 86.17058964899479,
+  "methods": {
+    "ocr": 1,
+    "layout": 44,
+    "native": 233
+  },
+  "warnings": [],
+  "edges": [
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "BENEO",
+      "page": 12,
+      "quote": "- Special Products (BENEO, PortionPack)",
+      "line": 81,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "PortionPack",
+      "page": 12,
+      "quote": "- Special Products (BENEO, PortionPack)",
+      "line": 81,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "beet2go",
+      "page": 26,
+      "quote": "Lösungen wie die mobile Anwendung „beet2go“, die den gesamten",
+      "line": 70,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "BeetKraft®",
+      "page": 28,
+      "quote": "BeetKraft®",
+      "line": 98,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Freiberger",
+      "page": 46,
+      "quote": "Freiberger",
+      "line": 40,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "BENEO Freiberger PortionPack",
+      "page": 47,
+      "quote": "BENEO Freiberger PortionPack",
+      "line": 13,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Isomalt",
+      "page": 47,
+      "quote": "Isomalt, PalatinoseTM",
+      "line": 59,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "PalatinoseTM",
+      "page": 47,
+      "quote": "Isomalt, PalatinoseTM",
+      "line": 59,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "galenIQTM",
+      "page": 47,
+      "quote": ", galenIQTM",
+      "line": 60,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Orafti®",
+      "page": 47,
+      "quote": "Orafti®",
+      "line": 62,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Inulin",
+      "page": 47,
+      "quote": "Inulin, Orafti®",
+      "line": 63,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Oligofruktose",
+      "page": 47,
+      "quote": "Oligofruktose,",
+      "line": 64,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "ß-Fit",
+      "page": 47,
+      "quote": "ß-Fit; Remy, Meatless®",
+      "line": 66,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Remy",
+      "page": 47,
+      "quote": "ß-Fit; Remy, Meatless®",
+      "line": 66,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Meatless®",
+      "page": 47,
+      "quote": "ß-Fit; Remy, Meatless®",
+      "line": 66,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Alberto",
+      "page": 47,
+      "quote": "Handelseigenmarken, Alberto,",
+      "line": 67,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Pizzatainment",
+      "page": 47,
+      "quote": "Pizzatainment",
+      "line": 68,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Hellma",
+      "page": 47,
+      "quote": "Hellma, Van Oordt",
+      "line": 69,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Van Oordt",
+      "page": 47,
+      "quote": "Hellma, Van Oordt",
+      "line": 69,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Spezialitäten",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Freiberger",
+      "page": 48,
+      "quote": "Freiberger als größtem Hersteller – überdurchschnittlich betroffen",
+      "line": 27,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Spezialitäten",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Palatinit",
+      "page": 49,
+      "quote": "• Ausbau der Produktionskapazitäten für Palatinit am",
+      "line": 25,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Spezialitäten",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Palatinose™",
+      "page": 49,
+      "quote": "Palatinose™ und galenIQ™ ausgeglichen werden.",
+      "line": 50,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Spezialitäten",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "galenIQ™",
+      "page": 49,
+      "quote": "Palatinose™ und galenIQ™ ausgeglichen werden.",
+      "line": 50,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Stärke",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "ActiProt®",
+      "page": 57,
+      "quote": "ActiProt®",
+      "line": 50,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Stärke",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "BioAgenasol®",
+      "page": 57,
+      "quote": ", BioAgenasol®",
+      "line": 51,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "Stärke",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "AgenaBee®",
+      "page": 57,
+      "quote": ", AgenaBee®",
+      "line": 52,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Tiefkühlpizza",
+      "page": 170,
+      "quote": "Gesamternährung an. Convenience-Produkte wie Tiefkühlpizza",
+      "line": 64,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    },
+    {
+      "subject_kind": "Segment",
+      "subject": "unknown",
+      "relation": "PRODUCES",
+      "object_kind": "Product",
+      "object": "Frucht",
+      "page": 229,
+      "quote": "eine Wertberichtigung. Die CGU Frucht verwendet eine Basis-                                                                       grundstücksgleiche",
+      "line": 8,
+      "status": "unknown",
+      "review": "Formal segment is unconfirmed in the issuer's note."
+    }
+  ]
+}
