@@ -1,8 +1,6 @@
 # FinRisk Agent Studio v0.1 项目状态
 
-最后更新：2026-09-03
-
-代码实现基线：`b277c90`（`main`）；本文按当前工作树复核
+年报能力更新于 2026-11-09。已提交的功能基线为 `0f177ec`；下文原有发布评估记录于 2026-09-03。
 
 发布状态：`v0.1` 候选，尚未发布；包版本为 `0.1.0`，仓库尚无产品 tag。
 
@@ -18,6 +16,10 @@ FinRisk Agent Studio 已形成可运行的 evidence-first 个人金融研究工�
 2. 完成 Agent 长期记忆与失败恢复；
 3. 清理全仓历史 lint 债务；
 4. 明确并创建首个 `v0.1.0` 发布 tag。
+
+## 年报分析与验证
+
+年报工作流支持 PDF 和 inline XBRL 提取、带页码的证据引用、按截止日审计及风险敞口回放。产品与分部关系的验证范围及未确认条目见[目录回归报告](reports/segment-catalog/report.md)；两个截止日的披露和图回放结果见[Südzucker 案例](reports/suedzucker-p1/README.md)。
 
 ## 完成状态
 

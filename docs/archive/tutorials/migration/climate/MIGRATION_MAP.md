@@ -9,7 +9,7 @@ Chapter 6–9 的 [runtime 迁移总图](../runtime/MIGRATION_MAP.md)说明 FinR
 Pydantic AI。本图说明另一个问题：如何把 `llm_tcfd` 的研究资产选择性迁入已经完成 runtime
 重构的 FinRisk，而不复制第二套基础设施或沿用错误业务语义。
 
-权威架构边界见 [TCFD 合并方案](../../../tcfd-integration-plan.md)。本图只负责把源资产、
+当前产品边界见 [v0.1 规格](../../../../specs/v0.1.md)。本图只负责把源资产、
 目标文件、教程章节和审核门对应起来。
 
 ## 起点与终点

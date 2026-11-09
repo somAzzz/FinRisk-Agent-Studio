@@ -4,7 +4,6 @@
 
 - [Pydantic AI 教程与迁移实验](tutorials/README.md)：当前实现导读与独立的历史/条件式迁移路线。
 - [Pydantic AI 运行时迁移与 PAI-0～PAI-7 验收记录](pydantic-ai-migration/README.md)
-- [TCFD 气候披露能力合并方案](tcfd-integration-plan.md)
 
 当前功能、状态和路线请分别查看 [项目全景](../PROJECT_OVERVIEW_INTERVIEW_CN.md)、
 [项目状态](../STATUS.md)和[路线图](../ROADMAP.md)。归档内容中的版本、分支、依赖和计划

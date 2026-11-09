@@ -294,7 +294,7 @@ curl -fsS http://127.0.0.1:8001/v1/models
 
 ### 分析在线或本地年报
 
-在 Workflow Launcher 展开 **Analyze an annual report**，选择本地文件或公开 URL。命令行也支持同一组参数。用实际文件路径替换下面的示例路径。
+打开年报库 `#/companies/library/annual-reports`。在本地工作台发起年报分析，选择本地文件或公开 URL。静态演示支持浏览归档报告。命令行也支持同一组参数。用实际文件路径替换下面的示例路径。
 
 ```bash
 uv run --env-file .env python main.py annual-report ./report.pdf --extract-only --output extraction.json

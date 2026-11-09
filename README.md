@@ -323,7 +323,7 @@ This project includes data from Yahoo Finance, licensed under ODC-BY.
 
 ### Analyze a local or public annual report
 
-Open **Analyze an annual report** in the workflow launcher, or use the CLI:
+Open the annual report library at `#/companies/library/annual-reports`. In the local workbench, start a filing analysis and select a file or public URL. The static demo lets you browse archived reports. To analyze a file from the CLI:
 
 ```bash
 uv run --env-file .env python main.py annual-report report.pdf --extract-only --output extraction.json
